@@ -7,7 +7,7 @@ Repositorio correspondiente a la aplicacion JEX.
 2. *Crea una nueva rama basada en la rama `main`, siguiendo la nomenclatura adecuada.
 3. Trabaja exclusivamente en tu nueva rama
 4. Hace `git pull origin main` antes de subir tus cambios para asegurarte de que tu rama esté actualizada.
-5. Crea un Pull Request (PR hacia `main`.
+5. Crea un Pull Request (PR) hacia `main`.
 6. Una vez aceptado el PR la rama será eliminada y los cambios se integrarán a `main`.
 
 ---
