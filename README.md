@@ -26,7 +26,7 @@ Toda nueva funcionalidad o corrección debe crearse a partir de `main` y utiliza
 
 Antes de los cambios
 - `git pull develop`
-- `git checkout -b "fix/nombre-rama"`
+- `git checkout -b "fix/nombre-rama"` o `git switch -c "fix/nombre-rama"`
 
 Una vez hecho los cambios
 
