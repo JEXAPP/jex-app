@@ -1,5 +1,5 @@
-# JEX Backend
-Repositorio correspondiente al backend de la aplicacion JEX.
+# JEX
+Repositorio correspondiente a la aplicacion JEX.
 
 ## Flujo de Trabajo
 
