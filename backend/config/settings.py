@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 """
 Django settings for config project.
 
@@ -24,8 +26,15 @@ dotenv.load_dotenv(os.path.join(BASE_DIR, '.env'))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u1+kj*5qa0qris(!r!s!)@)8m50t9%+^!0ap=(u8p(iz0+lf&$'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+JWT_SIGNING_KEY = os.environ.get('JWT_SIGNING_KEY', SECRET_KEY)
+
+SIMPLE_JWT = {
+    'SIGNING_KEY': JWT_SIGNING_KEY,
+    'ALGORITHM': 'HS256',
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -43,7 +52,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'eventos'
+    'rest_framework.authtoken',
+    'eventos',
+    'user_auth'
 ]
 
 MIDDLEWARE = [
@@ -75,6 +86,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+}
 
 
 # Database
