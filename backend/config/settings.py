@@ -31,7 +31,6 @@ JWT_SIGNING_KEY = os.environ.get('JWT_SIGNING_KEY', SECRET_KEY)
 
 SIMPLE_JWT = {
     'SIGNING_KEY': JWT_SIGNING_KEY,
-    'ALGORITHM': 'HS256',
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
