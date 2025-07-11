@@ -28,3 +28,21 @@
   source venv/bin/activate
   ```
 
+  ## 📦 Instalar dependencias
+   ```bash
+  pip install -r requirements.txt
+  ```
+
+## 🗃️ Ejecutar migraciones
+
+   ```bash
+  python manage.py migrate
+  ```
+
+## 🚀 Ejecutar el servidor
+
+ ```bash
+  python manage.py runserver
+  ```
+
+
