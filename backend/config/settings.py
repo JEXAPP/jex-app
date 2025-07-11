@@ -50,13 +50,27 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # ← necesario para allauth
     'rest_framework',
     'rest_framework.authtoken',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
     'eventos',
-    'user_auth'
+    'user_auth',
+    'allauth',
+    'allauth.account',
+
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+
 ]
 
+REST_USE_JWT = True
+
+SITE_ID = 1
+
 MIDDLEWARE = [
+    "allauth.account.middleware.AccountMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -66,6 +80,30 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+AUTHENTICATION_BACKENDS = [
+    # Needed to login by username in Django admin, regardless of `allauth`
+    'django.contrib.auth.backends.ModelBackend',
+
+    # `allauth` specific authentication methods, such as login by email
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+DJRESTAUTH_TOKEN_SERIALIZER = "dj_rest_auth.serializers.JWTSerializer"
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+
+        'APP': {
+            'client_id': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_CLIENT_ID'),
+            'secret': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET'),
+            'key': ''
+        }
+    }
+}
+
+SOCIALACCOUNT_LOGIN_ON_GET = True
+#LOGIN_REDIRECT_URL = ''
+#LOGOUT_REDIRECT_URL = ''
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -88,7 +126,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
