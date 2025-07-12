@@ -6,6 +6,9 @@ import { Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
 import { exitHeader } from '@/constants/headers';
+import { transitionFade } from '@/constants/transitions';
+
+
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts(fontMap);
@@ -29,8 +32,11 @@ export default function RootLayout() {
       }}
     >
       {/* Solo personalizás las excepciones */}
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="registro/index" options={exitHeader('/')} />
+      <Stack.Screen name="index" options={{ ...exitHeader('/'), ...transitionFade, headerShown: false }} />
+      <Stack.Screen name="registro/index" options={{ ...exitHeader('/'), ...transitionFade, }} />
+      <Stack.Screen name="registro/empleado" options={{ ...exitHeader('/'), ...transitionFade, }} />
+      <Stack.Screen name="registro/empleador" options={{ ...exitHeader('/'), ...transitionFade, }} />
+      
     </Stack>
 
   );
