@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useGoogleAuthRequest } from '@/services/useGoogleAuthRequest';
 
 
-export const useLoginInicio = () => {
+export const useLogin = () => {
   const router = useRouter();
 
   // Estados del formulario
