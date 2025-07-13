@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'user_auth',
     'django.contrib.sites',  # ← necesario para allauth
     'rest_framework',
     'rest_framework.authtoken',
@@ -59,7 +60,6 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'eventos',
-    'user_auth',
     'allauth',
     'allauth.account',
 

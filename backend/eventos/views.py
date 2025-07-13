@@ -10,7 +10,7 @@ from eventos.models import Event
 class CreateEventView(CreateAPIView):
     serializer_class = EventSerializer
     permission_classes = [IsInGroup]
-    required_groups = ["empleador"]
+    required_groups = ["employer"]
 
 
 class EventListView(ListAPIView):
