@@ -33,6 +33,8 @@ SIMPLE_JWT = {
     'SIGNING_KEY': JWT_SIGNING_KEY,
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ROTATE_REFRESH_TOKENS': True,
 }
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -53,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.sites',  # ← necesario para allauth
     'rest_framework',
     'rest_framework.authtoken',
+    'rest_framework_simplejwt.token_blacklist',
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'eventos',
@@ -87,6 +90,9 @@ AUTHENTICATION_BACKENDS = [
     # `allauth` specific authentication methods, such as login by email
     'allauth.account.auth_backends.AuthenticationBackend',
 ]
+
+TIME_ZONE = 'America/Argentina/Buenos_Aires'
+USE_TZ = True
 
 DJRESTAUTH_TOKEN_SERIALIZER = "dj_rest_auth.serializers.JWTSerializer"
 
