@@ -14,7 +14,7 @@ from datetime import timedelta
 from django.core.mail import send_mail
 from django.contrib.auth.models import Group
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from user_auth.models import PasswordResetOTP, User
+from user_auth.models import PasswordResetOTP, CustomUser
 from .serializers import EmployerRegisterSerializer, EmployeeRegisterSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer
 
 class EmployerRegisterView(APIView):
@@ -66,8 +66,8 @@ class PasswordResetRequestView(GenericAPIView):
         email = serializer.validated_data['email']
 
         try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
             # No revelamos si existe el email
             return Response({"detail": "Si el email existe, se envió un código de recuperación."}, status=status.HTTP_200_OK)
 
@@ -104,8 +104,8 @@ class PasswordResetConfirmView(GenericAPIView):
         new_password = serializer.validated_data['new_password']
 
         try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
             return Response({"detail": "Email o código inválido."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:

@@ -1,8 +1,8 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
 from django.contrib.auth.models import Group
 from django.contrib.auth import authenticate
 from rest_framework import serializers
+from django.contrib.auth.password_validation import validate_password
 
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from .models import CustomUser, EmployerProfile, EmployeeProfile

@@ -92,7 +92,6 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 
-
 DJRESTAUTH_TOKEN_SERIALIZER = "dj_rest_auth.serializers.JWTSerializer"
 
 SOCIALACCOUNT_PROVIDERS = {
@@ -136,6 +135,8 @@ TEMPLATES = [
         },
     },
 ]
+
+AUTH_USER_MODEL  = 'user_auth.CustomUser'
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
