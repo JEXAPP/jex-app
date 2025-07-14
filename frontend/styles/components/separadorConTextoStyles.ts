@@ -6,7 +6,7 @@ export const separadorConTextoStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',
-    marginVertical: 20,
+    marginVertical: 15,
   },
   line: {
     width: 150,

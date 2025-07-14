@@ -1,20 +1,23 @@
 import { BotonConIcono } from '@/components/BotonConIcono';
 import { SeparadorConTexto } from '@/components/SeparadorConTexto';
+import { botonStyles5 } from '@/styles/components/boton/botonStyles5';
 import { botonConIconoStyles } from '@/styles/components/botonConIconoStyles';
-import { inputStyles } from '@/styles/components/inputStyles';
+import { inputStyles1 } from '@/styles/components/input/inputStyles1';
 import { separadorConTextoStyles } from '@/styles/components/separadorConTextoStyles';
 import React from 'react';
-import { Image, Text, View, Keyboard, TouchableWithoutFeedback  } from 'react-native';
-import { Boton } from '../components/Boton';
-import { Input } from '../components/Input';
-import { ModalConTexto } from '../components/ModalConTexto';
-import { ModalTemporal } from '../components/ModalTemporal';
-import { useLogin } from '../hooks/useLogin';
-import { loginStyles as styles } from '../styles/app/loginStyles';
-import { botonStyles1 } from '../styles/components/boton/botonStyles1';
-import { botonStyles2 } from '../styles/components/boton/botonStyles2';
-import { modalConTextoStyles } from '../styles/components/modalConTextoStyles';
-import { modalTemporalStyles } from '../styles/components/modalTemporalStyles';
+import { Keyboard, Text, TouchableWithoutFeedback, View } from 'react-native';
+import { Boton } from '../../components/Boton';
+import { Input } from '../../components/Input';
+import { ModalConTexto } from '../../components/ModalConTexto';
+import { ModalTemporal } from '../../components/ModalTemporal';
+import { useLogin } from '../../hooks/login/useLogin';
+import { loginStyles as styles } from '../../styles/app/login/loginStyles';
+import { botonStyles1 } from '../../styles/components/boton/botonStyles1';
+import { botonStyles2 } from '../../styles/components/boton/botonStyles2';
+import { modalConTextoStyles } from '../../styles/components/modalConTextoStyles';
+import { modalTemporalStyles } from '../../styles/components/modalTemporalStyles';
+import { iconos } from '@/constants/iconos';
+import { Colors } from '@/themes/colors';
 
 export default function IndexScreen() {
   const {
@@ -28,10 +31,10 @@ export default function IndexScreen() {
     errorMessage,
     closeError,
     showSuccess,
-    successMessage,
     closeSuccess,
     handleGoogleLogin,
-    request
+    request,
+    handlePasswordForgot
   } = useLogin();
 
   return (
@@ -46,7 +49,7 @@ export default function IndexScreen() {
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
-          styles={inputStyles}
+          styles={inputStyles1}
         />
 
         <Input
@@ -54,7 +57,13 @@ export default function IndexScreen() {
           secureTextEntry
           value={password}
           onChangeText={setPassword}
-          styles={inputStyles}
+          styles={inputStyles1}
+        />
+
+        <Boton
+          texto="Olvidé mi contraseña"
+          onPress={handlePasswordForgot}
+          styles={botonStyles5}
         />
 
         <Boton 
@@ -69,21 +78,19 @@ export default function IndexScreen() {
           styles={botonStyles2}
         />
 
-        <Image 
-          source={require('../assets/images/jex/Jex-Mirando-Arriba-Cerca.png')} 
-          style={styles.image} 
-        />
-
-        <ModalConTexto
-          visible={showError}
-          message={errorMessage}
-          onClose={closeError}
-          styles={modalConTextoStyles}
+        <ModalConTexto 
+          title='Error'
+          visible={showError} 
+          message={errorMessage} 
+          onClose={closeError} 
+          styles={modalConTextoStyles} 
+          icono={iconos.error(24, Colors.violet4)}
+          buttonText='Entendido'
         />
 
         <ModalTemporal
           visible={showSuccess}
-          message={successMessage}
+          icono={iconos.exito(40, Colors.white)}
           onClose={closeSuccess}
           styles={modalTemporalStyles}
           duration={2000}

@@ -5,10 +5,14 @@ export const Colors = {
   violet3: '#64278C',
   violet4: '#511F73',
   violet5: '#432D59',
-  violetInicio: '#6d418a',
 
   // Paleta Gris
   gray1: '#F3F3F3',
   gray2: '#DEDEDE',
   gray3: '#5D5C5C',
+
+  red: '#ad1b1bff',
+  green: '#407521ff',
+  white: '#ffffff',
+  black: '#000000'
 };

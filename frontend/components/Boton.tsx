@@ -9,7 +9,7 @@ interface BotonProps extends TouchableOpacityProps {
     texto: StyleProp<TextStyle>;}
 }
 
-export const Boton = ({ texto, onPress, styles}: BotonProps) => {
+export const Boton = ({ texto, onPress, styles, disabled=false}: BotonProps) => {
   return (
     <TouchableOpacity
       style={[
@@ -17,6 +17,7 @@ export const Boton = ({ texto, onPress, styles}: BotonProps) => {
         styles.boton,
       ]}
       onPress={onPress}
+      disabled={disabled}
     >
       <Text
         style={[

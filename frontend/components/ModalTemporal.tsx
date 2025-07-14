@@ -1,21 +1,19 @@
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import React, { useEffect } from 'react';
 import { Modal, StyleProp,View, ViewStyle } from 'react-native';
-import { Colors } from '../themes/colors';
+
 
 interface ModalTemporalProps {
   visible: boolean;
-  message: string;
   onClose: () => void;
   duration: number;
+  icono: React.ReactNode;
   styles: {
     overlay: StyleProp<ViewStyle>;
     modal: StyleProp<ViewStyle>;
-    row: StyleProp<ViewStyle>;
   };
 }
 
-export const ModalTemporal = ({ visible, onClose, styles, duration }: ModalTemporalProps) => {
+export const ModalTemporal = ({ visible, onClose, styles, duration, icono }: ModalTemporalProps) => {
 
     useEffect(() => {
     if (visible) {
@@ -31,9 +29,7 @@ export const ModalTemporal = ({ visible, onClose, styles, duration }: ModalTempo
     <Modal transparent visible={visible} animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modal}>
-          <View style={styles.row}>
-            <FontAwesome5 name="check-circle" size={40} color={Colors.violet5} />
-          </View>
+            {icono}
         </View>
       </View>
     </Modal>

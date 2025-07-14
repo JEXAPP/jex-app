@@ -1,16 +1,15 @@
 // styles/loginStyles.ts
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../themes/colors';
+import { Colors } from '../../../themes/colors';
 
 export const loginStyles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
     backgroundColor: Colors.gray1,
     justifyContent: 'center',
   },
   header: {
-    marginBottom: 24,
+    marginBottom: 30,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -20,7 +19,7 @@ export const loginStyles = StyleSheet.create({
     fontFamily: 'interBold',
     fontSize: 60,
     color: Colors.violet5,
-    textAlign: 'center',
+    textAlign: 'center', 
   },
   image: {
     width: 200,

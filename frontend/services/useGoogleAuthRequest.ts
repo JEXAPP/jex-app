@@ -1,5 +1,5 @@
 // Manejo de autenticación con Google y navegación
-
+import { GOOGLE_ANDROID_CLIENT_ID } from '@env';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import { useEffect } from 'react';
@@ -25,7 +25,7 @@ export const useGoogleAuthRequest = ({
 
   // Configura la solicitud de autenticación con los datos del cliente
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: '242946374654-htkjh0r5mbaa0ds518mqe90k4og3lkh6.apps.googleusercontent.com',
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
     iosClientId: '',
     redirectUri: makeRedirectUri({ scheme: 'frontend' }),
   });
@@ -49,13 +49,5 @@ export const useGoogleAuthRequest = ({
     }
   }, [response, setShowSuccess, setSuccessMessage]);
 
-  // Inicia el proceso de login con Google.
-  const handleGoogleLogin = () => {
-    promptAsync().catch(() => {
-      setErrorMessage('Error al iniciar sesión con Google');
-      setShowError(true);
-    });
-  };
-
-  return { request, handleGoogleLogin };
+  return { request, promptAsync };
 };

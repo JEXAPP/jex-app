@@ -3,15 +3,20 @@ import { Input } from '@/components/Input';
 import { ModalConTexto } from '@/components/ModalConTexto';
 import { ModalTemporal } from '@/components/ModalTemporal';
 import { useRegistroEmpleador } from '@/hooks/registro/useRegistroEmpleador';
-import { seleccionarTipoStyles as styles } from '@/styles/app/registro/seleccionarTipoStyles';
+import { paso4EmpleadorStyles as styles } from '@/styles/app/registro/paso4EmpleadorStyles';
 import { botonStyles1 } from '@/styles/components/boton/botonStyles1';
-import { inputStyles } from '@/styles/components/inputStyles';
+import { inputStyles1 } from '@/styles/components/input/inputStyles1';
 import { modalConTextoStyles } from '@/styles/components/modalConTextoStyles';
 import { modalTemporalStyles } from '@/styles/components/modalTemporalStyles';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React from 'react';
-import { Image, Text, View, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { Image, Keyboard, Text, TouchableWithoutFeedback, View } from 'react-native';
+import { Colors } from '@/themes/colors';
+import { iconos } from '@/constants/iconos';
+
 
 export default function RegistroEmpleador() {
+
   const {
     razonSocial,
     cuit,
@@ -34,25 +39,67 @@ export default function RegistroEmpleador() {
   } = useRegistroEmpleador();
 
   return (
+
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+
       <View style={styles.container}>
+
         <View style={styles.header}>
+
           <Image source={require('@/assets/images/jex/Jex-Registrandose.png')} style={styles.image} />
-          <Text style={styles.title}>Registro Empleador</Text>
+
+          <Text style={styles.title}>Registrate{'\n'}en JEX</Text>
+
         </View>
 
-        <Input placeholder="Razón Social" value={razonSocial} onChangeText={setRazonSocial} styles={inputStyles}/>
-        <Input placeholder="CUIT" keyboardType="numeric" value={cuit} onChangeText={setCuit} styles={inputStyles}/>
-        <Input placeholder="Teléfono" keyboardType="phone-pad" value={telefono} onChangeText={setTelefono} styles={inputStyles}/>
-        <Input placeholder="Correo electrónico" keyboardType="email-address" value={email} onChangeText={setEmail} styles={inputStyles}/>
-        <Input placeholder="Contraseña" secureTextEntry value={password} onChangeText={setPassword} styles={inputStyles}/>
-        <Input placeholder="Repetí la contraseña" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} styles={inputStyles}/>
+        <Text style={styles.texto}>Paso 4: Completa tus datos</Text>
 
-        <Boton texto="Registrarse" onPress={handleRegistrarEmpleador} styles={botonStyles1} />
+        <View style={styles.opcionesContainer}>
 
-        <ModalConTexto visible={showError} message={errorMessage} onClose={closeError} styles={modalConTextoStyles}/>
-        <ModalTemporal visible={showSuccess} message="¡Registro exitoso!" onClose={closeSuccess} styles={modalTemporalStyles} duration={2000}/>
+          <Input 
+            placeholder="Razón Social" 
+            value={razonSocial} 
+            onChangeText={setRazonSocial} 
+            styles={inputStyles1}
+          />
+          
+          <Input 
+            placeholder="CUIT" 
+            keyboardType="numeric" 
+            value={cuit} 
+            onChangeText={setCuit} 
+            styles={inputStyles1}
+          />
+          
+        </View>
+
+        <Boton 
+          texto="Registrarse" 
+          onPress={handleRegistrarEmpleador} 
+          styles={botonStyles1} 
+        />
+
+        <ModalConTexto 
+          title='Error'
+          visible={showError} 
+          message={errorMessage} 
+          onClose={closeError} 
+          styles={modalConTextoStyles} 
+          icono={<MaterialIcons size={24} color={ Colors.violet5 } />}
+          buttonText='Entendido'
+        />
+
+        <ModalTemporal
+          visible={showSuccess}
+          icono={iconos.exito(40, Colors.white)}
+          onClose={closeSuccess}
+          styles={modalTemporalStyles}
+          duration={2000}
+        />
+      
       </View>
+    
     </TouchableWithoutFeedback>
+
   );
 }

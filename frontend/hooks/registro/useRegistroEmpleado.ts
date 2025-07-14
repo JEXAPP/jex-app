@@ -1,48 +1,89 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+import axios from 'axios';
 
 export const useRegistroEmpleado = () => {
   const router = useRouter();
 
-  // Estados de los campos del formulario
+  // Estados de campos de esta etapa
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [ubicacion, setUbicacion] = useState('');
 
-  // Estados para manejo de errores y confirmación
+  // Estados de control
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Valida que todos los campos estén completos y que las contraseñas coincidan.
+  // Estados persistentes de etapas anteriores
+  const [registroPrevio, setRegistroPrevio] = useState<any>(null);
+  const [desdeGoogle, setDesdeGoogle] = useState(false);
+  const [googleToken, setGoogleToken] = useState('');
+
+  useEffect(() => {
+    const cargarDatosPrevios = async () => {
+      try {
+        const datosGuardados = await SecureStore.getItemAsync('registro-parcial');
+        const tokenGoogle = await SecureStore.getItemAsync('google-token');
+
+        if (datosGuardados) setRegistroPrevio(JSON.parse(datosGuardados));
+        if (tokenGoogle) {
+          setDesdeGoogle(true);
+          setGoogleToken(tokenGoogle);
+        }
+      } catch (error) {
+        setErrorMessage('No se pudo recuperar la información previa');
+        setShowError(true);
+      }
+    };
+
+    cargarDatosPrevios();
+  }, []);
 
   const validarCampos = () => {
-    if (!nombre || !apellido || !email || !password || !confirmPassword) {
+    if (!nombre || !apellido || !ubicacion) {
       setErrorMessage('Todos los campos son obligatorios');
       setShowError(true);
       return false;
     }
-
-    if (password !== confirmPassword) {
-      setErrorMessage('Las contraseñas no coinciden');
-      setShowError(true);
-      return false;
-    }
-
     return true;
   };
 
-  // Maneja el evento de registro al presionar el botón.
-  const handleRegistrarEmpleado = () => {
+  const handleRegistrarEmpleado = async () => {
     if (!validarCampos()) return;
+    if (!registroPrevio) {
+      setErrorMessage('No se encontró la información previa del registro');
+      setShowError(true);
+      return;
+    }
 
-    // Acá podés enviar los datos al backend o guardarlos temporalmente
-    setShowSuccess(true);
+    const payload = {
+      nombre,
+      apellido,
+      ubicacion,
+      tipoUsuario: 'Empleado',
+      ...registroPrevio,
+    };
+
+    try {
+      if (desdeGoogle) {
+        await axios.post('https://tu-api.com/auth/google/register', {
+          tokenGoogle: googleToken,
+          datosAdicionales: payload
+        });
+      } else {
+        await axios.post('https://tu-api.com/auth/register', payload);
+      }
+
+      setShowSuccess(true);
+    } catch (error: any) {
+      const mensaje = error?.response?.data?.message || 'No se pudo completar el registro';
+      setErrorMessage(mensaje);
+      setShowError(true);
+    }
   };
 
-  // Cierra el modales
   const closeSuccess = () => {
     setShowSuccess(false);
     router.push('/');
@@ -56,14 +97,10 @@ export const useRegistroEmpleado = () => {
   return {
     nombre,
     apellido,
-    email,
-    password,
-    confirmPassword,
+    ubicacion,
     setNombre,
     setApellido,
-    setEmail,
-    setPassword,
-    setConfirmPassword,
+    setUbicacion,
     handleRegistrarEmpleado,
     showError,
     errorMessage,

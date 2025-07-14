@@ -1,11 +1,12 @@
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React from 'react';
 import { Modal, StyleProp, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { Colors } from '../themes/colors';
 
 interface ModalConTextoProps {
   visible: boolean;
+  title: string;
+  buttonText: string;
   message: string;
+  icono?: React.ReactNode;
   onClose: () => void;
   styles: {
     overlay: StyleProp<ViewStyle>;
@@ -18,18 +19,18 @@ interface ModalConTextoProps {
   };
 }
 
-export const ModalConTexto = ({ visible, message, onClose, styles }: ModalConTextoProps) => {
+export const ModalConTexto = ({ visible, message, onClose, styles, title, buttonText, icono=null }: ModalConTextoProps) => {
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>       
         <View style={styles.modal}>
           <View style={styles.row}>
-            <MaterialIcons name="error" size={24} color={ Colors.violet5 } />
-            <Text style={styles.title}>Error</Text>
+            {icono}
+            <Text style={styles.title}>{title}</Text>
             </View>
           <Text style={styles.message}>{message}</Text>
           <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>Entendido</Text>
+            <Text style={styles.buttonText}>{buttonText}</Text>
           </TouchableOpacity>
         </View>
       </View>

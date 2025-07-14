@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../../themes/colors';
+import { Borders } from '@/themes/borders';
 
 export const modalConTextoStyles = StyleSheet.create({
   overlay: {
@@ -9,9 +10,9 @@ export const modalConTextoStyles = StyleSheet.create({
     alignItems: 'center',
   },
   modal: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
     padding: 20,
-    borderRadius: 14,
+    borderRadius: Borders.soft,
     width: '80%',
     alignItems: 'center',
   },
@@ -19,7 +20,7 @@ export const modalConTextoStyles = StyleSheet.create({
     fontFamily: 'interBold',
     fontSize: 22,
     color: Colors.violet5,
-    marginLeft: 10
+    marginLeft: 20,
   },
   message: {
     fontFamily: 'interRegular',
@@ -31,7 +32,7 @@ export const modalConTextoStyles = StyleSheet.create({
   },
   button: {
     backgroundColor: Colors.violet4,
-    borderRadius: 8,
+    borderRadius: Borders.soft,
     paddingVertical: 10,
     paddingHorizontal: 24,
   },
@@ -41,8 +42,10 @@ export const modalConTextoStyles = StyleSheet.create({
     fontSize: 15,
   },
   row: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginBottom: 8,
-},
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+    marginLeft: 70
+  },
 });

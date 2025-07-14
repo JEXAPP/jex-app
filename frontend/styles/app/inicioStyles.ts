@@ -5,7 +5,7 @@ import { Colors } from '@/themes/colors';
 export const inicioStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.violetInicio,
+    backgroundColor: Colors.violet3,
     alignItems: 'center',
     justifyContent: 'center',
   },

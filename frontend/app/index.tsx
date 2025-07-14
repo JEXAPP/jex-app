@@ -8,14 +8,18 @@ export default function SplashScreen() {
 
   return (
     <View style={styles.container}>
+
       <Animated.Image
         source={require('@/assets/images/jex/Jex-Logo.png')}
         style={[styles.image, { transform: [{ scale: scaleAnim }] }]}
         resizeMode="contain"
       />
+
       <Animated.Text style={[styles.title, { transform: [{ scale: scaleAnim }] }]}>
         JEX
       </Animated.Text>
+
     </View>
+    
   );
 }

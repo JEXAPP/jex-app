@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../../themes/colors';
+import { Borders } from '@/themes/borders';
 
 export const botonConIconoStyles = StyleSheet.create({
   boton: {
@@ -7,7 +8,7 @@ export const botonConIconoStyles = StyleSheet.create({
     alignItems: 'center',
     borderColor: Colors.violet5,
     borderWidth: 2,
-    borderRadius: 12,
+    borderRadius: Borders.soft,
     paddingVertical: 12,
     paddingHorizontal: 16,
     justifyContent: 'center',
@@ -15,7 +16,7 @@ export const botonConIconoStyles = StyleSheet.create({
     marginTop: 6,
     width: 350,
     alignSelf: 'center',
-    backgroundColor: '#fff'
+    backgroundColor: Colors.white
   },
   icono: {
     width: 23,

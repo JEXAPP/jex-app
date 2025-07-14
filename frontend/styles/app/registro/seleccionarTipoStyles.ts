@@ -10,7 +10,7 @@ export const seleccionarTipoStyles = StyleSheet.create({
   },
   title: {
     fontSize: 38,
-    fontWeight: '800',
+    fontFamily: 'interBold',
     color: Colors.violet5,
     textAlign: 'left',
     flexShrink: 1,
@@ -18,16 +18,25 @@ export const seleccionarTipoStyles = StyleSheet.create({
   image: {
     width: 130,
     height: 130,
-    marginRight: 10,
+    marginRight: 20,
+    marginLeft: 35
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 20,
     marginTop: 100,
   },
   opcionesContainer: {
-    gap: 16,
-    marginBottom: 30,
+    gap: 8,
+    marginBottom: 315
+  },
+  texto:{
+    fontFamily: 'interBold',
+    fontSize: 18,
+    color: Colors.violet5,
+    textAlign: 'left',
+    marginLeft: 22,
+    marginBottom: 10
   },
 });

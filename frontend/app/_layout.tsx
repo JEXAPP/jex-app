@@ -32,10 +32,13 @@ export default function RootLayout() {
       }}
     >
       {/* Solo personalizás las excepciones */}
-      <Stack.Screen name="index" options={{ ...exitHeader('/'), ...transitionFade, headerShown: false }} />
-      <Stack.Screen name="registro/index" options={{ ...exitHeader('/'), ...transitionFade, }} />
-      <Stack.Screen name="registro/empleado" options={{ ...exitHeader('/'), ...transitionFade, }} />
-      <Stack.Screen name="registro/empleador" options={{ ...exitHeader('/'), ...transitionFade, }} />
+      <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
+      <Stack.Screen name="login/index" options={{ ...transitionFade, headerShown: false }} />
+      <Stack.Screen name="login/recuperar1" options={{ ...exitHeader('/login'), ...transitionFade, }} />
+      <Stack.Screen name="login/recuperar2" options={{ ...exitHeader('/login'), ...transitionFade, }} />
+      <Stack.Screen name="registro/index" options={{ ...exitHeader('/login'), ...transitionFade, }} />
+      <Stack.Screen name="registro/empleado" options={{ ...exitHeader('/login'), ...transitionFade, }} />
+      <Stack.Screen name="registro/empleador" options={{ ...exitHeader('/login'), ...transitionFade, }} />
       
     </Stack>
 

@@ -12,7 +12,7 @@ export const useInicio = () => {
     // Animación de zoom in
     Animated.timing(scaleAnim, {
         toValue: 1,
-        duration: 1500,
+        duration: 1000,
         useNativeDriver: true,
     }).start();
 
