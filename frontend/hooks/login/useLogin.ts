@@ -1,8 +1,10 @@
-import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { config } from '@/config';
 import { useGoogleAuthRequest } from '@/services/useGoogleAuthRequest';
 import axios from 'axios';
+import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import { useState } from 'react';
+
 
 export const useLogin = () => {
   const router = useRouter();
@@ -24,7 +26,7 @@ export const useLogin = () => {
     }
 
     try {
-      const response = await axios.post('https://TU_BACKEND_URL/api/login', {
+      const response = await axios.post(`${config.apiBaseUrl}/api/auth/login/jwt/`, {
         email,
         password,
       });
@@ -58,7 +60,7 @@ export const useLogin = () => {
       if (result.type === 'success') {
         const accessToken = result.authentication?.accessToken;
 
-        const response = await axios.post('https://TU_BACKEND_URL/api/login-google', {
+        const response = await axios.post(`${config.apiBaseUrl}/api/auth/login/google/`, {
           tokenGoogle: accessToken,
         });
 

@@ -1,7 +1,7 @@
+import { config } from '@/config';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
-
+import { useState } from 'react';
 export const useRecuperar1 = () => {
   const router = useRouter();
   
@@ -17,7 +17,7 @@ export const useRecuperar1 = () => {
     }
 
     try {
-      const response = await fetch('https://tu-backend.com/api/recuperar', {
+      const response = await fetch(`${config.apiBaseUrl}/api/auth/password-reset/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

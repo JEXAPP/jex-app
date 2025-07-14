@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { config } from '@/config';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import { useState } from 'react';
 
 export const useRecuperar3 = () => {
   const router = useRouter();
@@ -29,7 +30,7 @@ export const useRecuperar3 = () => {
       const token = await SecureStore.getItemAsync('recuperar-token');
       if (!token) throw new Error('Token no encontrado');
 
-      const response = await fetch('https://tu-backend.com/api/reset-password', {
+      const response = await fetch(`${config.apiBaseUrl}/api/auth/password-reset-confirm/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
