@@ -17,7 +17,7 @@ export function useValidarCodigoSMS() {
 
   const handleValidar = () => {
     if (codigo.trim().length > 0) {
-      router.push('/registro/mail-contrasenia'); // Usa ruta absoluta
+      router.push('/registro/mail-clave'); // Usa ruta absoluta
     } else {
       alert('Por favor ingrese un código válido.');
     }
