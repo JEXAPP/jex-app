@@ -31,22 +31,22 @@ export const useLogin = () => {
         password,
       });
 
-      const { token, necesitaRegistro } = response.data;
+      const { access, refresh } = response.data;
 
-      await SecureStore.setItemAsync('jwt', token);
+      await SecureStore.setItemAsync('jwt', access);
 
-      if (necesitaRegistro) {
-        await SecureStore.setItemAsync('desde-google', 'true');
-        router.push('/registro');
-      } else {
-        setSuccessMessage('Sesión iniciada correctamente');
-        setShowSuccess(true);
+      // if (necesitaRegistro) {
+      //   await SecureStore.setItemAsync('desde-google', 'true');
+      //   router.push('/registro');
+      // } else {
+      setSuccessMessage('Sesión iniciada correctamente');
+      setShowSuccess(true);
 
-        setTimeout(() => {
-          setShowSuccess(false);
-          router.push('/crear-evento');
-        }, 1500);
-      }
+      setTimeout(() => {
+        setShowSuccess(false);
+        router.push('/crear-evento');
+      }, 1500);
+
 
     } catch (error) {
       setErrorMessage('Correo o contraseña incorrectos');
@@ -92,7 +92,7 @@ export const useLogin = () => {
 
   const handleNavigateToRegister = async () => {
     await SecureStore.setItemAsync('desde-google', 'false');
-    router.push('./registro');
+    router.push('./registro/codarea-telefono');
   };
 
   const handlePasswordForgot = () => {

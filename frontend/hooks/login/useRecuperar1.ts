@@ -31,8 +31,8 @@ export const useRecuperar1 = () => {
 
       const data = await response.json();
 
-      // Guarda el token para las próximas etapas (usamos SecureStore)
-      await SecureStore.setItemAsync('recuperar-token', data.token);
+      // Guarda el email para las próximas etapas (usamos SecureStore)
+      await SecureStore.setItemAsync('email-password-reset', email);
 
       // Navegar a la siguiente pantalla
       router.push('/login/recuperar2');

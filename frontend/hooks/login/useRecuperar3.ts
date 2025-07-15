@@ -27,15 +27,18 @@ export const useRecuperar3 = () => {
     }
 
     try {
-      const token = await SecureStore.getItemAsync('recuperar-token');
-      if (!token) throw new Error('Token no encontrado');
+      const email = await SecureStore.getItemAsync('email-password-reset');
+      if (!email) throw new Error('Email no encontrado');
 
-      const response = await fetch(`${config.apiBaseUrl}/api/auth/password-reset-confirm/`, {
+      const codigo = await SecureStore.getItemAsync('code');
+
+      const response = await fetch(`${config.apiBaseUrl}/api/auth/password-reset-complete/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          token,
-          nuevaContrasena: password,
+          email: email,
+          otp_code: codigo,
+          new_password: password,
         }),
       });
 

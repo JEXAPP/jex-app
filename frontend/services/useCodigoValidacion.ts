@@ -3,6 +3,7 @@ import { TextInput, Vibration, Keyboard, Animated, NativeSyntheticEvent, TextInp
 import { Colors } from '@/themes/colors';
 import { RelativePathString, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import { config } from '@/config';
 
 export const useCodigoValidacion = (ruta: RelativePathString, tipo: 'email' | 'sms') => {
     const router = useRouter();
@@ -61,22 +62,22 @@ export const useCodigoValidacion = (ruta: RelativePathString, tipo: 'email' | 's
 
     const validarCodigo = async (codigo: string) => {
       try {
-        const token = await SecureStore.getItemAsync('recuperar-token');
-        if (!token) throw new Error('Token no encontrado');
+        const email = await SecureStore.getItemAsync('email-password-reset');
+        if (!email) throw new Error('Email no encontrado');
 
-        const response = await fetch('https://tu-backend.com/api/verificar-token', {
+        const response = await fetch(`${config.apiBaseUrl}/api/auth/password-reset-verify/`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            token,
-            codigo,
-            tipo,  // 'email' o 'sms'
+            email: email,
+            otp_code: codigo,
           }),
         });
 
         if (!response.ok) throw new Error('Código incorrecto');
 
         // Si todo sale bien → redirigir
+        await SecureStore.setItemAsync('code', codigo);
         router.push(ruta);
 
       } catch (error) {

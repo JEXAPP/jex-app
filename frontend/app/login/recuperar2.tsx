@@ -14,7 +14,7 @@ export default function Recuperar2() {
     borderColors,
     shakeAnim,
     handleKeyPress
-  } = useCodigoValidacion('./login/recuperar3', 'email');
+  } = useCodigoValidacion('./recuperar3', 'email');
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
