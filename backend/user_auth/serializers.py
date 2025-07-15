@@ -97,11 +97,15 @@ class EmployeeRegisterSerializer(serializers.Serializer):
         EmployeeProfile.objects.create(user=user)
         return user
 
-
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
-class PasswordResetConfirmSerializer(serializers.Serializer):
+class PasswordResetVerifySerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp_code = serializers.CharField(max_length=6)
+
+
+class PasswordResetCompleteSerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp_code = serializers.CharField(max_length=6)
     new_password = serializers.CharField(write_only=True)

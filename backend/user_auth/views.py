@@ -15,7 +15,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import Group
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from user_auth.models import PasswordResetOTP, CustomUser
-from .serializers import EmailTokenObtainPairSerializer, EmployerRegisterSerializer, EmployeeRegisterSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer
+from .serializers import EmailTokenObtainPairSerializer, EmployerRegisterSerializer, EmployeeRegisterSerializer, PasswordResetCompleteSerializer, PasswordResetRequestSerializer, PasswordResetVerifySerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 class EmailTokenObtainPairView(TokenObtainPairView):
@@ -57,9 +57,30 @@ class LogoutView(APIView):
         except TokenError:
             return Response({"error": "Token inválido o ya expirado"}, status=status.HTTP_400_BAD_REQUEST)
 
-class GoogleLogin(SocialLoginView):
+class CustomGoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
 
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        user = self.user  # Usuario que se autenticó
+        if user is None:
+            return response  # algo falló antes
+
+        # Obtener los tokens de nuevo (porque `super().post()` no nos da acceso directo)
+        refresh = RefreshToken.for_user(user)
+        access = str(refresh.access_token)
+
+        # Evaluar si el usuario tiene datos incompletos
+        incomplete = False
+        if not user.first_name or not user.last_name or not user.rol:
+            incomplete = True
+
+        return Response({
+            "access": access,
+            "refresh": str(refresh),
+            "incomplete_user": incomplete
+        }, status=status.HTTP_200_OK)
 
 class PasswordResetRequestView(GenericAPIView):
     serializer_class = PasswordResetRequestSerializer
@@ -95,9 +116,29 @@ class PasswordResetRequestView(GenericAPIView):
 
         return Response({"detail": "Si el email existe, se envió un código de recuperación."}, status=status.HTTP_200_OK)
 
+class PasswordResetVerifyView(GenericAPIView):
+    serializer_class = PasswordResetVerifySerializer
 
-class PasswordResetConfirmView(GenericAPIView):
-    serializer_class = PasswordResetConfirmSerializer
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data['email']
+        otp_code = serializer.validated_data['otp_code']
+
+        try:
+            user = CustomUser.objects.get(email=email)
+            otp_entry = PasswordResetOTP.objects.get(user=user, otp_code=otp_code)
+        except (CustomUser.DoesNotExist, PasswordResetOTP.DoesNotExist):
+            return Response({"detail": "Email o código inválido."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not otp_entry.is_valid():
+            return Response({"detail": "El código expiró."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"detail": "Código verificado correctamente."}, status=status.HTTP_200_OK)
+
+class PasswordResetCompleteView(GenericAPIView):
+    serializer_class = PasswordResetCompleteSerializer
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -109,22 +150,15 @@ class PasswordResetConfirmView(GenericAPIView):
 
         try:
             user = CustomUser.objects.get(email=email)
-        except CustomUser.DoesNotExist:
-            return Response({"detail": "Email o código inválido."}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
             otp_entry = PasswordResetOTP.objects.get(user=user, otp_code=otp_code)
-        except PasswordResetOTP.DoesNotExist:
+        except (CustomUser.DoesNotExist, PasswordResetOTP.DoesNotExist):
             return Response({"detail": "Email o código inválido."}, status=status.HTTP_400_BAD_REQUEST)
 
         if not otp_entry.is_valid():
             return Response({"detail": "El código expiró."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Cambiar contraseña
         user.set_password(new_password)
         user.save()
-
-        # Borrar OTP para no reutilizarlo
         otp_entry.delete()
 
         return Response({"detail": "Contraseña actualizada correctamente."}, status=status.HTTP_200_OK)
