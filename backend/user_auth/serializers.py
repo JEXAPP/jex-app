@@ -7,6 +7,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from .models import CustomUser, EmployerProfile, EmployeeProfile
 from rest_framework.exceptions import AuthenticationFailed
+from django.contrib.auth.hashers import make_password
+
 
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'email'  # Define que se use email en lugar de username
@@ -35,66 +37,154 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['email'] = user.email
         return token
-    
+
+
 class EmployerRegisterSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=False)
-    username = serializers.CharField(required=False)
-    password = serializers.CharField(write_only=True, required=False)
-    dni = serializers.CharField()
-    phone = serializers.CharField()
+    email = serializers.EmailField()
+    phone = serializers.CharField(max_length=20)
+    password = serializers.CharField(write_only=True)
+    company_name = serializers.CharField(max_length=255)
 
-    def save(self, user=None):
-        data = self.validated_data
+    def validate_email(self, value):
+        if CustomUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email is already in use.")
+        return value
 
-        # Si ya hay un usuario (vía Google)
-        if user:
-            user.dni = data['dni']
-            user.phone = data['phone']
-            user.role = EMPLOYER_ROLE
-            user.save()
-        else:
-            user = CustomUser.objects.create_user(
-                username=data.get('username', data['email']),
-                email=data['email'],
-                password=data['password'],
-                dni=data['dni'],
-                phone=data['phone'],
-                role=EMPLOYER_ROLE
-            )
+    def create(self, validated_data):
+        email = validated_data['email']
+        password = validated_data['password']
+        phone = validated_data['phone']
+        company_name = validated_data['company_name']
+        
+        # El username será la parte antes del @
+        username = email.split('@')[0]
+        
+        user = CustomUser.objects.create(
+            username=username,
+            email=email,
+            phone=phone,
+            role='employer',
+            password=make_password(password)
+        )
 
-        group, _ = Group.objects.get_or_create(name=EMPLOYER_ROLE)
-        user.groups.add(group)
-        EmployerProfile.objects.create(user=user)
+        EmployerProfile.objects.create(
+            user=user,
+            company_name=company_name
+        )
+
         return user
 
+
 class EmployeeRegisterSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=False)
-    username = serializers.CharField(required=False)
-    password = serializers.CharField(write_only=True, required=False)
-    dni = serializers.CharField()
-    phone = serializers.CharField()
+    email = serializers.EmailField()
+    phone = serializers.CharField(max_length=20)
+    password = serializers.CharField(write_only=True)
+    
+    dni = serializers.CharField(max_length=20)
+    address = serializers.CharField(max_length=255, allow_blank=True, required=False)
+    birth_date = serializers.DateField(required=False)
 
-    def save(self, user=None):
-        data = self.validated_data
+    def validate_email(self, value):
+        if CustomUser.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email is already in use.")
+        return value
 
-        if user:
-            user.dni = data['dni']
-            user.phone = data['phone']
-            user.role = 'employee'
-            user.save()
-        else:
-            user = CustomUser.objects.create_user(
-                username=data.get('username', data['email']),
-                email=data['email'],
-                password=data['password'],
-                dni=data['dni'],
-                phone=data['phone'],
-                role=EMPLOYEE_ROLE
-            )
+    def validate_dni(self, value):
+        if EmployeeProfile.objects.filter(dni=value).exists():
+            raise serializers.ValidationError("DNI is already in use.")
+        return value
 
-        group, _ = Group.objects.get_or_create(name=EMPLOYEE_ROLE)
-        user.groups.add(group)
-        EmployeeProfile.objects.create(user=user)
+    def create(self, validated_data):
+        email = validated_data['email']
+        password = validated_data['password']
+        phone = validated_data['phone']
+        dni = validated_data['dni']
+        address = validated_data.get('address', '')
+        birth_date = validated_data.get('birth_date', None)
+
+        username = email.split('@')[0]
+
+        user = CustomUser.objects.create(
+            username=username,
+            email=email,
+            phone=phone,
+            role='employee',
+            password=make_password(password)
+        )
+
+        EmployeeProfile.objects.create(
+            user=user,
+            dni=dni,
+            address=address,
+            birth_date=birth_date
+        )
+
+        return user
+
+class CompleteEmployerSocialSerializer(serializers.Serializer):
+    phone = serializers.CharField(max_length=20)
+    company_name = serializers.CharField(max_length=255)
+
+    def validate(self, data):
+        user = self.context['request'].user
+
+        if not user.is_authenticated:
+            raise serializers.ValidationError("User must be authenticated.")
+
+        if hasattr(user, 'employer_profile'):
+            raise serializers.ValidationError("Employer profile is already completed.")
+
+        return data
+
+    def save(self):
+        user = self.context['request'].user
+        user.phone = self.validated_data['phone']
+        user.save()
+
+        EmployerProfile.objects.create(
+            user=user,
+            company_name=self.validated_data['company_name']
+        )
+
+        return user
+    
+
+from rest_framework import serializers
+from user_auth.models import EmployeeProfile, CustomUser
+
+class CompleteEmployeeSocialSerializer(serializers.Serializer):
+    phone = serializers.CharField(max_length=20)
+    dni = serializers.CharField(max_length=20)
+    address = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    birth_date = serializers.DateField(required=False)
+
+    def validate(self, data):
+        user = self.context['request'].user
+
+        if not user.is_authenticated:
+            raise serializers.ValidationError("User must be authenticated.")
+
+        if hasattr(user, 'employee_profile'):
+            raise serializers.ValidationError("Employee profile is already completed.")
+
+        if EmployeeProfile.objects.filter(dni=data['dni']).exists():
+            raise serializers.ValidationError("DNI is already in use.")
+
+        return data
+
+    def save(self):
+        user = self.context['request'].user
+
+        user.phone = self.validated_data['phone']
+        user.save()
+
+        EmployeeProfile.objects.create(
+            user=user,
+            dni=self.validated_data['dni'],
+            address=self.validated_data.get('address', ''),
+            birth_date=self.validated_data.get('birth_date', None)
+        )
+
         return user
 
 class PasswordResetRequestSerializer(serializers.Serializer):

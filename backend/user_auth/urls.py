@@ -1,10 +1,13 @@
 from django.urls import path
-from .views import EmailTokenObtainPairView, EmployeeRegisterView, EmployerRegisterView, CustomGoogleLoginView, LogoutView, PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
+
+from .views import EmailTokenObtainPairView, EmployeeRegisterView, EmployerRegisterView, CustomGoogleLoginView, LogoutView, PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView, CompleteEmployerSocialView, CompleteEmployeeSocialView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
     
 urlpatterns = [
     path('register/employer/', EmployerRegisterView.as_view(), name='register-employer'),
     path('register/employee/', EmployeeRegisterView.as_view(), name='register-employee'),
+    path('register/employer/social/', CompleteEmployerSocialView.as_view(), name='register-employer-social'),
+    path('register/employee/social/', CompleteEmployeeSocialView.as_view(), name='register-employee-social'),
     path('login/jwt/', EmailTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('login/jwt/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('login/google/', CustomGoogleLoginView.as_view(), name='google_login'),
