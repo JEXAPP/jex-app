@@ -77,14 +77,8 @@ export const useRegistroTelefono = (desdeGoogle = false) => {
       await SecureStore.setItemAsync('registro-parcial', JSON.stringify(datosParciales));
       */
 
-      // Mostrar modal de éxito antes de navegar
-      setShowSuccess(true);
+     router.push('./registro/mail-clave');
 
-      // Esperar un poco para que el usuario vea el modal
-      setTimeout(() => {
-        setShowSuccess(false);
-        router.push('/registro/mail-contrasenia');
-      }, 1500);
 
     } catch (error: any) {
       console.log('Error al enviar SMS:', error);

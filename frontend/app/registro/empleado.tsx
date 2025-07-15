@@ -14,6 +14,8 @@ import { iconos } from '@/constants/iconos';
 import { Colors } from '@/themes/colors';
 import { SelectorFecha } from '@/components/SelectorFecha';
 import { selectorFechaStyles } from '../../styles/components/selectorFechaStyles';
+import { listaSugerenciasStyles } from '@/styles/components/listaSugerenciasStyles';
+import ListaSugerencias from '@/components/ListaSugerencias';
 
 
 
@@ -21,10 +23,8 @@ export default function RegistroEmpleadoScreen() {
   const {
     nombre,
     apellido,
-    ubicacion,
     setNombre,
     setApellido,
-    setUbicacion,
     handleRegistrarEmpleado,
     showError,
     errorMessage,
@@ -35,6 +35,10 @@ export default function RegistroEmpleadoScreen() {
     fechaNacimiento,
     handleChangeDni,
     setFechaNacimiento,
+    ubicacion,
+    handleUbicacion,
+    seleccionarUbicacion,
+    sugerencias,
   } = useRegistroEmpleado();
 
 
@@ -54,7 +58,7 @@ export default function RegistroEmpleadoScreen() {
 
         </View>
 
-        <Text style={styles.texto}>Paso 4: Completa tus datos</Text>
+        <Text style={styles.texto}>Completa tus datos personales</Text>
 
         <View style={styles.opcionesContainer}>
         
@@ -72,10 +76,16 @@ export default function RegistroEmpleadoScreen() {
             styles={inputStyles1}
           />
 
+          <ListaSugerencias 
+            sugerencias={sugerencias} 
+            onSeleccionar={seleccionarUbicacion} 
+            styles={listaSugerenciasStyles}
+          />
+
           <Input 
             placeholder="Ubicación" 
             value={ubicacion} 
-            onChangeText={setUbicacion} 
+            onChangeText={handleUbicacion} 
             styles={inputStyles1}
           />
 

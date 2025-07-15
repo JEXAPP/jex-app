@@ -1,18 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, Image, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from 'react-native';
-import { Input } from '@/components/Input';
-import { useRegistroMail } from '@/hooks/registro/useRegistroMail';
-import { registroUsuarioStyles as styles } from '@/styles/app/registro/registroUsuarioStyles';
-import { inputStyles1 } from '@/styles/components/input/inputStyles1';
-import { Colors } from '@/themes/colors';
 import { Boton } from '@/components/Boton';
+import { Input } from '@/components/Input';
+import { ModalConTexto } from '@/components/ModalConTexto';
+import { iconos } from '@/constants/iconos';
+import { useRegistroMail } from '@/hooks/registro/useRegistroMail';
+import { registroMailClaveStyles as styles } from '@/styles/app/registro/registroMailClaveStyles';
 import { botonStyles1 } from '@/styles/components/boton/botonStyles1';
 import { botonStyles4 } from '@/styles/components/boton/botonStyles4';
-import { ModalConTexto } from '@/components/ModalConTexto';
+import { inputStyles1 } from '@/styles/components/input/inputStyles1';
 import { modalConTextoStyles } from '@/styles/components/modalConTextoStyles';
-import { iconos } from '@/constants/iconos';
-import { ModalTemporal } from '@/components/ModalTemporal';
-import { modalTemporalStyles } from '@/styles/components/modalTemporalStyles';
+import { Colors } from '@/themes/colors';
+import React, { useState } from 'react';
+import { Image, Keyboard, KeyboardAvoidingView, Platform, Text, TouchableWithoutFeedback, View, } from 'react-native';
 
 export default function Registromail() {
   const {
@@ -29,8 +27,6 @@ export default function Registromail() {
     showError,
     errorMessage,
     closeError,
-    showSuccess,
-    closeSuccess,
   } = useRegistroMail();
 
   // Estados para mostrar/ocultar contraseña
@@ -56,7 +52,7 @@ export default function Registromail() {
           <Text style={styles.title}>Registrate{'\n'}en JEX</Text>
         </View>
 
-        <Text style={styles.texto}>Paso 3: Crea tu usuario con Email y Contraseña</Text>
+        <Text style={styles.texto}>Crea tu usuario con Email y Contraseña</Text>
 
         {!desdeGoogle && (
           <View style={styles.opcionesContainer}>
@@ -125,14 +121,6 @@ export default function Registromail() {
           icono={iconos.error(24, Colors.violet4)}
           buttonText="Entendido"
         />
-        <ModalTemporal 
-          visible={showSuccess} 
-          icono={iconos.exito(40, Colors.white)}
-          onClose={closeSuccess} 
-          styles={modalTemporalStyles} 
-          duration={2000}
-        />
-
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );

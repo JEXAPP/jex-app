@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/themes/colors';
 
-export const registroUsuarioStyles = StyleSheet.create({
+export const registroTelefonoStyles = StyleSheet.create({
   container: {
     padding: 20,
     justifyContent: 'center',
@@ -35,25 +35,9 @@ export const registroUsuarioStyles = StyleSheet.create({
   inputTelefono: {
     flex: 1.3,
   },
-  seguridadContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 20,
-  },
-  barrita: {
-    height: 6,
-    width: 60,
-    borderRadius: 4,
-    marginLeft: 10,
-  },
-  textoSeguridad: {
-    fontSize: 14,
-    fontFamily: 'interRegular',
-  },
   opcionesContainer: {
     gap: 2,
-    marginBottom: 110
+    marginBottom: 185
   },
   texto:{
     fontFamily: 'interBold',

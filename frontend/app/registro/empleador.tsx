@@ -42,7 +42,7 @@ export default function RegistroEmpleador() {
 
         </View>
 
-        <Text style={styles.texto}>Paso 4: Completa tus datos</Text>
+        <Text style={styles.texto}>Completa tus datos personales</Text>
 
         <View style={styles.opcionesContainer}>
 

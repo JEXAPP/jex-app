@@ -25,7 +25,7 @@ export const useGoogleAuthRequest = ({
 
   // Configura la solicitud de autenticación con los datos del cliente
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: `${config.googleClientId}`,
+    androidClientId: `${config.googleClientIdAndroid}`,
     iosClientId: '',
     redirectUri: makeRedirectUri({ scheme: 'frontend' }),
   });

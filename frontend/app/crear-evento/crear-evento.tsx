@@ -13,6 +13,7 @@ import { useCrearEvento } from '@/hooks/crear-evento/useCrearEvento';
 import { SelectorFecha } from '@/components/SelectorFecha';
 import { iconos } from '@/constants/iconos';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { selectorFechaStyles } from '../../styles/components/selectorFechaStyles';
 
 export default function RegistroEventoScreen() {
     
@@ -67,13 +68,15 @@ export default function RegistroEventoScreen() {
             <SelectorFecha 
               label="Fecha de inicio" 
               value={fechaInicioEvento} 
-              onChange={setFechaInicioEvento} 
+              onChange={setFechaInicioEvento}
+              styles={selectorFechaStyles} 
             />
 
             <SelectorFecha 
               label="Fecha de fin" 
               value={fechaFinEvento} 
               onChange={setFechaFinEvento} 
+              styles={selectorFechaStyles} 
             />
 
             <Input 

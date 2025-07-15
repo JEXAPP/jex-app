@@ -88,7 +88,7 @@ export const useLogin = () => {
 
   const handleNavigateToRegister = async () => {
     await SecureStore.setItemAsync('desde-google', 'false');
-    router.push('./registro/codarea-telefono');
+    router.push('./registro/');
   };
 
   const handlePasswordForgot = () => {

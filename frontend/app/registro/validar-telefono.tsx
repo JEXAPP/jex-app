@@ -32,7 +32,7 @@ export default function ValidarTelefono() {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.keyboardAvoidingView}>
         
-          <Text style={styles.texto}>Ingresá el código enviado</Text>
+          <Text style={styles.texto}>Ingresa el código enviado</Text>
 
           <Animated.View style={[inputStyles2.inputContainer, { transform: [{ translateX: shakeAnim }]} ]}>
             

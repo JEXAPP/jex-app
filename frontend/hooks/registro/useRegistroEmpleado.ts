@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
+import useGooglePlacesAutocomplete from '@/services/useGooglePlacesAutocomplete';
+import { Keyboard } from 'react-native';
 
 export const useRegistroEmpleado = () => {
   const router = useRouter();
@@ -9,7 +11,6 @@ export const useRegistroEmpleado = () => {
   // Estados de campos de esta etapa
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
-  const [ubicacion, setUbicacion] = useState('');
 
   // Estados de control
   const [showError, setShowError] = useState(false);
@@ -23,6 +24,27 @@ export const useRegistroEmpleado = () => {
 
   const [dni, setDni] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState<Date | null>(null);
+
+  const [ubicacion, setUbicacion] = useState<string>('');
+
+  const {
+    sugerencias,
+    setSugerencias,
+    cargando,
+    error,
+    buscarSugerencias,
+  } = useGooglePlacesAutocomplete();
+
+  const handleUbicacion = (texto: string) => {
+    setUbicacion(texto);
+    buscarSugerencias(texto); // No hace falta limitar desde acá
+  };
+
+  const seleccionarUbicacion = (valor: string) => {
+    setUbicacion(valor);
+    setSugerencias([]); // ⬅️ Esto fuerza el cierre de la lista
+    Keyboard.dismiss(); // ⬅️ Esto cierra el teclado
+  };
 
   const formatearFecha = (fecha: Date): string => {
     const dia = String(fecha.getDate()).padStart(2, '0');
@@ -160,10 +182,8 @@ export const useRegistroEmpleado = () => {
   return {
     nombre,
     apellido,
-    ubicacion,
     setNombre,
     setApellido,
-    setUbicacion,
     handleRegistrarEmpleado,
     showError,
     errorMessage,
@@ -174,5 +194,11 @@ export const useRegistroEmpleado = () => {
     fechaNacimiento,
     handleChangeDni,
     setFechaNacimiento,
+    ubicacion,
+    handleUbicacion,
+    seleccionarUbicacion,
+    sugerencias,
+    cargando,
+    error,
   };
 };
