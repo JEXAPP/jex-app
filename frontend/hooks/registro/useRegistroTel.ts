@@ -77,7 +77,7 @@ export const useRegistroTelefono = (desdeGoogle = false) => {
       await SecureStore.setItemAsync('registro-parcial', JSON.stringify(datosParciales));
       */
 
-     router.push('./registro/mail-clave');
+     router.push('./registro/validarCodigoSMS');
 
 
     } catch (error: any) {
