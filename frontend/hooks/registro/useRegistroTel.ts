@@ -83,7 +83,7 @@ export const useRegistroTelefono = (desdeGoogle = false) => {
       // Esperar un poco para que el usuario vea el modal
       setTimeout(() => {
         setShowSuccess(false);
-        router.push('/registro/mail-contrasenia');
+        router.push('/registro/validarCodigoSMS'); // Cambiar ruta real
       }, 1500);
 
     } catch (error: any) {
