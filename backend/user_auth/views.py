@@ -15,8 +15,12 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import Group
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from user_auth.models import PasswordResetOTP, CustomUser
-from .serializers import EmployerRegisterSerializer, EmployeeRegisterSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer
+from .serializers import EmailTokenObtainPairSerializer, EmployerRegisterSerializer, EmployeeRegisterSerializer, PasswordResetConfirmSerializer, PasswordResetRequestSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
+class EmailTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailTokenObtainPairSerializer
+    
 class EmployerRegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
