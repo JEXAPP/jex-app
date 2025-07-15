@@ -1,8 +1,8 @@
 import { Boton } from '@/components/Boton';
 import { Input } from '@/components/Input';
 import { ModalConTexto } from '@/components/ModalConTexto';
-import { useRecuperar1 } from '@/hooks/login/useRecuperar1';
-import { recuperar1Styles as styles } from '@/styles/app/login/recuperar1Styles';
+import { useConfirmarCorreo } from '@/hooks/recuperar-clave/useConfirmarCorreo';
+import { confirmarCorreoStyles as styles } from '@/styles/app/recuperar-clave/confirmarCorreoStyles';
 import { botonStyles1 } from '@/styles/components/boton/botonStyles1';
 import { modalConTextoStyles } from '@/styles/components/modalConTextoStyles';
 import React from 'react';
@@ -11,7 +11,7 @@ import { inputStyles1 } from '../../styles/components/input/inputStyles1';
 import { iconos } from '@/constants/iconos';
 import { Colors } from '@/themes/colors';
 
-export default function RecuperarContrasena1() {
+export default function ConfirmarCorreo() {
   const {
     email,
     setEmail,
@@ -19,7 +19,7 @@ export default function RecuperarContrasena1() {
     errorMessage,
     closeError,
     handleEnviarCorreo,
-  } = useRecuperar1();
+  } = useConfirmarCorreo();
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

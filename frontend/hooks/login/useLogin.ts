@@ -35,10 +35,6 @@ export const useLogin = () => {
 
       await SecureStore.setItemAsync('jwt', access);
 
-      // if (necesitaRegistro) {
-      //   await SecureStore.setItemAsync('desde-google', 'true');
-      //   router.push('/registro');
-      // } else {
       setSuccessMessage('Sesión iniciada correctamente');
       setShowSuccess(true);
 
@@ -96,7 +92,7 @@ export const useLogin = () => {
   };
 
   const handlePasswordForgot = () => {
-    router.push('./login/recuperar1');
+    router.push('./recuperar-clave/');
   };
 
   const closeError = () => setShowError(false);

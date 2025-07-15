@@ -66,7 +66,7 @@ export const useRegistroMail = (desdeGoogle = false) => {
       // Después de 2 seg cerramos el modal y navegamos
       setTimeout(() => {
         setShowSuccess(false);
-        router.push('/'); // Cambiar si hay otra ruta
+        router.push('./seleccion-tipo'); // Cambiar si hay otra ruta
       }, 2000);
 
     } catch (error: any) {

@@ -1,12 +1,11 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/themes/colors';
 
-export const recuperar1Styles = StyleSheet.create({
+export const nuevaClaveStyles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
-    backgroundColor: Colors.gray1,
-    justifyContent: 'center',
+    padding: 20,
+    justifyContent: 'flex-start',
   },
   title: {
     fontSize: 34,
@@ -24,17 +23,15 @@ export const recuperar1Styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 30,
-    marginTop:50,
+    marginTop:80,
   },
-  inputContainer: {
-    marginTop: 0,
-    marginBottom: 370,
+  content:{
+    marginBottom: 30
   },
-  texto:{
+  texto: {
+    fontSize: 20,
     fontFamily: 'interBold',
-    fontSize: 18,
     color: Colors.violet5,
-    textAlign: 'left',
-    marginBottom: 15,
-  }
+    marginBottom: 20,
+  },
 });

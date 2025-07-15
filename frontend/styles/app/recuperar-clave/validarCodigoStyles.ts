@@ -2,7 +2,7 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/themes/colors';
 
-export const recuperar2Styles = StyleSheet.create({
+export const validarCodigoStyles = StyleSheet.create({
   container:{
     flex: 1
   },

@@ -1,11 +1,11 @@
-import React from 'react';
-import { Text, KeyboardAvoidingView, Platform, Animated, TextInput, TouchableWithoutFeedback, View, Image, Keyboard } from 'react-native';
-import { useCodigoValidacion } from '@/services/useCodigoValidacion';
 import { Input } from '@/components/Input';
+import { useCodigoValidacion } from '@/services/useCodigoValidacion';
+import { validarCodigoStyles as styles } from '@/styles/app/recuperar-clave/validarCodigoStyles';
 import { inputStyles2 } from '@/styles/components/input/inputStyles2';
-import { recuperar2Styles as styles } from '@/styles/app/login/recuperar2Styles';
+import React from 'react';
+import { Animated, Image, Keyboard, KeyboardAvoidingView, Platform, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
 
-export default function Recuperar2() {
+export default function ValidarTelefono() {
   const {
     inputs,
     inputsRef,

@@ -1,12 +1,12 @@
-// app/recuperar2.tsx
-import React from 'react';
-import { Text, KeyboardAvoidingView, Platform, Animated, TextInput, TouchableWithoutFeedback, View, Image, Keyboard } from 'react-native';
-import { useCodigoValidacion } from '@/services/useCodigoValidacion';
-import { Input } from '@/components/Input';
-import { inputStyles2 } from '@/styles/components/input/inputStyles2';
-import { recuperar2Styles as styles } from '@/styles/app/login/recuperar2Styles';
 
-export default function Recuperar2() {
+import { Input } from '@/components/Input';
+import { useCodigoValidacion } from '@/services/useCodigoValidacion';
+import { validarCodigoStyles as styles } from '@/styles/app/recuperar-clave/validarCodigoStyles';
+import { inputStyles2 } from '@/styles/components/input/inputStyles2';
+import React from 'react';
+import { Animated, Image, Keyboard, KeyboardAvoidingView, Platform, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
+
+export default function ValidarCodigo() {
   const {
     inputs,
     inputsRef,
@@ -14,7 +14,7 @@ export default function Recuperar2() {
     borderColors,
     shakeAnim,
     handleKeyPress
-  } = useCodigoValidacion('./recuperar3', 'email');
+  } = useCodigoValidacion('./nueva-clave', 'email');
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>

@@ -1,10 +1,10 @@
 // Manejo de autenticación con Google y navegación
-import { GOOGLE_ANDROID_CLIENT_ID } from '@env';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import { useEffect } from 'react';
 import * as Google from 'expo-auth-session/providers/google';
 import { router } from 'expo-router';
+import { config } from '@/config';
 
 // Completa cualquier sesión de autenticación pendiente al abrir la app
 WebBrowser.maybeCompleteAuthSession();
@@ -25,7 +25,7 @@ export const useGoogleAuthRequest = ({
 
   // Configura la solicitud de autenticación con los datos del cliente
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    androidClientId: `${config.googleClientId}`,
     iosClientId: '',
     redirectUri: makeRedirectUri({ scheme: 'frontend' }),
   });
