@@ -9,6 +9,7 @@ import datetime
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 
 class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True)
     dni = models.CharField(max_length=20, unique=True)
     phone = models.CharField(max_length=20)
 
@@ -38,6 +39,9 @@ class CustomUser(AbstractUser):
 
     def is_employee(self):
         return self.role == EMPLOYEE_ROLE
+    
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = [] 
     
 class EmployerProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employer_profile')
