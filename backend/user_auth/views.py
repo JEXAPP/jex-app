@@ -15,7 +15,7 @@ from django.core.mail import send_mail
 from django.contrib.auth.models import Group
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 from user_auth.models import PasswordResetOTP, CustomUser
-from .serializers import EmailTokenObtainPairSerializer, EmployerRegisterSerializer, EmployeeRegisterSerializer, PasswordResetCompleteSerializer, PasswordResetRequestSerializer, PasswordResetVerifySerializer
+from .serializers import CompleteEmployeeSocialSerializer, CompleteEmployerSocialSerializer, EmailTokenObtainPairSerializer, EmployerRegisterSerializer, EmployeeRegisterSerializer, PasswordResetCompleteSerializer, PasswordResetRequestSerializer, PasswordResetVerifySerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 class EmailTokenObtainPairView(TokenObtainPairView):
@@ -27,11 +27,10 @@ class EmployerRegisterView(APIView):
     def post(self, request):
         serializer = EmployerRegisterSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user) if request.user.is_authenticated else serializer.save()
+            serializer.save()
             return Response({'message': 'Employer registered'}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class EmployeeRegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -41,6 +40,26 @@ class EmployeeRegisterView(APIView):
         if serializer.is_valid():
             serializer.save(user=request.user) if request.user.is_authenticated else serializer.save()
             return Response({'message': 'Employee registered successfully'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class CompleteEmployerSocialView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = CompleteEmployerSocialSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Employer profile completed'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CompleteEmployeeSocialView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = CompleteEmployeeSocialSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Employee profile completed'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class LogoutView(APIView):
@@ -58,7 +77,6 @@ class LogoutView(APIView):
             return Response({"error": "Token inválido o ya expirado"}, status=status.HTTP_400_BAD_REQUEST)
 
 class CustomGoogleLoginView(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
 
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
@@ -73,7 +91,7 @@ class CustomGoogleLoginView(SocialLoginView):
 
         # Evaluar si el usuario tiene datos incompletos
         incomplete = False
-        if not user.first_name or not user.last_name or not user.rol:
+        if user.role:
             incomplete = True
 
         return Response({
