@@ -7,8 +7,8 @@ export const useCrearEvento = () => {
 
   const [nombreEvento, setNombreEvento] = useState('');
   const [descripcionEvento, setDescripcionEvento] = useState('');
-  const [fechaInicioEvento, setFechaInicioEvento] = useState(new Date());
-  const [fechaFinEvento, setFechaFinEvento] = useState(new Date());
+  const [fechaInicioEvento, setFechaInicioEvento] = useState<Date | null>(null);
+  const [fechaFinEvento, setFechaFinEvento] = useState<Date | null>(null);
   const [ubicacionEvento, setUbicacionEvento] = useState('');
 
 

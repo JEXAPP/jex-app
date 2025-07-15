@@ -63,17 +63,19 @@ export default function RegistroEventoScreen() {
               value={descripcionEvento} 
               onChangeText={setDescripcionEvento} 
               styles={{input:{...inputStyles1.input, height:120, textAlignVertical: 'top'}}} 
+              multiline={true}
+              maxLength={200}
             />
             
             <SelectorFecha 
-              label="Fecha de inicio" 
+              label="Fecha de Inicio" 
               value={fechaInicioEvento} 
               onChange={setFechaInicioEvento}
               styles={selectorFechaStyles} 
             />
 
             <SelectorFecha 
-              label="Fecha de fin" 
+              label="Fecha de Fin" 
               value={fechaFinEvento} 
               onChange={setFechaFinEvento} 
               styles={selectorFechaStyles} 
@@ -85,8 +87,6 @@ export default function RegistroEventoScreen() {
               onChangeText={setUbicacionEvento} 
               styles={inputStyles1} 
             />
-
-            <Image source={require('@/assets/images/maps.png')} style={styles.image} />
 
             <Boton 
               texto="Crear evento" 

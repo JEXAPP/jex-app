@@ -4,12 +4,12 @@ import { Borders } from '@/themes/borders';
 
 export const selectorFechaStyles = StyleSheet.create({
   container: {
-    marginVertical: 0,
+    marginVertical: 0
   },
   selector: {
     padding: 17,
     backgroundColor: Colors.white,
-    borderRadius: Borders.soft,
+    borderRadius: Borders.soft
   },
   textoSelector: {
     color: Colors.black,

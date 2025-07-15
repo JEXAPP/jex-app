@@ -34,7 +34,7 @@ export default function ValidarCodigoSMS() {
           <Text style={styles.title}>Registrate{'\n'}en JEX</Text>
         </View>
 
-        <Text style={styles.texto}>Paso 2: Ingresá el código que te enviamos por SMS</Text>
+        <Text style={styles.texto}>Ingresá el código que te enviamos por SMS</Text>
 
         {/* NUEVA VIEW que controla layout verticalmente */}
         <View style={{ flex: 1, justifyContent: 'space-between' }}>

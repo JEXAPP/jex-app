@@ -38,8 +38,6 @@ export default function RootLayout() {
       <Stack.Screen name="recuperar-clave/validar-codigo" options={{ ...exitHeader('/login'), ...transitionFade, }} />
       <Stack.Screen name="recuperar-clave/nueva-clave" options={{ ...exitHeader('/login'), ...transitionFade, }} />
       <Stack.Screen name="registro/index" options={{ ...exitHeader('/login'), ...transitionFade, }} />
-      <Stack.Screen name="registro/empleado" options={{ ...exitHeader('/login'), ...transitionFade, }} />
-      <Stack.Screen name="registro/empleador" options={{ ...exitHeader('/login'), ...transitionFade, }} />
       
     </Stack>
 

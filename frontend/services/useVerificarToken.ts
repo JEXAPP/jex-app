@@ -10,7 +10,7 @@ export const useVerificarToken = () => {
     const verificar = async () => {
       const token = await SecureStore.getItemAsync('jwt');
       if (!token) {
-        router.replace('/'); // redirige a login si no hay token
+        router.replace('/login'); // redirige a login si no hay token
       }
     };
 
