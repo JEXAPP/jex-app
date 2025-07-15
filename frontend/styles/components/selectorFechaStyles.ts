@@ -4,22 +4,16 @@ import { Borders } from '@/themes/borders';
 
 export const selectorFechaStyles = StyleSheet.create({
   container: {
-    marginVertical: 8,
-  },
-  label: {
-    marginBottom: 6,
-    color: Colors.violet4,
-    fontSize: 16,
-    fontFamily: 'interBold',
+    marginVertical: 0
   },
   selector: {
-    padding: 14,
+    padding: 17,
     backgroundColor: Colors.white,
-    borderRadius: Borders.soft,
+    borderRadius: Borders.soft
   },
   textoSelector: {
-    color: Colors.violet5,
+    color: Colors.black,
     fontSize: 16,
-    fontFamily: 'interSemiBold',
+    fontFamily: 'interBold',
   },
 });

@@ -1,14 +1,15 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '@/themes/colors';
+import { Colors } from '../../../themes/colors';
 
-export const recuperar3Styles = StyleSheet.create({
+export const regitroEmpleadorStyles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    padding: 24,
     justifyContent: 'flex-start',
+    backgroundColor: Colors.gray1,
   },
   title: {
-    fontSize: 34,
+    fontSize: 38,
     fontFamily: 'interBold',
     color: Colors.violet5,
     textAlign: 'left',
@@ -17,21 +18,24 @@ export const recuperar3Styles = StyleSheet.create({
   image: {
     width: 130,
     height: 130,
-    marginRight: 10,
+    marginRight: 20,
+    marginLeft: 10
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 30,
-    marginTop:80,
-  },
-  content:{
-    marginBottom: 30
-  },
-  texto: {
-    fontSize: 20,
-    fontFamily: 'interBold',
-    color: Colors.violet5,
     marginBottom: 20,
+    marginTop: 75,
+  },
+  opcionesContainer: {
+    gap: 2,
+    marginBottom: 375
+  },
+  texto:{
+    fontFamily: 'interBold',
+    fontSize: 18,
+    color: Colors.violet5,
+    textAlign: 'left',
+    marginBottom: 20
   },
 });

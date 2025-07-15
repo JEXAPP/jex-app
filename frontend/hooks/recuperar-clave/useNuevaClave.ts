@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useState } from 'react';
 
-export const useRecuperar3 = () => {
+export const useNuevaClave = () => {
   const router = useRouter();
 
   const [password, setPassword] = useState('');

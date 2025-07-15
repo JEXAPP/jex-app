@@ -13,6 +13,7 @@ import { useCrearEvento } from '@/hooks/crear-evento/useCrearEvento';
 import { SelectorFecha } from '@/components/SelectorFecha';
 import { iconos } from '@/constants/iconos';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { selectorFechaStyles } from '../../styles/components/selectorFechaStyles';
 
 export default function RegistroEventoScreen() {
     
@@ -62,18 +63,22 @@ export default function RegistroEventoScreen() {
               value={descripcionEvento} 
               onChangeText={setDescripcionEvento} 
               styles={{input:{...inputStyles1.input, height:120, textAlignVertical: 'top'}}} 
+              multiline={true}
+              maxLength={200}
             />
             
             <SelectorFecha 
-              label="Fecha de inicio" 
+              label="Fecha de Inicio" 
               value={fechaInicioEvento} 
-              onChange={setFechaInicioEvento} 
+              onChange={setFechaInicioEvento}
+              styles={selectorFechaStyles} 
             />
 
             <SelectorFecha 
-              label="Fecha de fin" 
+              label="Fecha de Fin" 
               value={fechaFinEvento} 
               onChange={setFechaFinEvento} 
+              styles={selectorFechaStyles} 
             />
 
             <Input 
@@ -82,8 +87,6 @@ export default function RegistroEventoScreen() {
               onChangeText={setUbicacionEvento} 
               styles={inputStyles1} 
             />
-
-            <Image source={require('@/assets/images/maps.png')} style={styles.image} />
 
             <Boton 
               texto="Crear evento" 

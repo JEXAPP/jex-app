@@ -9,9 +9,13 @@ import { Input } from '../../components/Input';
 import { ModalConTexto } from '../../components/ModalConTexto';
 import { ModalTemporal } from '../../components/ModalTemporal';
 import { useRegistroEmpleado } from '../../hooks/registro/useRegistroEmpleado';
-import { paso4EmpleadoStyles as styles } from '../../styles/app/registro/paso4EmpleadoStyles';
+import { registroEmpleadoStyles as styles } from '../../styles/app/registro/registroEmpleadoStyles';
 import { iconos } from '@/constants/iconos';
 import { Colors } from '@/themes/colors';
+import { SelectorFecha } from '@/components/SelectorFecha';
+import { selectorFechaStyles } from '../../styles/components/selectorFechaStyles';
+import { listaSugerenciasStyles } from '@/styles/components/listaSugerenciasStyles';
+import ListaSugerencias from '@/components/ListaSugerencias';
 
 
 
@@ -19,16 +23,22 @@ export default function RegistroEmpleadoScreen() {
   const {
     nombre,
     apellido,
-    ubicacion,
     setNombre,
     setApellido,
-    setUbicacion,
     handleRegistrarEmpleado,
     showError,
     errorMessage,
     showSuccess,
     closeError,
     closeSuccess,
+    dni,
+    fechaNacimiento,
+    handleChangeDni,
+    setFechaNacimiento,
+    ubicacion,
+    handleUbicacion,
+    seleccionarUbicacion,
+    sugerencias,
   } = useRegistroEmpleado();
 
 
@@ -48,7 +58,7 @@ export default function RegistroEmpleadoScreen() {
 
         </View>
 
-        <Text style={styles.texto}>Paso 4: Completa tus datos</Text>
+        <Text style={styles.texto}>Completa tus datos personales</Text>
 
         <View style={styles.opcionesContainer}>
         
@@ -66,13 +76,35 @@ export default function RegistroEmpleadoScreen() {
             styles={inputStyles1}
           />
 
+          <ListaSugerencias 
+            sugerencias={sugerencias} 
+            onSeleccionar={seleccionarUbicacion} 
+            styles={listaSugerenciasStyles}
+          />
+
           <Input 
             placeholder="Ubicación" 
             value={ubicacion} 
-            onChangeText={setUbicacion} 
+            onChangeText={handleUbicacion} 
             styles={inputStyles1}
           />
-          
+
+          <Input 
+            placeholder="DNI" 
+            value={dni}
+            keyboardType="numeric"
+            maxLength={10}
+            onChangeText={handleChangeDni} 
+            styles={inputStyles1}
+          />
+
+          <SelectorFecha
+            label="Fecha de Nacimiento"
+            value={fechaNacimiento}
+            onChange={setFechaNacimiento}
+            styles={selectorFechaStyles}
+          />
+
         </View>
 
         <Boton 

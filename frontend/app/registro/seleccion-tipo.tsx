@@ -34,7 +34,7 @@ export default function SeleccionTipoUsuario() {
 
       <View style={styles.opcionesContainer}>
 
-        <Text style={styles.texto}>Paso 3: Selecciona el tipo de usuario</Text>
+        <Text style={styles.texto}>Selecciona el tipo de usuario</Text>
 
         <Boton
           texto="Empleado"

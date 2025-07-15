@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { Platform, Text, TouchableOpacity, View } from 'react-native';
-import { selectorFechaStyles as styles } from '@/styles/components/selectorFechaStyles';
+import { Platform, StyleProp, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker'
 
 interface SelectorFechaProps {
   label: string;
-  value: Date;
+  value: Date | null;
   onChange: (date: Date) => void;
+  styles: {
+    container: StyleProp<ViewStyle>;
+    selector: StyleProp<ViewStyle>;
+    textoSelector: StyleProp<TextStyle>;
+  }
 }
 
-export const SelectorFecha = ({ label, value, onChange }: SelectorFechaProps) => {
+export const SelectorFecha = ({ label, value, onChange, styles }: SelectorFechaProps) => {
   const [mostrarPicker, setMostrarPicker] = useState(false);
 
   const onDateChange = (_: any, selectedDate?: Date) => {
@@ -19,30 +23,29 @@ export const SelectorFecha = ({ label, value, onChange }: SelectorFechaProps) =>
     }
   };
 
-  const formatoFechaHora = (fecha: Date) =>
-    `${fecha.toLocaleDateString()} ${fecha.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    })}`;
+  const formatoFecha = (fecha: Date) =>
+    `${fecha.getDate().toString().padStart(2, '0')}/${(fecha.getMonth() + 1).toString().padStart(2, '0')}/${fecha.getFullYear()}`;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
-
       <TouchableOpacity style={styles.selector} onPress={() => setMostrarPicker(true)}>
-        <Text style={styles.textoSelector}>{formatoFechaHora(value)}</Text>
+        <Text style={styles.textoSelector} >
+          {value ? formatoFecha(value) : label}
+        </Text>
       </TouchableOpacity>
 
       {mostrarPicker && (
         <DateTimePicker
-          value={value}
-          mode="datetime"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
+          value={value || new Date(2000, 0, 1)}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
           onChange={onDateChange}
+          maximumDate={new Date()}
         />
       )}
     </View>
   );
 };
+
 
 

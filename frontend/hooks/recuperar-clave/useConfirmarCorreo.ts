@@ -2,7 +2,8 @@ import { config } from '@/config';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useState } from 'react';
-export const useRecuperar1 = () => {
+
+export const useConfirmarCorreo = () => {
   const router = useRouter();
   
   const [email, setEmail] = useState('');
@@ -35,7 +36,7 @@ export const useRecuperar1 = () => {
       await SecureStore.setItemAsync('email-password-reset', email);
 
       // Navegar a la siguiente pantalla
-      router.push('/login/recuperar2');
+      router.push('./recuperar-clave/validar-codigo');
     } catch (error) {
       setErrorMessage('No pudimos procesar ese correo. Verificá que sea válido.');
       setShowError(true);

@@ -1,12 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../../themes/colors';
+import { Colors } from '@/themes/colors';
 
-export const paso4EmpleadoStyles = StyleSheet.create({
+export const registroMailClaveStyles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'flex-start',
-    backgroundColor: Colors.gray1,
+    padding: 20,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 38,
@@ -14,7 +12,6 @@ export const paso4EmpleadoStyles = StyleSheet.create({
     color: Colors.violet5,
     textAlign: 'left',
     flexShrink: 1,
-    
   },
   image: {
     width: 130,
@@ -28,9 +25,25 @@ export const paso4EmpleadoStyles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 75,
   },
+  seguridadContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+    marginBottom: 20,
+  },
+  barrita: {
+    height: 6,
+    width: 60,
+    borderRadius: 4,
+    marginLeft: 10,
+  },
+  textoSeguridad: {
+    fontSize: 14,
+    fontFamily: 'interRegular',
+  },
   opcionesContainer: {
     gap: 2,
-    marginBottom: 25
+    marginBottom: 185
   },
   texto:{
     fontFamily: 'interBold',
@@ -38,5 +51,5 @@ export const paso4EmpleadoStyles = StyleSheet.create({
     color: Colors.violet5,
     textAlign: 'left',
     marginBottom: 20
-  },
+  }
 });

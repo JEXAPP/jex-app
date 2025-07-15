@@ -12,6 +12,7 @@ export const Input = (props: InputProps) => {
   return (
     <TextInput
       style={props.styles.input}
+      cursorColor={Colors.violet3}
       placeholderTextColor={Colors.gray3}
       {...props}
     />

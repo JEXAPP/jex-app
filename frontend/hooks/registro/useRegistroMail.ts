@@ -61,13 +61,7 @@ export const useRegistroMail = (desdeGoogle = false) => {
 
       await SecureStore.setItemAsync('registro-parcial', JSON.stringify(datosParciales));
 
-      setShowSuccess(true);
-
-      // Después de 2 seg cerramos el modal y navegamos
-      setTimeout(() => {
-        setShowSuccess(false);
-        router.push('/'); // Cambiar si hay otra ruta
-      }, 2000);
+    router.push('./seleccion-tipo');
 
     } catch (error: any) {
       setErrorMessage(error.message || 'Ocurrió un error inesperado');

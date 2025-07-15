@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/themes/colors';
 
-export const recuperar1Styles = StyleSheet.create({
+export const confirmarCorreoStyles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,

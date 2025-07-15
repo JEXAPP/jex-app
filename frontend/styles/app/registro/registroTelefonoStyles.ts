@@ -1,12 +1,10 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../../themes/colors';
+import { Colors } from '@/themes/colors';
 
-export const paso4EmpleadorStyles = StyleSheet.create({
+export const registroTelefonoStyles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 24,
-    justifyContent: 'flex-start',
-    backgroundColor: Colors.gray1,
+    padding: 20,
+    justifyContent: 'center',
   },
   title: {
     fontSize: 38,
@@ -27,9 +25,19 @@ export const paso4EmpleadorStyles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 75,
   },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  inputArea: {
+    marginRight: 10,
+  },
+  inputTelefono: {
+    flex: 1.3,
+  },
   opcionesContainer: {
     gap: 2,
-    marginBottom: 300
+    marginBottom: 185
   },
   texto:{
     fontFamily: 'interBold',
@@ -37,5 +45,5 @@ export const paso4EmpleadorStyles = StyleSheet.create({
     color: Colors.violet5,
     textAlign: 'left',
     marginBottom: 20
-  },
+  }
 });
