@@ -10,8 +10,9 @@ from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
-    dni = models.CharField(max_length=20, unique=True)
+    # dni = models.CharField(max_length=20, unique=True)
     phone = models.CharField(max_length=20)
+    # user_completed
 
     ROLE_CHOICES = [
         ('employer', 'Employer'),
@@ -44,12 +45,21 @@ class CustomUser(AbstractUser):
     REQUIRED_FIELDS = [] 
     
 class EmployerProfile(models.Model):
+    # company_name = models.CharField(max_length=255)
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employer_profile')
+    
 
     def __str__(self):
         return f"{self.user.username} - Employer"
 
 class EmployeeProfile(models.Model):
+    # dni = models.CharField(max_length=20, unique=True)
+    # name 
+    # lastname
+    # ubicacion
+    # fecha de nacimiento dd/mm/yyyy
+
+
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employee_profile')
 
 
