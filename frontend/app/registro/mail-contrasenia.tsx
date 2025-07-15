@@ -37,7 +37,6 @@ export default function Registromail() {
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [mostrarConfirmPassword, setMostrarConfirmPassword] = useState(false);
   
-
   const colorBarra =
     seguridad === 'Débil' ? Colors.violet1 :
     seguridad === 'Media' ? Colors.violet3 :

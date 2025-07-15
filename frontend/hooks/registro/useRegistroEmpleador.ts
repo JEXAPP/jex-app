@@ -6,8 +6,7 @@ import axios from 'axios';
 export const useRegistroEmpleador = () => {
   const router = useRouter();
 
-  const [razonSocial, setRazonSocial] = useState('');
-  const [cuit, setCuit] = useState('');
+  const [nombreEmpresa, setNombreEmpresa] = useState('');
 
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -38,8 +37,8 @@ export const useRegistroEmpleador = () => {
   }, []);
 
   const validarCampos = () => {
-    if (!razonSocial || !cuit) {
-      setErrorMessage('Todos los campos son obligatorios');
+    if (!nombreEmpresa ) {
+      setErrorMessage('El nombre de la Empresa es obligatorio');
       setShowError(true);
       return false;
     }
@@ -55,8 +54,7 @@ export const useRegistroEmpleador = () => {
     }
 
     const payload = {
-      razonSocial,
-      cuit,
+      nombreEmpresa,
       tipoUsuario: 'Empleador',
       ...registroPrevio,
     };
@@ -90,15 +88,13 @@ export const useRegistroEmpleador = () => {
   };
 
   return {
-    razonSocial,
-    cuit,
-    setRazonSocial,
-    setCuit,
+    nombreEmpresa,
     handleRegistrarEmpleador,
     showError,
     errorMessage,
     showSuccess,
     closeError,
     closeSuccess,
+    setNombreEmpresa
   };
 };

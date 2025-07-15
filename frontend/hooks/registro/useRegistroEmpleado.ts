@@ -21,7 +21,51 @@ export const useRegistroEmpleado = () => {
   const [desdeGoogle, setDesdeGoogle] = useState(false);
   const [googleToken, setGoogleToken] = useState('');
 
+  const [dni, setDni] = useState('');
+  const [fechaNacimiento, setFechaNacimiento] = useState<Date | null>(null);
+
+  const formatearFecha = (fecha: Date): string => {
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const anio = fecha.getFullYear();
+    return `${dia}/${mes}/${anio}`;
+  };
+
+
+  // Función para formatear el DNI mientras se escribe
+  const handleChangeDni = (text: string) => {
+    let limpio = text.replace(/\D/g, '');
+
+    if (limpio.length > 8) limpio = limpio.slice(0, 8);
+
+    let conPuntos = limpio;
+    if (limpio.length > 3 && limpio.length <= 6) {
+      conPuntos = limpio.slice(0, limpio.length - 3) + '.' + limpio.slice(-3);
+    } else if (limpio.length > 6) {
+      conPuntos =
+        limpio.slice(0, limpio.length - 6) +
+        '.' +
+        limpio.slice(limpio.length - 6, limpio.length - 3) +
+        '.' +
+        limpio.slice(-3);
+    }
+
+    setDni(conPuntos);
+  };
+
+  const validarEdad = (fecha: Date | null) => {
+    if (!fecha) return false;
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - fecha.getFullYear();
+    const mes = hoy.getMonth() - fecha.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < fecha.getDate())) {
+      edad--;
+    }
+    return edad >= 16;
+  };
+
   useEffect(() => {
+    
     const cargarDatosPrevios = async () => {
       try {
         const datosGuardados = await SecureStore.getItemAsync('registro-parcial');
@@ -47,6 +91,23 @@ export const useRegistroEmpleado = () => {
       setShowError(true);
       return false;
     }
+    if (!dni || dni.replace(/\D/g, '').length < 7) {
+      setErrorMessage('El DNI no es válido');
+      setShowError(true);
+      return false;
+    }
+
+    if (!fechaNacimiento) {
+      setErrorMessage('Debés seleccionar tu fecha de nacimiento');
+      setShowError(true);
+      return false;
+    }
+
+    if (!validarEdad(fechaNacimiento)) {
+      setErrorMessage('Debés tener al menos 16 años para registrarte');
+      setShowError(true);
+      return false;
+    }
     return true;
   };
 
@@ -63,6 +124,8 @@ export const useRegistroEmpleado = () => {
       apellido,
       ubicacion,
       tipoUsuario: 'Empleado',
+      dni: dni.replace(/\./g, ''),
+      fechaNacimiento: formatearFecha(fechaNacimiento),
       ...registroPrevio,
     };
 
@@ -107,5 +170,9 @@ export const useRegistroEmpleado = () => {
     showSuccess,
     closeError,
     closeSuccess,
+    dni,
+    fechaNacimiento,
+    handleChangeDni,
+    setFechaNacimiento,
   };
 };

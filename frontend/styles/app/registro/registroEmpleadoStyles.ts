@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../../../themes/colors';
 
-export const paso4EmpleadoStyles = StyleSheet.create({
+export const registroEmpleadoStyles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,

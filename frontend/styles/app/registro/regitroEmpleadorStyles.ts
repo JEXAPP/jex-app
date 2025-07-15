@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../../../themes/colors';
 
-export const paso4EmpleadorStyles = StyleSheet.create({
+export const regitroEmpleadorStyles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 24,
@@ -29,7 +29,7 @@ export const paso4EmpleadorStyles = StyleSheet.create({
   },
   opcionesContainer: {
     gap: 2,
-    marginBottom: 300
+    marginBottom: 375
   },
   texto:{
     fontFamily: 'interBold',

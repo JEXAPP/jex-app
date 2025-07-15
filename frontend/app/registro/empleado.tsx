@@ -9,9 +9,11 @@ import { Input } from '../../components/Input';
 import { ModalConTexto } from '../../components/ModalConTexto';
 import { ModalTemporal } from '../../components/ModalTemporal';
 import { useRegistroEmpleado } from '../../hooks/registro/useRegistroEmpleado';
-import { paso4EmpleadoStyles as styles } from '../../styles/app/registro/paso4EmpleadoStyles';
+import { registroEmpleadoStyles as styles } from '../../styles/app/registro/registroEmpleadoStyles';
 import { iconos } from '@/constants/iconos';
 import { Colors } from '@/themes/colors';
+import { SelectorFecha } from '@/components/SelectorFecha';
+import { selectorFechaStyles } from '../../styles/components/selectorFechaStyles';
 
 
 
@@ -29,6 +31,10 @@ export default function RegistroEmpleadoScreen() {
     showSuccess,
     closeError,
     closeSuccess,
+    dni,
+    fechaNacimiento,
+    handleChangeDni,
+    setFechaNacimiento,
   } = useRegistroEmpleado();
 
 
@@ -72,7 +78,23 @@ export default function RegistroEmpleadoScreen() {
             onChangeText={setUbicacion} 
             styles={inputStyles1}
           />
-          
+
+          <Input 
+            placeholder="DNI" 
+            value={dni}
+            keyboardType="numeric"
+            maxLength={10}
+            onChangeText={handleChangeDni} 
+            styles={inputStyles1}
+          />
+
+          <SelectorFecha
+            label="Fecha de Nacimiento"
+            value={fechaNacimiento}
+            onChange={setFechaNacimiento}
+            styles={selectorFechaStyles}
+          />
+
         </View>
 
         <Boton 

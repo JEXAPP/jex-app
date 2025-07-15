@@ -3,7 +3,7 @@ import { Input } from '@/components/Input';
 import { ModalConTexto } from '@/components/ModalConTexto';
 import { ModalTemporal } from '@/components/ModalTemporal';
 import { useRegistroEmpleador } from '@/hooks/registro/useRegistroEmpleador';
-import { paso4EmpleadorStyles as styles } from '@/styles/app/registro/paso4EmpleadorStyles';
+import { regitroEmpleadorStyles as styles } from '@/styles/app/registro/regitroEmpleadorStyles';
 import { botonStyles1 } from '@/styles/components/boton/botonStyles1';
 import { inputStyles1 } from '@/styles/components/input/inputStyles1';
 import { modalConTextoStyles } from '@/styles/components/modalConTextoStyles';
@@ -18,19 +18,9 @@ import { iconos } from '@/constants/iconos';
 export default function RegistroEmpleador() {
 
   const {
-    razonSocial,
-    cuit,
-    telefono,
-    email,
-    password,
-    confirmPassword,
-    setRazonSocial,
-    setCuit,
-    setTelefono,
-    setEmail,
-    setPassword,
-    setConfirmPassword,
+    nombreEmpresa,
     handleRegistrarEmpleador,
+    setNombreEmpresa,
     showError,
     errorMessage,
     showSuccess,
@@ -57,17 +47,9 @@ export default function RegistroEmpleador() {
         <View style={styles.opcionesContainer}>
 
           <Input 
-            placeholder="Razón Social" 
-            value={razonSocial} 
-            onChangeText={setRazonSocial} 
-            styles={inputStyles1}
-          />
-          
-          <Input 
-            placeholder="CUIT" 
-            keyboardType="numeric" 
-            value={cuit} 
-            onChangeText={setCuit} 
+            placeholder="Nombre Empresa" 
+            value={nombreEmpresa} 
+            onChangeText={setNombreEmpresa} 
             styles={inputStyles1}
           />
           
