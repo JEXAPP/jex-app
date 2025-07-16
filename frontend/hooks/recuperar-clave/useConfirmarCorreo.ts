@@ -1,7 +1,7 @@
-import { config } from '../../config';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useState } from 'react';
+import { config } from '../../config'
 
 export const useConfirmarCorreo = () => {
   const router = useRouter();
