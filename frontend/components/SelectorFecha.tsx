@@ -31,20 +31,6 @@ export const SelectorFecha = ({ label, value, onChange, styles }: SelectorFechaP
     `${fecha.getDate().toString().padStart(2, '0')}/${(fecha.getMonth() + 1).toString().padStart(2, '0')}/${fecha.getFullYear()}`;
 
 
-  const onDateChange = (_: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setMostrarPicker(false);
-      if (selectedDate) onChange(selectedDate);
-    } else {
-      if (selectedDate) setFechaTemporal(selectedDate);
-    }
-  };
-
-  const confirmarYcerrar = () => {
-    onChange(fechaTemporal);
-    setMostrarPicker(false);
-  };
-
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.selector} onPress={() => setMostrarPicker(true)}>

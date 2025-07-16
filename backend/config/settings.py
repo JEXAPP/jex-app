@@ -64,6 +64,7 @@ INSTALLED_APPS = [
 
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'corsheaders',
 
 ]
 
@@ -74,13 +75,18 @@ SITE_ID = 1
 MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 AUTHENTICATION_BACKENDS = [
     # Needed to login by username in Django admin, regardless of `allauth`
@@ -110,7 +116,6 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 SOCIALACCOUNT_LOGIN_ON_GET = True
-SOCIALACCOUNT_ADAPTER = 'user_auth.adapters.CustomSocialAccountAdapter'
 #LOGIN_REDIRECT_URL = ''
 #LOGOUT_REDIRECT_URL = ''
 ROOT_URLCONF = 'config.urls'
@@ -161,7 +166,7 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME'),  
         'USER': os.getenv('DB_USER'),        
         'PASSWORD': os.getenv('DB_PASSWORD'),  
-        'HOST': 'localhost',
+        'HOST': os.getenv('DB_HOST', 'localhost'),
         'PORT': '5432',
     }
 }
@@ -200,7 +205,8 @@ USE_I18N = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

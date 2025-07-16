@@ -78,6 +78,7 @@ class LogoutView(APIView):
 
 class CustomGoogleLoginView(SocialLoginView):
 
+    adapter_class = GoogleOAuth2Adapter
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
 
@@ -90,9 +91,9 @@ class CustomGoogleLoginView(SocialLoginView):
         access = str(refresh.access_token)
 
         # Evaluar si el usuario tiene datos incompletos
-        incomplete = False
+        incomplete = True
         if user.role:
-            incomplete = True
+            incomplete = False
 
         return Response({
             "access": access,

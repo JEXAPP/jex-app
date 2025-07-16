@@ -13,6 +13,7 @@
     "scheme": "frontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "owner": "leofragherazzi",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.jexapp"

@@ -1,5 +1,4 @@
 from django.urls import path
-
 from .views import EmailTokenObtainPairView, EmployeeRegisterView, EmployerRegisterView, CustomGoogleLoginView, LogoutView, PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView, CompleteEmployerSocialView, CompleteEmployeeSocialView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
     
