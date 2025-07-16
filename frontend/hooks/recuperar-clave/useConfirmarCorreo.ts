@@ -1,4 +1,4 @@
-import { config } from '@/config';
+import { config } from '../../config';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { useState } from 'react';

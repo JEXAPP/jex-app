@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
-import { config } from '@/config';
+import { config } from '../../config';
 
 export const useRegistroEmpleador = () => {
   const router = useRouter();

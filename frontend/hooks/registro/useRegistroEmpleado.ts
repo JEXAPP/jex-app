@@ -4,7 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import useGooglePlacesAutocomplete from '@/services/useGooglePlacesAutocomplete';
 import { Keyboard } from 'react-native';
-import { config } from '@/config';
+import { config } from '../../config';
 
 export const useRegistroEmpleado = () => {
   const router = useRouter();

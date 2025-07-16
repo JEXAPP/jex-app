@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { config } from '@/config';
+import { config } from '../config';
 import axios from 'axios';
 
 const GOOGLE_PLACES_API = 'https://maps.googleapis.com/maps/api/place/autocomplete/json';

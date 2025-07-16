@@ -3,7 +3,7 @@ import { TextInput, Vibration, Keyboard, Animated, NativeSyntheticEvent, TextInp
 import { Colors } from '@/themes/colors';
 import { RelativePathString, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import { config } from '@/config';
+import { config } from '../config';
 
 export const useCodigoValidacion = (ruta: RelativePathString, tipo: 'email' | 'sms') => {
     const router = useRouter();

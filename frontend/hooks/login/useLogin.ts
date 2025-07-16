@@ -1,4 +1,4 @@
-import { config } from '@/config';
+import { config } from '../../config';
 import { useGoogleAuthRequest } from '@/services/useGoogleAuthRequest';
 import axios from 'axios';
 import { useRouter } from 'expo-router';

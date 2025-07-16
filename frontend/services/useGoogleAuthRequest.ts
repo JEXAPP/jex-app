@@ -3,7 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import { useEffect } from 'react';
 import { router } from 'expo-router'; // o el que uses
-import { config } from '@/config'; // tu archivo de configuración
+import { config } from '../config'; // tu archivo de configuración
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 
