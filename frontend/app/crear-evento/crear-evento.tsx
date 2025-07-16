@@ -61,7 +61,8 @@ export default function RegistroEventoScreen() {
             <Input 
               placeholder="Descripción del evento" 
               value={descripcionEvento} 
-              onChangeText={setDescripcionEvento} 
+              onChangeText={setDescripcionEvento}
+              keyboardType="numeric" 
               styles={{input:{...inputStyles1.input, height:120, textAlignVertical: 'top'}}} 
               multiline={true}
               maxLength={200}
