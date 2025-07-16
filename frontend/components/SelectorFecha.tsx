@@ -44,6 +44,20 @@ export const SelectorFecha = ({ label, value, onChange, styles }: SelectorFechaP
     setMostrarPicker(false);
   };
 
+  const onDateChange = (_: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setMostrarPicker(false);
+      if (selectedDate) onChange(selectedDate);
+    } else {
+      if (selectedDate) setFechaTemporal(selectedDate);
+    }
+  };
+
+  const confirmarYcerrar = () => {
+    onChange(fechaTemporal);
+    setMostrarPicker(false);
+  };
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.selector} onPress={() => setMostrarPicker(true)}>
