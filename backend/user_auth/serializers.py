@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from backend.user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from .models import CustomUser, EmployerProfile, EmployeeProfile
 from rest_framework.exceptions import AuthenticationFailed
@@ -58,7 +59,7 @@ class EmployerRegisterSerializer(serializers.Serializer):
         company_name = validated_data['company_name']
         
         # El username será la parte antes del @
-        username = email.split('@')[0]
+        username = get_username_from_email(email)
         
         user = CustomUser.objects.create(
             username=username,
@@ -103,7 +104,7 @@ class EmployeeRegisterSerializer(serializers.Serializer):
         address = validated_data.get('address', '')
         birth_date = validated_data.get('birth_date', None)
 
-        username = email.split('@')[0]
+        username = get_username_from_email(email)
 
         user = CustomUser.objects.create(
             username=username,
@@ -140,7 +141,7 @@ class CompleteEmployerSocialSerializer(serializers.Serializer):
     def save(self):
         user = self.context['request'].user
         user.phone = self.validated_data['phone']
-        user.role = EMPLOYER_ROLE 
+        user.role = EMPLOYER_ROLE
         user.save()
 
         EmployerProfile.objects.create(
