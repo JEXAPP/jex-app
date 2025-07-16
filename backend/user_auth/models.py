@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.utils import timezone
-from backend.user_auth.utils import get_username_from_email
+from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from django.contrib.auth.models import BaseUserManager
 

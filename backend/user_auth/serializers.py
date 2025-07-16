@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from backend.user_auth.utils import get_username_from_email
+from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from .models import CustomUser, EmployerProfile, EmployeeProfile
 from rest_framework.exceptions import AuthenticationFailed
