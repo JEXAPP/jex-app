@@ -44,7 +44,7 @@ export default function ValidarCodigo() {
                 ref={(ref: TextInput) => (inputsRef[index] = ref)}
                 value={value}
                 onChangeText={(text) => handleChange(text, index)}
-                keyboardType="default"
+                keyboardType="numeric"
                 autoCapitalize="characters"
                 maxLength={1}
                 onKeyPress={e => handleKeyPress(e, index)}

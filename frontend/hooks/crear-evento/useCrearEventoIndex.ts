@@ -9,7 +9,7 @@ export const useCrearEventoIndex = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      router.push('./crear-evento');
+      router.push('./crear-evento/crear-evento');
     }, 1000);
 
     return () => clearTimeout(timeout);

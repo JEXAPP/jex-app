@@ -93,7 +93,7 @@ export const useLogin = () => {
 
   const handlePasswordForgot = () => {
     // router.push('./recuperar-clave/');
-    router.push('./crear-evento/crear-evento');
+    router.push('./recuperar-clave');
   };
 
   const closeError = () => setShowError(false);

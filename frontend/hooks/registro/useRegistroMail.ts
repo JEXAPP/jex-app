@@ -55,8 +55,8 @@ export const useRegistroMail = (desdeGoogle = false) => {
 
     try {
       const datosParciales: any = {
-        correo,
-        password,
+        email: correo,
+        password: password,
       };
 
       await SecureStore.setItemAsync('registro-parcial', JSON.stringify(datosParciales));

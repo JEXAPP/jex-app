@@ -70,14 +70,12 @@ export const useRegistroTelefono = (desdeGoogle = false) => {
         throw new Error('No se pudo enviar el SMS');
       }
 
-      const { token } = await response.json();
-      await SecureStore.setItemAsync('registro-token', token);
-
-      const datosParciales = { telefono: telefonoCompleto };
-      await SecureStore.setItemAsync('registro-parcial', JSON.stringify(datosParciales));
       */
 
-     router.push('./registro/validarCodigoSMS');
+      const datosParciales = { phone: telefonoLimpio };
+      await SecureStore.setItemAsync('registro-telefono', JSON.stringify(datosParciales));
+
+      router.push('./registro/validarCodigoSMS');
 
 
     } catch (error: any) {

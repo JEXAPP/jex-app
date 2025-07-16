@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
+import { config } from '@/config';
 
 export const useRegistroEmpleador = () => {
   const router = useRouter();
@@ -19,10 +20,15 @@ export const useRegistroEmpleador = () => {
   useEffect(() => {
     const cargarDatos = async () => {
       try {
-        const parcial = await SecureStore.getItemAsync('registro-parcial');
+        const telefono = await SecureStore.getItemAsync('registro-telefono');
+        const datosGuardados = await SecureStore.getItemAsync('registro-parcial');
         const token = await SecureStore.getItemAsync('google-token');
 
-        if (parcial) setRegistroPrevio(JSON.parse(parcial));
+        if (datosGuardados && telefono) {
+          setRegistroPrevio({
+            ...JSON.parse(datosGuardados),
+            phone: telefono,
+          })};
         if (token) {
           setDesdeGoogle(true);
           setGoogleToken(token);
@@ -54,19 +60,18 @@ export const useRegistroEmpleador = () => {
     }
 
     const payload = {
-      nombreEmpresa,
-      tipoUsuario: 'Empleador',
+      company_name: nombreEmpresa,
       ...registroPrevio,
     };
 
     try {
       if (desdeGoogle) {
-        await axios.post('https://tu-api.com/auth/google/register', {
+        await axios.post(`${config.apiBaseUrl}/api/auth/google/register`, {
           tokenGoogle: googleToken,
           datosAdicionales: payload,
         });
       } else {
-        await axios.post('https://tu-api.com/auth/register', payload);
+        await axios.post(`${config.apiBaseUrl}/api/auth/register/employer/`, payload);
       }
 
       setShowSuccess(true);

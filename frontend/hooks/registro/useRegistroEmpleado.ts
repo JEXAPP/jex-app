@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import useGooglePlacesAutocomplete from '@/services/useGooglePlacesAutocomplete';
 import { Keyboard } from 'react-native';
+import { config } from '@/config';
 
 export const useRegistroEmpleado = () => {
   const router = useRouter();
@@ -90,10 +91,15 @@ export const useRegistroEmpleado = () => {
     
     const cargarDatosPrevios = async () => {
       try {
+        const telefono = await SecureStore.getItemAsync('registro-telefono');
         const datosGuardados = await SecureStore.getItemAsync('registro-parcial');
         const tokenGoogle = await SecureStore.getItemAsync('google-token');
 
-        if (datosGuardados) setRegistroPrevio(JSON.parse(datosGuardados));
+        if (datosGuardados && telefono) {
+          setRegistroPrevio({
+            ...JSON.parse(datosGuardados),
+            phone: telefono,
+          })};
         if (tokenGoogle) {
           setDesdeGoogle(true);
           setGoogleToken(tokenGoogle);
@@ -142,23 +148,22 @@ export const useRegistroEmpleado = () => {
     }
 
     const payload = {
-      nombre,
-      apellido,
-      ubicacion,
-      tipoUsuario: 'Empleado',
+      first_name: nombre,
+      last_name: apellido,
+      address: ubicacion,
       dni: dni.replace(/\./g, ''),
-      fechaNacimiento: formatearFecha(fechaNacimiento),
+      birth_date: formatearFecha(fechaNacimiento!),
       ...registroPrevio,
     };
 
     try {
       if (desdeGoogle) {
-        await axios.post('https://tu-api.com/auth/google/register', {
+        await axios.post(`${config.apiBaseUrl}/api/auth/google/register`, {
           tokenGoogle: googleToken,
           datosAdicionales: payload
         });
       } else {
-        await axios.post('https://tu-api.com/auth/register', payload);
+        await axios.post(`${config.apiBaseUrl}/api/auth/register/employee/`, payload);
       }
 
       setShowSuccess(true);
