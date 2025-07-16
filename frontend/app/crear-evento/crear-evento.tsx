@@ -12,7 +12,7 @@ import { modalTemporalStyles } from '@/styles/components/modalTemporalStyles';
 import { useCrearEvento } from '@/hooks/crear-evento/useCrearEvento';
 import { SelectorFecha } from '@/components/SelectorFecha';
 import { iconos } from '@/constants/iconos';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { Colors } from '@/themes/colors';
 import { selectorFechaStyles } from '../../styles/components/selectorFechaStyles';
 
 export default function RegistroEventoScreen() {
@@ -61,7 +61,8 @@ export default function RegistroEventoScreen() {
             <Input 
               placeholder="Descripción del evento" 
               value={descripcionEvento} 
-              onChangeText={setDescripcionEvento} 
+              onChangeText={setDescripcionEvento}
+              keyboardType="numeric" 
               styles={{input:{...inputStyles1.input, height:120, textAlignVertical: 'top'}}} 
               multiline={true}
               maxLength={200}

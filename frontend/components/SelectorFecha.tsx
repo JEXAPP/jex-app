@@ -30,19 +30,6 @@ export const SelectorFecha = ({ label, value, onChange, styles }: SelectorFechaP
   const formatoFecha = (fecha: Date) =>
     `${fecha.getDate().toString().padStart(2, '0')}/${(fecha.getMonth() + 1).toString().padStart(2, '0')}/${fecha.getFullYear()}`;
 
-  const onDateChange = (_: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setMostrarPicker(false);
-      if (selectedDate) onChange(selectedDate);
-    } else {
-      if (selectedDate) setFechaTemporal(selectedDate);
-    }
-  };
-
-  const confirmarYcerrar = () => {
-    onChange(fechaTemporal);
-    setMostrarPicker(false);
-  };
 
   const onDateChange = (_: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') {

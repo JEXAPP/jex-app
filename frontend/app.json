@@ -3,11 +3,11 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "723cd777-3382-44e1-ac3f-09e0aac1ce24"
+        "projectId": "2664b647-4200-4d00-b8bc-e47ddb4cda05"
       }
     },
     "name": "frontend",
-    "slug": "frontend",
+    "slug": "jex",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "frontend",
@@ -40,6 +40,7 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "owner": "jex-app"
   }
 }
