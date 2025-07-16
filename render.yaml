@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: mi-django-app
+    env: python
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn backend.myproject.wsgi:application
+    workingDirectory: backend
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
