@@ -1,10 +1,11 @@
-// Manejo de autenticación con Google y navegación
+import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import { useEffect } from 'react';
-import * as Google from 'expo-auth-session/providers/google';
-import { router } from 'expo-router';
-import { config } from '@/config';
+import { router } from 'expo-router'; // o el que uses
+import { config } from '@/config'; // tu archivo de configuración
+import * as SecureStore from 'expo-secure-store';
+import axios from 'axios';
 
 // Completa cualquier sesión de autenticación pendiente al abrir la app
 WebBrowser.maybeCompleteAuthSession();
@@ -20,34 +21,58 @@ export const useGoogleAuthRequest = ({
   setErrorMessage,
   setShowSuccess,
   setShowError,
-  setSuccessMessage
+  setSuccessMessage,
 }: UseGoogleAuthRequestProps) => {
-
-  // Configura la solicitud de autenticación con los datos del cliente
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: `${config.googleClientIdAndroid}`,
-    iosClientId: `${config.googleClientIdIos}`,
-    redirectUri: makeRedirectUri({ scheme: 'frontend' }),
+    androidClientId: config.googleClientIdAndroid,
+    iosClientId: config.googleClientIdIos,
+    webClientId: config.googleExpoClientId,
+    redirectUri: makeRedirectUri({
+      useProxy: true,
+    }),
   });
 
-  // Efecto que se activa cuando se recibe una respuesta de autenticación
   useEffect(() => {
+    const autenticarConBackend = async (googleToken: string) => {
+      try {
+        const res = await axios.post(`${config.apiBaseUrl}/api/auth/login/google/`, {
+          access_token: googleToken,
+        });
+
+        const { access, refresh, incomplete_user } = res.data;
+
+        // Guardar tokens de forma segura
+        await SecureStore.setItemAsync('accessToken', access);
+        await SecureStore.setItemAsync('refreshToken', refresh);
+
+        setSuccessMessage('Sesión con Google iniciada');
+        setShowSuccess(true);
+
+        setTimeout(() => {
+          setShowSuccess(false);
+          router.push(incomplete_user ? '/registro' : '/crear-evento');
+        }, 1500);
+      } catch (error: any) {
+        console.error('Error autenticando con backend:', error?.response?.data || error);
+        setErrorMessage('Error al autenticar con el servidor');
+        setShowError(true);
+      }
+    };
+
     if (response?.type === 'success') {
       const { authentication } = response;
 
-      // (Opcional) Token de autenticación recibido
-      console.log('TOKEN:', authentication?.accessToken);
-
-      // Muestra modal de éxito y redirige a la pantalla principal
-      setSuccessMessage('Sesión con Google iniciada');
-      setShowSuccess(true);
-
-      setTimeout(() => {
-        setShowSuccess(false);
-        router.push('/');
-      }, 1500);
+      if (authentication?.accessToken) {
+        autenticarConBackend(authentication.accessToken);
+      } else {
+        setErrorMessage('Token de Google no disponible');
+        setShowError(true);
+      }
+    } else if (response?.type === 'error') {
+      setErrorMessage('Error al iniciar sesión con Google');
+      setShowError(true);
     }
-  }, [response, setShowSuccess, setSuccessMessage]);
+  }, [response]);
 
   return { request, promptAsync };
 };

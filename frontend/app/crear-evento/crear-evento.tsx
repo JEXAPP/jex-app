@@ -12,7 +12,7 @@ import { modalTemporalStyles } from '@/styles/components/modalTemporalStyles';
 import { useCrearEvento } from '@/hooks/crear-evento/useCrearEvento';
 import { SelectorFecha } from '@/components/SelectorFecha';
 import { iconos } from '@/constants/iconos';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { Colors } from '@/themes/colors';
 import { selectorFechaStyles } from '../../styles/components/selectorFechaStyles';
 
 export default function RegistroEventoScreen() {
