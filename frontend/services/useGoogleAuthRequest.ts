@@ -7,7 +7,6 @@ import { config } from '@/config'; // tu archivo de configuración
 import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 
-// Completa cualquier sesión de autenticación pendiente al abrir la app
 WebBrowser.maybeCompleteAuthSession();
 
 interface UseGoogleAuthRequestProps {
@@ -28,7 +27,7 @@ export const useGoogleAuthRequest = ({
     iosClientId: config.googleClientIdIos,
     webClientId: config.googleExpoClientId,
     redirectUri: makeRedirectUri({
-      useProxy: true,
+    useProxy: true,
     }),
   });
 
@@ -41,16 +40,23 @@ export const useGoogleAuthRequest = ({
 
         const { access, refresh, incomplete_user } = res.data;
 
-        // Guardar tokens de forma segura
-        await SecureStore.setItemAsync('accessToken', access);
-        await SecureStore.setItemAsync('refreshToken', refresh);
+        console.log(res.data);
+        await SecureStore.setItemAsync('access_token', access);
+        await SecureStore.setItemAsync('refresh_token', refresh);
 
-        setSuccessMessage('Sesión con Google iniciada');
+
+        setSuccessMessage('Sesión iniciada correctamente');
         setShowSuccess(true);
 
-        setTimeout(() => {
+
+        setTimeout(async () => {
           setShowSuccess(false);
-          router.push(incomplete_user ? '/registro' : '/crear-evento');
+          if (incomplete_user) {
+            await SecureStore.setItemAsync('desde-google', 'true');
+            router.push('/registro');
+          } else {
+            router.push('/crear-evento');
+          }
         }, 1500);
       } catch (error: any) {
         console.error('Error autenticando con backend:', error?.response?.data || error);
@@ -61,11 +67,10 @@ export const useGoogleAuthRequest = ({
 
     if (response?.type === 'success') {
       const { authentication } = response;
-
       if (authentication?.accessToken) {
         autenticarConBackend(authentication.accessToken);
       } else {
-        setErrorMessage('Token de Google no disponible');
+        setErrorMessage('No se pudo obtener el token de Google');
         setShowError(true);
       }
     } else if (response?.type === 'error') {

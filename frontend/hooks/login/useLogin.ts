@@ -50,35 +50,11 @@ export const useLogin = () => {
     }
   };
 
-  const handleGoogleLogin = async () => {
+    const handleGoogleLogin = async () => {
     try {
       const result = await promptAsync();
-      if (result.type === 'success') {
-        const accessToken = result.authentication?.accessToken;
-
-        const response = await axios.post(`${config.apiBaseUrl}/api/auth/login/google/`, {
-          tokenGoogle: accessToken,
-        });
-
-        const { token, necesitaRegistro } = response.data;
-
-        await SecureStore.setItemAsync('jwt', token);
-
-        if (necesitaRegistro) {
-          await SecureStore.setItemAsync('desde-google', 'true');
-          router.push('/registro');
-        } else {
-          setSuccessMessage('Sesión iniciada correctamente');
-          setShowSuccess(true);
-
-          setTimeout(() => {
-            setShowSuccess(false);
-            router.push('/crear-evento');
-          }, 1500);
-        }
-
-      } else {
-        throw new Error('Login cancelado');
+      if (result.type !== 'success') {
+        throw new Error('Login cancelado por el usuario');
       }
     } catch (err) {
       setErrorMessage('Error al iniciar sesión con Google');

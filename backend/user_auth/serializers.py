@@ -8,7 +8,8 @@ from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from .models import CustomUser, EmployerProfile, EmployeeProfile
 from rest_framework.exceptions import AuthenticationFailed
 from django.contrib.auth.hashers import make_password
-
+from rest_framework import serializers
+from user_auth.models import EmployeeProfile, CustomUser
 
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'email'  # Define que se use email en lugar de username
@@ -82,7 +83,7 @@ class EmployeeRegisterSerializer(serializers.Serializer):
     
     dni = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=255, allow_blank=True, required=False)
-    birth_date = serializers.DateField(required=False)
+    birth_date = serializers.DateField(input_formats=["%d/%m/%Y"], required=False)
 
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
@@ -139,6 +140,7 @@ class CompleteEmployerSocialSerializer(serializers.Serializer):
     def save(self):
         user = self.context['request'].user
         user.phone = self.validated_data['phone']
+        user.role = EMPLOYER_ROLE 
         user.save()
 
         EmployerProfile.objects.create(
@@ -149,9 +151,6 @@ class CompleteEmployerSocialSerializer(serializers.Serializer):
         return user
     
 
-from rest_framework import serializers
-from user_auth.models import EmployeeProfile, CustomUser
-
 class CompleteEmployeeSocialSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20)
     dni = serializers.CharField(max_length=20)
@@ -160,6 +159,7 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
 
     def validate(self, data):
         user = self.context['request'].user
+        
 
         if not user.is_authenticated:
             raise serializers.ValidationError("User must be authenticated.")
@@ -176,6 +176,8 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
         user = self.context['request'].user
 
         user.phone = self.validated_data['phone']
+        user.role = EMPLOYEE_ROLE 
+
         user.save()
 
         EmployeeProfile.objects.create(
