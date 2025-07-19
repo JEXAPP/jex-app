@@ -1,12 +1,8 @@
 from django.db import models
-
-# Create your models here.
 from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.utils import timezone
 from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from django.contrib.auth.models import BaseUserManager
-
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -74,44 +70,3 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [] 
     objects = CustomUserManager() 
-    
-class EmployerProfile(models.Model):
-    company_name = models.CharField(max_length=255)
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employer_profile')
-    
-
-    def __str__(self):
-        return f"{self.user.email} - Employer"
-
-class EmployeeProfile(models.Model):
-    dni = models.CharField(max_length=20, unique=True)
-    address = models.CharField(max_length=255, blank=True, null=True)
-    birth_date = models.DateField(blank=True, null=True)
-
-
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employee_profile')
-
-
-    def __str__(self):
-        return f"{self.user.email} - Employee"
-
-
-class PasswordResetOTP(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    otp_code = models.CharField(max_length=6)
-    created_at = models.DateTimeField(auto_now_add=True)
-    valid_until = models.DateTimeField()
-
-    def is_valid(self):
-        return timezone.now() <= self.valid_until
-    
-
-class PhoneVerification(models.Model):
-    phone = models.CharField(max_length=15, unique=True)
-    is_verified = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    verified_at = models.DateTimeField(null=True, blank=True)
-    expires_at = models.DateTimeField()
-
-    def __str__(self):
-        return f"{self.phone} - {'Verificado' if self.is_verified else 'Pendiente'}"

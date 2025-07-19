@@ -1,7 +1,6 @@
 from django.db import models
 
-from user_auth.models import CustomUser
-
+from user_auth.models.user import CustomUser
 
 class Event(models.Model):
     name = models.CharField(max_length=100, null=False, blank=False)

@@ -1,6 +1,11 @@
 from django.urls import path
-from .views import EmailTokenObtainPairView, EmployeeRegisterView, EmployerRegisterView, CustomGoogleLoginView, LogoutView, PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView, CompleteEmployerSocialView, CompleteEmployeeSocialView, SendPhoneVerificationCodeView, VerifyPhoneCodeView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from user_auth.views.auth import EmailTokenObtainPairView, CustomGoogleLoginView, LogoutView
+from rest_framework_simplejwt.views import TokenRefreshView
+
+from user_auth.views.employee import CompleteEmployeeSocialView, EmployeeRegisterView
+from user_auth.views.employer import CompleteEmployerSocialView, EmployerRegisterView
+from user_auth.views.password_reset import PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
+from user_auth.views.phone_verification import SendPhoneVerificationCodeView, VerifyPhoneCodeView
     
 urlpatterns = [
     path('register/employer/', EmployerRegisterView.as_view(), name='register-employer'),
