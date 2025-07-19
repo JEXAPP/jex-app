@@ -12,7 +12,6 @@ export const transitionSlideFromBottom: NativeStackNavigationOptions = {
   animation: 'slide_from_bottom',
 };
 
-
 export const transitionNone: NativeStackNavigationOptions = {
   animation: 'none',
 };

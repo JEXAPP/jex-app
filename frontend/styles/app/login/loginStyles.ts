@@ -9,16 +9,17 @@ export const loginStyles = StyleSheet.create({
     justifyContent: 'center',
   },
   header: {
-    marginBottom: 30,
+    marginBottom: 50,
+    marginTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
   },
   title: {
-    fontFamily: 'interBold',
-    fontSize: 60,
-    color: Colors.violet5,
+    fontFamily: 'titulos',
+    fontSize: 65,
+    color: Colors.violet4,
     textAlign: 'center', 
   },
   image: {
