@@ -5,7 +5,7 @@ import { Colors } from '@/themes/colors';
 export const inicioStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.violet3,
+    backgroundColor: Colors.violet4,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -15,7 +15,7 @@ export const inicioStyles = StyleSheet.create({
   },
   title: {
     fontSize: 80,
-    fontFamily: 'projectName',
+    fontFamily: 'titulos',
     color: 'white',
   },
 });

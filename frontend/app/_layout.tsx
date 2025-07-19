@@ -34,10 +34,10 @@ export default function RootLayout() {
       {/* Solo personalizás las excepciones */}
       <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
       <Stack.Screen name="login/index" options={{ ...transitionFade, headerShown: false }} />
-      <Stack.Screen name="recuperar-clave/index" options={{ ...exitHeader('/login'), ...transitionFade, }} />
-      <Stack.Screen name="recuperar-clave/validar-codigo" options={{ ...exitHeader('/login'), ...transitionFade, }} />
-      <Stack.Screen name="recuperar-clave/nueva-clave" options={{ ...exitHeader('/login'), ...transitionFade, }} />
-      <Stack.Screen name="registro/index" options={{ ...exitHeader('/login'), ...transitionFade, }} />
+      <Stack.Screen name="reset-password/index" options={{ ...exitHeader('/login'), ...transitionFade, }} />
+      <Stack.Screen name="reset-password/code-validation" options={{ ...exitHeader('/login'), ...transitionFade, }} />
+      <Stack.Screen name="reset-password/new-password" options={{ ...exitHeader('/login'), ...transitionFade, }} />
+      <Stack.Screen name="register/index" options={{ ...exitHeader('/login'), ...transitionFade, }} />
       
     </Stack>
 

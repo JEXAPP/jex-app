@@ -6,7 +6,7 @@ import { Colors } from '@/themes/colors';
 
 export const inputStyles1 = StyleSheet.create({
   input: {
-    fontFamily: 'interBold',
+    fontFamily: 'interMedium',
     backgroundColor: Colors.white,
     padding: 17,
     width: 350,

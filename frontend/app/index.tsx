@@ -1,4 +1,3 @@
-// app/index.tsx
 import { View, Animated } from 'react-native';
 import { useInicio } from '@/hooks/useInicio';
 import { inicioStyles as styles } from '@/styles/app/inicioStyles';

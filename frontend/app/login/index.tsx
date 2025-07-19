@@ -1,28 +1,29 @@
-import { BotonConIcono } from '@/components/BotonConIcono';
-import { SeparadorConTexto } from '@/components/SeparadorConTexto';
-import { botonStyles5 } from '@/styles/components/boton/botonStyles5';
-import { botonConIconoStyles } from '@/styles/components/botonConIconoStyles';
+import { ButtonWithIcon } from '@/components/ButtonWithIcon';
+import { TextSeparator } from '@/components/TextSeparator';
+import { iconos } from '@/constants/iconos';
+import { buttonWithIconStyles1 } from '@/styles/components/buttonWithIconStyles1';
+import { buttonStyles5 } from '@/styles/components/button/buttonStyles5';
 import { inputStyles1 } from '@/styles/components/input/inputStyles1';
-import { separadorConTextoStyles } from '@/styles/components/separadorConTextoStyles';
+import { textSeparatorStyles1 } from '@/styles/components/textSeparatorStyles1';
+import { Colors } from '@/themes/colors';
 import React from 'react';
 import { Keyboard, Text, TouchableWithoutFeedback, View } from 'react-native';
-import { Boton } from '../../components/Boton';
+import { Button } from '../../components/Button';
+import { ClickWindow } from '../../components/ClickWindow';
 import { Input } from '../../components/Input';
-import { ModalConTexto } from '../../components/ModalConTexto';
-import { ModalTemporal } from '../../components/ModalTemporal';
+import { TempWindow } from '../../components/TempWindow';
 import { useLogin } from '../../hooks/login/useLogin';
 import { loginStyles as styles } from '../../styles/app/login/loginStyles';
-import { botonStyles1 } from '../../styles/components/boton/botonStyles1';
-import { botonStyles2 } from '../../styles/components/boton/botonStyles2';
-import { modalConTextoStyles } from '../../styles/components/modalConTextoStyles';
-import { modalTemporalStyles } from '../../styles/components/modalTemporalStyles';
-import { iconos } from '@/constants/iconos';
-import { Colors } from '@/themes/colors';
+import { buttonStyles1 } from '../../styles/components/button/buttonStyles1';
+import { buttonStyles2 } from '../../styles/components/button/buttonStyles2';
+import { clickWindowStyles1 } from '../../styles/components/clickWindowStyles1';
+import { tempWindowStyles1 } from '../../styles/components/tempWindowStyles1';
 
-export default function IndexScreen() {
+export default function LoginScreen() {
   const {
     email,
     password,
+    loading,
     setEmail,
     setPassword,
     handleLogin,
@@ -32,16 +33,19 @@ export default function IndexScreen() {
     closeError,
     showSuccess,
     closeSuccess,
-    handleGoogleLogin,
-    request,
+    handleGoogle,
     handlePasswordForgot
   } = useLogin();
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      
       <View style={styles.container}>
+        
         <View style={styles.header}>
+          
           <Text style={styles.title}>Iniciar{'\n'}Sesión</Text>
+        
         </View>
 
         <Input
@@ -60,54 +64,58 @@ export default function IndexScreen() {
           styles={inputStyles1}
         />
 
-        <Boton
+        <Button
           texto="Olvidé mi contraseña"
           onPress={handlePasswordForgot}
-          styles={botonStyles5}
+          styles={buttonStyles5}
         />
 
-        <Boton 
+        <Button 
           texto="Continuar" 
           onPress={handleLogin} 
-          styles={botonStyles1}
+          styles={buttonStyles1}
+          loading={loading}
         />
 
-        <Boton
+        <Button
           texto="¿No tenés cuenta? Regístrate"
           onPress={handleNavigateToRegister}
-          styles={botonStyles2}
+          styles={buttonStyles2}
         />
 
-        <ModalConTexto 
+        <ClickWindow
           title='Error'
           visible={showError} 
           message={errorMessage} 
           onClose={closeError} 
-          styles={modalConTextoStyles} 
+          styles={clickWindowStyles1} 
           icono={iconos.error(24, Colors.violet4)}
           buttonText='Entendido'
         />
 
-        <ModalTemporal
+        <TempWindow
           visible={showSuccess}
           icono={iconos.exito(40, Colors.white)}
           onClose={closeSuccess}
-          styles={modalTemporalStyles}
+          styles={tempWindowStyles1}
           duration={2000}
         />
 
-        <SeparadorConTexto 
+        <TextSeparator 
           texto="o bien"
-          styles={separadorConTextoStyles}  />
+          styles={textSeparatorStyles1}  />
         
-        <BotonConIcono
+        <ButtonWithIcon
           texto="Continuar con Google"
           icono="google"
-          styles={botonConIconoStyles}
-          onPress={handleGoogleLogin}
-          disabled={!request}
+          styles={buttonWithIconStyles1}
+          onPress={handleGoogle}
         />
+      
       </View>
+    
     </TouchableWithoutFeedback>
+  
   );
+  
 }
