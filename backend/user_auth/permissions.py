@@ -1,6 +1,5 @@
 from rest_framework import permissions
 
-
 class IsInGroup(permissions.BasePermission):
     """
     Allows access only to users in a specific group.

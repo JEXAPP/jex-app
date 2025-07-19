@@ -2,10 +2,9 @@ from django.utils import timezone
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from django.db.models import Q
 from rest_framework import permissions
-from eventos.serializers import EventSerializer
+from eventos.serializers.event import EventSerializer
 from user_auth.permissions import IsInGroup
-from eventos.models import Event
-
+from eventos.models.event import Event
 
 class CreateEventView(CreateAPIView):
     serializer_class = EventSerializer
