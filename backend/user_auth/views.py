@@ -8,14 +8,16 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from user_auth.services import TwilioService
 from .utils import generate_otp
 from django.utils import timezone
 from datetime import timedelta
 from django.core.mail import send_mail
 from django.contrib.auth.models import Group
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from user_auth.models import PasswordResetOTP, CustomUser
-from .serializers import CompleteEmployeeSocialSerializer, CompleteEmployerSocialSerializer, EmailTokenObtainPairSerializer, EmployerRegisterSerializer, EmployeeRegisterSerializer, PasswordResetCompleteSerializer, PasswordResetRequestSerializer, PasswordResetVerifySerializer
+from user_auth.models import PasswordResetOTP, CustomUser, PhoneVerification
+from .serializers import CompleteEmployeeSocialSerializer, CompleteEmployerSocialSerializer, EmailTokenObtainPairSerializer, EmployerRegisterSerializer, EmployeeRegisterSerializer, PasswordResetCompleteSerializer, PasswordResetRequestSerializer, PasswordResetVerifySerializer, SendCodeSerializer, VerifyCodeSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 class EmailTokenObtainPairView(TokenObtainPairView):
@@ -182,12 +184,101 @@ class PasswordResetCompleteView(GenericAPIView):
 
         return Response({"detail": "Contraseña actualizada correctamente."}, status=status.HTTP_200_OK)
 
-# class AssignRoleView(APIView):
-#     def post(self, request):
-#         serializer = AssignRoleSerializer(data=request.data)
-#         if serializer.is_valid():
-#             user = serializer.save()
-#             return Response({
-#                 "message": f"Rol '{user.groups.first().name}' asignado al usuario {user.username}."
-#             }, status=status.HTTP_200_OK)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class SendPhoneVerificationCodeView(APIView):
+    permission_classes = []
+    
+    def post(self, request):
+        serializer = SendCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data['phone']
+            
+            # Check if phone number exists and is verified
+            existing = PhoneVerification.objects.filter(
+                phone_number=phone_number,
+                is_verified=True
+            ).first()
+            
+            if existing:
+                return Response({
+                    'error': 'This phone number is already verified.',
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Send code using Twilio
+            twilio_service = TwilioService()
+            result = twilio_service.send_verification_code(phone_number)
+            
+            if result['success']:
+                # Create or update PhoneVerification entry
+                phone_verification, created = PhoneVerification.objects.update_or_create(
+                    phone_number=phone_number,
+                    defaults={
+                        'is_verified': False,
+                        'verified_at': None,
+                        'expires_at': timezone.now() + timedelta(minutes=10)  # 10 mins
+                    }
+                )
+                
+                action = "enviado" if created else "reenviado"
+                return Response({
+                    'message': f'Código {action} correctamente',
+                    'phone_number': phone_number,
+                    'expires_in_minutes': 10
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'error': result['message']
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class VerifyPhoneCodeView(APIView):
+    permission_classes = []
+    
+    def post(self, request):
+        serializer = VerifyCodeSerializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data['phone_number']
+            code = serializer.validated_data['code']
+            
+            # Check if phone number exists and is not verified
+            try:
+                phone_verification = PhoneVerification.objects.get(
+                    phone_number=phone_number
+                )
+                
+                # If exprired, reccomend to request a new code
+                if timezone.now() > phone_verification.expires_at:
+                    return Response({
+                        'error': 'The code has expired. Please request a new code.',
+                        'message': 'Request a new code',
+                        'verified': False,
+                        'expired': True
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+            except PhoneVerification.DoesNotExist:
+                return Response({
+                    'error': 'First request a code',
+                    'verified': False
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Check the code using Twilio
+            twilio_service = TwilioService()
+            result = twilio_service.verify_code(phone_number, code)
+            
+            if result['success']:
+                # Mark as verified
+                phone_verification.is_verified = True
+                phone_verification.verified_at = timezone.now()
+                phone_verification.save()
+                
+                return Response({
+                    'message': 'Phone number verified successfully',
+                    'verified': True
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'error': result['message'],
+                    'verified': False
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

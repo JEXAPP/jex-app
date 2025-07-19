@@ -1,3 +1,4 @@
+import re
 from rest_framework import serializers
 from django.contrib.auth.models import Group
 from django.contrib.auth import authenticate
@@ -207,21 +208,14 @@ class PasswordResetCompleteSerializer(serializers.Serializer):
         validate_password(value)
         return value
 
-# class AssignRoleSerializer(serializers.Serializer):
-#     user_id = serializers.IntegerField()
-#     role = serializers.ChoiceField(choices=['empleador', 'empleado'])
+class SendCodeSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=15)
 
-#     def validate_user_id(self, value):
-#         if not User.objects.filter(id=value).exists():
-#             raise serializers.ValidationError("Usuario no encontrado.")
-#         return value
+    def validate_phone_number(self, value):
+        if not re.match(r'^\+[1-9]\d{1,14}$', value):
+            raise serializers.ValidationError("Phone format invalid. Use international format (+5491234567890)")
+        return value
 
-#     def save(self):
-#         user_id = self.validated_data['user_id']
-#         role = self.validated_data['role']
-#         user = User.objects.get(id=user_id)
-#         user.groups.clear()
-#         group, _ = Group.objects.get_or_create(name=role)
-#         user.groups.add(group)
-#         user.save()
-#         return user
+class VerifyCodeSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=15)
+    code = serializers.CharField(max_length=6)
