@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import EmailTokenObtainPairView, EmployeeRegisterView, EmployerRegisterView, CustomGoogleLoginView, LogoutView, PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView, CompleteEmployerSocialView, CompleteEmployeeSocialView
+from .views import EmailTokenObtainPairView, EmployeeRegisterView, EmployerRegisterView, CustomGoogleLoginView, LogoutView, PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView, CompleteEmployerSocialView, CompleteEmployeeSocialView, SendPhoneVerificationCodeView, VerifyPhoneCodeView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
     
 urlpatterns = [
@@ -14,6 +14,6 @@ urlpatterns = [
     path('password-reset/', PasswordResetRequestView.as_view(), name='password_reset'),
     path('password-reset-verify/', PasswordResetVerifyView.as_view(), name='password_reset_verify'),
     path('password-reset-complete/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
-    # path('assign-role/', AssignRoleView.as_view(), name='assign-role-no-login'),
-
+    path('verify/send-code/', SendPhoneVerificationCodeView.as_view(), name='send-phone-code'),
+    path('verify/check-code/', VerifyPhoneCodeView.as_view(), name='verify-phone-code'),
 ]
