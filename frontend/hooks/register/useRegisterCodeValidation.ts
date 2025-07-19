@@ -88,7 +88,7 @@ export const useRegisterCodeValidation = () => {
       if (!phone) throw new Error('Teléfono no encontrado');
 
       // Envía el código al backend (endpoint de validación)
-      const res = await requestBackend('/api/auth/sms-verify/', {
+      const res = await requestBackend('/api/auth/verify/check-code/', {
         phone,
         code: codigo,
       }, 'POST');

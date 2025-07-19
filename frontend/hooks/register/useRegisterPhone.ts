@@ -60,10 +60,10 @@ export const useRegisterPhone = (desdeGoogle = false) => {
     }
 
     try {
-      const telefonoCompleto = `${codigoNormalizado}${telefonoLimpio}`;
+      const telefonoCompleto = `+54${codigoNormalizado}${telefonoLimpio}`;
 
       // Request al backend para enviar SMS (comentado si todavía no se implementó)
-      await requestBackend('/api/enviar-sms-registro', { telefono: telefonoCompleto }, 'POST');
+      await requestBackend('/api/auth/verify/send-code/', { phone: telefonoCompleto }, 'POST');
 
       // Guarda el teléfono en el almacenamiento seguro
       const datosParciales = { phone: telefonoLimpio };
