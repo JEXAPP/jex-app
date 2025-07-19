@@ -210,7 +210,7 @@ class SendPhoneVerificationCodeView(APIView):
             if result['success']:
                 # Create or update PhoneVerification entry
                 phone_verification, created = PhoneVerification.objects.update_or_create(
-                    phone_number=phone,
+                    phone=phone,
                     defaults={
                         'is_verified': False,
                         'verified_at': None,
@@ -221,7 +221,7 @@ class SendPhoneVerificationCodeView(APIView):
                 action = "enviado" if created else "reenviado"
                 return Response({
                     'message': f'Código {action} correctamente',
-                    'phone_number': phone,
+                    'phone': phone,
                     'expires_in_minutes': 10
                 }, status=status.HTTP_200_OK)
             else:

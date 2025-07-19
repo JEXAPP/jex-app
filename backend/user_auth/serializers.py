@@ -209,7 +209,7 @@ class PasswordResetCompleteSerializer(serializers.Serializer):
         return value
 
 class SendCodeSerializer(serializers.Serializer):
-    phone_number = serializers.CharField(max_length=15)
+    phone = serializers.CharField(max_length=15)
 
     def validate_phone_number(self, value):
         if not re.match(r'^\+[1-9]\d{1,14}$', value):
@@ -217,5 +217,5 @@ class SendCodeSerializer(serializers.Serializer):
         return value
 
 class VerifyCodeSerializer(serializers.Serializer):
-    phone_number = serializers.CharField(max_length=15)
+    phone = serializers.CharField(max_length=15)
     code = serializers.CharField(max_length=6)
