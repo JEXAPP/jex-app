@@ -34,6 +34,7 @@
       [
         "expo-splash-screen",
         {
+          "image": "./assets/images/jex/Jex-Logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
