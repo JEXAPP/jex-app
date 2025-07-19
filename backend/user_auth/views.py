@@ -190,11 +190,11 @@ class SendPhoneVerificationCodeView(APIView):
     def post(self, request):
         serializer = SendCodeSerializer(data=request.data)
         if serializer.is_valid():
-            phone_number = serializer.validated_data['phone']
+            phone = serializer.validated_data['phone']
             
             # Check if phone number exists and is verified
             existing = PhoneVerification.objects.filter(
-                phone_number=phone_number,
+                phone=phone,
                 is_verified=True
             ).first()
             
@@ -205,12 +205,12 @@ class SendPhoneVerificationCodeView(APIView):
             
             # Send code using Twilio
             twilio_service = TwilioService()
-            result = twilio_service.send_verification_code(phone_number)
+            result = twilio_service.send_verification_code(phone)
             
             if result['success']:
                 # Create or update PhoneVerification entry
                 phone_verification, created = PhoneVerification.objects.update_or_create(
-                    phone_number=phone_number,
+                    phone_number=phone,
                     defaults={
                         'is_verified': False,
                         'verified_at': None,
@@ -221,7 +221,7 @@ class SendPhoneVerificationCodeView(APIView):
                 action = "enviado" if created else "reenviado"
                 return Response({
                     'message': f'Código {action} correctamente',
-                    'phone_number': phone_number,
+                    'phone_number': phone,
                     'expires_in_minutes': 10
                 }, status=status.HTTP_200_OK)
             else:
@@ -237,13 +237,13 @@ class VerifyPhoneCodeView(APIView):
     def post(self, request):
         serializer = VerifyCodeSerializer(data=request.data)
         if serializer.is_valid():
-            phone_number = serializer.validated_data['phone_number']
+            phone = serializer.validated_data['phone']
             code = serializer.validated_data['code']
             
             # Check if phone number exists and is not verified
             try:
                 phone_verification = PhoneVerification.objects.get(
-                    phone_number=phone_number
+                    phone=phone
                 )
                 
                 # If exprired, reccomend to request a new code
@@ -263,7 +263,7 @@ class VerifyPhoneCodeView(APIView):
             
             # Check the code using Twilio
             twilio_service = TwilioService()
-            result = twilio_service.verify_code(phone_number, code)
+            result = twilio_service.verify_code(phone, code)
             
             if result['success']:
                 # Mark as verified
