@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2664b647-4200-4d00-b8bc-e47ddb4cda05"
+      }
+    },
+    "name": "frontend",
+    "slug": "jex",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "frontend",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.jexapp"
+    },
+    "android": {
+      "package": "com.jexapp",
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      "expo-web-browser",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "owner": "jex-app"
+  }
+}

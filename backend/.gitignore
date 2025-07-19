@@ -1,2 +1,12 @@
 venv
 .env
+# Ignorar todos los archivos compilados de Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.cpython-*
+
+# Por si alguno se generó directamente en la raíz de una app
+**/__init__.pyc
+**/apps.cpython-*.pyc
+**/models.cpython-*.pyc
