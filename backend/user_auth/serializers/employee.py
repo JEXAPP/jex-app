@@ -4,6 +4,7 @@ from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.user import CustomUser
 from user_auth.models.employee import EmployeeProfile # CAMBIAR ESTO
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import Group
 
 class EmployeeRegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -49,6 +50,10 @@ class EmployeeRegisterSerializer(serializers.Serializer):
             birth_date=birth_date
         )
 
+        # Agregar grupo 'employee' para permisos
+        employee_group, created = Group.objects.get_or_create(name='employee')
+        user.groups.add(employee_group)
+
         return user
 
 class CompleteEmployeeSocialSerializer(serializers.Serializer):
@@ -86,5 +91,10 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
             address=self.validated_data.get('address', ''),
             birth_date=self.validated_data.get('birth_date', None)
         )
+
+        employee_group, created = Group.objects.get_or_create(name='employee')
+        user.groups.add(employee_group)
+
+    
 
         return user

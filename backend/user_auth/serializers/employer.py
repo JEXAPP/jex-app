@@ -3,6 +3,7 @@ from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYER_ROLE
 from user_auth.models.user import CustomUser
 from user_auth.models.employer import EmployerProfile 
+from django.contrib.auth.models import Group
 
 from django.contrib.auth.hashers import make_password
 
@@ -33,6 +34,9 @@ class EmployerRegisterSerializer(serializers.Serializer):
             role='employer',
             password=make_password(password)
         )
+
+        group, _ = Group.objects.get_or_create(name='employer')
+        user.groups.add(group)
 
         EmployerProfile.objects.create(
             user=user,
@@ -67,5 +71,8 @@ class CompleteEmployerSocialSerializer(serializers.Serializer):
             user=user,
             company_name=self.validated_data['company_name']
         )
+
+        employer_group, created = Group.objects.get_or_create(name='employer')
+        user.groups.add(employer_group)
 
         return user
