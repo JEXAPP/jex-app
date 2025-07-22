@@ -4,6 +4,8 @@ from user_auth.constants import EMPLOYER_ROLE
 from user_auth.models.user import CustomUser
 from user_auth.models.employer import EmployerProfile 
 from django.contrib.auth.models import Group
+from django.db.models import Q
+
 
 from django.contrib.auth.hashers import make_password
 
@@ -16,6 +18,11 @@ class EmployerRegisterSerializer(serializers.Serializer):
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email is already in use.")
+        return value
+    
+    def validate_phone(self, value):
+        if CustomUser.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("Phone is already in use.")
         return value
 
     def create(self, validated_data):
@@ -58,6 +65,9 @@ class CompleteEmployerSocialSerializer(serializers.Serializer):
 
         if hasattr(user, 'employer_profile'):
             raise serializers.ValidationError("Employer profile is already completed.")
+        
+        if CustomUser.objects.filter(Q(phone=data['phone']) & ~Q(id=user.id)).exists():
+            raise serializers.ValidationError("Phone is already in use.")
 
         return data
 

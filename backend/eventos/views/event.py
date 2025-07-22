@@ -3,9 +3,7 @@ from rest_framework.response import Response
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from django.db.models import Q
 from rest_framework import permissions, status
-from eventos.models.category_events import Category
-from eventos.models.job_types import JobType
-from eventos.serializers.event import CategorySerializer, EventSerializer, JobTypeSerializer, VacancySerializer
+from eventos.serializers.event import EventSerializer
 from user_auth.permissions import IsInGroup
 from eventos.models.event import Event
 
@@ -51,18 +49,3 @@ class UpcomingEventsView(ListAPIView):
             Q(start_date=today, start_time__gte=current_time)
         )
     
-class CreateVacancyView(CreateAPIView):
-    serializer_class = VacancySerializer
-    permission_classes = [IsInGroup]
-    required_groups = ["employer"]
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-class CategoryListView(ListAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-class JobTypeListView(ListAPIView):
-    queryset = JobType.objects.all()
-    serializer_class = JobTypeSerializer
