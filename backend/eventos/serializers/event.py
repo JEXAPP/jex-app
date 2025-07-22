@@ -2,6 +2,7 @@ from rest_framework import serializers
 from eventos.models.category_events import Category
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
+from eventos.constants import EventStates
 
 class EventSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(
@@ -17,8 +18,8 @@ class EventSerializer(serializers.ModelSerializer):
             user = self.context['request'].user
             validated_data['owner'] = user
 
-            draft_state = EventState.objects.get(name="Borrador")
-            validated_data['state'] = draft_state
+            public_state = EventState.objects.get(name=EventStates.PUBLISHED.value)
+            validated_data['state'] = public_state
 
             return Event.objects.create(**validated_data)
     
