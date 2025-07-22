@@ -3,7 +3,16 @@
 from django.db import migrations
 
 def populate_states(apps, schema_editor):
+    EventState = apps.get_model('eventos', 'EventState')
     VacancyState = apps.get_model('eventos', 'VacancyState')
+
+    event_states = [
+        "Borrador",
+        "Publicado",
+        "En curso",
+        "Finalizado",
+        "Cancelado"
+    ]
 
     vacancy_states = [
         "Pendiente",
@@ -12,9 +21,11 @@ def populate_states(apps, schema_editor):
         "Cancelada"
     ]
 
+    for name in event_states:
+        EventState.objects.get_or_create(name=name)
+
     for name in vacancy_states:
         VacancyState.objects.get_or_create(name=name)
-
 
 class Migration(migrations.Migration):
 
