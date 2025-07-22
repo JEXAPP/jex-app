@@ -5,9 +5,18 @@ from django.db import migrations
 def populate_job_types(apps, schema_editor):
     JobType = apps.get_model('eventos', 'JobType')
     job_types = [
-        
+        "Barman",
+        "Fotógrafo",
+        "Sonidista",
+        "Iluminador",
+        "Camarero",
+        "Seguridad",
+        "Recepcionista",
+        "Técnico de escenario",
+        "Productor",
+        "Animador"
     ]
-    
+
     for job_type in job_types:
         JobType.objects.get_or_create(name=job_type)
 
@@ -17,5 +26,5 @@ class Migration(migrations.Migration):
         ('eventos', '0004_alter_event_category_alter_event_description_and_more'),
     ]
 
-    operations = [populate_job_types(migrations.RunPython(populate_job_types))
+    operations = [(migrations.RunPython(populate_job_types))
     ]

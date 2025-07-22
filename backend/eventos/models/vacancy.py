@@ -9,5 +9,3 @@ class Vacancy(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='vacancies')
     job_type = models.ForeignKey(JobType, on_delete=models.CASCADE, related_name='vacancies')
 
-    def __str__(self):
-        return self.name
