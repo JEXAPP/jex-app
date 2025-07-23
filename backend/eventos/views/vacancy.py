@@ -1,31 +1,39 @@
 from django.utils import timezone
 from rest_framework.generics import CreateAPIView, ListAPIView
 from eventos.models.shifts import Shift
-from eventos.serializers.vacancy import VacancySerializer, VacancyShiftSerializer
+from eventos.models.vacancy import Vacancy
+from eventos.serializers.vacancy import CreateVacancySerializer, ListVacancyShiftSerializer
 from rest_framework import permissions
 from user_auth.permissions import IsInGroup
+from django.db.models import OuterRef, Subquery, DecimalField, DateField
+
 
 class CreateVacancyView(CreateAPIView):
-    serializer_class = VacancySerializer
+    serializer_class = CreateVacancySerializer
     permission_classes = [IsInGroup]
     required_groups = ["employer"]
 
-    def perform_create(self, serializer):
-        serializer.save()
-
 
 class ListVacancyShiftView(ListAPIView):
-    serializer_class = VacancyShiftSerializer
+    serializer_class = ListVacancyShiftSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
         category = self.request.query_params.get('category')
 
-        base_qs = Shift.objects.select_related(
+        
+        best_shifts = Shift.objects.filter(
+            vacancy=OuterRef('vacancy')
+        ).order_by('-payment')
+
+        base_qs = Shift.objects.filter(
+            id=Subquery(best_shifts.values('id')[:1])
+        ).select_related(
             'vacancy__event',
             'vacancy__job_type'
-        )
+        ).order_by('vacancy__id') 
+
 
         if category == 'interests':
             employee = getattr(user, 'employee', None)

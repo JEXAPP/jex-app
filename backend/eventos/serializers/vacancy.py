@@ -1,15 +1,14 @@
 from rest_framework import serializers
 from eventos.constants import VacancyStates
-from eventos.models.requirements import Requirements
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
 from eventos.models.vacancy_state import VacancyState
-from eventos.serializers.requirements import RequirementSerializer
-from eventos.serializers.shifts import ShiftSerializer
+from eventos.serializers.requirements import CreateRequirementSerializer
+from eventos.serializers.shifts import CreateShiftSerializer
 
-class VacancySerializer(serializers.ModelSerializer):
-    requirements = RequirementSerializer(many=True, write_only=True)
-    shifts = ShiftSerializer(many=True, write_only=True)
+class CreateVacancySerializer(serializers.ModelSerializer):
+    requirements = CreateRequirementSerializer(many=True, write_only=True)
+    shifts = CreateShiftSerializer(many=True, write_only=True)
 
     class Meta:
         model = Vacancy
@@ -19,6 +18,19 @@ class VacancySerializer(serializers.ModelSerializer):
     def validate(self, data):
         user = self.context['request'].user
         event = data.get('event')
+        shifts_data = data.get('shifts', [])
+
+        if event and shifts_data:
+            event_start = event.start_date
+            event_end = event.end_date
+
+            for shift in shifts_data:
+                start_date = shift.get('start_date')
+                end_date = shift.get('end_date')
+                if start_date < event_start or end_date > event_end:
+                    raise serializers.ValidationError(
+                        f"Shifts date ({start_date} - {end_date}) must be within the event dates ({event_start} - {event_end})."
+                    )
 
         if event.owner != user:
             raise serializers.ValidationError("You do not have permission to create vacancies for this event.")
@@ -33,20 +45,15 @@ class VacancySerializer(serializers.ModelSerializer):
 
         vacancy = Vacancy.objects.create(**validated_data)
 
-        for req_data in requirements_data:
-            Requirements.objects.create(vacancy=vacancy, **req_data)
-
-        for shift_data in shifts_data:
-            Shift.objects.create(vacancy=vacancy, **shift_data)
+        CreateRequirementSerializer.bulk_create(vacancy, requirements_data)
+        CreateShiftSerializer.bulk_create(vacancy, shifts_data)
 
 
         return vacancy
     
-class VacancyShiftSerializer(serializers.ModelSerializer):
+class ListVacancyShiftSerializer(serializers.ModelSerializer):
     vacancy_id = serializers.IntegerField(source='vacancy.id')
     event_name = serializers.CharField(source='vacancy.event.name')
-    start_date = serializers.DateField()
-    payment = serializers.DecimalField(max_digits=10, decimal_places=2)
     job_type_name = serializers.CharField(source='vacancy.job_type.name')
 
     class Meta:

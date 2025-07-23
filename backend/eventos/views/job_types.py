@@ -1,7 +1,7 @@
 from rest_framework.generics import ListAPIView
 from eventos.models.job_types import JobType
-from eventos.serializers.job_types import JobTypeSerializer
+from eventos.serializers.job_types import ListJobTypesSerializer
 
-class JobTypeListView(ListAPIView):
+class ListJobTypesView(ListAPIView):
     queryset = JobType.objects.all()
-    serializer_class = JobTypeSerializer
+    serializer_class = ListJobTypesSerializer

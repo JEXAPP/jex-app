@@ -1,7 +1,7 @@
 from eventos.models.category_events import Category
-from eventos.serializers.category_events import CategorySerializer
+from eventos.serializers.category_events import ListCategorySerializer
 from rest_framework.generics import ListAPIView
 
-class CategoryListView(ListAPIView):
+class ListCategoryView(ListAPIView):
     queryset = Category.objects.all()
-    serializer_class = CategorySerializer
+    serializer_class = ListCategorySerializer
