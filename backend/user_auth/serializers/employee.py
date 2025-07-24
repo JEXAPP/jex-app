@@ -4,6 +4,8 @@ from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.user import CustomUser
 from user_auth.models.employee import EmployeeProfile # CAMBIAR ESTO
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import Group
+from django.db.models import Q
 
 class EmployeeRegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -22,6 +24,11 @@ class EmployeeRegisterSerializer(serializers.Serializer):
     def validate_dni(self, value):
         if EmployeeProfile.objects.filter(dni=value).exists():
             raise serializers.ValidationError("DNI is already in use.")
+        return value
+    
+    def validate_phone(self, value):
+        if CustomUser.objects.filter(phone=value).exists():
+            raise serializers.ValidationError("Phone is already in use.")
         return value
 
     def create(self, validated_data):
@@ -49,6 +56,10 @@ class EmployeeRegisterSerializer(serializers.Serializer):
             birth_date=birth_date
         )
 
+        # Agregar grupo 'employee' para permisos
+        employee_group, created = Group.objects.get_or_create(name='employee')
+        user.groups.add(employee_group)
+
         return user
 
 class CompleteEmployeeSocialSerializer(serializers.Serializer):
@@ -69,6 +80,9 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
 
         if EmployeeProfile.objects.filter(dni=data['dni']).exists():
             raise serializers.ValidationError("DNI is already in use.")
+    
+        if CustomUser.objects.filter(Q(phone=data['phone']) & ~Q(id=user.id)).exists():
+            raise serializers.ValidationError("Phone is already in use.")
 
         return data
 
@@ -86,5 +100,10 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
             address=self.validated_data.get('address', ''),
             birth_date=self.validated_data.get('birth_date', None)
         )
+
+        employee_group, created = Group.objects.get_or_create(name='employee')
+        user.groups.add(employee_group)
+
+    
 
         return user
