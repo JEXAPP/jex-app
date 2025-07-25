@@ -196,18 +196,18 @@ export const useRegisterVacancyMulti = () => {
   const handleRegistrarTodas = async () => {
     try {
       const payload = vacantes.map((v) => ({
-        rol: v.rolNombre === 'Otro' ? v.otrosRol : v.rol,
-        descripcion: v.descripcion,
-        requerimientos: v.requerimientos.join('\n'),
-        turnos: v.turnos.map((t) => ({
-          fecha_inicio: formatearFecha(t.fechaInicio!),
-          hora_inicio: t.horaInicio,
-          fecha_fin: formatearFecha(t.fechaFin!),
-          hora_fin: t.horaFin,
-          pago: t.pago,
-          cantidad: t.cantidad,
-        })),
-      }));
+      rol: v.rolNombre === 'Otro' ? v.otrosRol : v.rol,
+      descripcion: v.descripcion,
+      requerimientos: v.requerimientos, // ✅ DEJALO COMO ARRAY
+      turnos: v.turnos.map((t) => ({
+        fecha_inicio: formatearFecha(t.fechaInicio!),
+        hora_inicio: t.horaInicio,
+        fecha_fin: formatearFecha(t.fechaFin!),
+        hora_fin: t.horaFin,
+        pago: t.pago,
+        cantidad: t.cantidad,
+      })),
+    }));
       console.log( payload);
 
       for (const vacante of payload) {
