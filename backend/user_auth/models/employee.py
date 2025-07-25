@@ -9,6 +9,7 @@ class EmployeeProfile(models.Model):
     job_types = models.ManyToManyField(JobType, blank=True, null=True, related_name='employees')
 
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employee_profile')
+    description = models.CharField(max_length=200, blank=True, null=True)
 
 
     def __str__(self):
