@@ -80,6 +80,18 @@ export const useRegisterVacancyMulti = () => {
       value: rol.value.toString(),
     }));
 
+  const actualizarRol = (index: number, id: string, nombre: string) => {
+    setVacantes((prev) => {
+      const copia = [...prev];
+      copia[index] = {
+        ...copia[index],
+        rol: id,
+        rolNombre: nombre,
+      };
+      return copia;
+    });
+  };
+
   const eliminarVacante = (index: number) => {
   const nuevasVacantes = [...vacantes];
   nuevasVacantes.splice(index, 1);
@@ -184,7 +196,7 @@ export const useRegisterVacancyMulti = () => {
   const handleRegistrarTodas = async () => {
     try {
       const payload = vacantes.map((v) => ({
-        rol: v.rol === 'Otros' ? v.otrosRol : v.rol,
+        rol: v.rolNombre === 'Otro' ? v.otrosRol : v.rol,
         descripcion: v.descripcion,
         requerimientos: v.requerimientos.join('\n'),
         turnos: v.turnos.map((t) => ({
@@ -237,6 +249,7 @@ export const useRegisterVacancyMulti = () => {
     errorMessage,
     closeError,
     opcionesDropdown,
+    actualizarRol,
     closeSuccess,
     eliminarVacante
   };

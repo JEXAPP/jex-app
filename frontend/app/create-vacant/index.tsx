@@ -70,6 +70,7 @@ export default function RegisterVacancyScreen() {
     showSuccess,
     closeError,
     opcionesDropdown,
+    actualizarRol,
     closeSuccess,
   } = useRegisterVacancyMulti();
 
@@ -138,21 +139,20 @@ export default function RegisterVacancyScreen() {
                 <DropDown
                   label="Rol:"
                   options={opcionesDropdown}
-                  value={vacantes[vIndex].rol} // el ID como string
-                  
+                  value={vacantes[vIndex].rol || ''} // Asegura que no sea undefined
+
                   onValueChange={(value) => {
                     const seleccionado = opcionesDropdown.find((r) => r.value.toString() === value);
-                    actualizarCampo(vIndex, 'rol', value);
-                    actualizarCampo(vIndex, 'rolNombre', seleccionado?.label || ''); // solo el ID
+                    actualizarRol(vIndex, seleccionado?.value.toString() || '', seleccionado?.label || '');
                   }}
-                  placeholder={vacante.rolNombre ?  vacante.rolNombre  : 'Elegí un rol'}
+                  placeholder={vacantes[vIndex].rolNombre || 'Elegí un rol'}
+
                   styles={{
                     input: inputStyles1.input,
                     label: { color: '#000', fontSize: 16, fontFamily: 'interMedium' },
                     placeholder: { color: '#999', fontStyle: 'italic', fontSize: 16 },
                   }}
                 />
-
                 {vacante.rolNombre === 'Otro' && (
                   <Input
                     placeholder="Especificar Rol:"
