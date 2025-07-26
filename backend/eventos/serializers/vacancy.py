@@ -63,3 +63,39 @@ class ListVacancyShiftSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shift
         fields = ['vacancy_id', 'event_name', 'start_date', 'payment', 'job_type_name']
+
+class SearchVacancyResultSerializer(serializers.ModelSerializer):
+    event = serializers.CharField(source='event.name', read_only=True)
+    job_type = serializers.SerializerMethodField()
+    payment = serializers.SerializerMethodField()
+    start_date = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Vacancy
+        fields = ['id', 'event', 'job_type', 'payment', 'start_date']
+
+    def get_job_type(self, obj):
+        return obj.specific_job_type if obj.specific_job_type else obj.job_type.name
+
+    def get_payment(self, obj):
+        top_shift = obj.shifts.order_by('-payment').first()
+        return top_shift.payment if top_shift else None
+
+    def get_start_date(self, obj):
+        top_shift = obj.shifts.order_by('-payment').first()
+        return top_shift.start_date if top_shift else None
+    
+class SearchVacancyParamsSerializer(serializers.Serializer):
+    choices = ['role', 'event', 'start_date']
+    
+    choice = serializers.ChoiceField(choices=choices)
+    value = serializers.CharField()
+
+    def validate(self, data):
+        if data['choice'] == 'start_date':
+            from datetime import datetime
+            try:
+                datetime.strptime(data['value'], '%d/%m/%Y')
+            except ValueError:
+                raise serializers.ValidationError("start_date must be in DD/MM/YYYY format")
+        return data

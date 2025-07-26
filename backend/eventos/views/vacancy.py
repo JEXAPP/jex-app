@@ -1,10 +1,16 @@
+from datetime import datetime
 from django.utils import timezone
 from rest_framework.generics import CreateAPIView, ListAPIView
 from eventos.models.shifts import Shift
-from eventos.serializers.vacancy import CreateVacancySerializer, ListVacancyShiftSerializer
-from rest_framework import permissions, serializers
+from eventos.models.vacancy import Vacancy
+from eventos.serializers.vacancy import CreateVacancySerializer, ListVacancyShiftSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer
+from rest_framework import permissions, serializers, status
 from user_auth.permissions import IsInGroup
 from django.db.models import OuterRef, Subquery
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db.models import Q
+
 
 
 class CreateVacancyView(CreateAPIView):
@@ -58,3 +64,27 @@ class ListVacancyShiftView(ListAPIView):
             start_date__range=(today, soon_limit)
         )
         
+class SearchVacancyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        param_serializer = SearchVacancyParamsSerializer(data=request.query_params)
+        param_serializer.is_valid(raise_exception=True)
+
+        choice = param_serializer.validated_data['choice']
+        value = param_serializer.validated_data['value']
+
+        vacancies = Vacancy.objects.all()
+
+        if choice == 'role':
+            vacancies = vacancies.filter(
+                Q(job_type__name__icontains=value) | Q(specific_job_type__icontains=value)
+            )
+        elif choice == 'event':
+            vacancies = vacancies.filter(event__name__icontains=value)
+        elif choice == 'start_date':
+            date_obj = datetime.strptime(value, '%d/%m/%Y').date()
+            vacancies = vacancies.filter(shifts__start_date=date_obj).distinct()
+
+        serializer = SearchVacancyResultSerializer(vacancies, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
