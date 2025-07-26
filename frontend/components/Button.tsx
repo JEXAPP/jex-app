@@ -21,7 +21,7 @@ export const Button = ({texto, onPress, styles, disabled = false, loading = fals
       disabled={disabled || loading}
     >
       {loading ? (
-        <ActivityIndicator size='large' color={Colors.white} />
+        <ActivityIndicator size={23} color={Colors.white} />
       ) : (
         <Text style={styles.texto}>{texto}</Text>
       )}

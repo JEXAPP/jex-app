@@ -31,6 +31,7 @@ export default function RegisterEmployeeScreen() {
     showError,
     errorMessage,
     showSuccess,
+    loading,
     closeError,
     closeSuccess,
     dni,
@@ -115,6 +116,7 @@ export default function RegisterEmployeeScreen() {
           onPress={handleRegistrarEmpleado} 
           styles={continuarHabilitado ? buttonStyles1 : buttonStyles4}
           disabled={!continuarHabilitado}
+          loading={loading}
         />
 
         <ClickWindow 

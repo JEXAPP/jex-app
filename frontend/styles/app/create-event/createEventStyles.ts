@@ -1,40 +1,52 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../../../themes/colors';
-import { Borders } from '@/themes/borders';
 
 export const createEventStyles = StyleSheet.create({
   container: {
-    flex: 1, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    backgroundColor: Colors.gray1
-  },
-  title: {
-    fontSize: 38,
-    fontWeight: '800',
-    color: Colors.violet5,
-    textAlign: 'left',
-    flexShrink: 1,
+    flex: 1,
+    backgroundColor: Colors.gray1,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
+    alignSelf: 'center',
+    marginTop: 70,
     marginBottom: 20,
-    marginTop: 100,
-  },
-  opcionesContainer: {
-    gap: 10,
-    marginBottom: 310
-  },
-  scroll:{
-    paddingHorizontal: 26, 
-    paddingBottom: 26
+    marginLeft: 50
   },
   image: {
-    width: '100%',
-    height: 150,
-    borderRadius: Borders.soft,
-    resizeMode: 'cover',
-    marginVertical: 12,
+    width: 80,
+    height: 80,
   },
-})
+  title: {
+    fontSize: 34,
+    fontFamily: 'titulos',
+    color: Colors.violet5,
+    flexShrink: 1,
+    marginRight: 20,
+  },
+  scroll: {
+    paddingHorizontal: 26,
+    paddingBottom: 100,
+    gap: 10,
+  },
+  row1: { 
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    gap: 30,
+    marginBottom: 10,
+    
+  },
+  row2: { 
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    gap: 30,
+  }, 
+  description:{
+    marginBottom: 5
+  },
+  button:{
+    marginTop: 20
+  }
+
+});

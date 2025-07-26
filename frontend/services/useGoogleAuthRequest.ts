@@ -17,7 +17,7 @@ export const useGoogleAuthRequest = () => {
     androidClientId: config.google.clientIdAndroid,
     iosClientId: config.google.clientIdIOS,
     webClientId: config.google.clientIdWeb,
-    redirectUri: makeRedirectUri(),
+    redirectUri: makeRedirectUri({ useProxy: true }),
   });
 
   // Si la respuesta es exitosa, guarda el accessToken

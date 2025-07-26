@@ -73,7 +73,6 @@ export const useRegisterPhone = (desdeGoogle = false) => {
       router.push('./register/code-validation');
 
     } catch (error: any) {
-      console.log('Error al enviar SMS:', error);
       setErrorMessage(error.message || 'Ocurrió un error inesperado');
       setShowError(true);
     }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
-import useGooglePlacesAutocomplete from '@/services/useGooglePlacesAutocomplete';
+import useGooglePlaces from '@/services/useGooglePlaces';
 import { Keyboard } from 'react-native';
 import { useDataValidation } from '@/services/useDataValidation';
 import useBackendConection from '@/services/useBackendConection';
@@ -9,7 +9,7 @@ import useBackendConection from '@/services/useBackendConection';
 export const useRegisterEmployee = () => {
   const router = useRouter();
   const { validateText, validateAge } = useDataValidation();
-  const { requestBackend } = useBackendConection();
+  const { requestBackend, loading } = useBackendConection();
 
   // Estados para campos de entrada
   const [nombre, setNombre] = useState('');
@@ -17,6 +17,7 @@ export const useRegisterEmployee = () => {
   const [dni, setDni] = useState('');
   const [fechaNacimiento, setFechaNacimiento] = useState<Date | null>(null);
   const [ubicacion, setUbicacion] = useState<string>('');
+  const [ubicacionId, setUbicacionId] = useState<string>('')
 
   // Estados para control de errores y éxito
   const [showError, setShowError] = useState(false);
@@ -30,13 +31,8 @@ export const useRegisterEmployee = () => {
   const [googleToken, setGoogleToken] = useState('');
 
   // Lógica para autocompletar ubicaciones con Google
-  const {
-    sugerencias,
-    setSugerencias,
-    cargando,
-    error,
-    buscarSugerencias,
-  } = useGooglePlacesAutocomplete();
+  const {sugerencias,setSugerencias,cargando,error,buscarSugerencias,obtenerCoordenadas} = useGooglePlaces();
+  
 
   // Manejador de cambios para ubicación
   const handleUbicacion = (texto: string) => {
@@ -45,8 +41,9 @@ export const useRegisterEmployee = () => {
   };
 
   // Selección de ubicación desde sugerencias
-  const seleccionarUbicacion = (valor: string) => {
-    setUbicacion(valor);
+  const seleccionarUbicacion = (item: {descripcion: string; placeId: string}) => {
+    setUbicacion(item.descripcion)
+    setUbicacionId(item.placeId)
     setSugerencias([]);
     Keyboard.dismiss();
   };
@@ -83,6 +80,10 @@ export const useRegisterEmployee = () => {
   useEffect(() => {
     const cargarDatosPrevios = async () => {
       try {
+
+        // Obtenemos las coordenadas a partir del placeId
+        const coords = await obtenerCoordenadas(ubicacionId);
+
         const telefono = await SecureStore.getItemAsync('registro-telefono');
         const datosGuardados = await SecureStore.getItemAsync('registro-parcial');
         const tokenGoogle = await SecureStore.getItemAsync('google-token');
@@ -91,6 +92,8 @@ export const useRegisterEmployee = () => {
           setRegistroPrevio({
             ...JSON.parse(datosGuardados),
             phone: telefono,
+            latitude: coords.lat,
+            longitude: coords.lng,
           });
         }
 
@@ -153,6 +156,12 @@ export const useRegisterEmployee = () => {
       return false;
     }
 
+    if (!ubicacionId) {
+      setErrorMessage('Debés seleccionar una ubicación válida');
+      setShowError(true);
+      return false;
+    }
+
     return true;
   };
 
@@ -167,11 +176,16 @@ export const useRegisterEmployee = () => {
       return;
     }
 
+    // Obtenemos las coordenadas de la ubicación
+    const coords = await obtenerCoordenadas(ubicacionId)
+
     // Preparamos el payload con todos los datos del usuario
     const payload = {
       first_name: nombre,
       last_name: apellido,
       address: ubicacion,
+      latitude: coords.lat,
+      longitude: coords.lng,
       dni: dni.replace(/\./g, ''),
       birth_date: formatearFecha(fechaNacimiento!),
       ...registroPrevio,
@@ -216,6 +230,7 @@ export const useRegisterEmployee = () => {
     nombre,
     apellido,
     continuarHabilitado,
+    loading,
     setNombre,
     setApellido,
     handleRegistrarEmpleado,
