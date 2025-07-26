@@ -38,6 +38,7 @@ export default function RootLayout() {
       <Stack.Screen name="reset-password/code-validation" options={{ ...exitHeader('/login'), ...transitionFade, }} />
       <Stack.Screen name="reset-password/new-password" options={{ ...exitHeader('/login'), ...transitionFade, }} />
       <Stack.Screen name="register/index" options={{ ...exitHeader('/login'), ...transitionFade, }} />
+      <Stack.Screen name="aditional-info/index" options={{ headerLeft: () => null }} />
       
     </Stack>
 

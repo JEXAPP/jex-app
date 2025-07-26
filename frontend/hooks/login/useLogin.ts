@@ -45,7 +45,7 @@ export const useLogin = () => {
 
       setTimeout(() => {
         setShowSuccess(false);
-        router.push('/create-event');
+        router.push('/aditional-info');
       }, 1500);
 
     } else {
