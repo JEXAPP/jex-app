@@ -17,6 +17,8 @@ class EmployeeRegisterSerializer(serializers.Serializer):
     dni = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=255, allow_blank=True, required=False)
     birth_date = serializers.DateField(input_formats=["%d/%m/%Y"], required=False)
+    latitude = serializers.FloatField(required=False)
+    longitude = serializers.FloatField(required=False)
 
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
@@ -40,6 +42,8 @@ class EmployeeRegisterSerializer(serializers.Serializer):
         dni = validated_data['dni']
         address = validated_data.get('address', '')
         birth_date = validated_data.get('birth_date', None)
+        latitude = validated_data.get('latitude')
+        longitude = validated_data.get('longitude')
 
         username = get_username_from_email(email)
 
@@ -55,7 +59,9 @@ class EmployeeRegisterSerializer(serializers.Serializer):
             user=user,
             dni=dni,
             address=address,
-            birth_date=birth_date
+            birth_date=birth_date,
+            latitude=latitude,
+            longitude=longitude
         )
 
         # Agregar grupo 'employee' para permisos
@@ -69,6 +75,8 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
     dni = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=255, required=False, allow_blank=True)
     birth_date = serializers.DateField(required=False)
+    latitude = serializers.FloatField(required=False)
+    longitude = serializers.FloatField(required=False)
 
     def validate(self, data):
         user = self.context['request'].user
@@ -100,7 +108,9 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
             user=user,
             dni=self.validated_data['dni'],
             address=self.validated_data.get('address', ''),
-            birth_date=self.validated_data.get('birth_date', None)
+            birth_date=self.validated_data.get('birth_date', None),
+            latitude=self.validated_data.get('latitude'),
+            longitude=self.validated_data.get('longitude')
         )
 
         employee_group, created = Group.objects.get_or_create(name='employee')

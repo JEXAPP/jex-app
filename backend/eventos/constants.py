@@ -8,7 +8,6 @@ class EventStates(str, Enum):
     FINALIZED = "Finalizado"
     CANCELLED = "Cancelado"
 
-
 class VacancyStates(str, Enum):
     DRAFT = "En Borrador"
     ACTIVE = "Activa"
