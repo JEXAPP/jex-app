@@ -39,6 +39,9 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True, null=False, blank=False)
     phone = models.CharField(max_length=20, null=False, blank=False, unique=True)
 
+    profile_image_url = models.URLField(blank=True, null=True)
+    profile_image_id = models.CharField(max_length=255, blank=True, null=True)
+
 
     ROLE_CHOICES = [
         ('employer', 'Employer'),

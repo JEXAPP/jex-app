@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from config.services.cloudinary import upload_image
+from eventos.models.job_types import JobType
 from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.user import CustomUser
@@ -104,6 +106,39 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
         employee_group, created = Group.objects.get_or_create(name='employee')
         user.groups.add(employee_group)
 
-    
-
         return user
+
+
+class EmployeeAdditionalInfoSerializer(serializers.Serializer):
+    description = serializers.CharField(required=False, allow_blank=True)
+    job_types = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+    profile_image = serializers.ImageField(required=False)
+
+    def validate_job_types(self, value):
+        if not JobType.objects.filter(id__in=value).count() == len(value):
+            raise serializers.ValidationError("Algunos job_types no existen.")
+        return value
+
+    def update(self, instance, validated_data):
+        user = instance.user
+
+        # Imagen
+        image = validated_data.get('profile_image')
+        if image:
+            upload_result = upload_image(image, folder="user_profiles")
+            user.profile_image_url = upload_result['url']
+            user.profile_image_id = upload_result['public_id']
+            user.save()
+
+        # Descripción
+        if 'description' in validated_data:
+            instance.description = validated_data['description']
+
+        # Job types
+        if 'job_types' in validated_data:
+            instance.job_types.set(validated_data['job_types'])
+
+        instance.save()
+        return instance
