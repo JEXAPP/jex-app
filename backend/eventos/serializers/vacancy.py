@@ -12,12 +12,13 @@ class CreateVacancySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vacancy
-        fields = ['id', 'description', 'event', 'job_type', 'requirements', 'shifts']
+        fields = ['id', 'description', 'event', 'job_type', 'specific_job_type', 'requirements', 'shifts']
         read_only_fields = ['id', 'state']
 
     def validate(self, data):
         user = self.context['request'].user
         event = data.get('event')
+        job_type = data.get('job_type') # Podriamos validar con esto si tiene que venir una descripcion aparte en caso de "Otros"
         shifts_data = data.get('shifts', [])
 
         if event and shifts_data:
@@ -34,7 +35,9 @@ class CreateVacancySerializer(serializers.ModelSerializer):
 
         if event.owner != user:
             raise serializers.ValidationError("You do not have permission to create vacancies for this event.")
+
         return data
+    
 
     def create(self, validated_data):
         requirements_data = validated_data.pop('requirements')
@@ -55,6 +58,7 @@ class ListVacancyShiftSerializer(serializers.ModelSerializer):
     vacancy_id = serializers.IntegerField(source='vacancy.id')
     event_name = serializers.CharField(source='vacancy.event.name')
     job_type_name = serializers.CharField(source='vacancy.job_type.name')
+    specific_job_type = serializers.CharField(source='vacancy.specific_job_type', allow_blank=True)
 
     class Meta:
         model = Shift
