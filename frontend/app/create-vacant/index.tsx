@@ -22,6 +22,8 @@ import DropDown from '@/components/DropDown';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { turnoInputStyles } from '@/styles/app/create-vacant/turnoInputStyles';
+import TimePicker from '@/components/TimePicker';
+import { timePickerStyles1 } from '@/styles/components/timePickerStyles1';
 
 import { iconos } from '@/constants/iconos';
 
@@ -351,26 +353,40 @@ export default function RegisterVacancyScreen() {
       </Modal>
     )}
 
-    {Platform.OS === 'android' && showTimePicker && (
-      // Abrir DateTimePicker sin modal (modal falso, solo diálogo nativo)
-      <DateTimePicker
-        mode="time"
-        is24Hour
-        display="default"
-        value={horaTemporal}
-        onChange={(event, selectedDate) => {
-          if (event.type === 'set' && selectedDate) {
-            const hora = formatearHora(selectedDate);
-            actualizarTurno(
-              currentPickerInfo!.vacanteIndex,
-              currentPickerInfo!.turnoIndex,
-              currentPickerInfo!.type,
-              hora
-            );
-          }
-          setShowTimePicker(false);
-        }}
-      />
+    {Platform.OS === 'android' && showTimePicker && currentPickerInfo && (
+      <Modal transparent animationType="fade" visible>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center', // 🔹 CENTRADO
+            backgroundColor: 'rgba(0,0,0,0.4)'
+          }}
+        >
+          {/* TouchableWithoutFeedback solo en el fondo */}
+          <TouchableWithoutFeedback onPress={() => setShowTimePicker(false)}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+          </TouchableWithoutFeedback>
+
+          {/* Picker centrado */}
+          <TimePicker
+            time={(() => {
+              const turno = vacantes[currentPickerInfo.vacanteIndex].turnos[currentPickerInfo.turnoIndex];
+              return turno[currentPickerInfo.type];
+            })()}
+            setTime={(hora) => {
+              actualizarTurno(
+                currentPickerInfo.vacanteIndex,
+                currentPickerInfo.turnoIndex,
+                currentPickerInfo.type,
+                hora
+              );
+              setShowTimePicker(false);
+            }}
+            styles={timePickerStyles1}
+          />
+        </View>
+      </Modal>
     )}
 
             <ClickWindow
