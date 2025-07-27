@@ -45,7 +45,7 @@ export const useLogin = () => {
 
       setTimeout(() => {
         setShowSuccess(false);
-        router.push('/create-event');
+        router.push('/create-vacant');
       }, 1500);
 
     } else {
@@ -101,7 +101,7 @@ export const useLogin = () => {
           await SecureStore.setItemAsync('desde-google', 'true');
           router.push('./register');
         } else {
-          router.push('/create-vacant');
+          router.push('/register');
         }
       }, 1500);
 
@@ -114,7 +114,7 @@ export const useLogin = () => {
   // Navega al registro normal (no por Google)
   const handleNavigateToRegister = async () => {
     await SecureStore.setItemAsync('desde-google', 'false');
-    router.push('./create-vacant');
+    router.push('./register');
   };
 
   // Navega a la pantalla para recuperar contraseña

@@ -193,21 +193,45 @@ export const useRegisterVacancyMulti = () => {
     return `${dia}/${mes}/${anio}`;
   };
 
+
+
+  const limpiarYFormatearPago = (pago: string): string => {
+  const soloNumeros = pago.replace(/\./g, ''); // elimina puntos de miles
+  const numero = parseInt(soloNumeros, 10);
+  if (isNaN(numero)) return '0.00';
+  return `${numero.toFixed(2)}`; // agrega ".00"
+};
+
   const handleRegistrarTodas = async () => {
     try {
-      const payload = vacantes.map((v) => ({
-      rol: v.rolNombre === 'Otro' ? v.otrosRol : v.rol,
-      descripcion: v.descripcion,
-      requerimientos: v.requerimientos, // ✅ DEJALO COMO ARRAY
-      turnos: v.turnos.map((t) => ({
-        fecha_inicio: formatearFecha(t.fechaInicio!),
-        hora_inicio: t.horaInicio,
-        fecha_fin: formatearFecha(t.fechaFin!),
-        hora_fin: t.horaFin,
-        pago: t.pago,
-        cantidad: t.cantidad,
-      })),
-    }));
+      const payload = vacantes.map((v) => {
+  const base = {
+    job_type: v.rol,
+    description: v.descripcion,
+    requirements: v.requerimientos
+      .filter((req) => req.trim() !== '') // opcional: evita mandar vacíos
+      .map((req) => ({ description: req })),
+    shifts: v.turnos.map((t) => ({
+      start_date: formatearFecha(t.fechaInicio!),
+      start_time: t.horaInicio,
+      end_date: formatearFecha(t.fechaFin!),
+      end_time: t.horaFin,
+      payment: limpiarYFormatearPago(t.pago),
+      quantity: t.cantidad,
+    })),
+    event: 1,
+  };
+
+  // Si el rol es "Otro", agregamos el campo otrosRol
+  if (v.rolNombre === 'Otro') {
+    return {
+      ...base,
+      specific_job_type: v.otrosRol,
+    };
+  }
+
+  return base;
+});
       console.log( payload);
 
       for (const vacante of payload) {
