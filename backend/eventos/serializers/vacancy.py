@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from eventos.constants import VacancyStates
+from eventos.constants import JobTypesEnum, VacancyStates
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
 from eventos.models.vacancy_state import VacancyState
@@ -19,6 +19,7 @@ class CreateVacancySerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         event = data.get('event')
         job_type = data.get('job_type') # Podriamos validar con esto si tiene que venir una descripcion aparte en caso de "Otros"
+        specific_job_type = data.get('specific_job_type')
         shifts_data = data.get('shifts', [])
 
         if event and shifts_data:
@@ -36,6 +37,16 @@ class CreateVacancySerializer(serializers.ModelSerializer):
         if event.owner != user:
             raise serializers.ValidationError("You do not have permission to create vacancies for this event.")
 
+        if job_type and job_type.name == JobTypesEnum.OTRO.value:
+                    if not specific_job_type:
+                        raise serializers.ValidationError(
+                            "You must provide a specific job type when selecting 'Others'."
+                        )
+        elif specific_job_type:
+            raise serializers.ValidationError(
+                "You should not provide a specific job type unless the job type is 'Others'."
+            )
+        
         return data
     
 

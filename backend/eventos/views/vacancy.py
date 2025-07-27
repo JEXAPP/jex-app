@@ -74,7 +74,7 @@ class SearchVacancyView(APIView):
         choice = param_serializer.validated_data['choice']
         value = param_serializer.validated_data['value']
 
-        vacancies = Vacancy.objects.all()
+        vacancies = Vacancy.objects.select_related('event', 'job_type').prefetch_related('shifts')
 
         if choice == 'role':
             vacancies = vacancies.filter(
