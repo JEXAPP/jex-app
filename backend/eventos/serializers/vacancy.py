@@ -70,10 +70,14 @@ class ListVacancyShiftSerializer(serializers.ModelSerializer):
     event_name = serializers.CharField(source='vacancy.event.name')
     job_type_name = serializers.CharField(source='vacancy.job_type.name')
     specific_job_type = serializers.CharField(source='vacancy.specific_job_type', allow_blank=True)
+    start_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Shift
         fields = ['vacancy_id', 'event_name', 'start_date', 'payment', 'job_type_name', 'specific_job_type']
+    
+    def get_start_date(self, obj):
+        return obj.start_date.strftime('%d/%m/%Y') if obj.start_date else None
 
 class SearchVacancyResultSerializer(serializers.ModelSerializer):
     event = serializers.CharField(source='event.name', read_only=True)
@@ -94,7 +98,9 @@ class SearchVacancyResultSerializer(serializers.ModelSerializer):
 
     def get_start_date(self, obj):
         top_shift = obj.shifts.order_by('-payment').first()
-        return top_shift.start_date if top_shift else None
+        if top_shift and top_shift.start_date:
+            return top_shift.start_date.strftime('%d/%m/%Y')
+    
     
 class SearchVacancyParamsSerializer(serializers.Serializer):
     choices = ['role', 'event', 'start_date']
