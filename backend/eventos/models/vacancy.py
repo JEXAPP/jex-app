@@ -9,4 +9,6 @@ class Vacancy(models.Model):
     description = models.TextField(max_length=400, null=False, blank=False)
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='vacancies')
     job_type = models.ForeignKey(JobType, on_delete=models.CASCADE, related_name='vacancies')
+    specific_job_type = models.CharField(max_length=255, null=True, blank=True)
+
 
