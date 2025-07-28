@@ -73,7 +73,7 @@ class ListVacancyShiftSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Shift
-        fields = ['vacancy_id', 'event_name', 'start_date', 'payment', 'job_type_name']
+        fields = ['vacancy_id', 'event_name', 'start_date', 'payment', 'job_type_name', 'specific_job_type']
 
 class SearchVacancyResultSerializer(serializers.ModelSerializer):
     event = serializers.CharField(source='event.name', read_only=True)
