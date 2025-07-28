@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from config.services.cloudinary import upload_image
 from eventos.models.job_types import JobType
+from media_utils.models import Image, ImageType
 from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.user import CustomUser
@@ -124,7 +124,8 @@ class EmployeeAdditionalInfoSerializer(serializers.Serializer):
     job_types = serializers.ListField(
         child=serializers.IntegerField(), required=False
     )
-    profile_image = serializers.ImageField(required=False)
+    profile_image_url = serializers.URLField(required=False)
+    profile_image_id = serializers.CharField(required=False)
 
     def validate_job_types(self, value):
         if not JobType.objects.filter(id__in=value).count() == len(value):
@@ -134,19 +135,25 @@ class EmployeeAdditionalInfoSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         user = instance.user
 
-        # Imagen
-        image = validated_data.get('profile_image')
-        if image:
-            upload_result = upload_image(image, folder="user_profiles")
-            user.profile_image_url = upload_result['url']
-            user.profile_image_id = upload_result['public_id']
+        image_url = validated_data.get('profile_image_url')
+        image_id = validated_data.get('profile_image_id')
+
+        if image_url and image_id:
+            # Crear o actualizar la imagen relacionada
+            image_obj, created = Image.objects.update_or_create(
+                public_id=image_id,
+                defaults={
+                    'url': image_url,
+                    'type': ImageType.PROFILE,
+                    'uploaded_by': user,
+                }
+            )
+            user.profile_image = image_obj
             user.save()
 
-        # Descripción
         if 'description' in validated_data:
             instance.description = validated_data['description']
 
-        # Job types
         if 'job_types' in validated_data:
             instance.job_types.set(validated_data['job_types'])
 

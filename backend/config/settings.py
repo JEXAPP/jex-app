@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'cloudinary',
     'cloudinary_storage',
+    'media_utils',
 
 ]
 
