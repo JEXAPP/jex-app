@@ -37,8 +37,6 @@ class CreateEventSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context['request'].user
         validated_data['owner'] = user
-        print('owner', validated_data['owner'])
-        print('user', user)
 
         public_state = EventState.objects.get(name=EventStates.PUBLISHED.value)
         validated_data['state'] = public_state

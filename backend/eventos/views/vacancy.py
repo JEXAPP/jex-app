@@ -47,7 +47,6 @@ class ListVacancyShiftView(ListAPIView):
             'vacancy__job_type'
         ).order_by('vacancy__event__id')
 
-        print(category)
         if category == 'interests':
             return self._filter_by_interests(base_qs, user)
 
