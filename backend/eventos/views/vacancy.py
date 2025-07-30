@@ -14,7 +14,6 @@ from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from eventos.utils import is_event_near
 
 
-# Crear vacante
 class CreateVacancyView(CreateAPIView):
     serializer_class = CreateVacancySerializer
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
@@ -26,10 +25,9 @@ class CreateVacancyView(CreateAPIView):
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-# Listar vacantes
 class ListVacancyShiftView(ListAPIView):
     serializer_class = ListVacancyShiftSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE]
 
     def get_queryset(self):
@@ -62,7 +60,7 @@ class ListVacancyShiftView(ListAPIView):
         elif category is not None and category != '' and category not in ['interests', 'soon', 'nearby']:
             raise serializers.ValidationError("Invalid category. Must be 'interests', 'soon', or 'nearby'.")
 
-        return base_qs
+        return base_qs[:10]
 
     def _filter_by_interests(self, base_qs, user):
         employee = getattr(user, 'employee', None)
@@ -70,14 +68,24 @@ class ListVacancyShiftView(ListAPIView):
             return base_qs
         return base_qs.filter(
             vacancy__job_type__in=employee.job_types.all()
-        )
+        ).distinct()[:10]
 
     def _filter_by_soon(self, base_qs):
         today = timezone.now().date()
         soon_limit = today + timezone.timedelta(days=7)
-        return base_qs.filter(
-            start_date__range=(today, soon_limit)
-        ).order_by('start_date')
+
+        soonest_shift_subquery = Shift.objects.filter(
+        vacancy__event=OuterRef('vacancy__event'),
+        start_date__range=(today, soon_limit)).order_by('start_date')
+
+        base_qs = Shift.objects.filter(
+                id=Subquery(soonest_shift_subquery.values('id')[:1])
+            ).select_related(
+                'vacancy__event',
+                'vacancy__job_type'
+            ).order_by('start_date')[:10]
+
+        return base_qs
     
     def _filter_by_nearby(self, base_qs, user):
         employee = getattr(user, 'employee_profile', None)
@@ -90,7 +98,7 @@ class ListVacancyShiftView(ListAPIView):
         return [
             shift for shift in base_qs
             if is_event_near(employee_lat, employee_lon, shift.vacancy.event)
-            ]
+            ][:10]
 
 
 class SearchVacancyView(APIView):
