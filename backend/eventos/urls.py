@@ -3,6 +3,7 @@ from eventos.views.event import CreateEventView
 from eventos.views.vacancy import CreateVacancyView, ListVacancyShiftView
 from eventos.views.category_events import ListCategoryView
 from eventos.views.job_types import ListJobTypesView
+from eventos.views.list_vacancy import EventVacanciesView
 
 urlpatterns = [
 
@@ -19,5 +20,6 @@ urlpatterns = [
     # path('vacancies/list/?category=soon'). RUTA DISPONIBLE
     # path('vacancies/list/?category=interests'). RUTA DISPONIBLE
     path('vacancies/job-types/', ListJobTypesView.as_view(), name='list-job-types'),
+    path('vacancies/by-employer/<int:event_id>/', EventVacanciesView.as_view(), name='vacantes-por-evento'),
 
 ]
