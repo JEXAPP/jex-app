@@ -1,6 +1,9 @@
 from django.db import models
 from django.utils import timezone
 
+from eventos.models.shifts import Shift
+from user_auth.models.employee import EmployeeProfile
+
 class ApplicationStatus(models.TextChoices):
     PENDING = 'PENDING', 'Pending'
     ACCEPTED = 'ACCEPTED', 'Accepted'
@@ -9,12 +12,12 @@ class ApplicationStatus(models.TextChoices):
 
 class Application(models.Model):
     employee = models.ForeignKey(
-        'user_auth.EmployeeProfile', 
+        EmployeeProfile, 
         on_delete=models.CASCADE,
         related_name='applications'
     )
     shift = models.ForeignKey(
-        'eventos.Shift',
+        Shift,
         on_delete=models.CASCADE,
         related_name='applications'
     )
