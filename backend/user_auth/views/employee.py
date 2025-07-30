@@ -1,7 +1,7 @@
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from rest_framework.exceptions import ValidationError
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.employee import EmployeeProfile
 from user_auth.permissions import IsInGroup
@@ -40,7 +40,19 @@ class EmployeeAdditionalInfoView(APIView):
             return Response({"detail": "Perfil de empleado no encontrado."}, status=404)
 
         serializer = EmployeeAdditionalInfoSerializer(profile, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        try:
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-        return Response(serializer.data)
+        except ValidationError as e:
+            return Response(
+                {"errors": e.detail},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        except Exception as e:
+            return Response(
+                {"detail": f"An unexpected error occurred: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
