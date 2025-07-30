@@ -20,7 +20,7 @@ urlpatterns = [
     # path('vacancies/list/?category=interests'). RUTA DISPONIBLE
     # path('vacancies/list/?category=nearby'). RUTA NO DISPONIBLE AUN 
     path('vacancies/search/', SearchVacancyView.as_view(), name='search-vacancies'),
-   # path('api/vacancies/search/?choice=event&value=Tomorrowland') RUTA DISPONIBLE
+    # path('api/vacancies/search/?choice=event&value=Tomorrowland') RUTA DISPONIBLE
     # path('api/vacancies/search/?choice=start_date&value=30/07/2025') RUTA DISPONIBLE
     # path('api/vacancies/search/?choice=role&value=Camarero') RUTA DISPONIBLE
     path('vacancies/job-types/', ListJobTypesView.as_view(), name='list-job-types'),

@@ -5,6 +5,13 @@ from eventos.models.vacancy import Vacancy
 from eventos.models.vacancy_state import VacancyState
 from eventos.serializers.requirements import CreateRequirementSerializer
 from eventos.serializers.shifts import CreateShiftSerializer
+from django.db import transaction
+
+
+class CreateVacancyListSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        return [self.child.create(item) for item in validated_data]
+
 
 class CreateVacancySerializer(serializers.ModelSerializer):
     requirements = CreateRequirementSerializer(many=True, write_only=True)
@@ -12,58 +19,64 @@ class CreateVacancySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vacancy
-        fields = ['id', 'description', 'event', 'job_type', 'specific_job_type', 'requirements', 'shifts']
+        fields = [
+            'id',
+            'description',
+            'event',
+            'job_type',
+            'specific_job_type',
+            'requirements',
+            'shifts'
+        ]
         read_only_fields = ['id', 'state']
+        list_serializer_class = CreateVacancyListSerializer
 
     def validate(self, data):
         user = self.context['request'].user
         event = data.get('event')
-        job_type = data.get('job_type') # Podriamos validar con esto si tiene que venir una descripcion aparte en caso de "Otros"
-        specific_job_type = data.get('specific_job_type')
-        shifts_data = data.get('shifts', [])
+        shifts = data.get('shifts', [])
 
-        if event and shifts_data:
+        if event and shifts:
             event_start = event.start_date
             event_end = event.end_date
-
-            for shift in shifts_data:
-                start_date = shift.get('start_date')
-                end_date = shift.get('end_date')
-                if start_date < event_start or end_date > event_end:
+            event_start_time = event.start_time
+            event_end_time = event.end_time
+            for shift in shifts:
+                if shift['start_date'] < event_start or shift['end_date'] > event_end:
                     raise serializers.ValidationError(
-                        f"Shifts date ({start_date} - {end_date}) must be within the event dates ({event_start} - {event_end})."
+                        f"Shifts ({shift['start_date']} - {shift['end_date']}) deben estar dentro del evento ({event_start} - {event_end})."
+                    )
+                elif shift['start_time'] < event_start_time or shift['end_time'] > event_end_time:
+                    raise serializers.ValidationError(
+                        f"Shifts ({shift['start_time']} - {shift['end_time']}) deben estar dentro del horario del evento ({event_start_time} - {event_end_time})."
                     )
 
         if event.owner != user:
-            raise serializers.ValidationError("You do not have permission to create vacancies for this event.")
+            raise serializers.ValidationError("No tiene permiso para este evento.")
 
-        if job_type and job_type.name == JobTypesEnum.OTRO.value:
-                    if not specific_job_type:
-                        raise serializers.ValidationError(
-                            "You must provide a specific job type when selecting 'Others'."
-                        )
-        elif specific_job_type:
-            raise serializers.ValidationError(
-                "You should not provide a specific job type unless the job type is 'Others'."
-            )
-        
+        job_type = data.get('job_type')
+        specific = data.get('specific_job_type')
+
+        if job_type and job_type.name == JobTypesEnum.OTRO.value and not specific:
+            raise serializers.ValidationError("Debe especificar el tipo de trabajo si selecciona 'OTRO'.")
+        elif specific and (not job_type or job_type.name != JobTypesEnum.OTRO.value):
+            raise serializers.ValidationError("No debe especificar tipo de trabajo salvo que el tipo sea 'OTRO'.")
+
         return data
-    
 
     def create(self, validated_data):
-        requirements_data = validated_data.pop('requirements')
-        shifts_data = validated_data.pop('shifts')
+        requirements = validated_data.pop('requirements')
+        shifts = validated_data.pop('shifts')
+        validated_data['state'] = VacancyState.objects.get(name=VacancyStates.ACTIVE.value)
 
-        public_state = VacancyState.objects.get(name=VacancyStates.ACTIVE.value)
-        validated_data['state'] = public_state
-
-        vacancy = Vacancy.objects.create(**validated_data)
-
-        CreateRequirementSerializer.bulk_create(vacancy, requirements_data)
-        CreateShiftSerializer.bulk_create(vacancy, shifts_data)
-
-
+        with transaction.atomic():
+            vacancy = Vacancy.objects.create(**validated_data)
+            CreateRequirementSerializer.bulk_create(vacancy, requirements)
+            CreateShiftSerializer.bulk_create(vacancy, shifts)
         return vacancy
+
+    def to_representation(self, instance):
+        return {'id': instance.id, 'description': instance.description}
     
 class ListVacancyShiftSerializer(serializers.ModelSerializer):
     vacancy_id = serializers.IntegerField(source='vacancy.id')
@@ -78,6 +91,7 @@ class ListVacancyShiftSerializer(serializers.ModelSerializer):
     
     def get_start_date(self, obj):
         return obj.start_date.strftime('%d/%m/%Y') if obj.start_date else None
+
 
 class SearchVacancyResultSerializer(serializers.ModelSerializer):
     event = serializers.CharField(source='event.name', read_only=True)

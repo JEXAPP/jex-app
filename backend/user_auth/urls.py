@@ -21,5 +21,5 @@ urlpatterns = [
     path('password-reset-complete/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('verify/send-code/', SendPhoneVerificationCodeView.as_view(), name='send-phone-code'),
     path('verify/check-code/', VerifyPhoneCodeView.as_view(), name='verify-phone-code'),
-    path('employee/additional-info', EmployeeAdditionalInfoView.as_view(), name='employee-additional-info'),
+    path('employee/additional-info/', EmployeeAdditionalInfoView.as_view(), name='employee-additional-info'),
 ]
