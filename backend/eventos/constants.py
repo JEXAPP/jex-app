@@ -37,3 +37,10 @@ class CategoryEnum(str, Enum):
     DESFILE = "Desfile"
     EVENTO_DEPORTIVO = "Evento deportivo"
     OTROS = "Otros"
+
+
+class ApplicationStates(str, Enum):
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+    REJECTED = "REJECTED"
+    CANCELED = "CANCELED"
