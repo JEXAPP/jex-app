@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from eventos.models import Vacancy, Shift
 
+
 class ApplicationCreateSerializer(serializers.Serializer):
     vacancy_id = serializers.IntegerField()
     shifts = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
@@ -40,3 +41,21 @@ class ApplicationResponseVacancySerializer(serializers.Serializer):
 class ApplicationResponseSerializer(serializers.Serializer):
     message = serializers.CharField()
     applications = ApplicationResponseVacancySerializer(many=True)
+
+    @classmethod
+    def to_presentation(cls, shifts, message):
+        grouped = {}
+        for shift in shifts:
+            vacancy = shift.vacancy
+            if vacancy.id not in grouped:
+                grouped[vacancy.id] = {
+                    "vacancy_id": vacancy.id,
+                    "vacancy_title": vacancy.title,
+                    "shifts": [],
+                }
+            grouped[vacancy.id]["shifts"].append({"id": shift.id})
+
+        return cls({
+            "message": message,
+            "applications": list(grouped.values())
+        })

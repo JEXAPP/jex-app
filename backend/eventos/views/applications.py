@@ -1,4 +1,3 @@
-# views.py
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -11,6 +10,7 @@ from eventos.serializers.applications import (
 from user_auth.permissions import IsInGroup
 from user_auth.constants import EMPLOYEE_ROLE
 from eventos.models import Shift
+
 
 class ApplicationCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
@@ -42,12 +42,10 @@ class ApplicationCreateView(APIView):
 
         shifts = Shift.objects.filter(id__in=new_shift_ids).select_related('vacancy')
 
-        response_data = {
-            "message": f"{len(new_shift_ids)} applications created successfully.",
-            "applications": self.group_shifts_by_vacancy(shifts),
-        }
-
-        response_serializer = ApplicationResponseSerializer(response_data)
+        # ✅ Usar método to_presentation del serializer para construir la respuesta
+        response_serializer = ApplicationResponseSerializer.to_presentation(
+            shifts, f"{len(new_shift_ids)} applications created successfully."
+        )
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
     def get_employee_profile(self, user):
@@ -55,16 +53,3 @@ class ApplicationCreateView(APIView):
             return EmployeeProfile.objects.get(user=user)
         except EmployeeProfile.DoesNotExist:
             return None
-
-    def group_shifts_by_vacancy(self, shifts):
-        vacancy_map = {}
-        for shift in shifts:
-            vac_id = shift.vacancy.id
-            if vac_id not in vacancy_map:
-                vacancy_map[vac_id] = {
-                    "vacancy_id": vac_id,
-                    "vacancy_title": shift.vacancy.title,
-                    "shifts": [],
-                }
-            vacancy_map[vac_id]["shifts"].append({"id": shift.id})
-        return list(vacancy_map.values())

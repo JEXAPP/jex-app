@@ -3,12 +3,8 @@ from django.utils import timezone
 
 from eventos.models.shifts import Shift
 from user_auth.models.employee import EmployeeProfile
+from eventos.constants import ApplicationStates
 
-class ApplicationStatus(models.TextChoices):
-    PENDING = 'PENDING', 'Pending'
-    ACCEPTED = 'ACCEPTED', 'Accepted'
-    REJECTED = 'REJECTED', 'Rejected'
-    CANCELED = 'CANCELED', 'Canceled'
 
 class Application(models.Model):
     employee = models.ForeignKey(
@@ -23,8 +19,8 @@ class Application(models.Model):
     )
     status = models.CharField(
         max_length=20,
-        choices=ApplicationStatus.choices,
-        default=ApplicationStatus.PENDING
+        choices=[(state.value, state.value) for state in ApplicationStates],
+        default=ApplicationStates.PENDING.value
     )
     message = models.TextField(blank=True)
     created_at = models.DateTimeField(default=timezone.now)
@@ -35,4 +31,4 @@ class Application(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.employee.user.email} - {self.shift} - {self.get_status_display()}"
+        return f"{self.employee.user.email} - {self.shift} - {self.status}"
