@@ -8,7 +8,7 @@ class EmployeeProfile(models.Model):
     latitude = models.FloatField(blank=True, null=True)
     longitude = models.FloatField(blank=True, null=True)
     birth_date = models.DateField(blank=True, null=True)
-    job_types = models.ManyToManyField(JobType, blank=True, null=True, related_name='employees')
+    job_types = models.ManyToManyField(JobType, blank=True, related_name='employees')
 
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employee_profile')
     description = models.CharField(max_length=200, blank=True, null=True)
