@@ -8,7 +8,7 @@ class VacancySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vacancy
-        fields = ['id', 'state', 'job_type']
+        fields = ['id', 'state', 'job_type', 'specific_job_type']
 
     def get_state(self, obj):
         return {
