@@ -10,9 +10,14 @@ class CreateEventSerializer(serializers.ModelSerializer):
         queryset=Category.objects.all(), source='category', write_only=True
     )
 
+    start_date = serializers.DateField(input_formats=['%d/%m/%Y'])
+    end_date = serializers.DateField(input_formats=['%d/%m/%Y'])
+    start_time = serializers.TimeField(input_formats=['%H:%M'])
+    end_time = serializers.TimeField(input_formats=['%H:%M'])
+
     class Meta:
         model = Event
-        fields = ['id', 'name', 'description', 'start_date','end_date', 'start_time', 'end_time', 'location', 'created_at', 'updated_at', 'category_id']
+        fields = ['id', 'name', 'description', 'start_date','end_date', 'start_time', 'end_time', 'location', 'created_at', 'updated_at', 'category_id', 'latitude', 'longitude']
         read_only_fields = ['id', 'created_at', 'updated_at', 'owner']
 
     def validate(self, data):

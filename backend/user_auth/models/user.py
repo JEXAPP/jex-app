@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, Group, Permission
+from media_utils.models import Image
 from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from django.contrib.auth.models import BaseUserManager
@@ -38,6 +39,14 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True, null=False, blank=False)
     phone = models.CharField(max_length=20, null=False, blank=False, unique=True)
+
+    profile_image = models.OneToOneField(
+        Image,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='user_profile_image'
+    )
 
 
     ROLE_CHOICES = [

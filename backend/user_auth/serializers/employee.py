@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from eventos.models.job_types import JobType
+from media_utils.models import Image, ImageType
 from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.user import CustomUser
@@ -15,6 +17,8 @@ class EmployeeRegisterSerializer(serializers.Serializer):
     dni = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=255, allow_blank=True, required=False)
     birth_date = serializers.DateField(input_formats=["%d/%m/%Y"], required=False)
+    latitude = serializers.FloatField(required=False)
+    longitude = serializers.FloatField(required=False)
 
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
@@ -38,6 +42,8 @@ class EmployeeRegisterSerializer(serializers.Serializer):
         dni = validated_data['dni']
         address = validated_data.get('address', '')
         birth_date = validated_data.get('birth_date', None)
+        latitude = validated_data.get('latitude')
+        longitude = validated_data.get('longitude')
 
         username = get_username_from_email(email)
 
@@ -53,7 +59,9 @@ class EmployeeRegisterSerializer(serializers.Serializer):
             user=user,
             dni=dni,
             address=address,
-            birth_date=birth_date
+            birth_date=birth_date,
+            latitude=latitude,
+            longitude=longitude
         )
 
         # Agregar grupo 'employee' para permisos
@@ -67,6 +75,8 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
     dni = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=255, required=False, allow_blank=True)
     birth_date = serializers.DateField(required=False)
+    latitude = serializers.FloatField(required=False)
+    longitude = serializers.FloatField(required=False)
 
     def validate(self, data):
         user = self.context['request'].user
@@ -98,12 +108,68 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
             user=user,
             dni=self.validated_data['dni'],
             address=self.validated_data.get('address', ''),
-            birth_date=self.validated_data.get('birth_date', None)
+            birth_date=self.validated_data.get('birth_date', None),
+            latitude=self.validated_data.get('latitude'),
+            longitude=self.validated_data.get('longitude')
         )
 
         employee_group, created = Group.objects.get_or_create(name='employee')
         user.groups.add(employee_group)
 
-    
-
         return user
+
+
+class EmployeeAdditionalInfoSerializer(serializers.Serializer):
+    description = serializers.CharField(required=False, allow_blank=True)
+    job_types = serializers.ListField(
+        child=serializers.IntegerField(), required=False
+    )
+    profile_image_url = serializers.URLField(required=False)
+    profile_image_id = serializers.CharField(required=False)
+
+    def validate_job_types(self, value):
+        # Validates that all job_type IDs provided exist in the database.
+        if not JobType.objects.filter(id__in=value).count() == len(value):
+            raise serializers.ValidationError("Some job_types do not exist.")
+        return value
+
+    def validate(self, attrs):
+        image_url = attrs.get('profile_image_url')
+        image_id = attrs.get('profile_image_id')
+
+        if (image_url and not image_id) or (image_id and not image_url):
+            raise serializers.ValidationError(
+                "Both 'profile_image_url' and 'profile_image_id' must be provided together."
+            )
+
+        return attrs
+
+    def update(self, instance, validated_data):
+        user = instance.user
+
+        # Update profile image if both URL and ID are provided
+        image_url = validated_data.get('profile_image_url')
+        image_id = validated_data.get('profile_image_id')
+        if image_url and image_id:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=image_id,
+                defaults={
+                    'url': image_url,
+                    'type': ImageType.PROFILE,
+                    'uploaded_by': user,
+                }
+            )
+            user.profile_image = image_obj
+            user.save()
+
+        # Update description
+        if 'description' in validated_data:
+            instance.description = validated_data['description']
+
+        # Update job types
+        job_types = validated_data.get('job_types')
+        if job_types is not None:
+            instance.job_types.set(job_types)
+
+        instance.save()
+        return instance

@@ -14,6 +14,8 @@ class Event(models.Model):
     end_time = models.TimeField(null=False, blank=False)    
 
     location = models.CharField(max_length=250)
+    latitude = models.DecimalField(max_digits=15, decimal_places=10)
+    longitude = models.DecimalField(max_digits=15, decimal_places=10)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='events')

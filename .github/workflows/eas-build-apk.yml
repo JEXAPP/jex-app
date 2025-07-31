@@ -43,4 +43,5 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Show APK download URL
-        run: echo "APK de test: ${{ steps.get_url.outputs.apk_url }}"
+        run: |
+          echo "APK de test: ${{ steps.get_url.outputs.apk_url }}"
