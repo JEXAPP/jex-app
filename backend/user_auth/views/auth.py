@@ -25,27 +25,29 @@ class LogoutView(APIView):
         except TokenError:
             return Response({"error": "Token inválido o ya expirado"}, status=status.HTTP_400_BAD_REQUEST)
 
-class CustomGoogleLoginView(SocialLoginView):
 
+class CustomGoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
+
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
 
-        user = self.user  # Usuario que se autenticó
+        user = self.user
         if user is None:
             return response  # algo falló antes
 
-        # Obtener los tokens de nuevo (porque `super().post()` no nos da acceso directo)
+        # Generar el refresh token
         refresh = RefreshToken.for_user(user)
-        access = str(refresh.access_token)
+
+        # 👉 Agregar claims personalizados
+        refresh["email"] = user.email
+        refresh["role"] = user.role
 
         # Evaluar si el usuario tiene datos incompletos
-        incomplete = True
-        if user.role:
-            incomplete = False
+        incomplete = not bool(user.role)
 
         return Response({
-            "access": access,
+            "access": str(refresh.access_token),
             "refresh": str(refresh),
             "incomplete_user": incomplete
         }, status=status.HTTP_200_OK)
