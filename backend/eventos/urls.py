@@ -5,7 +5,7 @@ from eventos.views.vacancy import CreateVacancyView, ListVacancyShiftView, Searc
 from eventos.views.category_events import ListCategoryView
 from eventos.views.job_types import ListJobTypesView
 from eventos.views.list_vacancy import EmployerEventsWithVacanciesView
-from eventos.views.vacancy_state import UpdateVacancyStateView
+from eventos.views.vacancy_state import UpdateVacancyStateView, VacancyStateListView
 
 urlpatterns = [
 
@@ -30,6 +30,7 @@ urlpatterns = [
     path('vacancies/job-types/', ListJobTypesView.as_view(), name='list-job-types'),
     path('vacancies/by-employer/', EmployerEventsWithVacanciesView.as_view(), name='vacantes-por-evento'),
     path('vacancies/<int:pk>/state/', UpdateVacancyStateView.as_view(), name='update-vacancy-state'),
+    path('vacancy-states/', VacancyStateListView.as_view(), name='vacancy-states-list'),
     # Applications
     path('applications/apply/', ApplicationCreateView.as_view(), name='apply'),
     
