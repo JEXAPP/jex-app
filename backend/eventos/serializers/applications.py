@@ -50,7 +50,7 @@ class ApplicationResponseSerializer(serializers.Serializer):
             if vacancy.id not in grouped:
                 grouped[vacancy.id] = {
                     "vacancy_id": vacancy.id,
-                    "vacancy_title": vacancy.title,
+                    "vacancy_title": vacancy.description,
                     "shifts": [],
                 }
             grouped[vacancy.id]["shifts"].append({"id": shift.id})
