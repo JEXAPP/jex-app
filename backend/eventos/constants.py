@@ -14,6 +14,7 @@ class VacancyStates(str, Enum):
     OCULTED = "Oculta"
     FILLED = "Llena"
     EXPIRED = "Vencida"
+    DELETED = "Eliminada"
 
 class JobTypesEnum(str, Enum):
     BARMAN = "Barman"
