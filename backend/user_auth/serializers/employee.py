@@ -131,9 +131,11 @@ class EmployeeAdditionalInfoSerializer(serializers.Serializer):
         if not value:
             return []
 
-        if not JobType.objects.filter(id__in=value).count() == len(value):
+        job_types = JobType.objects.filter(id__in=value)
+        if job_types.count() != len(value):
             raise serializers.ValidationError("Some job_types do not exist.")
-        return value
+
+        return job_types
 
     def validate(self, attrs):
         image_url = attrs.get('profile_image_url')
