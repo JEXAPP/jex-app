@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from eventos.models import Vacancy, Shift
+from eventos.models.applications import Application
+from user_auth.models.employee import EmployeeProfile
+from django.db import transaction
 
 
 class ApplicationCreateSerializer(serializers.Serializer):
@@ -27,35 +30,28 @@ class ApplicationCreateSerializer(serializers.Serializer):
             raise serializers.ValidationError("One or more shifts do not belong to the vacancy.")
         return data
 
+    def save(self, **kwargs):
+        user = self.context['user']
+        try:
+            employee = EmployeeProfile.objects.get(user=user)
+        except EmployeeProfile.DoesNotExist:
+            raise serializers.ValidationError("Employee profile not found for the authenticated user.")
 
-class ApplicationResponseShiftSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
+        shifts_ids = self.validated_data['shifts']
+
+        with transaction.atomic():
+            existing_shift_ids = set(
+                Application.objects.filter(employee=employee, shift_id__in=shifts_ids)
+                .values_list('shift_id', flat=True)
+            )
+            new_shift_ids = set(shifts_ids) - existing_shift_ids
+
+            if not new_shift_ids:
+                return  # ya postulado a todos, no hacemos nada
+
+            Application.objects.bulk_create([
+                Application(employee=employee, shift_id=shift_id, status='PENDING')
+                for shift_id in new_shift_ids
+            ])
 
 
-class ApplicationResponseVacancySerializer(serializers.Serializer):
-    vacancy_id = serializers.IntegerField()
-    vacancy_title = serializers.CharField()
-    shifts = ApplicationResponseShiftSerializer(many=True)
-
-
-class ApplicationResponseSerializer(serializers.Serializer):
-    message = serializers.CharField()
-    applications = ApplicationResponseVacancySerializer(many=True)
-
-    @classmethod
-    def to_presentation(cls, shifts, message):
-        grouped = {}
-        for shift in shifts:
-            vacancy = shift.vacancy
-            if vacancy.id not in grouped:
-                grouped[vacancy.id] = {
-                    "vacancy_id": vacancy.id,
-                    "vacancy_title": vacancy.description,
-                    "shifts": [],
-                }
-            grouped[vacancy.id]["shifts"].append({"id": shift.id})
-
-        return cls({
-            "message": message,
-            "applications": list(grouped.values())
-        })

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from eventos.models.job_types import JobType
+from eventos.serializers.job_types import ListJobTypesSerializer
 from media_utils.models import Image, ImageType
 from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE
@@ -119,23 +120,19 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
         return user
 
 
-class EmployeeAdditionalInfoSerializer(serializers.Serializer):
-    description = serializers.CharField(required=False, allow_blank=True)
-    job_types = serializers.ListField(
-        child=serializers.IntegerField(), required=False
+class EmployeeAdditionalInfoSerializer(serializers.ModelSerializer):
+    description = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    job_types = serializers.PrimaryKeyRelatedField(
+        queryset=JobType.objects.all(),
+        many=True,
+        required=False,
     )
-    profile_image_url = serializers.URLField(required=False)
-    profile_image_id = serializers.CharField(required=False)
+    profile_image_url = serializers.URLField(required=False, allow_null=True)
+    profile_image_id = serializers.CharField(required=False, allow_null=True)
 
-    def validate_job_types(self, value):
-        if not value:
-            return []
-
-        existing_ids = list(JobType.objects.filter(id__in=value).values_list('id', flat=True))
-        if len(existing_ids) != len(value):
-            raise serializers.ValidationError("Some job_types do not exist.")
-
-        return existing_ids
+    class Meta:
+        model = EmployeeProfile
+        fields = ['description', 'job_types', 'profile_image_url', 'profile_image_id']
 
     def validate(self, attrs):
         image_url = attrs.get('profile_image_url')
@@ -145,16 +142,22 @@ class EmployeeAdditionalInfoSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "Both 'profile_image_url' and 'profile_image_id' must be provided together."
             )
-
         return attrs
 
     def update(self, instance, validated_data):
         user = instance.user
 
-        # Profile image update
+        # Actualizamos solo si están presentes y no son None
+        if 'description' in validated_data and validated_data['description'] is not None:
+            instance.description = validated_data['description']
+
+        if 'job_types' in validated_data and validated_data['job_types'] is not None:
+            instance.job_types.set(validated_data['job_types'])
+
         image_url = validated_data.get('profile_image_url')
         image_id = validated_data.get('profile_image_id')
-        if image_url and image_id:
+
+        if image_url is not None and image_id is not None:
             image_obj, _ = Image.objects.update_or_create(
                 public_id=image_id,
                 defaults={
@@ -166,14 +169,19 @@ class EmployeeAdditionalInfoSerializer(serializers.Serializer):
             user.profile_image = image_obj
             user.save()
 
-        # Description update
-        if 'description' in validated_data:
-            instance.description = validated_data['description']
-
-        # Job types update
-        job_types = validated_data.get('job_types')
-        if job_types is not None:
-            instance.job_types.set(job_types)
-
         instance.save()
         return instance
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        rep['job_types'] = ListJobTypesSerializer(instance.job_types.all(), many=True).data
+
+        profile_img = instance.user.profile_image
+        if profile_img:
+            rep['profile_image_url'] = profile_img.url
+            rep['profile_image_id'] = profile_img.public_id
+        else:
+            rep['profile_image_url'] = None
+            rep['profile_image_id'] = None
+
+        return rep

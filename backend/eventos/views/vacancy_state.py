@@ -3,10 +3,17 @@ from rest_framework import status, permissions
 from rest_framework.response import Response
 from eventos.models.vacancy import Vacancy
 from eventos.models.vacancy_state import VacancyState
-from eventos.serializers.vacancy_state import UpdateVacancyStateSerializer
+from eventos.serializers.vacancy_state import ListsVacancyStates, UpdateVacancyStateSerializer
 from user_auth.permissions import IsInGroup
 from user_auth.constants import EMPLOYER_ROLE
 
+class VacancyStateListView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        states = VacancyState.objects.all()
+        serializer = ListsVacancyStates(states, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 class UpdateVacancyStateView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsInGroup]

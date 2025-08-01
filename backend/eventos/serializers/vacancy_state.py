@@ -9,3 +9,9 @@ class UpdateVacancyStateSerializer(serializers.Serializer):
         if not VacancyState.objects.filter(id=value).exists():
             raise serializers.ValidationError("Invalid state ID.")
         return value
+    
+    
+class ListsVacancyStates(serializers.ModelSerializer):
+    class Meta:
+        model = VacancyState
+        fields = ['id', 'name']
