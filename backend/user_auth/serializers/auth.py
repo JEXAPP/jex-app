@@ -2,8 +2,9 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import AuthenticationFailed
 
+
 class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
-    username_field = 'email'  # Define que se use email en lugar de username
+    username_field = 'email'
 
     def validate(self, attrs):
         email = attrs.get('email')
@@ -28,4 +29,5 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
         token['email'] = user.email
+        token['role'] = user.role
         return token
