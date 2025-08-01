@@ -128,7 +128,9 @@ class EmployeeAdditionalInfoSerializer(serializers.Serializer):
     profile_image_id = serializers.CharField(required=False)
 
     def validate_job_types(self, value):
-        # Validates that all job_type IDs provided exist in the database.
+        if not value:
+            return []
+
         if not JobType.objects.filter(id__in=value).count() == len(value):
             raise serializers.ValidationError("Some job_types do not exist.")
         return value
