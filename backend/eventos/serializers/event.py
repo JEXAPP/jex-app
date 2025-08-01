@@ -4,6 +4,10 @@ from eventos.models.category_events import Category
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
 from eventos.constants import EventStates
+from eventos.serializers.category_events import ListCategorySerializer
+from eventos.serializers.state_events import EventStateSerializer
+from media_utils.serializers import ImageSerializer
+from user_auth.models.user import CustomUser
 
 class CreateEventSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(
@@ -50,3 +54,20 @@ class CreateEventSerializer(serializers.ModelSerializer):
             'description': instance.description
         }  
     
+
+class EventOwnerSerializer(serializers.ModelSerializer):
+    profile_image = ImageSerializer(allow_null=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'first_name', 'last_name', 'email', 'profile_image']
+
+
+class EventSerializer(serializers.ModelSerializer):
+    owner = EventOwnerSerializer()
+    category = ListCategorySerializer()
+    state = EventStateSerializer()
+
+    class Meta:
+        model = Event
+        fields = ['id', 'name', 'description', 'owner', 'category', 'state']
