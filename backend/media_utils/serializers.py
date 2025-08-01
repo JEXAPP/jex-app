@@ -5,4 +5,4 @@ from media_utils.models import Image
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ['url']
+        fields = ['url', 'type']
