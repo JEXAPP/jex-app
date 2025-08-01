@@ -131,11 +131,11 @@ class EmployeeAdditionalInfoSerializer(serializers.Serializer):
         if not value:
             return []
 
-        job_types = JobType.objects.filter(id__in=value)
-        if job_types.count() != len(value):
+        existing_ids = list(JobType.objects.filter(id__in=value).values_list('id', flat=True))
+        if len(existing_ids) != len(value):
             raise serializers.ValidationError("Some job_types do not exist.")
 
-        return job_types
+        return existing_ids
 
     def validate(self, attrs):
         image_url = attrs.get('profile_image_url')
@@ -151,7 +151,7 @@ class EmployeeAdditionalInfoSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         user = instance.user
 
-        # Update profile image if both URL and ID are provided
+        # Profile image update
         image_url = validated_data.get('profile_image_url')
         image_id = validated_data.get('profile_image_id')
         if image_url and image_id:
@@ -166,11 +166,11 @@ class EmployeeAdditionalInfoSerializer(serializers.Serializer):
             user.profile_image = image_obj
             user.save()
 
-        # Update description
+        # Description update
         if 'description' in validated_data:
             instance.description = validated_data['description']
 
-        # Update job types
+        # Job types update
         job_types = validated_data.get('job_types')
         if job_types is not None:
             instance.job_types.set(job_types)
