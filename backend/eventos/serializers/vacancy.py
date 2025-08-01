@@ -133,7 +133,7 @@ class SearchVacancyParamsSerializer(serializers.Serializer):
         return data
     
 
-class VacancyInfoSerializer(serializers.ModelSerializer):
+class VacancyDetailSerializer(serializers.ModelSerializer):
     shifts = ShiftSerializer(many=True, read_only=True)
     requirements = RequirementSerializer(many=True, read_only=True)
     event = EventSerializer()

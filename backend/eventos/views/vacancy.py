@@ -3,7 +3,7 @@ from django.utils import timezone
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
-from eventos.serializers.vacancy import CreateVacancySerializer, ListVacancyShiftSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyInfoSerializer
+from eventos.serializers.vacancy import CreateVacancySerializer, ListVacancyShiftSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer
 from rest_framework import permissions, serializers, status
 from user_auth.permissions import IsInGroup
 from django.db.models import OuterRef, Subquery
@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from django.db.models import Q
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from eventos.utils import is_event_near
+from rest_framework.exceptions import NotFound
 
 
 class CreateVacancyView(CreateAPIView):
@@ -130,15 +131,22 @@ class SearchVacancyView(APIView):
 
 class VacancyDetailView(RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    queryset = Vacancy.objects.select_related(
-        'event__owner__profile_image',
-        'event__category',
-        'event__state',
-        'job_type',
-        'state'
-    ).prefetch_related(
-        'shifts',
-        'requirements'
-    )
-    serializer_class = VacancyInfoSerializer
-    lookup_field = 'pk'
+    serializer_class = VacancyDetailSerializer
+
+    def get_queryset(self):
+        return Vacancy.objects.select_related(
+            'event__owner__profile_image',
+            'event__category',
+            'event__state',
+            'job_type',
+            'state'
+        ).prefetch_related(
+            'shifts',
+            'requirements'
+        )
+
+    def get_object(self):
+        try:
+            return self.get_queryset().get(pk=self.kwargs['pk'])
+        except Vacancy.DoesNotExist:
+            raise NotFound(detail="Vacante no encontrada.")
