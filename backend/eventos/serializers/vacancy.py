@@ -3,8 +3,9 @@ from eventos.constants import JobTypesEnum, VacancyStates
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
 from eventos.models.vacancy_state import VacancyState
-from eventos.serializers.requirements import CreateRequirementSerializer
-from eventos.serializers.shifts import CreateShiftSerializer
+from eventos.serializers.event import EventSerializer
+from eventos.serializers.requirements import CreateRequirementSerializer, RequirementSerializer
+from eventos.serializers.shifts import CreateShiftSerializer, ShiftSerializer
 from django.db import transaction
 
 
@@ -130,3 +131,15 @@ class SearchVacancyParamsSerializer(serializers.Serializer):
             except ValueError:
                 raise serializers.ValidationError("start_date must be in DD/MM/YYYY format")
         return data
+    
+
+class VacancyInfoSerializer(serializers.ModelSerializer):
+    shifts = ShiftSerializer(many=True, read_only=True)
+    requirements = RequirementSerializer(many=True, read_only=True)
+    event = EventSerializer()
+    state = serializers.StringRelatedField()
+    job_type = serializers.StringRelatedField()
+
+    class Meta:
+        model = Vacancy
+        fields = ['id', 'description', 'specific_job_type', 'state', 'job_type', 'event', 'shifts', 'requirements']
