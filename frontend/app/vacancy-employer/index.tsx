@@ -5,6 +5,7 @@ import { useCheckVacancy } from '@/hooks/vacancy-employer/useCheckVacancy';
 import { Colors } from '@/themes/colors';
 import { iconos } from '@/constants/iconos';
 import { checkVacancyStyles as styles } from '@/styles/app/vacancy-employer/checkVacancyStyles';
+import { inputStyles1 } from '@/styles/components/input/inputStyles1';
 
 export default function CheckVacancyScreen() {
   const {
@@ -96,7 +97,7 @@ export default function CheckVacancyScreen() {
                   placeholder="Buscar vacante"
                   value={search}
                   onChangeText={setSearch}
-                  styles={{ input: styles.searchInput }}
+                  styles={inputStyles1}
                 />
               </View>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import useBackendConection from '@/services/useBackendConection';
 import axios from 'axios';
 
@@ -25,6 +25,8 @@ type Vacante = {
 export const useRegisterVacancyMulti = () => {
   const router = useRouter();
   const { requestBackend } = useBackendConection();
+
+  const {id, fechaInicio, fechaFin} = useLocalSearchParams()
 
   const crearVacanteInicial = (): Vacante => ({
     rol: '',
@@ -279,7 +281,7 @@ export const useRegisterVacancyMulti = () => {
     // Construimos el array con todas las vacantes
     const payload = vacantes.map((v) => {
       const base = {
-        job_type: v.rol,
+        job_type: Number(v.rol),
         description: v.descripcion,
         requirements: v.requerimientos
           .filter((req) => req.trim() !== '')
@@ -292,7 +294,7 @@ export const useRegisterVacancyMulti = () => {
           payment: limpiarYFormatearPago(t.pago),
           quantity: t.cantidad,
         })),
-        event: 5, //cambiar aca por el id del evento que venga del lado de carlos
+        event: Number(id), //cambiar aca por el id del evento que venga del lado de carlos
       };
 
       // Si el rol es "Otro", agregamos el campo specific_job_type
@@ -320,10 +322,9 @@ export const useRegisterVacancyMulti = () => {
   }
 };
 
-
   const closeSuccess = () => {
     setShowSuccess(false);
-    router.push('/create-vacant');
+    router.push('/employee');
   };
 
   const closeError = () => {

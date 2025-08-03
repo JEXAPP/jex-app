@@ -16,9 +16,9 @@ export const useCheckVacancy = () => {
     const getVacanciesAndEvents = async () => {
       try {
         const data = await requestBackend('/api/vacancies/by-employer/', null, 'GET');
-        console.log('Eventos y Vacantes:', data);
+        console.log('Eventos y Vacantes:', data.results);
 
-        const mappedEvents = data.map((evento: any) => {
+        const mappedEvents = data.results.map((evento: any) => {
           // Forzamos que la fecha venga como string válido
           const fechaInicio = evento.start_date ? formatearFecha(evento.start_date) : null;
           const fechaFin = evento.end_date ? formatearFecha(evento.end_date) : null;

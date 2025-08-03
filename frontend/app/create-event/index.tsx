@@ -93,6 +93,7 @@ export default function CreateEventScreen() {
                   height: 120,
                   textAlignVertical: 'top',
                 },
+                inputContainer: inputStyles1.inputContainer
               }}
               multiline
               maxLength={200}

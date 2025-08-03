@@ -33,7 +33,6 @@ import { clickWindowStyles1 } from '@/styles/components/clickWindowStyles1';
 import { inputStyles1 } from '@/styles/components/input/inputStyles1';
 import { inputStyles3 } from '@/styles/components/input/inputStyles3';
 import { tempWindowStyles1 } from '@/styles/components/tempWindowStyles1';
-import { datePickerStyles2 } from '@/styles/components/datePickerStyles2';
 import { registerVacancyCustomStyles as customStyles } from '@/styles/app/create-vacant/registerVacancyCustomStyles';
 import { buttonStyles6 } from '@/styles/components/button/buttonStyles6';
 
@@ -41,6 +40,7 @@ import { buttonStyles6 } from '@/styles/components/button/buttonStyles6';
 import { Colors } from '@/themes/colors';
 import { useRegisterVacancyMulti } from '@/hooks/create-vacant/useRegistrerVacant';
 import { registerVacancyStyles as styles } from '@/styles/app/create-vacant/registerVacancyStyles';
+import { datePickerStyles1 } from '@/styles/components/datePickerStyles1';
 
 const generateHoras = () => {
   const horas = [];
@@ -200,7 +200,7 @@ export default function RegisterVacancyScreen() {
                           label="Fecha Inicio:"
                           date={turno.fechaInicio}
                           setDate={(date) => actualizarTurno(vIndex, tIndex, 'fechaInicio', date)}
-                          styles={datePickerStyles2}
+                          styles={datePickerStyles1}
                         />
                       </View>
 
@@ -209,7 +209,7 @@ export default function RegisterVacancyScreen() {
                           label="Fecha Fin:"
                           date={turno.fechaFin}
                           setDate={(date) => actualizarTurno(vIndex, tIndex, 'fechaFin', date)}
-                          styles={datePickerStyles2}
+                          styles={datePickerStyles1}
                         />
                       </View>
 

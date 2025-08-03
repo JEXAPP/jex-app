@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import useGooglePlaces from '@/services/useGooglePlaces';
 import { Keyboard } from 'react-native';
 import useBackendConection from '@/services/useBackendConection';
+import { useRouter } from 'expo-router';
 
 export const useCreateEvent = () => {
+  const router = useRouter();
+  
 
   const [nombreEvento, setNombreEvento] = useState('');
   const [descripcionEvento, setDescripcionEvento] = useState('');
@@ -30,7 +33,7 @@ export const useCreateEvent = () => {
     const fetchRubros = async () => {
       try {
         const response = await requestBackend('/api/events/categories/', null, 'GET');
-        setRubros(response);
+        setRubros(response.results);
       } catch (err) {
         console.error('Error al obtener rubros:', err);
         setErrorRubros('No se pudieron cargar los rubros');
@@ -127,12 +130,13 @@ export const useCreateEvent = () => {
         category_id: selectedRubro?.id,
       };
 
-      console.log(payload)
-
       // Enviamos al backend
-      await requestBackend('/api/events/create/', payload, 'POST');
+      const data = await requestBackend('/api/events/create/', payload, 'POST');
+
+      const idEventoCreado = data.id
 
       // Si fue exitoso, mostramos mensaje de éxito
+      router.push(`/create-vacant?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`)
       setShowSuccess(true);
 
     } catch (error: any) {
