@@ -1,9 +1,9 @@
 from datetime import datetime
 from django.utils import timezone
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
-from eventos.serializers.vacancy import CreateVacancySerializer, ListVacancyShiftSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, UpdateVacancySerializer, VacancyDetailSerializer, VacancySerializer
+from eventos.serializers.vacancy import ListVacancyShiftSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
 from rest_framework import permissions, serializers, status
 from user_auth.permissions import IsInGroup
 from django.db.models import OuterRef, Subquery
