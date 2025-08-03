@@ -59,7 +59,9 @@ const DatePicker: React.FC<DatePickerProps> = ({
     'Mayo', 'Junio', 'Julio', 'Agosto',
     'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
   ];
-  const years = Array.from({ length: maxYear - minYear + 1 }, (_, i) => maxYear - i);
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 3 }, (_, i) => currentYear + i);
+
 
   const confirmDate = () => {
     const nuevaFecha = new Date(selectedYear, selectedMonth, selectedDay);

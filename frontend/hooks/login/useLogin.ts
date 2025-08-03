@@ -45,7 +45,7 @@ export const useLogin = () => {
 
       setTimeout(() => {
         setShowSuccess(false);
-        router.push('/vacancy-employer');
+        router.push('/create-vacant');
       }, 1500);
 
     } else {

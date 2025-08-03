@@ -56,26 +56,31 @@ export const useRegisterVacancyMulti = () => {
 
 
   useEffect(() => {
-  const login = async () => {
+  const getRolsVacancy = async () => {
     try {
       const data = await requestBackend('/api/vacancies/job-types/', null, 'GET');
-      setRolesDisponibles(data)
+      console.log("Roles disponibles desde el backend:", data);
+
+      // Guardamos solo el array de results
+      setRolesDisponibles(data?.results ?? []);
     } catch (error) {
       console.error('Error en traer los roles', error);
+      setRolesDisponibles([]); // aseguramos que sea un array vacío si falla
     }
   };
 
-  login();
+  getRolsVacancy();
 }, []);
+
 
   const agregarVacante = () => {
     setVacantes((prev) => [...prev, crearVacanteInicial()]);
   };
   
   const opcionesDropdown = rolesDisponibles.map((rol) => ({
-      name: rol.name,
-      id: rol.id.toString(),
-    }));
+    name: rol.name,
+    id: rol.id.toString(),
+  }));
 
   const actualizarRol = (index: number, id: string, nombre: string) => {
     setVacantes((prev) => {
@@ -150,35 +155,77 @@ export const useRegisterVacancyMulti = () => {
   };
 
   const actualizarTurno = (
-    indexVacante: number,
-    indexTurno: number,
-    campo: keyof Turno,
-    valor: string | Date | null
-  ) => {
-    const copia = [...vacantes];
-    const turno = copia[indexVacante].turnos[indexTurno];
+  indexVacante: number,
+  indexTurno: number,
+  campo: keyof Turno,
+  valor: string | Date | null
+) => {
+  const copia = [...vacantes];
+  const turno = copia[indexVacante].turnos[indexTurno];
 
-    if (campo === 'cantidad' && typeof valor === 'string') {
-      const soloNumeros = valor.replace(/\D/g, '');
-      let num = soloNumeros === '' ? NaN : parseInt(soloNumeros, 10);
-      if (isNaN(num)) {
-        turno.cantidad = '';
-      } else {
-        if (num < 1) num = 1;
-        if (num > 50) num = 50;
-        turno.cantidad = num.toString();
-      }
-    } else if (campo === 'pago' && typeof valor === 'string') {
-      const soloNumeros = valor.replace(/\D/g, '');
-      const numero = soloNumeros === '' ? NaN : parseInt(soloNumeros, 10);
-      turno.pago = isNaN(numero) ? '' : numero.toLocaleString('es-AR');
+  // Asignar valor normalmente primero
+  if (campo === 'cantidad' && typeof valor === 'string') {
+    const soloNumeros = valor.replace(/\D/g, '');
+    let num = soloNumeros === '' ? NaN : parseInt(soloNumeros, 10);
+    if (isNaN(num)) {
+      turno.cantidad = '';
     } else {
-      // Asigna directamente si es string o Date
-      (turno[campo] as typeof valor) = valor;
+      if (num < 1) num = 1;
+      if (num > 50) num = 50;
+      turno.cantidad = num.toString();
     }
+  } else if (campo === 'pago' && typeof valor === 'string') {
+    const soloNumeros = valor.replace(/\D/g, '');
+    const numero = soloNumeros === '' ? NaN : parseInt(soloNumeros, 10);
+    turno.pago = isNaN(numero) ? '' : numero.toLocaleString('es-AR');
+  } else {
+    // Asigna directamente si es string o Date
+    (turno[campo] as typeof valor) = valor;
+  }
 
-    setVacantes(copia);
-  };
+  // -------- VALIDACIONES --------
+
+  // 1) Validación de fechas (fechaFin >= fechaInicio)
+  if (turno.fechaInicio && turno.fechaFin) {
+    const inicio = turno.fechaInicio.getTime();
+    const fin = turno.fechaFin.getTime();
+
+    if (fin < inicio) {
+      setErrorMessage(
+        'La fecha de fin debe ser mayor o igual a la fecha de inicio.'
+      );
+      setShowError(true);
+      
+
+      // Limpiamos el último campo ingresado
+      if (campo === 'fechaInicio') turno.fechaInicio = null;
+      if (campo === 'fechaFin') turno.fechaFin = null;
+    }
+  }
+
+  // 2) Validación de horas (horaFin > horaInicio)
+  if (turno.horaInicio && turno.horaFin) {
+    const [hiH, hiM] = turno.horaInicio.split(':').map(Number);
+    const [hfH, hfM] = turno.horaFin.split(':').map(Number);
+
+    const minutosInicio = hiH * 60 + hiM;
+    const minutosFin = hfH * 60 + hfM;
+
+    if (minutosFin <= minutosInicio) {
+      setErrorMessage(
+        'El horario de fin debe ser mayor al horario de inicio.'
+      );
+      setShowError(true);
+
+      // Limpiamos el último campo ingresado
+      if (campo === 'horaInicio') turno.horaInicio = '';
+      if (campo === 'horaFin') turno.horaFin = '';
+    }
+  }
+
+  // Actualizar estado
+  setVacantes(copia);
+};
 
   const formatearFecha = (fecha: Date): string => {
     const dia = String(fecha.getDate()).padStart(2, '0');
