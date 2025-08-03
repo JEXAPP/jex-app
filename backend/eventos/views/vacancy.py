@@ -1,9 +1,9 @@
 from datetime import datetime
 from django.utils import timezone
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
-from eventos.serializers.vacancy import CreateVacancySerializer, ListVacancyShiftSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer
+from eventos.serializers.vacancy import ListVacancyShiftSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
 from rest_framework import permissions, serializers, status
 from user_auth.permissions import IsInGroup
 from django.db.models import OuterRef, Subquery
@@ -16,7 +16,7 @@ from rest_framework.exceptions import NotFound
 
 
 class CreateVacancyView(CreateAPIView):
-    serializer_class = CreateVacancySerializer
+    serializer_class = VacancySerializer
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
 
@@ -25,6 +25,23 @@ class CreateVacancyView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+
+class UpdateVacancyView(UpdateAPIView):
+    serializer_class = VacancySerializer
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def get_queryset(self):
+        # Solo vacantes de eventos cuyo owner es el usuario autenticado
+        return Vacancy.objects.filter(event__owner=self.request.user)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
 
 class ListVacancyShiftView(ListAPIView):
     serializer_class = ListVacancyShiftSerializer
