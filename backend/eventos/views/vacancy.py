@@ -60,7 +60,7 @@ class ListVacancyShiftView(ListAPIView):
         elif category is not None and category != '' and category not in ['interests', 'soon', 'nearby']:
             raise serializers.ValidationError("Invalid category. Must be 'interests', 'soon', or 'nearby'.")
 
-        return base_qs[:10]
+        return base_qs
 
     def _filter_by_interests(self, base_qs, user):
         employee = getattr(user, 'employee', None)
@@ -68,7 +68,7 @@ class ListVacancyShiftView(ListAPIView):
             return base_qs
         return base_qs.filter(
             vacancy__job_type__in=employee.job_types.all()
-        ).distinct()[:10]
+        ).distinct()
 
     def _filter_by_soon(self, base_qs):
         today = timezone.now().date()
@@ -83,7 +83,7 @@ class ListVacancyShiftView(ListAPIView):
             ).select_related(
                 'vacancy__event',
                 'vacancy__job_type'
-            ).order_by('start_date')[:10]
+            ).order_by('start_date')
 
         return base_qs
     
@@ -98,7 +98,7 @@ class ListVacancyShiftView(ListAPIView):
         return [
             shift for shift in base_qs
             if is_event_near(employee_lat, employee_lon, shift.vacancy.event)
-            ][:10]
+            ]
 
 
 class SearchVacancyView(APIView):
