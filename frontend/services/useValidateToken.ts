@@ -8,7 +8,7 @@ export const useValidateToken = () => {
 
   useEffect(() => {
     const verificar = async () => {
-      const token = await SecureStore.getItemAsync('jwt');
+      const token = await SecureStore.getItemAsync('access');
       if (!token) {
         router.replace('/login'); // redirige a login si no hay token
       }

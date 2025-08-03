@@ -19,8 +19,8 @@ export const clickWindowStyles1 = StyleSheet.create({
   title: {
     fontFamily: 'interBold',
     fontSize: 22,
-    color: Colors.violet5,
-    marginLeft: 20,
+    color: Colors.violet4,
+    marginLeft: 10,
   },
   message: {
     fontFamily: 'interRegular',
@@ -43,9 +43,9 @@ export const clickWindowStyles1 = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    alignItems: 'center',       // Centrado vertical
+    justifyContent: 'space-between', // ⬅️ Acomoda los botones uno a cada lado              // ⬅️ Ocupar todo el ancho del modal
     marginBottom: 8,
-    marginLeft: 70
+    gap: 12                     // Opcional: espacio entre elementos
   },
 });

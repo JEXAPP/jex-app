@@ -1,4 +1,4 @@
-import { selectableTagStyles2 as styles } from '@/styles/components/selectableTagsStyles/selectableTagsStyles2';
+import { selectableTagStyles2 as styles} from '@/styles/components/selectableTagsStyles/selectableTagsStyles2';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
