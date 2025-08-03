@@ -1,7 +1,7 @@
 from django.urls import path
 from eventos.views.applications import ApplicationCreateView
 from eventos.views.event import CreateEventView
-from eventos.views.vacancy import CreateVacancyView, ListVacancyShiftView, SearchVacancyView, VacancyDetailView
+from eventos.views.vacancy import CreateVacancyView, ListVacancyShiftView, SearchVacancyView, UpdateVacancyView, VacancyDetailView
 from eventos.views.category_events import ListCategoryView
 from eventos.views.job_types import ListJobTypesView
 from eventos.views.list_vacancy import EmployerEventsWithVacanciesView
@@ -18,6 +18,7 @@ urlpatterns = [
 
     # Vacantes 
     path('vacancies/create/', CreateVacancyView.as_view(), name='create-vacancy'),
+    path('vacancies/<int:pk>/edit/', UpdateVacancyView.as_view(), name='edit-vacancy'),
     path('vacancies/list/', ListVacancyShiftView.as_view(), name='list-vacancies'),
     path('vacancies/<int:pk>/details', VacancyDetailView.as_view(), name='get-vacancy'),
     # path('vacancies/list/?category=soon'). RUTA DISPONIBLE
