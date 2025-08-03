@@ -96,16 +96,14 @@ class ListVacancyShiftSerializer(serializers.ModelSerializer):
 
 class SearchVacancyResultSerializer(serializers.ModelSerializer):
     event = serializers.CharField(source='event.name', read_only=True)
-    job_type = serializers.SerializerMethodField()
+    job_type = serializers.CharField(source='job_type.name', read_only=True)
+    specific_job_type = serializers.CharField(read_only=True)
     payment = serializers.SerializerMethodField()
     start_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Vacancy
-        fields = ['id', 'event', 'job_type', 'payment', 'start_date']
-
-    def get_job_type(self, obj):
-        return obj.specific_job_type if obj.specific_job_type else obj.job_type.name
+        fields = ['id', 'event', 'job_type', 'specific_job_type','payment', 'start_date']
 
     def get_payment(self, obj):
         top_shift = obj.shifts.order_by('-payment').first()
