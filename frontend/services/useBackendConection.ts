@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios, { Method } from 'axios';
 import { config } from '@/config';
+import * as SecureStore from 'expo-secure-store';
 
 // Obtiene la URL base de la API desde la configuración de Expo
 const apiBaseUrl = config.apiBaseUrl
@@ -37,27 +38,30 @@ export default function useBackendConection<T = any>(): UseApiResult<T> {
 
     try {
 
-        // Hace la solicitud al backend usando axios
-        console.log('API BASE URL:', apiBaseUrl);
-        console.log(payload)
+      // Obtener Token
+      const token = await SecureStore.getItemAsync('access');
 
-        const response = await axios({
-            url: `${apiBaseUrl}${endpoint}`,
-            method,
-            data: payload,
-            ...customConfig,
-        });
-        console.log(response.data)
-        setData(response.data);    // Guarda los datos recibidos
-        return response.data;      // Devuelve los datos
+      // Hace la solicitud al backend usando axios
+      const response = await axios({
+          url: `${apiBaseUrl}${endpoint}`,
+          method,
+          data: payload,
+          headers: {
+            ...(customConfig as any).headers,
+            Authorization: token ? `Bearer ${token}` : undefined,
+          },
+          ...customConfig,
+      });
+
+      setData(response.data);    // Guarda los datos recibidos
+      return response.data;      // Devuelve los datos
 
     } catch (err: any) {
 
-        // Si hay error, guarda el mensaje
-        const mensaje = err?.response?.data?.message || 'Error en la comunicación con el servidor';
-        console.log('Error:', err)
-        setError(mensaje);
-        return null;
+      // Si hay error, guarda el mensaje
+      const mensaje = err?.response?.data?.message || 'Error en la comunicación con el servidor';
+      setError(mensaje);
+      return null;
 
     } finally {
       setLoading(false);           // Desactiva el indicador de carga

@@ -8,6 +8,9 @@ interface ClickWindowProps {
   message: string;
   icono?: React.ReactNode;
   onClose: () => void;
+  onConfirm?: () => void; 
+  cancelButtonText?: string;
+  onCancel?: () => void;
   styles: {
     overlay: StyleProp<ViewStyle>;
     modal: StyleProp<ViewStyle>;
@@ -19,22 +22,50 @@ interface ClickWindowProps {
   };
 }
 
-export const ClickWindow = ({ visible, message, onClose, styles, title, buttonText, icono=null }: ClickWindowProps) => {
+export const ClickWindow = ({
+  visible,
+  title,
+  message,
+  buttonText,
+  icono = null,
+  onClose,
+  onConfirm,
+  cancelButtonText,
+  onCancel,
+  styles,
+}: ClickWindowProps) => {
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.overlay}>       
+      <View style={styles.overlay}>
         <View style={styles.modal}>
           <View style={styles.row}>
-            {icono}
+             {icono}
             <Text style={styles.title}>{title}</Text>
-            </View>
+          </View>
+          
           <Text style={styles.message}>{message}</Text>
-          <TouchableOpacity style={styles.button} onPress={onClose}>
-            <Text style={styles.buttonText}>{buttonText}</Text>
-          </TouchableOpacity>
+
+          <View style={styles.row}>
+            {cancelButtonText && (
+              <TouchableOpacity
+                style={styles.button}
+                onPress={onCancel ?? onClose}
+              >
+                <Text style={styles.buttonText}>{cancelButtonText}</Text>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.button}
+              onPress={onConfirm ?? onClose}
+            >
+              <Text style={styles.buttonText}>{buttonText}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
+
   );
 };
 

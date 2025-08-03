@@ -10,6 +10,7 @@ interface TempWindowProps {
   styles: {
     overlay: StyleProp<ViewStyle>;
     modal: StyleProp<ViewStyle>;
+  
   };
 }
 

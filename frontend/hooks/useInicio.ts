@@ -18,7 +18,7 @@ export const useInicio = () => {
 
     // Redirección después de 3 segundos
     const timer = setTimeout(() => {
-        router.replace('/aditional-info');
+        router.replace('/login');
     }, 3000);
 
     return () => clearTimeout(timer);

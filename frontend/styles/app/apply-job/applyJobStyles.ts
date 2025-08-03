@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { Colors } from '../../../themes/colors';
+import { Borders } from '@/themes/borders';
 
 export const applyJobStyles = StyleSheet.create({
   container: {
@@ -8,13 +9,13 @@ export const applyJobStyles = StyleSheet.create({
   },
   scroll:{
     paddingHorizontal: 26, 
-    paddingBottom: 26
+    paddingBottom: 100
   },
   header: {
     backgroundColor: Colors.violet5,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 7,
     gap: 12,
   },
   headerTop: {
@@ -35,7 +36,7 @@ export const applyJobStyles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: 25,
-    fontWeight: '700',
+    fontFamily: 'titulos',
     color: Colors.gray1,
   },
   ratingWrapper: {
@@ -53,31 +54,38 @@ export const applyJobStyles = StyleSheet.create({
   map: {
     width: '100%',
     height: 100,
-    borderRadius: 10,
-    marginTop: 8,
+    borderRadius: 16,
+    marginTop: 4,
     resizeMode: 'cover',
   },
   section: {
-    marginBottom: 5,
+    marginBottom: 3,
   },
   containerTitle: {
-    fontSize: 25,
+    fontSize: 30,
+    fontFamily: 'titulos',
     color: Colors.violet5,
     textAlign: 'left',
-    fontWeight: '700',
-    marginBottom: 5
+    marginBottom: 5,
   },
   containerText: {
-    fontSize: 17,
+    fontSize: 18,
+    fontFamily: 'interRegular',
     color: Colors.gray3,
-    textAlign: 'justify'
+    textAlign: 'justify',
+  },
+  containerBulletPoints: {
+    fontSize: 18,
+    fontFamily: 'interRegular',
+    color: Colors.gray3,
+    flexShrink: 1,
   },
   containerSubtitle: {
     fontSize: 20,
+    fontFamily: 'interBold',
     color: Colors.violet5,
-    fontWeight: '700',
-    textAlign: 'justify',
-    marginBottom: 5
+    textAlign: 'left',
+    marginBottom: 5,
   },
   icon: {
     color: Colors.violet5,
@@ -91,37 +99,47 @@ export const applyJobStyles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: Colors.gray2,
-    marginVertical: 10,
+    marginTop: 10,
+    marginBottom:10,
   },
-  textArea: {
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    padding: 12,
-    minHeight: 100,
-    textAlignVertical: 'top',
-    fontSize: 15,
-    color: '#333',
+  organizerArea: {
+    backgroundColor: Colors.gray2,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginTop: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flexWrap: 'wrap'
   },
   applyBox: {
     position: 'absolute',
-    bottom: 30,
-    left: 10,
-    right: 10,
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: Colors.gray1,
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    minHeight: 100,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    borderTopColor: '#ccc',
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 8,
+    alignItems: 'flex-start',
   },
   salary: {
-    color: Colors.violet5,
     fontSize: 20,
-    fontWeight: 'bold',
+    color: Colors.violet5,
+    fontFamily: 'interBold', 
   },
   deadline: {
-    color: Colors.gray3,
     fontSize: 14,
+    fontFamily: 'interRegular',
+    color: Colors.gray3,
   },
   applyButton: {
     backgroundColor: Colors.violet5,
@@ -130,9 +148,61 @@ export const applyJobStyles = StyleSheet.create({
     borderRadius: 30,
   },
   applyText: {
-    color: Colors.white,
-    fontWeight: 'bold',
     fontSize: 16,
+    fontFamily: 'interBold', 
+    color: Colors.white,
   },
-
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+    marginTop: 10, 
+  },
+  organizerContainer: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 25,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  organizerAvatar: {
+    width: 90,
+    height: 90,
+    borderRadius: 90,
+    resizeMode: 'cover',
+  },
+  organizerNameTag: {
+    backgroundColor: Colors.gray2,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    marginTop: 6,
+    alignSelf: 'center',
+  },
+  organizerNameText: {
+    fontWeight: '600',
+    fontSize: 14,
+    color: Colors.violet5,
+  },
+  organizerInfo: {
+    flex: 1,
+    borderLeftWidth: 1,
+    borderLeftColor: Colors.gray2,
+    paddingLeft: 16,
+    gap: 8, // espacio entre ítems
+    alignItems: 'flex-start',
+  },
+  organizerInfoItem: {
+    alignItems: 'flex-start',
+  },
+  organizerInfoValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.violet5,
+  },
+  organizerInfoLabel: {
+    fontSize: 12,
+    color: Colors.gray3,
+  },
 })

@@ -1,16 +1,18 @@
 import React from 'react';
 import { Text, StyleProp, TextStyle } from 'react-native';
-import { charCounterStyles as styles } from '@/styles/components/charCounterStyle'
+
 
 interface CharCounterProps {
   current: number;
   max: number;
-  style?: StyleProp<TextStyle>;
+  styles: {
+    counter: StyleProp<TextStyle>
+  }
 }
 
-export const CharCounter = ({ current, max, style }: CharCounterProps) => {
+export const CharCounter = ({ current, max, styles }: CharCounterProps) => {
   return (
-    <Text style={[styles.counter, style]}>
+    <Text style={[styles.counter]}>
       {current}/{max}
     </Text>
   );
