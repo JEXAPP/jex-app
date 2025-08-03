@@ -101,7 +101,7 @@ export const useLogin = () => {
           await SecureStore.setItemAsync('desde-google', 'true');
           router.push('./register');
         } else {
-          router.push('./create-event');
+          router.push('/register');
         }
       }, 1500);
 

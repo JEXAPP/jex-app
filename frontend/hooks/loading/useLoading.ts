@@ -9,7 +9,7 @@ export const useLoading = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      router.push('./crear-evento/crear-evento');
+      router.push('./create-vacant');
     }, 1000);
 
     return () => clearTimeout(timeout);
