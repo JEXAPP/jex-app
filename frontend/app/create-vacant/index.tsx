@@ -139,13 +139,13 @@ export default function RegisterVacancyScreen() {
                 </View>
 
                 <DropDown
-                  label="Rol:"
+                  name="Rol:"
                   options={opcionesDropdown}
-                  value={vacantes[vIndex].rol || ''} // Asegura que no sea undefined
+                  id={vacantes[vIndex].rol || ''} // Asegura que no sea undefined
 
-                  onValueChange={(value) => {
-                    const seleccionado = opcionesDropdown.find((r) => r.value.toString() === value);
-                    actualizarRol(vIndex, seleccionado?.value.toString() || '', seleccionado?.label || '');
+                  onValueChange={(id) => {
+                    const seleccionado = opcionesDropdown.find((r) => r.id.toString() === id);
+                    actualizarRol(vIndex, seleccionado?.id.toString() || '', seleccionado?.name || '');
                   }}
                   placeholder={vacantes[vIndex].rolNombre || 'Elegí un rol'}
 

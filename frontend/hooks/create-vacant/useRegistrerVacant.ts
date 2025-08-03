@@ -50,34 +50,31 @@ export const useRegisterVacancyMulti = () => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const [rolesDisponibles, setRolesDisponibles] = useState<
-  { label: string; value: number }[]
+  { name: string; id: number }[]
 >([]);
  
 
 
   useEffect(() => {
-    axios
-      .get('https://jex-app-5ii7.onrender.com/api/vacancies/job-types/')
-      .then((response) => {
-        const opciones = response.data.map((rol) => ({
-          label: rol.name,
-          value: rol.id,
-        }));
-        console.log('Roles disponibles:', opciones)
-        setRolesDisponibles(opciones);
-      })
-      .catch((error) => {
-        console.error('Error al obtener roles:', error);
-      })
-    }, []);
+  const login = async () => {
+    try {
+      const data = await requestBackend('/api/vacancies/job-types/', null, 'GET');
+      setRolesDisponibles(data)
+    } catch (error) {
+      console.error('Error en traer los roles', error);
+    }
+  };
+
+  login();
+}, []);
 
   const agregarVacante = () => {
     setVacantes((prev) => [...prev, crearVacanteInicial()]);
   };
   
   const opcionesDropdown = rolesDisponibles.map((rol) => ({
-      label: rol.label,
-      value: rol.value.toString(),
+      name: rol.name,
+      id: rol.id.toString(),
     }));
 
   const actualizarRol = (index: number, id: string, nombre: string) => {
@@ -203,53 +200,83 @@ export const useRegisterVacancyMulti = () => {
 };
 
   const handleRegistrarTodas = async () => {
-    try {
-      const payload = vacantes.map((v) => {
-  const base = {
-    job_type: v.rol,
-    description: v.descripcion,
-    requirements: v.requerimientos
-      .filter((req) => req.trim() !== '') // opcional: evita mandar vacíos
-      .map((req) => ({ description: req })),
-    shifts: v.turnos.map((t) => ({
-      start_date: formatearFecha(t.fechaInicio!),
-      start_time: t.horaInicio,
-      end_date: formatearFecha(t.fechaFin!),
-      end_time: t.horaFin,
-      payment: limpiarYFormatearPago(t.pago),
-      quantity: t.cantidad,
-    })),
-    event: 1,
-  };
+  // Validación previa antes de enviar
+  const esValido = vacantes.every((v) => {
+    // Rol u otro rol
+    if (!v.rol || (v.rolNombre === 'Otro' && !v.otrosRol.trim())) return false;
 
-  // Si el rol es "Otro", agregamos el campo otrosRol
-  if (v.rolNombre === 'Otro') {
-    return {
-      ...base,
-      specific_job_type: v.otrosRol,
-    };
+    // Descripción
+    if (!v.descripcion.trim()) return false;
+
+    // Turnos completos
+    const turnosValidos = v.turnos.every((t) => 
+      t.fechaInicio && 
+      t.horaInicio.trim() !== '' && 
+      t.fechaFin && 
+      t.horaFin.trim() !== '' && 
+      t.pago.trim() !== '' && 
+      t.cantidad.trim() !== ''
+    );
+
+    return turnosValidos;
+  });
+
+  if (!esValido) {
+    setErrorMessage('Error al registrar las vacantes. \nPor favor completa todos los datos.');
+    setShowError(true);
+    return; // Detenemos el flujo si falta algo
   }
+  try {
+    
 
-  return base;
-});
-      console.log( payload);
+    // Construimos el array con todas las vacantes
+    const payload = vacantes.map((v) => {
+      const base = {
+        job_type: v.rol,
+        description: v.descripcion,
+        requirements: v.requerimientos
+          .filter((req) => req.trim() !== '')
+          .map((req) => ({ description: req })),
+        shifts: v.turnos.map((t) => ({
+          start_date: formatearFecha(t.fechaInicio!),
+          start_time: t.horaInicio,
+          end_date: formatearFecha(t.fechaFin!),
+          end_time: t.horaFin,
+          payment: limpiarYFormatearPago(t.pago),
+          quantity: t.cantidad,
+        })),
+        event: 5, //cambiar aca por el id del evento que venga del lado de carlos
+      };
 
-      for (const vacante of payload) {
-        await requestBackend('/api/vacantes/register', vacante, 'POST');
+      // Si el rol es "Otro", agregamos el campo specific_job_type
+      if (v.rolNombre === 'Otro') {
+        return {
+          ...base,
+          specific_job_type: v.otrosRol,
+        };
       }
 
-      setShowSuccess(true);
-    } catch (error: any) {
-      const mensaje =
-        error?.response?.data?.message || 'Error al registrar las vacantes';
-      setErrorMessage(mensaje);
-      setShowError(true);
-    }
-  };
+      return base;
+    });
+
+    console.log("Payload final a enviar:", payload);
+
+    // Enviamos el array completo en un único request
+    await requestBackend('/api/vacancies/create/', payload, 'POST');
+
+    setShowSuccess(true);
+  } catch (error: any) {
+    const mensaje =
+      error?.response?.data?.message || 'Error al registrar las vacantes. \nPor favor completa todos los datos.';
+    setErrorMessage(mensaje);
+    setShowError(true);
+  }
+};
+
 
   const closeSuccess = () => {
     setShowSuccess(false);
-    router.push('/');
+    router.push('/create-vacant');
   };
 
   const closeError = () => {

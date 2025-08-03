@@ -11,15 +11,15 @@ import { Borders } from '@/themes/borders';
 import { Colors } from '@/themes/colors';
 
 interface Option {
-  label: string;
-  value: string;
+  name: string;
+  id: string;
 }
 
 export interface DropDownProps {
-  label: string;
+  name: string;
   options: Option[];
-  value: string;
-  onValueChange: (value: string) => void;
+  id: string;
+  onValueChange: (id: string) => void;
   styles?: {
     input?: any;
     label?: any;
@@ -29,21 +29,21 @@ export interface DropDownProps {
 }
 
 const DropDown: React.FC<DropDownProps> = ({
-  label,
+  name,
   options,
-  value,
+  id,
   onValueChange,
   styles,
   placeholder = 'Seleccionar',
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
-  const selectedLabel = options.find(opt => opt.value === value)?.label || placeholder;
-  const isPlaceholder = !options.some(opt => opt.value === value);
+  const selectedLabel = options.find(opt => opt.id === id)?.name || placeholder;
+  const isPlaceholder = !options.some(opt => opt.id === id);
 
   return (
     <View style={{ marginBottom: 16 }}>
-      <Text style={[styles?.label, stylesDefault.label]}>{label}</Text>
+      <Text style={[styles?.label, stylesDefault.label]}>{name}</Text>
 
       <TouchableOpacity
         style={[stylesDefault.input, styles?.input]}
@@ -68,16 +68,16 @@ const DropDown: React.FC<DropDownProps> = ({
           <View style={stylesDefault.modalContent}>
             <FlatList
               data={options}
-              keyExtractor={(item) => item.value}
+              keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={stylesDefault.option}
                   onPress={() => {
-                    onValueChange(item.value);
+                    onValueChange(item.id);
                     setModalVisible(false);
                   }}
                 >
-                  <Text>{item.label}</Text>
+                  <Text>{item.name}</Text>
                 </TouchableOpacity>
               )}
             />
