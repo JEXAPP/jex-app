@@ -1,4 +1,5 @@
-import { View, Text, ScrollView, Image, SafeAreaView } from 'react-native';
+import { View, Text, ScrollView, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useApplyJob } from '@/hooks/apply-job/useApplyJob';
 import { Ionicons } from '@expo/vector-icons';
 import { SelectableTag } from '@/components/SelectableTags';
@@ -44,7 +45,7 @@ export default function manipularVacante() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.headerTop}>
         <View style={styles.tagsContainer}>
           <SelectableTag
@@ -59,7 +60,7 @@ export default function manipularVacante() {
             title="Editar"
             iconName="pencil"
             selected={false}
-            onPress={() => router.push(`/edit-vacancy`)}
+            onPress={() => router.push(`/edit-vacancy?id=${vacanteId}`)}
           />
           <SelectableTag
             title="Eliminar"

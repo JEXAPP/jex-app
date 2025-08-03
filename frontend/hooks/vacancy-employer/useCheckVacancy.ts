@@ -16,9 +16,9 @@ export const useCheckVacancy = () => {
     const getVacanciesAndEvents = async () => {
       try {
         const data = await requestBackend('/api/vacancies/by-employer/', null, 'GET');
-        console.log('Eventos y Vacantes:', data.results);
+        console.log('Eventos y Vacantes:', data);
 
-        const mappedEvents = data.results.map((evento: any) => {
+        const mappedEvents = data.map((evento: any) => {
           // Forzamos que la fecha venga como string válido
           const fechaInicio = evento.start_date ? formatearFecha(evento.start_date) : null;
           const fechaFin = evento.end_date ? formatearFecha(evento.end_date) : null;
@@ -118,7 +118,7 @@ export const useCheckVacancy = () => {
   const goToEditEvent = () => router.push('/create-vacant');
   const goToCreateEvent = () => router.push('/create-event');
   const goToCreateVacancy = () => router.push('/create-vacant');
-  const goToVacancyDetail = (vacancyId: number) => router.push(`/create-vacant`);
+  const goToVacancyDetail = (vacancyId: number) => router.push(`/manipulate-vacancy?id=${vacancyId}`);
 
   return {
     currentEvent,

@@ -18,6 +18,7 @@ interface Props {
   title: string;
   data: Vacancy[];
   onPressTitle?: () => void;
+  onPressVacancy: (vacancy: Vacancy) => void;
   showArrow?: boolean;
 }
 
@@ -25,14 +26,12 @@ export const VacancyList = ({
   title,
   data,
   onPressTitle,
+  onPressVacancy,
   showArrow = true,
 }: Props) => {
-  const navigation = useNavigation();
 
   const handleVacancyPress = (vacancy: Vacancy) => {
-    // Guardar el ID donde lo necesites (context, redux o params)
-    // Ejemplo: navegar a pantalla de detalles
-    // navigation.navigate('VacancyDetails' as never, { vacancyId: vacancy.vacancy_id } as never);
+    onPressVacancy(vacancy)
   };
 
   return (

@@ -46,18 +46,15 @@ export const useHomeScreenEmployee = () => {
 
   /** Función al presionar la tarjeta de una vacante */
   const goToVacancyDetails = (vacancy: Vacancy) => {
-    router.push({
-      pathname: '/login',
-      params: { id: vacancy.vacancy_id.toString() },
-    });
+    router.push(`/apply-job?id=${vacancy.vacancy_id}`);
   };
 
-  const goToSearchVacancy = () => router.push('/employee/search-vacancy');
 
   /** Funciones al presionar los títulos */
   const goToSoonList = () => router.push('/login');
   const goToInterestList = () => router.push('/login');
   const goToNearList = () => router.push('/login');
+  const goToSearchVacancy = () => router.push('/employee/search-vacancy')
 
   return {
     soonVacancies,
@@ -65,10 +62,10 @@ export const useHomeScreenEmployee = () => {
     nearVacancies,
     loading,
     errorVacancies,
-    goToSearchVacancy,
     goToVacancyDetails,
     goToSoonList,
     goToInterestList,
     goToNearList,
+    goToSearchVacancy
   };
 };

@@ -12,7 +12,6 @@ import {
   Modal,
   TouchableOpacity,
 } from 'react-native';
-
 import DatePicker from '@/components/DatePicker';
 import { Input } from '@/components/Input';
 import { Button } from '@/components/Button';

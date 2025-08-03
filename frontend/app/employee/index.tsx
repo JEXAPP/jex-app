@@ -64,18 +64,21 @@ export default function HomeScreenEmployee () {
               title="Según tus intereses"
               data={interestVacancies}
               onPressTitle={goToInterestList}
+              onPressVacancy={goToVacancyDetails}
               showArrow
             />
             <VacancyList
               title="Próximos eventos"
               data={soonVacancies}
               onPressTitle={goToSoonList}
+              onPressVacancy={goToVacancyDetails}
               showArrow
             />
             <VacancyList
               title="Cerca tuyo"
               data={nearVacancies}
               onPressTitle={goToNearList}
+              onPressVacancy={goToVacancyDetails}
               showArrow
             />
           </>

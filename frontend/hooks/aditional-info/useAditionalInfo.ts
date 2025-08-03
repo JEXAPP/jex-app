@@ -49,7 +49,7 @@ export const useAditionalInfo = () => {
   const data = await requestBackend('/api/vacancies/job-types/', null, 'GET'); // Cambiá la ruta si es distinta
   console.log('Respuesta del backend de intereses:', data); 
   if (data) {
-    setIntereses(data.results);
+    setIntereses(data);
   }
     
 };
@@ -76,7 +76,7 @@ export const useAditionalInfo = () => {
 
 //boton omitir (NO SE GUARDA NADA)
   const omitir = () => {
-    router.push('/'); // PONER RUTA DE PANTALLA SIGUIENTE
+    router.push('/employee'); // PONER RUTA DE PANTALLA SIGUIENTE
   };
 
 //boton guardar
@@ -100,7 +100,7 @@ export const useAditionalInfo = () => {
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        router.push('/');
+        router.push('/employee');
       }, 1500);
     } else {
       setErrorMessage('Ocurrió un error al guardar los datos');

@@ -39,6 +39,7 @@ interface Organizer {
 
 export const useApplyJob = () => {
   const { id } = useLocalSearchParams();
+  const idVancancy = Number(id)
   const { requestBackend } = useBackendConection();
   const router = useRouter();
 
@@ -58,7 +59,7 @@ export const useApplyJob = () => {
 
   const fetchJobData = async () => {
     try {
-      const vacante = await requestBackend(`/api/vacancies/${id}/details`, null, 'GET');
+      const vacante = await requestBackend(`/api/vacancies/${idVancancy}/details`, null, 'GET');
       console.log('DATOS ', vacante);
 
       setJob({
@@ -111,7 +112,7 @@ export const useApplyJob = () => {
   const handleApply = async () => {
     try {
       const payload = {
-        vacancy_id: id,
+        vacancy_id: idVancancy,
         shifts: turnosSeleccionados
       };
       console.log(payload);

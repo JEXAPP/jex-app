@@ -33,7 +33,7 @@ export const useCreateEvent = () => {
     const fetchRubros = async () => {
       try {
         const response = await requestBackend('/api/events/categories/', null, 'GET');
-        setRubros(response.results);
+        setRubros(response);
       } catch (err) {
         console.error('Error al obtener rubros:', err);
         setErrorRubros('No se pudieron cargar los rubros');

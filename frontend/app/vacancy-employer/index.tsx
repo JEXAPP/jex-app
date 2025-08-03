@@ -1,11 +1,12 @@
 import React from 'react';
-import { SafeAreaView, View, Text, FlatList, TouchableOpacity, Keyboard, TouchableWithoutFeedback, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Keyboard, TouchableWithoutFeedback, Image } from 'react-native';
 import { Input } from '../../components/Input';
 import { useCheckVacancy } from '@/hooks/vacancy-employer/useCheckVacancy';
 import { Colors } from '@/themes/colors';
 import { iconos } from '@/constants/iconos';
 import { checkVacancyStyles as styles } from '@/styles/app/vacancy-employer/checkVacancyStyles';
 import { inputStyles1 } from '@/styles/components/input/inputStyles1';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function CheckVacancyScreen() {
   const {
@@ -28,7 +29,7 @@ export default function CheckVacancyScreen() {
   } = useCheckVacancy();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 1 }}>
           {/* Header con título y + */}

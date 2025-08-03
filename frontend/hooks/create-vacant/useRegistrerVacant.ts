@@ -64,7 +64,7 @@ export const useRegisterVacancyMulti = () => {
       console.log("Roles disponibles desde el backend:", data);
 
       // Guardamos solo el array de results
-      setRolesDisponibles(data?.results ?? []);
+      setRolesDisponibles(data ?? []);
     } catch (error) {
       console.error('Error en traer los roles', error);
       setRolesDisponibles([]); // aseguramos que sea un array vacío si falla

@@ -36,6 +36,7 @@ export default function RootLayout() {
       <Stack.Screen name="login/index" options={{ ...transitionFade, headerShown: false }} />
       <Stack.Screen name="employee/index" options={{ ...transitionFade, headerShown: false }} />
       <Stack.Screen name="employee/search-vacancy" options={{ ...transitionFade, headerShown: false }} />
+      <Stack.Screen name="manipulate-vacancy/index" options={{ ...transitionFade, headerShown: false }} />
       <Stack.Screen name="reset-password/index" options={{ ...exitHeader('/login'), ...transitionFade, }} />
       <Stack.Screen name="reset-password/code-validation" options={{ ...exitHeader('/login'), ...transitionFade, }} />
       <Stack.Screen name="reset-password/new-password" options={{ ...exitHeader('/login'), ...transitionFade, }} />

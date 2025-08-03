@@ -23,6 +23,7 @@ type Vacante = {
 export const useEditVacancy = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const idVacancy = Number(id)
   const { requestBackend } = useBackendConection();
 
   const [vacante, setVacante] = useState<Vacante | null>(null);
@@ -35,9 +36,9 @@ export const useEditVacancy = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await requestBackend(`/api/vacancies/${id}/details`, null, 'GET');
+        const data = await requestBackend(`/api/vacancies/${idVacancy}/details`, null, 'GET');
         const roles = await requestBackend('/api/vacancies/job-types', null, 'GET');
-        setRolesDisponibles(roles.results);
+        setRolesDisponibles(roles);
 
         console.log('roles:', rolesDisponibles)
         console.log('datitos: ', data)
@@ -54,7 +55,7 @@ export const useEditVacancy = () => {
         setVacante({
           rol: data.job_type === 'Otro'
             ? 'otro'
-            : roles.results.find((r: { id: number; name: string }) => r.name === data.job_type)?.id?.toString() ?? '',
+            : roles.find((r: { id: number; name: string }) => r.name === data.job_type)?.id?.toString() ?? '',
           rolNombre: data.job_type,
           otrosRol: data.specific_job_type || '',
           descripcion: data.description,
@@ -122,7 +123,7 @@ export const useEditVacancy = () => {
           payment: parseInt(t.pago.replace(/\./g, ''), 10),
           quantity: parseInt(t.cantidad, 10),
         })),
-        event: 12,
+        event: idVacancy,
       };
       console.log(payload)
       //await requestBackend(`/api/vancancies/${id}/update`, payload, 'PUT');
