@@ -7,13 +7,13 @@ import { charCounterStyles } from '@/styles/components/charCounterStyle';
 import { Button } from '../../components/Button';
 import { Input } from '../../components/Input';
 import { AddPhotoButton } from '../../components/AddPhotoButton';
-import { CharCounter } from '@/components/CharCounter';
 import { ClickWindow } from '@/components/ClickWindow';
 import { Ionicons } from '@expo/vector-icons';
 import { clickWindowStyles1 } from '../../styles/components/clickWindowStyles1';
 import { Colors } from '@/themes/colors';
 import { SelectableTag } from '@/components/SelectableTags';
 import { inputStyles1 } from '../../styles/components/input/inputStyles1';
+import { CharCounter } from '@/components/CharCounter';
 
 export default function AditionalInfoScreen () {
     const {

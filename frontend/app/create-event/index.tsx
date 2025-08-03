@@ -27,7 +27,7 @@ import { timePickerStyles1 } from '@/styles/components/timePickerStyles1';
 import TimePicker from '@/components/TimePicker';
 import { Picker } from '@/components/Picker';
 import { pickerStyles1 } from '@/styles/components/pickerStyles1';
-import { CharCounter } from '@/components/CharCounter';
+import { CharCounter } from '../../components/CharCounter';
 import { charCounterStyles1 } from '@/styles/components/charCounterStyles1';
 import { buttonStyles4 } from '@/styles/components/button/buttonStyles4';
 

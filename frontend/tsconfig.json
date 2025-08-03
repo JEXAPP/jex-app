@@ -2,18 +2,17 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "baseUrl": ".", 
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["*"]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts", 
-    "styles/app/login",
-    "env.d.ts", 
-    "babel.config.js", "styles/components/selectableTagsStyles"]
+    "expo-env.d.ts",
+    "env.d.ts",
+    "babel.config.js"
+  ]
 }

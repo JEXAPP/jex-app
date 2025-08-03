@@ -25,11 +25,7 @@ export const timePickerStyles1 = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: Colors.white,
-<<<<<<< HEAD
     borderRadius: Borders.semirounded,
-=======
-    borderRadius: Borders.soft,
->>>>>>> valentina-develop
     padding: 20,
     width: '65%',
     alignItems: 'center',
@@ -99,11 +95,7 @@ export const timePickerStyles1 = StyleSheet.create({
     backgroundColor: Colors.violet4,
     paddingHorizontal: 30,
     paddingVertical: 12,
-<<<<<<< HEAD
     borderRadius: Borders.semirounded,
-=======
-    borderRadius: Borders.soft,
->>>>>>> valentina-develop
     marginTop: 10,
   },
   confirmText: {
@@ -116,8 +108,4 @@ export const timePickerStyles1 = StyleSheet.create({
   fontFamily: 'interSemiBold',
   color: Colors.black,
 },
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> valentina-develop
