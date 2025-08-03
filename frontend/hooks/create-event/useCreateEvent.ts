@@ -29,7 +29,7 @@ export const useCreateEvent = () => {
   useEffect(() => {
     const fetchRubros = async () => {
       try {
-        const response = await requestBackend('/api/events/categories/', {}, 'GET');
+        const response = await requestBackend('/api/events/categories/', null, 'GET');
         setRubros(response);
       } catch (err) {
         console.error('Error al obtener rubros:', err);

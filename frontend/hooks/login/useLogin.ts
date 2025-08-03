@@ -45,7 +45,7 @@ export const useLogin = () => {
 
       setTimeout(() => {
         setShowSuccess(false);
-        router.push('/create-event');
+        router.push('/employee');
       }, 1500);
 
     } else {
@@ -119,7 +119,7 @@ export const useLogin = () => {
 
   // Navega a la pantalla para recuperar contraseña
   const handlePasswordForgot = () => {
-    router.push('./create-event');
+    router.push('./employee');
   };
 
   // Cierra el modal de error

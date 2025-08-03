@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { Colors } from '../../themes/colors';
+import { Colors } from '@/themes/colors';
 import { Borders } from '@/themes/borders';
 
 export const buttonWithIconStyles1 = StyleSheet.create({
@@ -24,7 +24,7 @@ export const buttonWithIconStyles1 = StyleSheet.create({
     marginRight: 20,
   },
   texto: {
-    fontFamily: 'interSemiBold',
+    fontFamily: 'interBold',
     fontSize: 16,
     color: Colors.violet4,
     marginRight: 20,

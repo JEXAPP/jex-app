@@ -7,6 +7,7 @@ export const loginStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.gray1,
     justifyContent: 'center',
+    alignItems: 'center'
   },
   header: {
     marginBottom: 50,

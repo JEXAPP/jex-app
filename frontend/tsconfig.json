@@ -15,5 +15,5 @@
     "expo-env.d.ts", 
     "styles/app/login",
     "env.d.ts", 
-    "babel.config.js"]
+    "babel.config.js", "styles/components/selectableTagsStyles"]
 }

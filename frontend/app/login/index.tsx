@@ -1,7 +1,7 @@
 import { ButtonWithIcon } from '@/components/ButtonWithIcon';
 import { TextSeparator } from '@/components/TextSeparator';
 import { iconos } from '@/constants/iconos';
-import { buttonWithIconStyles1 } from '@/styles/components/buttonWithIconStyles1';
+import { buttonWithIconStyles1 } from '@/styles/components/buttonWithIcon/buttonWithIconStyles1';
 import { buttonStyles5 } from '@/styles/components/button/buttonStyles5';
 import { inputStyles1 } from '@/styles/components/input/inputStyles1';
 import { textSeparatorStyles1 } from '@/styles/components/textSeparatorStyles1';
