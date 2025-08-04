@@ -1,18 +1,21 @@
 from datetime import datetime
+import json
+from django.forms import ValidationError
 from django.utils import timezone
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from config.pagination import CustomPagination
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
 from eventos.serializers.vacancy import ListVacancyShiftSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
 from rest_framework import permissions, serializers, status
 from user_auth.permissions import IsInGroup
 from django.db.models import OuterRef, Subquery
-from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db.models import Q
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from eventos.utils import is_event_near
 from rest_framework.exceptions import NotFound
+from eventos.constants import ORDERING_MAP, Unaccent
 
 
 class CreateVacancyView(CreateAPIView):
@@ -47,6 +50,7 @@ class ListVacancyShiftView(ListAPIView):
     serializer_class = ListVacancyShiftSerializer
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE]
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         user = self.request.user
@@ -118,32 +122,65 @@ class ListVacancyShiftView(ListAPIView):
             ]
 
 
-class SearchVacancyView(APIView):
+class SearchVacancyView(ListAPIView):
+    serializer_class = SearchVacancyResultSerializer
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE, EMPLOYER_ROLE]
+    pagination_class = CustomPagination
 
+    def get_queryset(self):
+        choice = self.request.query_params.get('choice')
+        if not choice:
+            raise ValidationError({"choice": "Este campo es requerido."})
 
-    def get(self, request):
-        param_serializer = SearchVacancyParamsSerializer(data=request.query_params)
-        param_serializer.is_valid(raise_exception=True)
+        raw_value = self.request.query_params.get('value')
+        if raw_value is None:
+            raise ValidationError({"value": "Este campo es requerido."})
 
-        choice = param_serializer.validated_data['choice']
-        value = param_serializer.validated_data['value']
+        # Parseo especial para choice == 'role' porque viene un array JSON en string
+        if choice == 'role':
+            try:
+                # Parsear el JSON
+                parsed_value = json.loads(raw_value)
+            except json.JSONDecodeError:
+                raise ValidationError({"value": "Debe enviar un JSON válido para la lista de roles."})
 
-        vacancies = Vacancy.objects.select_related('event', 'job_type').prefetch_related('shifts')
+            params_data = {
+                "choice": choice,
+                "value": parsed_value,
+            }
+        else:
+            # Para los otros casos, el value queda como string
+            params_data = {
+                "choice": choice,
+                "value": raw_value,
+            }
+
+        params = SearchVacancyParamsSerializer(data=params_data)
+        params.is_valid(raise_exception=True)
+
+        value = params.validated_data['value']
+
+        qs = Vacancy.objects.select_related('event', 'job_type').prefetch_related('shifts')
 
         if choice == 'role':
-            vacancies = vacancies.filter(
-                Q(job_type__name__icontains=value) | Q(specific_job_type__icontains=value)
-            )
+            qs = qs.filter(job_type__id__in=value)
+
         elif choice == 'event':
-            vacancies = vacancies.filter(event__name__icontains=value)
+            qs = qs.annotate(unaccented_event=Unaccent('event__name')).filter(unaccented_event__icontains=value)
+
         elif choice == 'start_date':
             date_obj = datetime.strptime(value, '%d/%m/%Y').date()
-            vacancies = vacancies.filter(shifts__start_date=date_obj).distinct()
+            qs = qs.filter(shifts__start_date=date_obj).distinct()
 
-        serializer = SearchVacancyResultSerializer(vacancies, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        order_key = self.request.query_params.get('order_by')
+        order_field = ORDERING_MAP.get(order_key)
+        if order_field:
+            qs = qs.order_by(order_field)
+        else:
+            qs = qs.order_by('id')
+
+        return qs
     
 
 class VacancyDetailView(RetrieveAPIView):
