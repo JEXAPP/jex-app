@@ -7,6 +7,8 @@ from eventos.serializers.event import EventSerializer
 from eventos.serializers.requirements import CreateRequirementSerializer, RequirementSerializer
 from eventos.serializers.shifts import CreateShiftSerializer, ShiftSerializer
 from django.db import transaction
+from datetime import datetime
+
 
 
 class CreateVacancyListSerializer(serializers.ListSerializer):
@@ -151,18 +153,43 @@ class SearchVacancyResultSerializer(serializers.ModelSerializer):
     
     
 class SearchVacancyParamsSerializer(serializers.Serializer):
-    choices = ['role', 'event', 'start_date']
-    
-    choice = serializers.ChoiceField(choices=choices)
-    value = serializers.CharField()
+    choice = serializers.ChoiceField(choices=['role', 'event', 'start_date'])
+    value = serializers.JSONField()  # Puede recibir lista o string según choice
 
     def validate(self, data):
-        if data['choice'] == 'start_date':
-            from datetime import datetime
+        choice = data.get('choice')
+        value = data.get('value')
+
+        if choice == 'role':
+            # value debe ser lista no vacía de ints
+            if not isinstance(value, list) or not all(isinstance(i, int) for i in value):
+                raise serializers.ValidationError({
+                    'value': 'Debe ser una lista de IDs enteros para choice "role".'
+                })
+            if not value:
+                raise serializers.ValidationError({
+                    'value': 'La lista no puede estar vacía para choice "role".'
+                })
+
+        elif choice == 'event':
+            if not isinstance(value, str) or not value.strip():
+                raise serializers.ValidationError({
+                    'value': 'Debe ser un texto no vacío para choice "event".'
+                })
+
+        elif choice == 'start_date':
             try:
-                datetime.strptime(data['value'], '%d/%m/%Y')
-            except ValueError:
-                raise serializers.ValidationError("start_date must be in DD/MM/YYYY format")
+                datetime.strptime(value, '%d/%m/%Y')
+            except (ValueError, TypeError):
+                raise serializers.ValidationError({
+                    'value': 'Debe ser una fecha válida con formato dd/mm/yyyy para choice "start_date".'
+                })
+
+        else:
+            raise serializers.ValidationError({
+                'choice': 'Opción inválida.'
+            })
+
         return data
     
 
