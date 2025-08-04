@@ -15,7 +15,7 @@ from django.db.models import Q
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from eventos.utils import is_event_near
 from rest_framework.exceptions import NotFound
-from eventos.constants import ORDERING_MAP, Unaccent
+from eventos.constants import ORDERING_MAP, Unaccent, VacancyStates
 
 
 class CreateVacancyView(CreateAPIView):
@@ -58,7 +58,8 @@ class ListVacancyShiftView(ListAPIView):
 
         # Subquery: para cada evento, buscar el turno con mayor pago
         best_shift_per_event = Shift.objects.filter(
-            vacancy__event=OuterRef('vacancy__event')
+            vacancy__event=OuterRef('vacancy__event'),
+            vacancy__state__name=VacancyStates.ACTIVE.value
         ).order_by('-payment')
 
         # Base queryset: uno por evento, el turno mejor pago del evento
@@ -68,6 +69,7 @@ class ListVacancyShiftView(ListAPIView):
             'vacancy__event',
             'vacancy__job_type'
         ).order_by('vacancy__event__id')
+
 
         if category == 'interests':
             return self._filter_by_interests(base_qs, user)
@@ -161,7 +163,7 @@ class SearchVacancyView(ListAPIView):
 
         value = params.validated_data['value']
 
-        qs = Vacancy.objects.select_related('event', 'job_type').prefetch_related('shifts')
+        qs = Vacancy.objects.select_related('event', 'job_type').prefetch_related('shifts').filter(state__name=VacancyStates.ACTIVE.value)
 
         if choice == 'role':
             qs = qs.filter(job_type__id__in=value)
