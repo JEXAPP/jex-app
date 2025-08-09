@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from eventos.constants import JobTypesEnum, VacancyStates
+from eventos.errors.params_messages import INVALID_CHOICE, VALUE_MUST_BE_LIST_OF_INTS, VALUE_MUST_BE_NON_EMPTY_LIST, VALUE_MUST_BE_NON_EMPTY_STRING, VALUE_MUST_BE_VALID_DATE
 from eventos.errors.vacancies_messages import NO_PERMISSION_EVENT, SHIFTS_DATES_OUT_OF_EVENT, SHIFTS_TIMES_OUT_OF_EVENT, SPECIFIC_JOB_TYPE_NOT_ALLOWED, SPECIFIC_JOB_TYPE_REQUIRED
+from eventos.formatters.date_time import CustomDateField
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
 from eventos.models.vacancy_state import VacancyState
@@ -11,7 +13,9 @@ from django.db import transaction
 from datetime import datetime
 
 
-
+"""
+Serializers for creation and update vacancy
+"""
 class CreateVacancyListSerializer(serializers.ListSerializer):
     def create(self, validated_data):
         return [self.child.create(item) for item in validated_data]
@@ -126,25 +130,62 @@ class VacancySerializer(serializers.ModelSerializer):
 
 
 class VacancyResponseSerializer(serializers.ModelSerializer):
-    """Serializer reducido para devolver solo info básica después del update."""
+    """Serializer reducido para devolver solo info básica después del create y el update."""
     class Meta:
         model = Vacancy
         fields = ['id', 'description']
+
+"""
+Serializer to list vacancies
+"""
     
 class ListVacancyShiftSerializer(serializers.ModelSerializer):
     vacancy_id = serializers.IntegerField(source='vacancy.id')
     event_name = serializers.CharField(source='vacancy.event.name')
     job_type_name = serializers.CharField(source='vacancy.job_type.name')
     specific_job_type = serializers.CharField(source='vacancy.specific_job_type', allow_blank=True)
-    start_date = serializers.SerializerMethodField()
+    start_date = CustomDateField()
 
     class Meta:
         model = Shift
         fields = ['vacancy_id', 'event_name', 'start_date', 'payment', 'job_type_name', 'specific_job_type']
-    
-    def get_start_date(self, obj):
-        return obj.start_date.strftime('%d/%m/%Y') if obj.start_date else None
 
+
+
+"""
+Serializer to search vacancies
+"""
+
+class SearchVacancyParamsSerializer(serializers.Serializer):
+    choice = serializers.ChoiceField(choices=['role', 'event', 'start_date'])
+    value = serializers.JSONField()
+
+    def validate(self, data):
+        choice = data['choice']
+        value = data['value']
+
+        if choice == 'role':
+            # Debe ser una lista con uno o más enteros
+            if not isinstance(value, list) or not all(isinstance(i, int) for i in value):
+                raise serializers.ValidationError({'value': VALUE_MUST_BE_LIST_OF_INTS})
+            if not value:
+                raise serializers.ValidationError({'value': VALUE_MUST_BE_NON_EMPTY_LIST})
+        elif choice == 'event':
+            if not isinstance(value, str) or not value.strip():
+                raise serializers.ValidationError({
+                    'value': VALUE_MUST_BE_NON_EMPTY_STRING
+                })
+        elif choice == 'start_date':
+            try:
+                datetime.strptime(value, '%d/%m/%Y')
+            except (ValueError, TypeError):
+                raise serializers.ValidationError({
+                    'value': VALUE_MUST_BE_VALID_DATE
+                })
+        else:
+            raise serializers.ValidationError({'choice': INVALID_CHOICE})
+
+        return data
 
 class SearchVacancyResultSerializer(serializers.ModelSerializer):
     event = serializers.CharField(source='event.name', read_only=True)
@@ -155,59 +196,22 @@ class SearchVacancyResultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Vacancy
-        fields = ['id', 'event', 'job_type', 'specific_job_type','payment', 'start_date']
+        fields = ['id', 'event', 'job_type', 'specific_job_type', 'payment', 'start_date']
 
     def get_payment(self, obj):
         top_shift = obj.shifts.order_by('-payment').first()
         return top_shift.payment if top_shift else None
 
     def get_start_date(self, obj):
-        top_shift = obj.shifts.order_by('-payment').first()
+        top_shift = obj.shifts.order_by('start_date').first()
         if top_shift and top_shift.start_date:
             return top_shift.start_date.strftime('%d/%m/%Y')
-    
-    
-class SearchVacancyParamsSerializer(serializers.Serializer):
-    choice = serializers.ChoiceField(choices=['role', 'event', 'start_date'])
-    value = serializers.JSONField()  # Puede recibir lista o string según choice
+        return None
+       
 
-    def validate(self, data):
-        choice = data.get('choice')
-        value = data.get('value')
-
-        if choice == 'role':
-            # value debe ser lista no vacía de ints
-            if not isinstance(value, list) or not all(isinstance(i, int) for i in value):
-                raise serializers.ValidationError({
-                    'value': 'Debe ser una lista de IDs enteros para choice "role".'
-                })
-            if not value:
-                raise serializers.ValidationError({
-                    'value': 'La lista no puede estar vacía para choice "role".'
-                })
-
-        elif choice == 'event':
-            if not isinstance(value, str) or not value.strip():
-                raise serializers.ValidationError({
-                    'value': 'Debe ser un texto no vacío para choice "event".'
-                })
-
-        elif choice == 'start_date':
-            try:
-                datetime.strptime(value, '%d/%m/%Y')
-            except (ValueError, TypeError):
-                raise serializers.ValidationError({
-                    'value': 'Debe ser una fecha válida con formato dd/mm/yyyy para choice "start_date".'
-                })
-
-        else:
-            raise serializers.ValidationError({
-                'choice': 'Opción inválida.'
-            })
-
-        return data
-    
-
+"""
+Serializer to list vacancy by ID
+"""
 class VacancyDetailSerializer(serializers.ModelSerializer):
     shifts = ShiftSerializer(many=True, read_only=True)
     requirements = RequirementSerializer(many=True, read_only=True)
