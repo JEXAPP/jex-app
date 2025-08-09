@@ -12,7 +12,7 @@ from user_auth.models.user import CustomUser
 from datetime import date
 
 
-class CreateEventInputSerializer(serializers.ModelSerializer):
+class CreateEventSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(), source='category', write_only=True
     )
@@ -56,7 +56,7 @@ class CreateEventInputSerializer(serializers.ModelSerializer):
         validated_data['state'] = public_state
         return Event.objects.create(**validated_data)
     
-class EventCreateOutputSerializer(serializers.ModelSerializer):
+class EventCreateResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ['id', 'description']
