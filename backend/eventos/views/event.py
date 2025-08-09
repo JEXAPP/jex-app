@@ -3,6 +3,7 @@ from eventos.serializers.event import CreateEventInputSerializer, EventCreateOut
 from user_auth.constants import EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 
 class CreateEventView(CreateAPIView):
