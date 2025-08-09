@@ -64,10 +64,14 @@ class EventCreateOutputSerializer(serializers.ModelSerializer):
 
 class EventOwnerSerializer(serializers.ModelSerializer):
     profile_image = ImageSerializer(allow_null=True)
+    full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'first_name', 'last_name', 'email', 'profile_image']
+        fields = ['id', 'first_name', 'last_name', 'full_name', 'email', 'profile_image']
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
 
 
 class EventSerializer(serializers.ModelSerializer):

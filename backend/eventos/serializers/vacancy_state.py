@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from eventos.errors.vacancies_messages import INVALID_STATE_ID
 from eventos.models.vacancy_state import VacancyState
 
 
@@ -7,7 +8,7 @@ class UpdateVacancyStateSerializer(serializers.Serializer):
 
     def validate_state_id(self, value):
         if not VacancyState.objects.filter(id=value).exists():
-            raise serializers.ValidationError("Invalid state ID.")
+            raise serializers.ValidationError(INVALID_STATE_ID)
         return value
     
     
