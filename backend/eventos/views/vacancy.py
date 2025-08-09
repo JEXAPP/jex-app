@@ -11,7 +11,6 @@ from rest_framework import permissions, serializers, status
 from user_auth.permissions import IsInGroup
 from django.db.models import OuterRef, Subquery
 from rest_framework.response import Response
-from django.db.models import Q
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from eventos.utils import is_event_near
 from rest_framework.exceptions import NotFound
@@ -36,7 +35,6 @@ class UpdateVacancyView(UpdateAPIView):
     required_groups = [EMPLOYER_ROLE]
 
     def get_queryset(self):
-        # Solo vacantes de eventos cuyo owner es el usuario autenticado
         return Vacancy.objects.filter(event__owner=self.request.user)
 
     def put(self, request, *args, **kwargs):
