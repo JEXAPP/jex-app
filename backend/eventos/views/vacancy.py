@@ -4,9 +4,10 @@ from django.forms import ValidationError
 from django.utils import timezone
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from config.pagination import CustomPagination
+from eventos.errors.application_messages import VACANCY_NOT_FOUND
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
-from eventos.serializers.vacancy import ListVacancyShiftSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
+from eventos.serializers.vacancy import ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
 from rest_framework import permissions, serializers, status
 from user_auth.permissions import IsInGroup
 from django.db.models import OuterRef, Subquery
@@ -36,14 +37,22 @@ class UpdateVacancyView(UpdateAPIView):
     required_groups = [EMPLOYER_ROLE]
 
     def get_queryset(self):
-        # Solo vacantes de eventos cuyo owner es el usuario autenticado
-        return Vacancy.objects.filter(event__owner=self.request.user)
+        return Vacancy.objects.select_related('event').filter(event__owner=self.request.user)
 
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['user'] = self.request.user
+        return context
 
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        response_serializer = VacancyResponseSerializer(instance)
+        return Response(response_serializer.data)
+
 
 
 class ListVacancyShiftView(ListAPIView):
@@ -205,4 +214,4 @@ class VacancyDetailView(RetrieveAPIView):
         try:
             return self.get_queryset().get(pk=self.kwargs['pk'])
         except Vacancy.DoesNotExist:
-            raise NotFound(detail="Vacante no encontrada.")
+            raise NotFound(detail=VACANCY_NOT_FOUND)

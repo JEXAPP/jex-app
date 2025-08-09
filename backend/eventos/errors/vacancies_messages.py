@@ -1,0 +1,8 @@
+VACANCY_NOT_FOUND = "Vacante no encontrada."
+NO_PERMISSION_EVENT = "No tiene permiso para este evento."
+SHIFTS_DATES_OUT_OF_EVENT = "Las fechas ({start_date} - {end_date}) deben estar dentro del evento ({event_start} - {event_end})."
+SHIFTS_TIMES_OUT_OF_EVENT = "Los horarios ({start_time} - {end_time}) deben estar dentro del horario del evento ({event_start_time} - {event_end_time})."
+SPECIFIC_JOB_TYPE_REQUIRED = "Debe especificar el tipo de trabajo si selecciona 'OTRO'."
+SPECIFIC_JOB_TYPE_NOT_ALLOWED = "No debe especificar tipo de trabajo salvo que el tipo sea 'OTRO'."
+INVALID_STATE_ID = "ID de estado inválido."
+STATE_UPDATED_SUCCESS = "Estado de la vacante actualizado correctamente."

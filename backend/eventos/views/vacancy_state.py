@@ -1,6 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework import status, permissions
 from rest_framework.response import Response
+from eventos.errors.application_messages import VACANCY_NOT_FOUND
+from eventos.errors.vacancies_messages import NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
 from eventos.models.vacancy import Vacancy
 from eventos.models.vacancy_state import VacancyState
 from eventos.serializers.vacancy_state import ListsVacancyStates, UpdateVacancyStateSerializer
@@ -26,10 +28,10 @@ class UpdateVacancyStateView(APIView):
         try:
             vacancy = Vacancy.objects.select_related('event').get(id=pk)
         except Vacancy.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": VACANCY_NOT_FOUND}, status=status.HTTP_404_NOT_FOUND)
 
         if vacancy.event.owner != request.user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": NO_PERMISSION_EVENT}, status=status.HTTP_403_FORBIDDEN)
 
         new_state_id = serializer.validated_data['state_id']
         new_state = VacancyState.objects.get(id=new_state_id)
@@ -37,4 +39,4 @@ class UpdateVacancyStateView(APIView):
         vacancy.state = new_state
         vacancy.save()
 
-        return Response(status=status.HTTP_200_OK)
+        return Response({"detail": STATE_UPDATED_SUCCESS}, status=status.HTTP_200_OK)

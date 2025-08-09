@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from eventos.constants import JobTypesEnum, VacancyStates
+from eventos.errors.vacancies_messages import NO_PERMISSION_EVENT, SHIFTS_DATES_OUT_OF_EVENT, SHIFTS_TIMES_OUT_OF_EVENT, SPECIFIC_JOB_TYPE_NOT_ALLOWED, SPECIFIC_JOB_TYPE_REQUIRED
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
 from eventos.models.vacancy_state import VacancyState
@@ -32,25 +33,23 @@ class VacancySerializer(serializers.ModelSerializer):
             'shifts'
         ]
         read_only_fields = ['id', 'state']
-        list_serializer_class = CreateVacancyListSerializer  # si usás bulk create
+        list_serializer_class = CreateVacancyListSerializer
 
     def validate(self, data):
-        self._validar_owner(data)
-        self._validar_shifts(data)
-        self._validar_tipo_trabajo(data)
+        self._validate_owner(data)
+        self._validate_shifts(data)
+        self._validate_job_type(data)
         return data
 
-    def _validar_owner(self, data):
+    def _validate_owner(self, data):
         event = data.get('event')
-        user = self.context['request'].user
-
+        user = self.context.get('user')
         if event and event.owner != user:
-            raise serializers.ValidationError("No tiene permiso para este evento.")
+            raise serializers.ValidationError({"event": NO_PERMISSION_EVENT})
 
-    def _validar_shifts(self, data):
+    def _validate_shifts(self, data):
         event = data.get('event')
         shifts = data.get('shifts') or []
-
         if not event or not shifts:
             return
 
@@ -61,22 +60,33 @@ class VacancySerializer(serializers.ModelSerializer):
 
         for shift in shifts:
             if shift['start_date'] < event_start or shift['end_date'] > event_end:
-                raise serializers.ValidationError(
-                    f"Shifts ({shift['start_date']} - {shift['end_date']}) deben estar dentro del evento ({event_start} - {event_end})."
-                )
+                raise serializers.ValidationError({
+                    "shifts": SHIFTS_DATES_OUT_OF_EVENT.format(
+                        start_date=shift['start_date'], 
+                        end_date=shift['end_date'], 
+                        event_start=event_start, 
+                        event_end=event_end
+                    )
+                })
             if shift['start_time'] < event_start_time or shift['end_time'] > event_end_time:
-                raise serializers.ValidationError(
-                    f"Shifts ({shift['start_time']} - {shift['end_time']}) deben estar dentro del horario del evento ({event_start_time} - {event_end_time})."
-                )
+                raise serializers.ValidationError({
+                    "shifts": SHIFTS_TIMES_OUT_OF_EVENT.format(
+                        start_time=shift['start_time'], 
+                        end_time=shift['end_time'], 
+                        event_start_time=event_start_time, 
+                        event_end_time=event_end_time
+                    )
+                })
 
-    def _validar_tipo_trabajo(self, data):
+    def _validate_job_type(self, data):
         job_type = data.get('job_type')
         specific = data.get('specific_job_type')
+        otro = JobTypesEnum.OTRO.value
 
-        if job_type and job_type.name == JobTypesEnum.OTRO.value and not specific:
-            raise serializers.ValidationError("Debe especificar el tipo de trabajo si selecciona 'OTRO'.")
-        elif specific and (not job_type or job_type.name != JobTypesEnum.OTRO.value):
-            raise serializers.ValidationError("No debe especificar tipo de trabajo salvo que el tipo sea 'OTRO'.")
+        if job_type and job_type.name == otro and not specific:
+            raise serializers.ValidationError({"specific_job_type": SPECIFIC_JOB_TYPE_REQUIRED})
+        elif specific and (not job_type or job_type.name != otro):
+            raise serializers.ValidationError({"specific_job_type": SPECIFIC_JOB_TYPE_NOT_ALLOWED})
 
     def create(self, validated_data):
         requirements = validated_data.pop('requirements', [])
@@ -85,8 +95,8 @@ class VacancySerializer(serializers.ModelSerializer):
 
         with transaction.atomic():
             vacancy = Vacancy.objects.create(**validated_data)
-            CreateRequirementSerializer.bulk_create(vacancy, requirements)
-            CreateShiftSerializer.bulk_create(vacancy, shifts)
+            self._update_requirements(vacancy, requirements)
+            self._update_shifts(vacancy, shifts)
 
         return vacancy
 
@@ -99,22 +109,27 @@ class VacancySerializer(serializers.ModelSerializer):
 
         with transaction.atomic():
             instance.save()
-
-            if requirements is not None:
-                instance.requirements.all().delete()
-                CreateRequirementSerializer.bulk_create(instance, requirements)
-
-            if shifts is not None:
-                instance.shifts.all().delete()
-                CreateShiftSerializer.bulk_create(instance, shifts)
+            self._update_requirements(instance, requirements)
+            self._update_shifts(instance, shifts)
 
         return instance
 
-    def to_representation(self, instance):
-        return {
-            'id': instance.id,
-            'description': instance.description
-        }
+    def _update_requirements(self, instance, requirements):
+        if requirements is not None:
+            instance.requirements.all().delete()
+            CreateRequirementSerializer.bulk_create(instance, requirements)
+
+    def _update_shifts(self, instance, shifts):
+        if shifts is not None:
+            instance.shifts.all().delete()
+            CreateShiftSerializer.bulk_create(instance, shifts)
+
+
+class VacancyResponseSerializer(serializers.ModelSerializer):
+    """Serializer reducido para devolver solo info básica después del update."""
+    class Meta:
+        model = Vacancy
+        fields = ['id', 'description']
     
 class ListVacancyShiftSerializer(serializers.ModelSerializer):
     vacancy_id = serializers.IntegerField(source='vacancy.id')
