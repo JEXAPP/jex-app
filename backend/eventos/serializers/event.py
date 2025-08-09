@@ -56,7 +56,7 @@ class CreateEventSerializer(serializers.ModelSerializer):
         validated_data['state'] = public_state
         return Event.objects.create(**validated_data)
     
-class EventCreateResponseSerializer(serializers.ModelSerializer):
+class CreateEventResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ['id', 'description']
