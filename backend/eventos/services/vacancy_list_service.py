@@ -1,11 +1,11 @@
 
-from django.db.models import OuterRef, Subquery, Q
+from django.db.models import OuterRef, Subquery
 from django.utils import timezone
 from eventos.models.shifts import Shift
 from eventos.constants import VacancyStates
 from eventos.utils import is_event_near
 
-class VacancyShiftService:
+class VacancyListService:
     @staticmethod
     def get_base_queryset():
         today = timezone.now().date()

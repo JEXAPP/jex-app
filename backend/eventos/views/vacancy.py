@@ -1,5 +1,3 @@
-from datetime import datetime
-import json
 from django.forms import ValidationError
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from config.pagination import CustomPagination
@@ -8,13 +6,12 @@ from eventos.models.vacancy import Vacancy
 from eventos.serializers.vacancy import ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from eventos.services.vacancy_list_service import VacancyShiftService
+from eventos.services.vacancy_list_service import VacancyListService
 from eventos.services.vacancy_search_service import VacancySearchService
 from user_auth.permissions import IsInGroup
 from rest_framework.response import Response
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from rest_framework.exceptions import NotFound
-from eventos.constants import ORDERING_MAP, Unaccent, VacancyStates
 
 
 class CreateVacancyView(CreateAPIView):
@@ -71,14 +68,14 @@ class ListVacancyShiftView(ListAPIView):
         category = self.request.query_params.get('category')
         user = self.request.user
 
-        base_qs = VacancyShiftService.get_base_queryset()
+        base_qs = VacancyListService.get_base_queryset()
 
         if category == 'interests':
-            return VacancyShiftService.filter_by_interests(base_qs, user)
+            return VacancyListService.filter_by_interests(base_qs, user)
         elif category == 'soon':
-            return VacancyShiftService.filter_by_soon()
+            return VacancyListService.filter_by_soon()
         elif category == 'nearby':
-            result = VacancyShiftService.filter_by_nearby(base_qs, user)
+            result = VacancyListService.filter_by_nearby(base_qs, user)
             if isinstance(result, list):
                 return result
             return result
