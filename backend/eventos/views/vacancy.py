@@ -12,6 +12,13 @@ from user_auth.permissions import IsInGroup
 from rest_framework.response import Response
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from rest_framework.exceptions import NotFound
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import NotFound
+from eventos.models.event import Event
+from eventos.serializers.list_vacancy import EventWithVacanciesSerializer
+from user_auth.permissions import IsInGroup
+from user_auth.constants import EMPLOYER_ROLE
 
 
 class CreateVacancyView(CreateAPIView):
@@ -139,3 +146,15 @@ class VacancyDetailView(RetrieveAPIView):
             return self.get_queryset().get(pk=self.kwargs['pk'])
         except Vacancy.DoesNotExist:
             raise NotFound(detail=VACANCY_NOT_FOUND)
+
+class EmployerEventsWithVacanciesView(ListAPIView):
+    serializer_class = EventWithVacanciesSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Event.objects.filter(owner=user).prefetch_related(
+            'vacancies__state',
+            'vacancies__job_type'
+        )

@@ -4,8 +4,9 @@ from eventos.views.event import CreateEventView
 from eventos.views.vacancy import CreateVacancyView, ListVacancyShiftView, SearchVacancyView, UpdateVacancyView, VacancyDetailView
 from eventos.views.category_events import ListCategoryView
 from eventos.views.job_types import ListJobTypesView
-from eventos.views.list_vacancy import EmployerEventsWithVacanciesView
+from eventos.views.vacancy import EmployerEventsWithVacanciesView
 from eventos.views.vacancy_state import UpdateVacancyStateView, VacancyStateListView
+
 
 urlpatterns = [
 
