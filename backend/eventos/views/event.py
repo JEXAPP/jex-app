@@ -1,5 +1,5 @@
 from rest_framework.generics import CreateAPIView
-from eventos.serializers.event import CreateEventInputSerializer, EventCreateOutputSerializer
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer
 from user_auth.constants import EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
@@ -12,7 +12,7 @@ class CreateEventView(CreateAPIView):
     """
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
-    serializer_class = CreateEventInputSerializer
+    serializer_class = CreateEventSerializer
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -27,7 +27,7 @@ class CreateEventView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         event = serializer.save(owner=request.user)
 
-        response_serializer = EventCreateOutputSerializer(event)
+        response_serializer = CreateEventResponseSerializer(event)
         return Response(response_serializer.data, status=201)
 
     
