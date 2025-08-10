@@ -3,7 +3,7 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView,
 from config.pagination import CustomPagination
 from eventos.errors.application_messages import VACANCY_NOT_FOUND
 from eventos.models.vacancy import Vacancy
-from eventos.serializers.vacancy import ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
+from eventos.serializers.vacancy import EmployerEventsWithVacanciesSerializer, ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from eventos.services.vacancy_list_service import VacancyListService
@@ -12,13 +12,7 @@ from user_auth.permissions import IsInGroup
 from rest_framework.response import Response
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from rest_framework.exceptions import NotFound
-from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import NotFound
 from eventos.models.event import Event
-from eventos.serializers.list_vacancy import EventWithVacanciesSerializer
-from user_auth.permissions import IsInGroup
-from user_auth.constants import EMPLOYER_ROLE
 
 
 class CreateVacancyView(CreateAPIView):
@@ -148,7 +142,7 @@ class VacancyDetailView(RetrieveAPIView):
             raise NotFound(detail=VACANCY_NOT_FOUND)
 
 class EmployerEventsWithVacanciesView(ListAPIView):
-    serializer_class = EventWithVacanciesSerializer
+    serializer_class = EmployerEventsWithVacanciesSerializer
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
 
