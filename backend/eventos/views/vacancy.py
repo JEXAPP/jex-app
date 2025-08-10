@@ -3,7 +3,7 @@ from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView,
 from config.pagination import CustomPagination
 from eventos.errors.application_messages import VACANCY_NOT_FOUND
 from eventos.models.vacancy import Vacancy
-from eventos.serializers.vacancy import ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
+from eventos.serializers.vacancy import EmployerEventsWithVacanciesSerializer, ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from eventos.services.vacancy_list_service import VacancyListService
@@ -12,6 +12,7 @@ from user_auth.permissions import IsInGroup
 from rest_framework.response import Response
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from rest_framework.exceptions import NotFound
+from eventos.models.event import Event
 
 
 class CreateVacancyView(CreateAPIView):
@@ -139,3 +140,15 @@ class VacancyDetailView(RetrieveAPIView):
             return self.get_queryset().get(pk=self.kwargs['pk'])
         except Vacancy.DoesNotExist:
             raise NotFound(detail=VACANCY_NOT_FOUND)
+
+class EmployerEventsWithVacanciesView(ListAPIView):
+    serializer_class = EmployerEventsWithVacanciesSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def get_queryset(self):
+        user = self.request.user
+        return Event.objects.filter(owner=user).prefetch_related(
+            'vacancies__state',
+            'vacancies__job_type'
+        )

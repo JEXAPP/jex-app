@@ -2,7 +2,8 @@ from rest_framework import serializers
 from eventos.constants import JobTypesEnum, VacancyStates
 from eventos.errors.params_messages import INVALID_CHOICE, VALUE_MUST_BE_LIST_OF_INTS, VALUE_MUST_BE_NON_EMPTY_LIST, VALUE_MUST_BE_NON_EMPTY_STRING, VALUE_MUST_BE_VALID_DATE
 from eventos.errors.vacancies_messages import NO_PERMISSION_EVENT, SHIFTS_DATES_OUT_OF_EVENT, SHIFTS_TIMES_OUT_OF_EVENT, SPECIFIC_JOB_TYPE_NOT_ALLOWED, SPECIFIC_JOB_TYPE_REQUIRED
-from eventos.formatters.date_time import CustomDateField
+from eventos.formatters.date_time import CustomDateField, CustomTimeField
+from eventos.models.event import Event
 from eventos.models.shifts import Shift
 from eventos.models.vacancy import Vacancy
 from eventos.models.vacancy_state import VacancyState
@@ -222,3 +223,22 @@ class VacancyDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vacancy
         fields = ['id', 'description', 'specific_job_type', 'state', 'job_type', 'event', 'shifts', 'requirements']
+
+"""
+Serializer to list vacancies by employer
+"""
+
+class EmployerEventsWithVacanciesSerializer(serializers.ModelSerializer):
+    vacancies = VacancySerializer(many=True, read_only=True)
+    start_date = CustomDateField(read_only=True)
+    end_date = CustomDateField(read_only=True)
+    start_time = CustomTimeField(read_only=True)
+    end_time = CustomTimeField(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = [
+            'id', 'name', 'start_date', 'end_date', 
+            'start_time', 'end_time', 'location', 
+            'vacancies'
+        ]
