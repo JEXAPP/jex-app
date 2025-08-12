@@ -18,15 +18,22 @@ class CloudinarySignedUploadView(APIView):
             'folder': folder,
         }
 
+        api_secret = settings.CLOUDINARY_STORAGE.get('API_SECRET')
+        api_key = settings.CLOUDINARY_STORAGE.get('API_KEY')
+        cloud_name = settings.CLOUDINARY_STORAGE.get('CLOUD_NAME')
+
+        if not all([api_secret, api_key, cloud_name]):
+            return Response({"error": "Cloudinary credentials not configured"}, status=500)
+
         signature = cloudinary.utils.api_sign_request(
             params_to_sign,
-            settings.CLOUDINARY_API_SECRET
+            api_secret
         )
 
         return Response({
             'timestamp': timestamp,
             'signature': signature,
-            'api_key': settings.CLOUDINARY_API_KEY,
-            'cloud_name': settings.CLOUDINARY_CLOUD_NAME,
+            'api_key': api_key,
+            'cloud_name': cloud_name,
             'folder': folder,
         })
