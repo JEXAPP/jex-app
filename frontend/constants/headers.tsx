@@ -18,7 +18,7 @@ export const backHeader: NativeStackNavigationOptions = {
   ),
 };
 
-export const exitHeader = (to: `/`): NativeStackNavigationOptions => ({
+export const exitHeader = (to: `/` ): NativeStackNavigationOptions => ({
   title: '',
   headerTransparent: true,
   headerLeft: () => (

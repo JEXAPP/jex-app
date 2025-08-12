@@ -8,9 +8,11 @@ export const Colors = {
 
   // Paleta Gris
   gray1: '#F3F3F3',
-  gray2: '#DEDEDE',
+  gray12: 'rgba(214, 213, 213, 1)',
+  gray2: '#afa9a9ff',
   gray3: '#5D5C5C',
 
+  // Otros
   red: '#ad1b1bff',
   green: '#407521ff',
   white: '#ffffff',
