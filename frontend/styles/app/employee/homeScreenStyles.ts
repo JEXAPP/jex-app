@@ -1,12 +1,10 @@
-// screens/HomeScreenEmployee/homeScreenEmployee.styles.ts
-
 import { Colors } from '@/themes/colors';
 import { StyleSheet } from 'react-native';
 
 export const homeScreenEmployeeStyles = StyleSheet.create({
   container: {
-    flexGrow: 1,          // Para ScrollView con contentContainerStyle
-    paddingVertical: 24,
+    flexGrow: 1,          
+    paddingVertical: 10,
     paddingHorizontal: 20,
     backgroundColor:Colors.gray1,
   },
@@ -15,7 +13,7 @@ export const homeScreenEmployeeStyles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 24,
-    marginTop: 24,
+    marginTop: 34,
   },
   jexBanner: {
     width: 120,

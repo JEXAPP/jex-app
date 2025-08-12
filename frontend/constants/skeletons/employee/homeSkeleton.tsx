@@ -1,87 +1,67 @@
-// // src/components/skeletons/HomeSkeleton.tsx
-// import React from 'react';
-// import { Dimensions } from 'react-native';
-// import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-// import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import { View } from 'react-native';
+import { MotiView } from 'moti';
+import { Borders } from '@/themes/borders';
 
-// const { width } = Dimensions.get('window');
+const SkeletonBox = ({w,h,br = 8,mt = 0,ml = 0,mr = 0,}: {w: number;h: number;br?: number;mt?: number;ml?: number;mr?: number;}) => (
+  <MotiView
+    style={{
+      width: w,
+      height: h,
+      borderRadius: br,
+      marginTop: mt,
+      marginLeft: ml,
+      marginRight: mr,
+      backgroundColor: '#E1E9EE',
+    }}
+    from={{ opacity: 0.4 }}
+    animate={{ opacity: 1 }}
+    transition={{
+      type: 'timing',
+      duration: 800,
+      loop: true,
+    }}
+  />
+);
 
-// export default function HomeSkeleton() {
-//   return (
-//     <SkeletonPlaceholder
-//       backgroundColor="#E1E9EE"
-//       highlightColor="#F2F8FC"
-//       speed={1200}
-//     >
-//       {/* 🔹 Barra de búsqueda */}
-//       <SkeletonPlaceholder.Item
-//         marginTop={20}
-//         marginHorizontal={16}
-//         width={width - 32}
-//         height={40}
-//         borderRadius={12}
-//       />
+export default function HomeSkeleton() {
+  return (
+    <View style={{ alignItems: 'center'}}>
+      {/* 🔹 Barra de búsqueda */}
+      <SkeletonBox w={350} h={45} br={Borders.soft} mt={10}/>
 
-//       {/* 🔹 Banner principal */}
-//       <SkeletonPlaceholder.Item
-//         marginTop={20}
-//         marginHorizontal={16}
-//         width={width - 32}
-//         height={120}
-//         borderRadius={12}
-//       />
+      {/* 🔹 Banner principal */}
+      <SkeletonBox w={350} h={195} br={Borders.soft} mt={35} />
 
-//       {/* 🔹 Sección: Según tus intereses */}
-//       <SkeletonPlaceholder.Item marginTop={30} marginLeft={16}>
-//         <SkeletonPlaceholder.Item width={180} height={20} borderRadius={4} />
-//       </SkeletonPlaceholder.Item>
+      {/* 🔹 Sección: Según tus intereses */}
+      <View style={{alignItems: 'flex-start', alignSelf:'flex-start'}}>
+        <SkeletonBox w={180} h={20} br={Borders.soft} mt={45} />
+        <View style={{ flexDirection: 'row', marginTop: 16}}>
+          {[...Array(2)].map((_, i) => (
+            <View key={i} style={{ marginRight: 50 }}>
+              <SkeletonBox w={140} h={140} br={Borders.soft} />
+              <SkeletonBox w={100} h={15} br={Borders.soft} mt={8} />
+              <SkeletonBox w={80} h={15} br={Borders.soft} mt={8} />
+              <SkeletonBox w={60} h={15} br={Borders.soft} mt={8} />
+            </View>
+          ))}
+        </View>
+      </View>
 
-//       <SkeletonPlaceholder.Item
-//         flexDirection="row"
-//         marginTop={16}
-//         marginLeft={16}
-//       >
-//         {[...Array(3)].map((_, index) => (
-//           <SkeletonPlaceholder.Item key={index} marginRight={16}>
-//             <SkeletonPlaceholder.Item width={100} height={100} borderRadius={12} />
-//             <SkeletonPlaceholder.Item
-//               width={100}
-//               height={15}
-//               borderRadius={4}
-//               marginTop={8}
-//             />
-//             <SkeletonPlaceholder.Item
-//               width={80}
-//               height={15}
-//               borderRadius={4}
-//               marginTop={6}
-//             />
-//           </SkeletonPlaceholder.Item>
-//         ))}
-//       </SkeletonPlaceholder.Item>
-
-//       {/* 🔹 Sección: Cerca de tu zona */}
-//       <SkeletonPlaceholder.Item marginTop={30} marginLeft={16}>
-//         <SkeletonPlaceholder.Item width={160} height={20} borderRadius={4} />
-//       </SkeletonPlaceholder.Item>
-
-//       <SkeletonPlaceholder.Item
-//         flexDirection="row"
-//         marginTop={16}
-//         marginLeft={16}
-//       >
-//         {[...Array(3)].map((_, index) => (
-//           <SkeletonPlaceholder.Item key={index} marginRight={16}>
-//             <SkeletonPlaceholder.Item width={100} height={100} borderRadius={12} />
-//             <SkeletonPlaceholder.Item
-//               width={100}
-//               height={15}
-//               borderRadius={4}
-//               marginTop={8}
-//             />
-//           </SkeletonPlaceholder.Item>
-//         ))}
-//       </SkeletonPlaceholder.Item>
-//     </SkeletonPlaceholder>
-//   );
-// }
+      {/* 🔹 Sección: Cerca de tu zona */}
+      <View style={{alignItems: 'flex-start', alignSelf:'flex-start'}}>
+        <SkeletonBox w={180} h={20} br={Borders.soft} mt={45} />
+        <View style={{ flexDirection: 'row', marginTop: 16}}>
+          {[...Array(2)].map((_, i) => (
+            <View key={i} style={{ marginRight: 50 }}>
+              <SkeletonBox w={140} h={140} br={Borders.soft} />
+              <SkeletonBox w={100} h={15} br={Borders.soft} mt={8} />
+              <SkeletonBox w={80} h={15} br={Borders.soft} mt={8} />
+              <SkeletonBox w={60} h={15} br={Borders.soft} mt={8} />
+            </View>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
