@@ -12,7 +12,7 @@ class ImageType(models.TextChoices):
 
 class Image(models.Model):
     url = models.URLField()
-    public_id = models.CharField(max_length=255)
+    public_id = models.CharField(max_length=255, unique=True)
     type = models.CharField(max_length=10, choices=ImageType.choices)
     uploaded_by = models.ForeignKey('user_auth.CustomUser', on_delete=models.CASCADE, related_name='images')
     uploaded_at = models.DateTimeField(auto_now_add=True)
