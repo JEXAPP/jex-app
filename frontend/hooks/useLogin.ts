@@ -168,7 +168,7 @@ export const useLogin = () => {
   // Navega al registro normal (no por Google)
   const handleNavigateToRegister = async () => {
     await SecureStore.setItemAsync('desde-google', 'false');
-    router.push('/auth/register');
+    router.push('/employee/offers/check-offers');
   };
 
   // Navega a la pantalla para recuperar contraseña

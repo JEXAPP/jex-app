@@ -4,6 +4,9 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Octicons from '@expo/vector-icons/Octicons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { TouchableOpacity } from 'react-native';
+import React from 'react';
+import { Colors } from '@/themes/colors';
+
 
 export const iconos = {
   error: (size: number, color: string) => (
@@ -35,8 +38,15 @@ export const iconos = {
   ordenar: (size: number, color: string) => (
     <MaterialIcons name="sort-by-alpha" size={size} color={color}/>
   ),
+  lista: (size = 24, color = Colors.black) => (
+    <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color} />
+  ),
+
   exitoSinCirculo: (size: number, color: string) => (
     <Octicons name="check" size={size} color={color} />
+  ),
+  reloj: (size: number, color: string) => (
+    <Octicons name="clock" size={size} color={color} />
   ),
   error_outline: (size: number, color: string) => (
     <MaterialIcons name="error-outline" size={size} color={color} />
