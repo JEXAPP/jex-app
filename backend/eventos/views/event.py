@@ -1,39 +1,33 @@
-from django.utils import timezone
-from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView
-from django.db.models import Q
-from rest_framework import permissions
-from eventos.serializers.event import EventSerializer
+from rest_framework.generics import CreateAPIView
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer
+from user_auth.constants import EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
-from eventos.models.event import Event
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 
 class CreateEventView(CreateAPIView):
-    serializer_class = EventSerializer
-    permission_classes = [IsInGroup]
-    required_groups = ["employer"]
+    """
+    Crea un evento para el empleador autenticado.
+    """
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = CreateEventSerializer
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['user'] = self.request.user
+        return context
 
-class EventListView(ListAPIView):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    def create(self, request, *args, **kwargs):
+        """
+        Sobrescribimos para devolver el serializer de salida.
+        """
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        event = serializer.save(owner=request.user)
 
+        response_serializer = CreateEventResponseSerializer(event)
+        return Response(response_serializer.data, status=201)
 
-class EventDetailView(RetrieveAPIView):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class UpcomingEventsView(ListAPIView):
-    serializer_class = EventSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        now = timezone.localtime()
-        today = now.date()
-        current_time = now.time()
-
-        return Event.objects.filter(
-            Q(start_date__gt=today) | 
-            Q(start_date=today, start_time__gte=current_time)
-        )
+    
