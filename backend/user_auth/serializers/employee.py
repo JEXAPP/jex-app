@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from eventos.models.job_types import JobType
-from eventos.serializers.job_types import ListJobTypesSerializer
+from vacancies.models.job_types import JobType
+from vacancies.serializers.job_types import ListJobTypesSerializer
 from media_utils.models import Image, ImageType
 from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.user import CustomUser
-from user_auth.models.employee import EmployeeProfile # CAMBIAR ESTO
+from user_auth.models.employee import EmployeeProfile
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from django.db.models import Q
