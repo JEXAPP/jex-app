@@ -74,7 +74,7 @@ class ListVacancyShiftView(ListAPIView):
         if category == 'interests':
             return VacancyListService.filter_by_interests(base_qs, user)
         elif category == 'soon':
-            return VacancyListService.filter_by_soon()
+            return VacancyListService.filter_by_soon(base_qs)
         elif category == 'nearby':
             result = VacancyListService.filter_by_nearby(base_qs, user)
             if isinstance(result, list):

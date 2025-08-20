@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from vacancies.constants import JobTypesEnum, VacancyStates
 from vacancies.errors.params_messages import INVALID_CHOICE, VALUE_MUST_BE_LIST_OF_INTS, VALUE_MUST_BE_NON_EMPTY_LIST, VALUE_MUST_BE_NON_EMPTY_STRING, VALUE_MUST_BE_VALID_DATE
-from vacancies.errors.vacancies_messages import NO_PERMISSION_EVENT, SHIFTS_DATES_OUT_OF_EVENT, SHIFTS_TIMES_OUT_OF_EVENT, SPECIFIC_JOB_TYPE_NOT_ALLOWED, SPECIFIC_JOB_TYPE_REQUIRED
+from vacancies.errors.vacancies_messages import NO_PERMISSION_EVENT, SHIFTS_DATES_OUT_OF_EVENT, SHIFTS_END_TIME_BEFORE_EVENT_END_TIME, SHIFTS_START_DATE_BEFORE_END_DATE, SHIFTS_START_TIME_AFTER_EVENT_START_TIME, SHIFTS_START_TIME_BEFORE_END_TIME, SHIFTS_TIMES_OUT_OF_EVENT, SPECIFIC_JOB_TYPE_NOT_ALLOWED, SPECIFIC_JOB_TYPE_REQUIRED
 from vacancies.formatters.date_time import CustomDateField, CustomTimeField
 from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
@@ -53,7 +53,7 @@ class VacancySerializer(serializers.ModelSerializer):
         event = data.get('event')
         user = self.context.get('user')
         if event and event.owner != user:
-            raise serializers.ValidationError({"event": NO_PERMISSION_EVENT})
+            raise serializers.ValidationError(NO_PERMISSION_EVENT)
 
     def _validate_shifts(self, data):
         event = data.get('event')
@@ -66,25 +66,59 @@ class VacancySerializer(serializers.ModelSerializer):
         event_start_time = event.start_time
         event_end_time = event.end_time
 
-        for shift in shifts:
+        for i, shift in enumerate(shifts):
             if shift['start_date'] < event_start or shift['end_date'] > event_end:
-                raise serializers.ValidationError({
-                    "shifts": SHIFTS_DATES_OUT_OF_EVENT.format(
+                raise serializers.ValidationError(
+                    SHIFTS_DATES_OUT_OF_EVENT.format(
                         start_date=shift['start_date'], 
                         end_date=shift['end_date'], 
                         event_start=event_start, 
                         event_end=event_end
                     )
-                })
-            if shift['start_time'] < event_start_time or shift['end_time'] > event_end_time:
-                raise serializers.ValidationError({
-                    "shifts": SHIFTS_TIMES_OUT_OF_EVENT.format(
-                        start_time=shift['start_time'], 
-                        end_time=shift['end_time'], 
-                        event_start_time=event_start_time, 
-                        event_end_time=event_end_time
+                )
+
+            if shift['start_date'] > shift['end_date']:
+                raise serializers.ValidationError(
+                    f"Turno {i+1}: La fecha de inicio debe ser anterior o igual a la fecha de fin"
+                )
+
+            if shift['start_date'] == shift['end_date']:
+                if shift['start_time'] >= shift['end_time']:
+                    raise serializers.ValidationError(
+                        f"Turno {i+1}: En turnos del mismo día, la hora de inicio debe ser anterior a la hora de fin"
                     )
-                })
+
+            if shift['start_date'] == shift['end_date']:
+                if (shift['start_time'] < event_start_time or 
+                    shift['end_time'] > event_end_time):
+                    raise serializers.ValidationError(
+                        f"Turno {i+1}: El horario {shift['start_time']}-{shift['end_time']} "
+                        f"está fuera del horario del evento ({event_start_time}-{event_end_time})"
+                    )
+            else:
+                self._validate_multi_day_shift(shift, event_start_time, event_end_time, i+1)
+
+    def _validate_multi_day_shift(self, shift, event_start_time, event_end_time, shift_number):
+        """
+        Valida turnos que abarcan múltiples días
+        """
+
+        if shift['start_time'] < event_start_time:
+            raise serializers.ValidationError(
+                SHIFTS_START_TIME_AFTER_EVENT_START_TIME.format(
+                    shift_number=shift_number,
+                    shift_start_time=shift['start_time'],
+                    event_start_time=event_start_time)
+                )
+        
+        if shift['end_time'] > event_end_time:
+            raise serializers.ValidationError(
+                SHIFTS_END_TIME_BEFORE_EVENT_END_TIME.format(
+                    shift_number=shift_number,
+                    shift_end_time=shift['end_time'],
+                    event_end_time=event_end_time
+                )
+            )
 
     def _validate_job_type(self, data):
         job_type = data.get('job_type')
@@ -92,14 +126,14 @@ class VacancySerializer(serializers.ModelSerializer):
         otro = JobTypesEnum.OTRO.value
 
         if job_type and job_type.name == otro and not specific:
-            raise serializers.ValidationError({"specific_job_type": SPECIFIC_JOB_TYPE_REQUIRED})
+            raise serializers.ValidationError(SPECIFIC_JOB_TYPE_REQUIRED)
         elif specific and (not job_type or job_type.name != otro):
-            raise serializers.ValidationError({"specific_job_type": SPECIFIC_JOB_TYPE_NOT_ALLOWED})
+            raise serializers.ValidationError(SPECIFIC_JOB_TYPE_NOT_ALLOWED)
 
     def create(self, validated_data):
         requirements = validated_data.pop('requirements', [])
         shifts = validated_data.pop('shifts', [])
-        validated_data['state'] = VacancyState.objects.get(name=VacancyStates.DRAFT.value)
+        validated_data['state'] = VacancyState.objects.get(name=VacancyStates.ACTIVE.value)
 
         with transaction.atomic():
             vacancy = Vacancy.objects.create(**validated_data)

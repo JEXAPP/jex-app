@@ -17,12 +17,12 @@ class EmployerRegisterSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email is already in use.")
+            raise serializers.ValidationError("El email ya esta en uso")
         return value
     
     def validate_phone(self, value):
         if CustomUser.objects.filter(phone=value).exists():
-            raise serializers.ValidationError("Phone is already in use.")
+            raise serializers.ValidationError("El telefono ya esta en uso")
         return value
 
     def create(self, validated_data):
@@ -61,13 +61,13 @@ class CompleteEmployerSocialSerializer(serializers.Serializer):
         user = self.context['request'].user
 
         if not user.is_authenticated:
-            raise serializers.ValidationError("User must be authenticated.")
+            raise serializers.ValidationError("El usuario debe estar autenticado")
 
         if hasattr(user, 'employer_profile'):
-            raise serializers.ValidationError("Employer profile is already completed.")
+            raise serializers.ValidationError("El perfil de empresa ya esta completado")
         
         if CustomUser.objects.filter(Q(phone=data['phone']) & ~Q(id=user.id)).exists():
-            raise serializers.ValidationError("Phone is already in use.")
+            raise serializers.ValidationError("El telefono ya esta en uso")
 
         return data
 

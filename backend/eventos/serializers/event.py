@@ -82,3 +82,8 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ['id', 'name', 'description', 'owner', 'category', 'state']
+
+class ListActiveEventsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ['id', 'name']
