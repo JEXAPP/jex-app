@@ -17,6 +17,7 @@ class OfferConfirmation(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     additional_comments = models.TextField(blank=True)
     requirements = models.ManyToManyField('vacancies.Requirements', blank=True)
+    rejected = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Confirmación de oferta #{self.offer.id} por {self.confirmed_by}"
