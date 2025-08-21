@@ -142,14 +142,26 @@ class SearchVacancyView(ListAPIView):
     def get_queryset(self):
         params_data = {
             'choice': self.request.query_params.get('choice'),
-            'value': self.request.query_params.get('value')
+            'value': self.request.query_params.get('value'),
+            'date_from': self.request.query_params.get('date_from'),
+            'date_to': self.request.query_params.get('date_to'),
+            'order_by': self.request.query_params.get('order_by')
         }
+        if self.request.query_params.get('value'):
+            params_data['value'] = self.request.query_params.get('value')
+        if self.request.query_params.get('date_from'):
+            params_data['date_from'] = self.request.query_params.get('date_from')
+        if self.request.query_params.get('date_to'):
+            params_data['date_to'] = self.request.query_params.get('date_to')
         serializer = SearchVacancyParamsSerializer(data=params_data)
         serializer.is_valid(raise_exception=True)
         validated = serializer.validated_data
 
         choice = validated['choice']
-        value = validated['value']
+        value = validated.get('value')
+        date_from = validated.get('date_from')
+        date_to = validated.get('date_to')
+
 
         qs = VacancySearchService.get_base_queryset()
 
@@ -157,10 +169,10 @@ class SearchVacancyView(ListAPIView):
             qs = VacancySearchService.filter_by_role(qs, value)
         elif choice == 'event':
             qs = VacancySearchService.filter_by_event(qs, value)
-        elif choice == 'start_date':
-            qs = VacancySearchService.filter_by_start_date(qs, value)
+        elif choice == 'date':
+            qs = VacancySearchService.filter_by_date_range(qs, date_from, date_to)
 
-        order_key = self.request.query_params.get('order_by')
+        order_key = validated.get('order_by')
         qs = VacancySearchService.order_queryset(qs, order_key)
 
         return qs

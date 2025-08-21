@@ -162,17 +162,18 @@ Serializer to search vacancies
 
 class SearchVacancyParamsSerializer(serializers.Serializer):
     """Serializador para validar parámetros de búsqueda de vacantes"""
-    
+
     CHOICE_OPTIONS = [
         ('role', 'Role'),
         ('event', 'Event'), 
         ('date', 'Date'),
     ]
-    
+
+
     choice = serializers.ChoiceField(choices=CHOICE_OPTIONS, required=True)
-    value = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    date_from = serializers.DateField(required=False, input_formats=['%d/%m/%Y'])
-    date_to = serializers.DateField(required=False, input_formats=['%d/%m/%Y'])
+    value = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+    date_from = serializers.DateField(required=False, allow_null=True, input_formats=['%d/%m/%Y'])
+    date_to = serializers.DateField(required=False, allow_null=True, input_formats=['%d/%m/%Y'])
     order_by = serializers.CharField(max_length=50, required=False, allow_blank=True)
 
     def validate(self, data):
@@ -187,24 +188,28 @@ class SearchVacancyParamsSerializer(serializers.Serializer):
                     f"'value' parameter is required when choice is '{choice}'"
                 )
         elif choice == 'date':
-            if not date_from or not date_to:
+            if not date_from:
                 raise serializers.ValidationError(
-                    "'date_from' and 'date_to' parameters are required when choice is 'date'"
+                    "'date_from' parameter is required when choice is 'date'"
                 )
-            if date_from > date_to:
+            
+            # Si no se proporciona date_to, usar la misma fecha que date_from (búsqueda de un solo día)
+            if not date_to:
+                data['date_to'] = date_from
+            elif date_from > date_to:
                 raise serializers.ValidationError(
                     "'date_from' cannot be greater than 'date_to'"
                 )
 
         return data
-
-class SearchVacancyResultSerializer(serializers.ModelSerializer):
     
+class SearchVacancyResultSerializer(serializers.ModelSerializer):
+
     event_name = serializers.CharField(source='event.name', read_only=True)
     start_date = serializers.SerializerMethodField()
     payment = serializers.SerializerMethodField()
     job_type = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Vacancy
         fields = [
@@ -214,21 +219,21 @@ class SearchVacancyResultSerializer(serializers.ModelSerializer):
             'payment',
             'job_type'
         ]
-    
+
     def get_start_date(self, obj):
         """Obtiene la fecha de inicio del turno con mejor pago"""
         best_shift = obj.shifts.order_by('-payment', 'start_date').first()
         if best_shift:
             return best_shift.start_date.strftime('%d/%m/%Y')
         return None
-    
+
     def get_payment(self, obj):
         """Obtiene el mejor pago de todos los turnos"""
         best_shift = obj.shifts.order_by('-payment').first()
         if best_shift:
             return float(best_shift.payment)
         return None
-    
+
     def get_job_type(self, obj):
         """Obtiene el nombre del rol, priorizando job_type sobre specific_job_type"""
         if obj.job_type:
