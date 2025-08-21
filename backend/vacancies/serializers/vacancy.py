@@ -161,56 +161,79 @@ Serializer to search vacancies
 """
 
 class SearchVacancyParamsSerializer(serializers.Serializer):
-    choice = serializers.ChoiceField(choices=['role', 'event', 'start_date'])
-    value = serializers.JSONField()
+    """Serializador para validar parámetros de búsqueda de vacantes"""
+    
+    CHOICE_OPTIONS = [
+        ('role', 'Role'),
+        ('event', 'Event'), 
+        ('date', 'Date'),
+    ]
+    
+    choice = serializers.ChoiceField(choices=CHOICE_OPTIONS, required=True)
+    value = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    date_from = serializers.DateField(required=False, input_formats=['%d/%m/%Y'])
+    date_to = serializers.DateField(required=False, input_formats=['%d/%m/%Y'])
+    order_by = serializers.CharField(max_length=50, required=False, allow_blank=True)
 
     def validate(self, data):
-        choice = data['choice']
-        value = data['value']
+        choice = data.get('choice')
+        value = data.get('value')
+        date_from = data.get('date_from')
+        date_to = data.get('date_to')
 
-        if choice == 'role':
-            # Debe ser una lista con uno o más enteros
-            if not isinstance(value, list) or not all(isinstance(i, int) for i in value):
-                raise serializers.ValidationError({'value': VALUE_MUST_BE_LIST_OF_INTS})
+        if choice in ['role', 'event']:
             if not value:
-                raise serializers.ValidationError({'value': VALUE_MUST_BE_NON_EMPTY_LIST})
-        elif choice == 'event':
-            if not isinstance(value, str) or not value.strip():
-                raise serializers.ValidationError({
-                    'value': VALUE_MUST_BE_NON_EMPTY_STRING
-                })
-        elif choice == 'start_date':
-            try:
-                datetime.strptime(value, '%d/%m/%Y')
-            except (ValueError, TypeError):
-                raise serializers.ValidationError({
-                    'value': VALUE_MUST_BE_VALID_DATE
-                })
-        else:
-            raise serializers.ValidationError({'choice': INVALID_CHOICE})
+                raise serializers.ValidationError(
+                    f"'value' parameter is required when choice is '{choice}'"
+                )
+        elif choice == 'date':
+            if not date_from or not date_to:
+                raise serializers.ValidationError(
+                    "'date_from' and 'date_to' parameters are required when choice is 'date'"
+                )
+            if date_from > date_to:
+                raise serializers.ValidationError(
+                    "'date_from' cannot be greater than 'date_to'"
+                )
 
         return data
 
 class SearchVacancyResultSerializer(serializers.ModelSerializer):
-    event = serializers.CharField(source='event.name', read_only=True)
-    job_type = serializers.CharField(source='job_type.name', read_only=True)
-    specific_job_type = serializers.CharField(read_only=True)
-    payment = serializers.SerializerMethodField()
+    
+    event_name = serializers.CharField(source='event.name', read_only=True)
     start_date = serializers.SerializerMethodField()
-
+    payment = serializers.SerializerMethodField()
+    job_type = serializers.SerializerMethodField()
+    
     class Meta:
         model = Vacancy
-        fields = ['id', 'event', 'job_type', 'specific_job_type', 'payment', 'start_date']
-
-    def get_payment(self, obj):
-        top_shift = obj.shifts.order_by('-payment').first()
-        return top_shift.payment if top_shift else None
-
+        fields = [
+            'id',
+            'event_name',
+            'start_date', 
+            'payment',
+            'job_type'
+        ]
+    
     def get_start_date(self, obj):
-        top_shift = obj.shifts.order_by('start_date').first()
-        if top_shift and top_shift.start_date:
-            return top_shift.start_date.strftime('%d/%m/%Y')
+        """Obtiene la fecha de inicio del turno con mejor pago"""
+        best_shift = obj.shifts.order_by('-payment', 'start_date').first()
+        if best_shift:
+            return best_shift.start_date.strftime('%d/%m/%Y')
         return None
+    
+    def get_payment(self, obj):
+        """Obtiene el mejor pago de todos los turnos"""
+        best_shift = obj.shifts.order_by('-payment').first()
+        if best_shift:
+            return float(best_shift.payment)
+        return None
+    
+    def get_job_type(self, obj):
+        """Obtiene el nombre del rol, priorizando job_type sobre specific_job_type"""
+        if obj.job_type:
+            return obj.job_type.name
+        return obj.specific_job_type if obj.specific_job_type else None
        
 
 """
