@@ -79,13 +79,13 @@ class VacancySerializer(serializers.ModelSerializer):
 
             if shift['start_date'] > shift['end_date']:
                 raise serializers.ValidationError(
-                    f"Turno {i+1}: La fecha de inicio debe ser anterior o igual a la fecha de fin"
+                    SHIFTS_START_DATE_BEFORE_END_DATE
                 )
 
             if shift['start_date'] == shift['end_date']:
                 if shift['start_time'] >= shift['end_time']:
                     raise serializers.ValidationError(
-                        f"Turno {i+1}: En turnos del mismo día, la hora de inicio debe ser anterior a la hora de fin"
+                        SHIFTS_START_TIME_BEFORE_END_TIME
                     )
 
             if shift['start_date'] == shift['end_date']:
@@ -133,7 +133,7 @@ class VacancySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         requirements = validated_data.pop('requirements', [])
         shifts = validated_data.pop('shifts', [])
-        validated_data['state'] = VacancyState.objects.get(name=VacancyStates.ACTIVE.value)
+        validated_data['state'] = VacancyState.objects.get(name=VacancyStates.DRAFT.value)
 
         with transaction.atomic():
             vacancy = Vacancy.objects.create(**validated_data)
