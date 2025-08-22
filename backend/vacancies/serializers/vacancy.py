@@ -239,19 +239,21 @@ class SearchVacancyParamsSerializer(serializers.Serializer):
     
 class SearchVacancyResultSerializer(serializers.ModelSerializer):
 
+    vacancy_id = serializers.IntegerField(source='id')
     event_name = serializers.CharField(source='event.name', read_only=True)
     start_date = serializers.SerializerMethodField()
     payment = serializers.SerializerMethodField()
-    job_type = serializers.SerializerMethodField()
+    job_type_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Vacancy
         fields = [
-            'id',
+            'vacancy_id',
             'event_name',
             'start_date', 
             'payment',
-            'job_type'
+            'job_type_name',
+            'specific_job_type'
         ]
 
     def get_start_date(self, obj):
@@ -268,7 +270,7 @@ class SearchVacancyResultSerializer(serializers.ModelSerializer):
             return float(best_shift.payment)
         return None
 
-    def get_job_type(self, obj):
+    def get_job_type_name(self, obj):
         """Obtiene el nombre del rol, priorizando job_type sobre specific_job_type"""
         if obj.job_type:
             return obj.job_type.name
