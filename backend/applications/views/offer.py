@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from applications.models.applications import Application
-from applications.serializers.offer import ApplicationDetailSerializer, OfferCreateSerializer, OfferConsultSerializer
+from applications.serializers.offer import ApplicationDetailSerializer, OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer
 from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,6 +18,7 @@ class ApplicationDetailView(APIView):
 
         serializer = ApplicationDetailSerializer(application)
         return Response(serializer.data)
+    
 class OfferCreateView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
@@ -51,3 +52,18 @@ class OfferConsultView(APIView):
 
         serializer = OfferConsultSerializer(active_offers, many=True)
         return Response(serializer.data)
+
+class DecideOfferView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, offer_id):
+        try:
+            offer = Offer.objects.get(id=offer_id)
+        except Offer.DoesNotExist:
+            return Response({'error': 'La oferta no existe.'}, status=404)
+
+        serializer = OfferDecisionSerializer(offer, data=request.data, context={'user': request.user}, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Decisión registrada correctamente.'})
+        return Response(serializer.errors, status=400)

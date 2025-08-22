@@ -4,9 +4,9 @@ from applications.models.offers import Offer
 from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
 from rest_framework import serializers
-from datetime import timedelta
 from datetime import datetime
-from vacancies.models.requirements import Requirements
+from django.utils import timezone
+
 
 
 class EmployeeProfileDetailSerializer(serializers.ModelSerializer):
@@ -62,10 +62,11 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
 class OfferCreateSerializer(serializers.ModelSerializer):
     additional_comments = serializers.CharField(required=False)
     expiration_date = serializers.CharField(required=False)
+    expiration_time = serializers.TimeField(required=False)
 
     class Meta:
         model = Offer
-        fields = ['additional_comments', 'expiration_date']
+        fields = ['additional_comments', 'expiration_date', 'expiration_time']
 
     def create(self, validated_data):
         user = self.context['user']
@@ -74,22 +75,22 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         try:
             application = Application.objects.select_related(
                 'employee__user',
-                'shift__vacancy__event'
+                'shift__vacancy__event',
+                'shift__vacancy__job_type'
             ).get(id=application_id)
         except Application.DoesNotExist:
             raise serializers.ValidationError("La postulación no existe.")
 
         owner_user = application.shift.vacancy.event.owner
-
         if owner_user != user:
             raise serializers.ValidationError("No tenés permiso para crear esta oferta.")
 
         try:
-            employeer = EmployerProfile.objects.get(user=owner_user)
+            employer = EmployerProfile.objects.get(user=owner_user)
         except EmployerProfile.DoesNotExist:
             raise serializers.ValidationError("El empleador no tiene perfil asociado.")
 
-        # Parsear la fecha si fue enviada
+        # Parsear fecha
         expiration_date_str = validated_data.get('expiration_date')
         expiration_date = None
         if expiration_date_str:
@@ -100,140 +101,81 @@ class OfferCreateSerializer(serializers.ModelSerializer):
                     'expiration_date': 'Formato inválido. Usá DD/MM/YYYY.'
                 })
 
-        offer = Offer.objects.create(
-            additional_comments=validated_data.get('additional_comments', ''),
-            expiration_date=expiration_date,
-            application=application,
-            employee=application.employee,
-            employer=employeer
-        )
+        shift = application.shift
+        vacancy = shift.vacancy
+        event = vacancy.event
 
-        # Asignar el turno de la aplicación como único turno de la oferta
-        offer.shifts.add(application.shift)
-        offer.selected_shift = application.shift
-        offer.save()
+        # Armar comentario con info del turno
+        shift_info = f"Fecha: {shift.start_date.strftime('%d/%m/%Y')}, " \
+                     f"Inicio: {shift.start_time.strftime('%H:%M')}, " \
+                     f"Fin: {shift.end_time.strftime('%H:%M')}"
+        user_comment = validated_data.get('additional_comments', '')
+        combined_comments = f"{user_comment}\n{shift_info}".strip()
+
+        # Armar resumen de requisitos (solo descripción)
+        requirements = vacancy.requirements.all()
+        requirements_text = "; ".join([r.description for r in requirements]) if requirements.exists() else None
+
+        # Crear la oferta
+        offer = Offer.objects.create(
+    additional_comments=combined_comments,
+    expiration_date=expiration_date,
+    expiration_time=validated_data.get('expiration_time'),
+    application=application,
+    employee=application.employee,
+    employer=employer,
+    selected_shift=shift,
+    job_type=vacancy.job_type.name if vacancy.job_type else None,
+    shift_date=shift.start_date,
+    start_time=shift.start_time,
+    end_time=shift.end_time,
+    location=event.location,
+    latitude=event.latitude,
+    longitude=event.longitude,
+    salary=shift.payment,
+    company_name=employer.company_name,
+    requeriments=requirements_text,  # ← corregido
+    status="pending"
+)
 
         return offer
 
-    
-
-
 class OfferConsultSerializer(serializers.ModelSerializer):
-    job_type = serializers.SerializerMethodField()
-    fecha_turno = serializers.SerializerMethodField()
-    hora_inicio = serializers.SerializerMethodField()
-    hora_fin = serializers.SerializerMethodField()
-    copant_name = serializers.SerializerMethodField()
-    vencimiento = serializers.SerializerMethodField()
-    location = serializers.SerializerMethodField()
-    latitude = serializers.SerializerMethodField()
-    longitude = serializers.SerializerMethodField()
-    additional_comments = serializers.SerializerMethodField()
-    requirements = serializers.SerializerMethodField()
-    event_name = serializers.SerializerMethodField()
+    class Meta:
+        model = Offer
+        fields = '__all__'  # ← incluye todos los campos definidos en el modelo
+
+class OfferDecisionSerializer(serializers.ModelSerializer):
+    rejected = serializers.BooleanField()
+    rejection_reason = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Offer
-        fields = [
-            'id',
-            'job_type',
-            'fecha_turno',
-            'hora_inicio',
-            'hora_fin',
-            'copant_name',
-            'vencimiento',
-            'location',
-            'latitude',
-            'longitude',
-            'additional_comments',
-            'requirements',
-            'event_name',
-        ]
+        fields = ['rejected', 'rejection_reason']
 
-    def get_job_type(self, obj):
-        try:
-            return obj.application.shift.vacancy.job_type.name
-        except AttributeError:
-            return None
+    def validate(self, attrs):
+        if attrs.get('rejected') and not attrs.get('rejection_reason'):
+            raise serializers.ValidationError({
+                'rejection_reason': 'Debés especificar un motivo de rechazo si rechazás la oferta.'
+            })
+        return attrs
 
-    def get_fecha_turno(self, obj):
-        try:
-            return obj.application.shift.start_date.strftime('%d/%m/%Y')
-        except AttributeError:
-            return None
+    def update(self, instance, validated_data):
+        user = self.context['user']
+        rejected = validated_data.get('rejected')
 
-    def get_hora_inicio(self, obj):
-        try:
-            return obj.application.shift.start_time.strftime('%H:%M')
-        except AttributeError:
-            return None
+        if instance.status != 'pending':
+            raise serializers.ValidationError("Solo se pueden modificar ofertas en estado 'pending'.")
 
-    def get_hora_fin(self, obj):
-        try:
-            return obj.application.shift.end_time.strftime('%H:%M')
-        except AttributeError:
-            return None
+        instance.confirmed_by = user
+        instance.confirmed_at = timezone.now()
 
+        if rejected:
+            instance.status = 'rejected'
+            instance.rejection_reason = validated_data.get('rejection_reason', '')
+        else:
+            instance.status = 'confirmed'
+            instance.rejection_reason = None
 
-    def get_copant_name(self, obj):
-        try:
-            owner_id = obj.application.shift.vacancy.event.owner_id
-            profile = EmployerProfile.objects.filter(user_id=owner_id).first()
-            return profile.company_name if profile else None
-        except AttributeError:
-            return None
-
-    
-    def get_vencimiento(self, obj):
-        try:
-            fecha_creacion = obj.created_at.date()
-            fecha_turno = obj.application.shift.start_date
-            vencimiento_default = fecha_creacion + timedelta(days=3)
-            vencimiento_final = min(vencimiento_default, fecha_turno)
-            return vencimiento_final.strftime('%d/%m/%Y')
-        except AttributeError:
-            return None
-
-    def get_location(self, obj):
-        try:
-            return obj.application.shift.vacancy.event.location
-        except AttributeError:
-            return None
-
-    def get_latitude(self, obj):
-        try:
-            return obj.application.shift.vacancy.event.latitude
-        except AttributeError:
-            return None
-
-    def get_longitude(self, obj):
-        try:
-            return obj.application.shift.vacancy.event.longitude
-        except AttributeError:
-            return None
-
-    def get_additional_comments(self, obj):
-        try:
-            return obj.additional_comments
-        except AttributeError:
-            return None
-
-    def get_requirements(self, obj):
-        try:
-            requirements = obj.application.shift.vacancy.requirements.all()
-            return RequirementSerializer(requirements, many=True).data
-        except AttributeError:
-            return None
-
-    def get_event_name(self, obj):
-        try:
-            return obj.application.shift.vacancy.event.name
-        except AttributeError:
-            return None
-        
-
-class RequirementSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Requirements
-        fields = ['id','description','vacancy_id']  # ajustá según tu modelo
-
+        instance.save()
+        return instance
