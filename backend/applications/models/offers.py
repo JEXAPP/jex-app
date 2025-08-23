@@ -5,6 +5,8 @@ from applications.models.applications import Application
 from vacancies.models.shifts import Shift
 from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
+from django.contrib.postgres.fields import ArrayField
+
 
 class Offer(models.Model):
     # 🔑 Identificadores y relaciones
@@ -37,8 +39,15 @@ class Offer(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
     salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    requeriments = models.TextField(max_length=255, null=True, blank=True)
+    #requeriments = models.TextField(max_length=255, null=True, blank=True)
+    requeriments = ArrayField(
+        models.CharField(max_length=255),
+        blank=True,
+        default=list,
+        help_text="Lista de requerimientos como strings"
+    )
 
+    
     # ❌ Rechazo y estado
     rejection_reason = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=20, null=True, blank=True)

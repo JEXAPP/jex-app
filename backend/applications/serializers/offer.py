@@ -114,28 +114,28 @@ class OfferCreateSerializer(serializers.ModelSerializer):
 
         # Armar resumen de requisitos (solo descripción)
         requirements = vacancy.requirements.all()
-        requirements_text = "; ".join([r.description for r in requirements]) if requirements.exists() else None
+        requirements_list = [r.description for r in requirements] if requirements.exists() else []
 
         # Crear la oferta
         offer = Offer.objects.create(
-    additional_comments=combined_comments,
-    expiration_date=expiration_date,
-    expiration_time=validated_data.get('expiration_time'),
-    application=application,
-    employee=application.employee,
-    employer=employer,
-    selected_shift=shift,
-    job_type=vacancy.job_type.name if vacancy.job_type else None,
-    shift_date=shift.start_date,
-    start_time=shift.start_time,
-    end_time=shift.end_time,
-    location=event.location,
-    latitude=event.latitude,
-    longitude=event.longitude,
-    salary=shift.payment,
-    company_name=employer.company_name,
-    requeriments=requirements_text,  # ← corregido
-    status="pending"
+            additional_comments=combined_comments,
+            expiration_date=expiration_date,
+            expiration_time=validated_data.get('expiration_time'),
+            application=application,
+            employee=application.employee,
+            employer=employer,
+            selected_shift=shift,
+            job_type=vacancy.job_type.name if vacancy.job_type else None,
+            shift_date=shift.start_date,
+            start_time=shift.start_time,
+            end_time=shift.end_time,
+            location=event.location,
+            latitude=event.latitude,
+            longitude=event.longitude,
+            salary=shift.payment,
+            company_name=employer.company_name,
+            requeriments=requirements_list,  # ← corregido
+            status="pending"
 )
 
         return offer
@@ -178,4 +178,4 @@ class OfferDecisionSerializer(serializers.ModelSerializer):
             instance.rejection_reason = None
 
         instance.save()
-        return instance
+        return instance 
