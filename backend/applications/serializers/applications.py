@@ -72,3 +72,37 @@ class ApplicationCreateSerializer(serializers.Serializer):
 
         return True
 
+
+class EmployeeProfileDetailSerializer(serializers.ModelSerializer):
+    is_user_active = serializers.SerializerMethodField()
+    full_name = serializers.CharField(source="user.get_full_name", read_only=True)
+
+    class Meta:
+        model = EmployeeProfile
+        fields = [
+            'full_name',
+            'is_user_active',
+            'description',
+        ]
+
+    def get_is_user_active(self, obj):
+        return obj.user.is_active if obj.user else False
+
+
+
+class ApplicationDetailSerializer(serializers.ModelSerializer):
+    employee = EmployeeProfileDetailSerializer()
+    payment = serializers.DecimalField(source="shift.payment", max_digits=10, decimal_places=2, read_only=True)
+    start_date = serializers.DateField(source="shift.start_date", format="%d/%m/%Y", read_only=True)
+    start_time = serializers.TimeField(source="shift.start_time", format="%H", read_only=True)
+    end_date = serializers.DateField(source="shift.end_date", format="%d/%m/%Y", read_only=True)
+    end_time = serializers.TimeField(source="shift.end_time", format="%H", read_only=True)
+
+    class Meta:
+        model = Application
+        fields = [
+            'employee',
+            'salary',
+            'start_date', 'start_time',
+            'end_date', 'end_time',
+        ]

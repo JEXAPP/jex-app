@@ -1,6 +1,6 @@
 from django.urls import path
-from applications.views.applications import ApplicationCreateView
-from applications.views.offer import ApplicationDetailView, OfferCreateView, OfferConsultView, DecideOfferView
+from applications.views.applications import ApplicationCreateView, ApplicationDetailView
+from applications.views.offer import  OfferCreateView, OfferConsultView, DecideOfferView
 
 
 urlpatterns = [

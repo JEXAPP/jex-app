@@ -1,74 +1,33 @@
 from rest_framework import serializers
+from applications.constants import OfferStates
+from applications.errors.application_messages import APPLICATION_NOT_FOUND, APPLICATION_PERMISSION_DENIED
+from applications.errors.offer_messages import EMPLOYER_PROFILE_NOT_FOUND, OFFER_NOT_PENDING, REJECTION_REASON_REQUIRED
 from applications.models.applications import Application
 from applications.models.offers import Offer
+from eventos.formatters.date_time import CustomDateField, CustomTimeField
+from eventos.serializers.event import EventSerializer
 from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
 from rest_framework import serializers
 from datetime import datetime
 from django.utils import timezone
 
+from vacancies.models.shifts import Shift
+from vacancies.models.vacancy import Vacancy
+from eventos.models.event import Event
+from vacancies.serializers.job_types import ListJobTypesSerializer
 
 
-class EmployeeProfileDetailSerializer(serializers.ModelSerializer):
-    is_user_active = serializers.SerializerMethodField()
-    full_name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = EmployeeProfile
-        fields = [
-            'full_name',
-            'is_user_active',
-            'description',
-        ]
-
-    def get_is_user_active(self, obj):
-        return obj.user.is_active
-
-    def get_full_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}"
-
-
-class ApplicationDetailSerializer(serializers.ModelSerializer):
-    employee = EmployeeProfileDetailSerializer()
-    sueldo = serializers.SerializerMethodField()
-    fecha_inicio = serializers.SerializerMethodField()
-    hora_inicio = serializers.SerializerMethodField()
-    fecha_fin = serializers.SerializerMethodField()
-    hora_fin = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Application
-        fields = [
-            'employee',
-            'sueldo', 'fecha_inicio', 'hora_inicio',
-            'fecha_fin', 'hora_fin'
-        ]
-
-    def get_sueldo(self, obj):
-        return obj.shift.payment
-
-    def get_fecha_inicio(self, obj):
-        return obj.shift.start_date.strftime('%d/%m/%Y')
-
-    def get_hora_inicio(self, obj):
-        return obj.shift.start_time.strftime('%H')
-
-    def get_fecha_fin(self, obj):
-        return obj.shift.end_date.strftime('%d/%m/%Y')
-
-    def get_hora_fin(self, obj):
-        return obj.shift.end_time.strftime('%H')
-    
 class OfferCreateSerializer(serializers.ModelSerializer):
-    additional_comments = serializers.CharField(required=False)
-    expiration_date = serializers.CharField(required=False)
+    additional_comments = serializers.CharField(required=False, allow_blank=True)
+    expiration_date = serializers.DateField(required=False, input_formats=["%d/%m/%Y"])
     expiration_time = serializers.TimeField(required=False)
 
     class Meta:
         model = Offer
         fields = ['additional_comments', 'expiration_date', 'expiration_time']
 
-    def create(self, validated_data):
+    def validate(self, attrs):
         user = self.context['user']
         application_id = self.context['application_id']
 
@@ -79,71 +38,81 @@ class OfferCreateSerializer(serializers.ModelSerializer):
                 'shift__vacancy__job_type'
             ).get(id=application_id)
         except Application.DoesNotExist:
-            raise serializers.ValidationError("La postulación no existe.")
+            raise serializers.ValidationError(APPLICATION_NOT_FOUND)
 
-        owner_user = application.shift.vacancy.event.owner
-        if owner_user != user:
-            raise serializers.ValidationError("No tenés permiso para crear esta oferta.")
+        # Verificación de permisos
+        if application.shift.vacancy.event.owner != user:
+            raise serializers.ValidationError(APPLICATION_PERMISSION_DENIED)
 
         try:
-            employer = EmployerProfile.objects.get(user=owner_user)
+            employer = EmployerProfile.objects.get(user=user)
         except EmployerProfile.DoesNotExist:
-            raise serializers.ValidationError("El empleador no tiene perfil asociado.")
+            raise serializers.ValidationError(EMPLOYER_PROFILE_NOT_FOUND)
 
-        # Parsear fecha
-        expiration_date_str = validated_data.get('expiration_date')
-        expiration_date = None
-        if expiration_date_str:
-            try:
-                expiration_date = datetime.strptime(expiration_date_str, '%d/%m/%Y').date()
-            except ValueError:
-                raise serializers.ValidationError({
-                    'expiration_date': 'Formato inválido. Usá DD/MM/YYYY.'
-                })
+        attrs['application'] = application
+        attrs['employer'] = employer
+        return attrs
 
+    def create(self, validated_data):
+        application = validated_data.pop('application')
+        employer = validated_data.pop('employer')
         shift = application.shift
-        vacancy = shift.vacancy
-        event = vacancy.event
 
-        # Armar comentario con info del turno
-        shift_info = f"Fecha: {shift.start_date.strftime('%d/%m/%Y')}, " \
-                     f"Inicio: {shift.start_time.strftime('%H:%M')}, " \
-                     f"Fin: {shift.end_time.strftime('%H:%M')}"
-        user_comment = validated_data.get('additional_comments', '')
-        combined_comments = f"{user_comment}\n{shift_info}".strip()
-
-        # Armar resumen de requisitos (solo descripción)
-        requirements = vacancy.requirements.all()
-        requirements_list = [r.description for r in requirements] if requirements.exists() else []
-
-        # Crear la oferta
         offer = Offer.objects.create(
-            additional_comments=combined_comments,
-            expiration_date=expiration_date,
-            expiration_time=validated_data.get('expiration_time'),
             application=application,
             employee=application.employee,
             employer=employer,
             selected_shift=shift,
-            job_type=vacancy.job_type.name if vacancy.job_type else None,
-            shift_date=shift.start_date,
-            start_time=shift.start_time,
-            end_time=shift.end_time,
-            location=event.location,
-            latitude=event.latitude,
-            longitude=event.longitude,
-            salary=shift.payment,
-            company_name=employer.company_name,
-            requeriments=requirements_list,  # ← corregido
-            status="pending"
-)
-
+            state=OfferStates.PENDING.value,
+            **validated_data
+        )
         return offer
 
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ["id", "name"]
+
+
+class VacancySerializer(serializers.ModelSerializer):
+    event = EventSerializer()
+    job_type= ListJobTypesSerializer()
+    
+
+    class Meta:
+        model = Vacancy
+        fields = ["id", "description", "event", "job_type"]
+
+
+class ShiftSerializer(serializers.ModelSerializer):
+    vacancy = VacancySerializer()
+    start_date = CustomDateField()
+    start_time = CustomTimeField()
+    end_date = CustomDateField()
+    end_time = CustomTimeField()
+
+
+    class Meta:
+        model = Shift
+        fields = ["id", "start_time", "start_date", "end_date", "end_time", "payment"]
+
+
+class ApplicationSerializer(serializers.ModelSerializer):
+    shift = ShiftSerializer()
+
+    class Meta:
+        model = Application
+        fields = ["id", "shift"]
+
+
 class OfferConsultSerializer(serializers.ModelSerializer):
+    application = ApplicationSerializer()
+
     class Meta:
         model = Offer
-        fields = '__all__'  # ← incluye todos los campos definidos en el modelo
+        fields = ["id", "expiration_date", "expiration_time", 'application']
+
 
 class OfferDecisionSerializer(serializers.ModelSerializer):
     rejected = serializers.BooleanField()
@@ -155,27 +124,23 @@ class OfferDecisionSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs.get('rejected') and not attrs.get('rejection_reason'):
-            raise serializers.ValidationError({
-                'rejection_reason': 'Debés especificar un motivo de rechazo si rechazás la oferta.'
-            })
+            raise serializers.ValidationError(REJECTION_REASON_REQUIRED)
         return attrs
 
     def update(self, instance, validated_data):
-        user = self.context['user']
         rejected = validated_data.get('rejected')
 
-        if instance.status != 'pending':
-            raise serializers.ValidationError("Solo se pueden modificar ofertas en estado 'pending'.")
+        if instance.state != OfferStates.PENDING.value:
+            raise serializers.ValidationError(OFFER_NOT_PENDING)
 
-        instance.confirmed_by = user
         instance.confirmed_at = timezone.now()
 
         if rejected:
-            instance.status = 'rejected'
+            instance.state = OfferStates.REJECTED.value
             instance.rejection_reason = validated_data.get('rejection_reason', '')
         else:
-            instance.status = 'confirmed'
+            instance.state = OfferStates.ACCEPTED.value
             instance.rejection_reason = None
 
         instance.save()
-        return instance 
+        return instance
