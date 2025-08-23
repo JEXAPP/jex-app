@@ -133,7 +133,7 @@ class VacancySerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         requirements = validated_data.pop('requirements', [])
         shifts = validated_data.pop('shifts', [])
-        validated_data['state'] = VacancyState.objects.get(name=VacancyStates.ACTIVE.value)
+        validated_data['state'] = VacancyState.objects.get(name=VacancyStates.DRAFT.value)
 
         with transaction.atomic():
             vacancy = Vacancy.objects.create(**validated_data)
