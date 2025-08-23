@@ -1,6 +1,8 @@
-from rest_framework.generics import CreateAPIView
-from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer
-from user_auth.constants import EMPLOYER_ROLE
+from rest_framework.generics import CreateAPIView, ListAPIView
+from eventos.constants import EventStates
+from eventos.models.event import Event
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer
+from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -29,5 +31,16 @@ class CreateEventView(CreateAPIView):
 
         response_serializer = CreateEventResponseSerializer(event)
         return Response(response_serializer.data, status=201)
+
+class ListActiveEventsView(ListAPIView):
+    """
+    Listar eventos activos
+    """
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE, EMPLOYEE_ROLE]
+    serializer_class = ListActiveEventsSerializer
+
+    queryset = Event.objects.all().filter(state__name=EventStates.PUBLISHED.value)
+
 
     

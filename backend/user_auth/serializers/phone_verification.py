@@ -6,7 +6,7 @@ class SendCodeSerializer(serializers.Serializer):
 
     def validate_phone_number(self, value):
         if not re.match(r'^\+[1-9]\d{1,14}$', value):
-            raise serializers.ValidationError("Phone format invalid. Use international format (+5491234567890)")
+            raise serializers.ValidationError("Telefono con formato invalido. Usar formato internacional: (+5491234567890)")
         return value
 
 class VerifyCodeSerializer(serializers.Serializer):
