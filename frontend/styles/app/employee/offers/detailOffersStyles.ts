@@ -30,8 +30,26 @@ export const detailOffersStyles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  card2: {
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    width: "100%",
+    height: "90%", // ajusta al alto que quieras
+             
+  },
+  matchImage: {
+  width: "100%",
+  height: 400, // ajusta según el alto que quieras
+  resizeMode: "cover", // esto hace que la imagen ocupe todo y no deje bordes
+  borderRadius: 16,     // mismo redondeo que la card
+},
   eventImage: {
-    width: 140,
+    width: '50%',
     height: 120,
     borderRadius: 12,
     alignSelf: 'center',

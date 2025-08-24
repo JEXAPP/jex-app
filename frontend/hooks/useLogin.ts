@@ -152,7 +152,7 @@ export const useLogin = () => {
       const role = decoded.role;
 
       if (role === 'employee') {
-        router.push('/employee');
+        router.push('/employee/offers/check-offers');
       } else if (role === 'employer') {
         router.push('/employer');
       } else {
