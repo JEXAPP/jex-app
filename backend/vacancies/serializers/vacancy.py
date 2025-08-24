@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from vacancies.constants import JobTypesEnum, VacancyStates
-from vacancies.errors.params_messages import INVALID_CHOICE, VALUE_MUST_BE_LIST_OF_INTS, VALUE_MUST_BE_NON_EMPTY_LIST, VALUE_MUST_BE_NON_EMPTY_STRING, VALUE_MUST_BE_VALID_DATE
 from vacancies.errors.vacancies_messages import NO_PERMISSION_EVENT, SHIFTS_DATES_OUT_OF_EVENT, SHIFTS_END_TIME_BEFORE_EVENT_END_TIME, SHIFTS_START_DATE_BEFORE_END_DATE, SHIFTS_START_TIME_AFTER_EVENT_START_TIME, SHIFTS_START_TIME_BEFORE_END_TIME, SHIFTS_TIMES_OUT_OF_EVENT, SPECIFIC_JOB_TYPE_NOT_ALLOWED, SPECIFIC_JOB_TYPE_REQUIRED
 from vacancies.formatters.date_time import CustomDateField, CustomTimeField
 from vacancies.models.shifts import Shift
@@ -12,7 +11,6 @@ from vacancies.serializers.shifts import CreateShiftSerializer, ShiftSerializer
 from eventos.serializers.event import EventSerializer
 from eventos.models.event import Event
 from django.db import transaction
-from datetime import datetime
 
 from vacancies.serializers.vacancy_state import ListsVacancyStates
 
