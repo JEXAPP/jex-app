@@ -5,3 +5,11 @@ class ApplicationStates(str, Enum):
     ACCEPTED = "ACCEPTED"
     REJECTED = "REJECTED"
     CANCELED = "CANCELED"
+
+
+class OfferStates(str, Enum):
+    PENDING = "PENDING"
+    ACCEPTED = "ACCEPTED"
+    REJECTED = "REJECTED"
+    CANCELED = "CANCELED"
+    EXPIRED = "EXPIRED"

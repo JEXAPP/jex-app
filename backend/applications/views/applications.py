@@ -1,10 +1,13 @@
 from rest_framework.views import APIView
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from applications.errors.application_messages import ALREADY_APPLIED_ALL_SHIFTS, APPLICATIONS_CREATED_SUCCESS
+from applications.models.applications import Application
 from applications.serializers.applications import (
     ApplicationCreateSerializer,
+    ApplicationDetailSerializer,
     ShiftWithApplicationsSerializer,
 )
 from user_auth.permissions import IsInGroup
@@ -32,6 +35,11 @@ class ApplicationCreateView(APIView):
 
         return Response({"message": APPLICATIONS_CREATED_SUCCESS}, status=status.HTTP_201_CREATED)
 
+
+class ApplicationDetailView(RetrieveAPIView):
+    queryset = Application.objects.select_related('employee__user', 'shift')
+    serializer_class = ApplicationDetailSerializer 
+    
 class ListApplicationsByShiftView(RetrieveAPIView):
     serializer_class = ShiftWithApplicationsSerializer
     permission_classes = [IsAuthenticated, IsInGroup]
