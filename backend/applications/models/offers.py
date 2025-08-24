@@ -22,8 +22,7 @@ class Offer(models.Model):
 
     additional_comments = models.TextField(blank=True)
 
-    confirmed_by = models.ForeignKey(EmployerProfile, on_delete=models.SET_NULL, null=True, blank=True)
-
+    confirmed_at = models.DateTimeField(blank=True, null=True)
     rejection_reason = models.TextField(null=True, blank=True)
     state = models.ForeignKey(OfferState, on_delete=models.CASCADE, related_name='offer')
 
