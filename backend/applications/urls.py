@@ -4,6 +4,5 @@ from applications.views.applications import ApplicationCreateView, ListApplicati
 urlpatterns = [
     # Applications
     path('apply/', ApplicationCreateView.as_view(), name='apply'),   
-    path(
-        "by-vacancy/<int:vacancy_pk>/shift/<int:shift_pk>/", ListApplicationsByShiftView.as_view(), name="applications-by-shift"),
+    path("by-vacancy/<int:vacancy_pk>/shift/<int:shift_pk>/", ListApplicationsByShiftView.as_view(), name="applications-by-shift"),
 ]
