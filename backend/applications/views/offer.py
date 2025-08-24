@@ -1,6 +1,6 @@
 from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView
 from applications.constants import OfferStates
-from applications.serializers.offer import OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer
+from applications.serializers.offer import OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer, OfferDetailSerializer
 from rest_framework import permissions
 from django.utils import timezone
 from applications.models.offers import Offer
@@ -12,7 +12,7 @@ from applications.models.offer_state import OfferState
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
-
+from rest_framework.generics import RetrieveAPIView
 
 class OfferCreateView(CreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
@@ -61,3 +61,12 @@ class DecideOfferView(CreateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response({'detail': 'Offer decision saved successfully.'}, status=status.HTTP_200_OK)
+    
+class OfferDetailView(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE, EMPLOYER_ROLE]
+    serializer_class = OfferDetailSerializer
+    queryset = Offer.objects.select_related(
+        'application__shift__vacancy__event',
+        'application__employee__user'
+)

@@ -19,6 +19,7 @@ from vacancies.serializers.job_types import ListJobTypesSerializer
 from applications.models.offers import OfferState
 from vacancies.models.requirements import Requirements
 
+
 class OfferCreateSerializer(serializers.ModelSerializer):
     additional_comments = serializers.CharField(required=False, allow_blank=True)
     expiration_date = serializers.DateField(required=False, input_formats=["%d/%m/%Y"])
@@ -71,32 +72,25 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         return offer
 
 
-class VacancyRequirementSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Requirements
-        fields = ['id', 'description']
+
 
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ["id", "name"]
-        requirements = serializers.SerializerMethodField()
+
 
 
 class VacancySerializer(serializers.ModelSerializer):
     event = EventSerializer()
     job_type= ListJobTypesSerializer()
-    requirements = serializers.SerializerMethodField()
+    
     
 
     class Meta:
         model = Vacancy
-        fields = ["id", "description", "event", "job_type", "requirements"]
+        fields = ["id", "description", "event", "job_type"]
     
-    def get_requirements(self, obj):
-        reqs = Requirements.objects.filter(vacancy=obj)
-        return VacancyRequirementSerializer(reqs, many=True).data
-
 
 class ShiftSerializer(serializers.ModelSerializer):
     vacancy = VacancySerializer()
@@ -132,8 +126,8 @@ class OfferDecisionSerializer(serializers.Serializer):
     rejection_reason = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, attrs):
-        if attrs.get('rejected') and not attrs.get('rejection_reason'):
-            raise serializers.ValidationError(REJECTION_REASON_REQUIRED)
+        if 'rejection_reason' in attrs:
+            attrs['rejection_reason'] = attrs['rejection_reason'].strip()
         return attrs
 
     def save(self, **kwargs):
@@ -161,3 +155,57 @@ class OfferDecisionSerializer(serializers.Serializer):
 
         offer.save()
         return offer
+
+class RequirementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Requirements
+        fields = ["id", "description"]
+
+class EventDetailSerializer(serializers.ModelSerializer):
+    owner_username = serializers.CharField(source="owner.username", read_only=True)
+
+    class Meta:
+        model = Event
+        fields = ["id", "name", "location", "latitude", "longitude","owner_username"]
+
+class VacancyDetailSerializer(serializers.ModelSerializer):
+    event = EventDetailSerializer()
+    job_type = ListJobTypesSerializer()
+    requirements = RequirementSerializer(many=True, read_only=True)
+
+
+
+    class Meta:
+        model = Vacancy
+        fields = ["id", "description", "event", "job_type", "requirements"]
+
+    def get_requirements(self, obj):
+        return [r.description for r in obj.requirements.all()]
+
+class ShiftDetailSerializer(serializers.ModelSerializer):
+    vacancy = VacancyDetailSerializer()
+    start_date = CustomDateField()
+    start_time = CustomTimeField()
+    end_date = CustomDateField()
+    end_time = CustomTimeField()
+
+    class Meta:
+        model = Shift
+        fields = ["id", "start_time", "start_date", "end_date", "end_time", "payment", "vacancy"]
+
+class ApplicationDetailSerializer(serializers.ModelSerializer):
+    shift = ShiftDetailSerializer()
+
+    class Meta:
+        model = Application
+        fields = ["id", "shift"]
+
+class OfferDetailSerializer(serializers.ModelSerializer):
+    application = ApplicationDetailSerializer()
+    additional_comments = serializers.CharField()
+
+    class Meta:
+        model = Offer
+        fields = ["id", "expiration_date", "expiration_time", "additional_comments", "application"]
+
+
