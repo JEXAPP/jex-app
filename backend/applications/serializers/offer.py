@@ -115,6 +115,8 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
 class OfferConsultSerializer(serializers.ModelSerializer):
     application = ApplicationSerializer()
+    expiration_date = CustomDateField()
+    expiration_time = CustomTimeField()
 
     class Meta:
         model = Offer
@@ -203,6 +205,8 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
 class OfferDetailSerializer(serializers.ModelSerializer):
     application = ApplicationDetailSerializer()
     additional_comments = serializers.CharField()
+    expiration_date = CustomDateField()
+    expiration_time = CustomTimeField()
 
     class Meta:
         model = Offer
