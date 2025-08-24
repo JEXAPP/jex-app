@@ -102,7 +102,7 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
         model = Application
         fields = [
             'employee',
-            'salary',
+            'payment',
             'start_date', 'start_time',
             'end_date', 'end_time',
         ]
