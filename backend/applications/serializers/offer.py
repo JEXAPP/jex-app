@@ -16,7 +16,8 @@ from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
 from eventos.models.event import Event
 from vacancies.serializers.job_types import ListJobTypesSerializer
-
+from applications.models.offers import OfferState
+from vacancies.models.requirements import Requirements
 
 class OfferCreateSerializer(serializers.ModelSerializer):
     additional_comments = serializers.CharField(required=False, allow_blank=True)
@@ -58,31 +59,43 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         employer = validated_data.pop('employer')
         shift = application.shift
 
+        state_pending = OfferState.objects.get(name=OfferStates.PENDING.value)
         offer = Offer.objects.create(
             application=application,
             employee=application.employee,
             employer=employer,
             selected_shift=shift,
-            state=OfferStates.PENDING.value,
+            state=state_pending,
             **validated_data
         )
         return offer
 
 
+class VacancyRequirementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Requirements
+        fields = ['id', 'description']
+
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ["id", "name"]
+        requirements = serializers.SerializerMethodField()
 
 
 class VacancySerializer(serializers.ModelSerializer):
     event = EventSerializer()
     job_type= ListJobTypesSerializer()
+    requirements = serializers.SerializerMethodField()
     
 
     class Meta:
         model = Vacancy
-        fields = ["id", "description", "event", "job_type"]
+        fields = ["id", "description", "event", "job_type", "requirements"]
+    
+    def get_requirements(self, obj):
+        reqs = Requirements.objects.filter(vacancy=obj)
+        return VacancyRequirementSerializer(reqs, many=True).data
 
 
 class ShiftSerializer(serializers.ModelSerializer):
@@ -95,7 +108,7 @@ class ShiftSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Shift
-        fields = ["id", "start_time", "start_date", "end_date", "end_time", "payment"]
+        fields = ["id", "start_time", "start_date", "end_date", "end_time", "payment", "vacancy"]
 
 
 class ApplicationSerializer(serializers.ModelSerializer):
@@ -114,33 +127,37 @@ class OfferConsultSerializer(serializers.ModelSerializer):
         fields = ["id", "expiration_date", "expiration_time", 'application']
 
 
-class OfferDecisionSerializer(serializers.ModelSerializer):
+class OfferDecisionSerializer(serializers.Serializer):
     rejected = serializers.BooleanField()
     rejection_reason = serializers.CharField(required=False, allow_blank=True)
-
-    class Meta:
-        model = Offer
-        fields = ['rejected', 'rejection_reason']
 
     def validate(self, attrs):
         if attrs.get('rejected') and not attrs.get('rejection_reason'):
             raise serializers.ValidationError(REJECTION_REASON_REQUIRED)
         return attrs
 
-    def update(self, instance, validated_data):
-        rejected = validated_data.get('rejected')
+    def save(self, **kwargs):
+        offer = self.context['offer']
+        user = self.context['request'].user
 
-        if instance.state != OfferStates.PENDING.value:
+        if offer.state_id != 1:  # PENDING
             raise serializers.ValidationError(OFFER_NOT_PENDING)
 
-        instance.confirmed_at = timezone.now()
+        offer.confirmed_at = timezone.now()
 
-        if rejected:
-            instance.state = OfferStates.REJECTED.value
-            instance.rejection_reason = validated_data.get('rejection_reason', '')
+        #try:
+        #     employee_profile = EmployeeProfile.objects.get(user=user)
+        #     offer.confirmed_by = employee_profile
+        # except EmployerProfile.DoesNotExist:
+        #     raise serializers.ValidationError("No se encontró el perfil del empleador.")
+
+        if self.validated_data['rejected']:
+            offer.state = OfferState.objects.get(id=3)  # REJECTED
+            offer.rejection_reason = self.validated_data.get('rejection_reason', '')
         else:
-            instance.state = OfferStates.ACCEPTED.value
-            instance.rejection_reason = None
+            offer.state = OfferState.objects.get(id=2)  # ACCEPTED
+            offer.rejection_reason = None
 
-        instance.save()
-        return instance
+
+        offer.save()
+        return offer
