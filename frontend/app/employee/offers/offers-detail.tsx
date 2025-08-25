@@ -1,12 +1,18 @@
 import { useState, useRef, useEffect } from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity, Animated, Easing, ActivityIndicator } from "react-native";
+import { View, Text, Image, ScrollView, TouchableOpacity, Animated, Easing } from "react-native";
 import { detailOffersStyles as styles } from "@/styles/app/employee/offers/detailOffersStyles";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useDetailOffers } from "@/hooks/employee/offers/useDetailOffers";
+import OfferDetailsSkeleton from "@/constants/skeletons/employee/detailOffersSkeleton";
+import { ClickWindow } from "@/components/window/ClickWindow";
+import { clickWindowStyles1 } from "@/styles/components/window/clickWindowStyles1";
+import { iconos } from "@/constants/iconos";
+import { Colors } from "@/themes/colors";
+import { ActivityIndicator } from "react-native";
 
 export default function OfferDetailsScreen() {
-  const { offer, loading, handleAccept, handleReject } = useDetailOffers();
+  const { offer, loading, handleAccept, handleReject, showRejected, closeRejected, accepting } = useDetailOffers();
   const router = useRouter();
   const [showMatch, setShowMatch] = useState(false);
 
@@ -15,35 +21,31 @@ export default function OfferDetailsScreen() {
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
-  if (showMatch) {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-        easing: Easing.out(Easing.ease),
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 5,
-        tension: 80,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      // 🔹 esperar 2 segundos antes de volver a la lista
-      setTimeout(() => {
-        router.replace("/employee/offers/check-offers");
-      }, 3000); // 2000 ms = 2 segundos
-    });
-  }
-}, [showMatch]);
+    if (showMatch) {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+          easing: Easing.out(Easing.ease),
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 5,
+          tension: 80,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setTimeout(() => {
+          router.replace("/employee/offers/check-offers");
+        }, 3000); // 3 segundos mostrando el match
+      });
+    }
+  }, [showMatch]);
 
+  // skeleton SOLO en la carga inicial
   if (loading || !offer) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#4B164C" />
-      </View>
-    );
+    return <OfferDetailsSkeleton />;
   }
 
   return (
@@ -113,8 +115,13 @@ export default function OfferDetailsScreen() {
             <TouchableOpacity
               style={[styles.button, styles.acceptButton]}
               onPress={() => handleAccept(() => setShowMatch(true))}
+              disabled={accepting} // opcional: evita múltiples taps
             >
-              <Text style={styles.acceptText}>Aceptar</Text>
+              {accepting ? (
+                <ActivityIndicator size="small" color="#fff" /> // spinner blanco
+              ) : (
+                <Text style={styles.acceptText}>Aceptar</Text>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -126,6 +133,17 @@ export default function OfferDetailsScreen() {
           </View>
         </View>
       )}
+
+      {/* 👈 Aquí agregamos el ClickWindow para el rechazo */}
+      <ClickWindow
+        title="Oferta rechazada"
+        visible={showRejected}
+        message="Has rechazado la oferta."
+        onClose={closeRejected}
+        styles={clickWindowStyles1}
+        icono={iconos.error_outline(30, Colors.white)}
+        buttonText="Ok"
+      />
     </ScrollView>
   );
 }

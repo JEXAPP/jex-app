@@ -19,34 +19,28 @@ type OfferDetail = {
 };
 
 export const useDetailOffers = () => {
-  const { id } = useLocalSearchParams(); // el id viene de goToOfferDetail
+  const { id } = useLocalSearchParams();
   const { requestBackend } = useBackendConection();
   const router = useRouter();
+  const [accepting, setAccepting] = useState(false);
 
   const [offer, setOffer] = useState<OfferDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); 
+  const [showRejected, setShowRejected] = useState(false); // 👈 para ClickWindow
 
-  // helper para formatear salario con separador de miles
   const formatNumber = (value: string | number) => {
     const num = Number(value);
     if (isNaN(num)) return String(value);
     return new Intl.NumberFormat("es-AR").format(num);
   };
 
-  // 🔹 trae detalle de la oferta
   useEffect(() => {
     let mounted = true;
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const data = await requestBackend(
-          `/api/applications/offers/${id}/detail/`,
-          null,
-          "GET"
-        );
+        const data = await requestBackend(`/api/applications/offers/${id}/detail/`, null, "GET");
         if (!mounted) return;
-
-        console.log("🔹 Respuesta detalle backend:", JSON.stringify(data, null, 2));
 
         const shift = data.application?.shift;
         const vacancy = shift?.vacancy;
@@ -81,37 +75,42 @@ export const useDetailOffers = () => {
     };
   }, [id]);
 
-  // ✅ aceptar/rechazar oferta
   const decideOffer = async (rejected: boolean, onAccepted?: () => void) => {
-    try {
-      setLoading(true);
+  if (rejected) setShowRejected(true); // mostrar modal inmediatamente
 
-      const body = { rejected };
-      const resp = await requestBackend(
-        `/api/applications/offers/${id}/decide/`,
-        body,
-        "POST"
-      );
+  try {
+    const body = { rejected };
+    const resp = await requestBackend(`/api/applications/offers/${id}/decide/`, body, "POST");
+    console.log("🔹 Respuesta al decidir oferta:", resp);
 
-      console.log("🔹 Respuesta al decidir oferta:", resp);
+    if (!rejected && onAccepted) onAccepted(); // animación match
+  } catch (err) {
+    console.log("❌ Error al decidir la oferta:", err);
+    if (rejected) setShowRejected(false); // cerrar modal si hubo error
+    alert("No se pudo procesar la decisión.");
+  }
+};
 
-      if (rejected) {
-        alert("Has rechazado la oferta.");
-        router.replace("/employee/offers/check-offers");
-      } else {
-        // dispara animación en pantalla
-        if (onAccepted) onAccepted();
-      }
-    } catch (err) {
-      console.log("❌ Error al decidir la oferta:", err);
-      alert("No se pudo procesar la decisión.");
-    } finally {
-      setLoading(false);
-    }
+  const handleAccept = (onAccepted: () => void) => {
+  setAccepting(true); // start spinner
+  decideOffer(false, () => {
+    onAccepted();
+    setAccepting(false); // stop spinner después de iniciar animación
+  }).finally(() => setAccepting(false)); // por si falla
+};
+  const handleReject = () => decideOffer(true);
+  const closeRejected = () => {
+    setShowRejected(false);
+    router.replace("/employee/offers/check-offers"); // 👈 vuelve a la pantalla anterior
   };
 
-  const handleAccept = (onAccepted: () => void) => decideOffer(false, onAccepted);
-  const handleReject = () => decideOffer(true);
-
-  return { offer, loading, handleAccept, handleReject };
+  return { 
+    offer, 
+    loading, 
+    handleAccept, 
+    handleReject, 
+    showRejected, 
+    closeRejected,
+    accepting
+  };
 };
