@@ -25,7 +25,11 @@ class CreateEventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'description', 'start_date','end_date', 'start_time', 'end_time', 'location', 'created_at', 'updated_at', 'category_id', 'latitude', 'longitude']
+        fields = [
+            'id', 'name', 'description', 'start_date', 'end_date', 
+            'start_time', 'end_time', 'location', 'created_at', 
+            'updated_at', 'category_id', 'latitude', 'longitude'
+        ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'owner']
 
     def validate(self, data):
@@ -42,21 +46,25 @@ class CreateEventSerializer(serializers.ModelSerializer):
         if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError(EVENT_START_DATE_AFTER_END_DATE)
 
+        # si es el mismo día, start_time debe ser menor que end_time
         if start_date == end_date and start_time and end_time and start_time >= end_time:
-            raise serializers.ValidationError(EVENT_START_TIME_NOT_BEFORE_END_TIME)
+            raise serializers.ValidationError({
+                "non_field_errors": [EVENT_START_TIME_NOT_BEFORE_END_TIME]
+            })
 
     def _validate_start_date_future(self, data):
         start_date = data.get('start_date')
         if start_date and start_date < date.today():
             raise serializers.ValidationError(EVENT_START_DATE_IN_PAST)
-    
+
     def create(self, validated_data):
         user = self.context['user']
         public_state = EventState.objects.get(name=EventStates.PUBLISHED.value)
         validated_data['owner'] = user
         validated_data['state'] = public_state
         return Event.objects.create(**validated_data)
-    
+
+   
 class CreateEventResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event

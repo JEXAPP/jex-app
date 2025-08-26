@@ -27,7 +27,7 @@ class OfferCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Offer
-        fields = ['additional_comments', 'expiration_date', 'expiration_time']
+        fields = ['additional_comments', 'expiration_date', 'expiration_time', 'id']
 
     def validate(self, attrs):
         user = self.context['user']

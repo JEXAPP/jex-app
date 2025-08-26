@@ -172,24 +172,30 @@ REST_FRAMEWORK = {
 
 IS_TEST = 'test' in sys.argv
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        # Si estamos corriendo tests, Django usará esta base de datos en lugar de crear test_<DB>
-        'TEST': {
-            'NAME': os.getenv('TEST_DB_NAME'),
-            'USER': os.getenv('TEST_DB_USER'),
-            'PASSWORD': os.getenv('TEST_DB_PASSWORD'),
-            'HOST': os.getenv('TEST_DB_HOST'),
-            'PORT': os.getenv('TEST_DB_PORT', '5432'),
+if IS_TEST:
+    # DB local para tests
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'test_jex_app',        
+            'USER': 'test_user',            
+            'PASSWORD': 'test_password',    
+            'HOST': 'localhost',
+            'PORT': '5432',
         }
     }
-}
+else:
+    # DB remota normal
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

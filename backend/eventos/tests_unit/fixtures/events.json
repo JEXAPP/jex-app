@@ -1,0 +1,20 @@
+[
+  {
+    "model": "eventos.event",
+    "pk": 1,
+    "fields": {
+      "name": "Concierto Rock",
+      "description": "Gran concierto",
+      "start_date": "2025-09-01",
+      "end_date": "2025-09-01",
+      "start_time": "20:00:00",
+      "end_time": "23:00:00",
+      "location": "Buenos Aires",
+      "latitude": "34.6037",
+      "longitude": "-58.3816",
+      "owner": 1,
+      "category": 1,
+      "state": 1
+    }
+  }
+]
