@@ -1,4 +1,6 @@
 from datetime import timedelta
+import sys
+import os
 
 """
 Django settings for config project.
@@ -166,14 +168,25 @@ REST_FRAMEWORK = {
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+
+IS_TEST = 'test' in sys.argv
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),  
-        'USER': os.getenv('DB_USER'),        
-        'PASSWORD': os.getenv('DB_PASSWORD'),  
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+        # Si estamos corriendo tests, Django usará esta base de datos en lugar de crear test_<DB>
+        'TEST': {
+            'NAME': os.getenv('TEST_DB_NAME'),
+            'USER': os.getenv('TEST_DB_USER'),
+            'PASSWORD': os.getenv('TEST_DB_PASSWORD'),
+            'HOST': os.getenv('TEST_DB_HOST'),
+            'PORT': os.getenv('TEST_DB_PORT', '5432'),
+        }
     }
 }
 

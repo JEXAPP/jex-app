@@ -23,4 +23,4 @@ class EmployeeProfileModelTest(TestCase):
         user = create_employee_user()
         profile = EmployeeProfile.objects.get(user=user)
         self.assertEqual(profile.dni, "12345678")
-        self.assertEqual(profile.user.email, "employee@example.com"
+        self.assertEqual(profile.user.email, "employee@example.com")
