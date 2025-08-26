@@ -177,11 +177,11 @@ if IS_TEST:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'test_jex_app',        
-            'USER': 'test_user',            
-            'PASSWORD': 'test_password',    
-            'HOST': 'localhost',
-            'PORT': '5432',
+            'NAME': os.getenv('TEST_DB_NAME'),
+            'USER': os.getenv('TEST_DB_USER'),
+            'PASSWORD': os.getenv('TEST_DB_PASSWORD'),
+            'HOST': os.getenv('TEST_DB_HOST'),
+            'PORT': os.getenv('TEST_DB_PORT', '5432'),
         }
     }
 else:
