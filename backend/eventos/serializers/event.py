@@ -10,6 +10,7 @@ from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from media_utils.serializers import ImageSerializer
 from user_auth.models.user import CustomUser
 from datetime import date
+from vacancies.models.vacancy import Vacancy
 
 
 class CreateEventSerializer(serializers.ModelSerializer):
@@ -82,3 +83,68 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ['id', 'name', 'description', 'owner', 'category', 'state']
+
+class ListActiveEventsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ['id', 'name']
+
+
+class ListEventDetailSerializer(serializers.ModelSerializer):
+
+    start_date = CustomDateField()
+    end_date = CustomDateField()
+    start_time = CustomTimeField()
+    end_time = CustomTimeField()
+    category = ListCategorySerializer()
+
+    class Meta:
+        model = Event
+        fields = [
+            "id",
+            "name",
+            "description",
+            "location",
+            "category",
+            "start_date",
+            "start_time",
+            "end_date",
+            "end_time",
+        ]
+
+
+class VacancyByEventSerializer(serializers.ModelSerializer):
+    vacancy_id = serializers.IntegerField(source="id")
+    job_type_name = serializers.CharField(source="job_type.name")
+    quantity_shifts = serializers.SerializerMethodField()
+    shift_ids = serializers.SerializerMethodField()
+
+
+    class Meta:
+        model = Vacancy
+        fields = [
+            "vacancy_id",
+            "job_type_name",
+            "specific_job_type",
+            "quantity_shifts",
+            "shift_ids"
+        ]
+
+    def get_quantity_shifts(self, obj):
+        return obj.shifts.count()
+    
+    def get_shift_ids(self, obj):
+        return list(obj.shifts.values_list("id", flat=True))
+
+class ListEventVacanciesSerializer(serializers.ModelSerializer):
+    event_name = serializers.CharField(source="name")
+    vacancies = VacancyByEventSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Event
+        fields = ["event_name", "vacancies"]
+
+
+
+
+    

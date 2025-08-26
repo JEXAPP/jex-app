@@ -6,18 +6,23 @@ from vacancies.constants import VacancyStates
 from vacancies.utils import is_event_near
 
 class VacancyListService:
+
     @staticmethod
     def get_base_queryset():
+        """
+        Devuelve un queryset con 1 turno representativo por evento:
+        - Vacantes activas
+        - Turnos futuros (start_date >= hoy)
+        - El turno con mayor pago
+        """
         today = timezone.now().date()
 
-        # Subquery: el turno con mayor pago para cada evento, solo vacantes activas y turno >= hoy
         best_shift_per_event = Shift.objects.filter(
             vacancy__event=OuterRef('vacancy__event'),
             vacancy__state__name=VacancyStates.ACTIVE.value,
             start_date__gte=today
-        ).order_by('-payment')
+        ).order_by('-payment', 'start_date')  # primero pago alto, luego más próximo
 
-        # Queryset base: solo esos turnos, prefetch optimizados
         qs = Shift.objects.filter(
             id=Subquery(best_shift_per_event.values('id')[:1])
         ).select_related(
@@ -29,32 +34,21 @@ class VacancyListService:
 
     @staticmethod
     def filter_by_interests(queryset, user):
-        employee = getattr(user, 'employee', None)
+        employee = getattr(user, 'employee_profile', None)
         if not employee or not employee.job_types.exists():
             return queryset
 
-        # Evito distinct si es posible, pero si hay joins repetidos lo dejo
         return queryset.filter(
             vacancy__job_type__in=employee.job_types.all()
         ).distinct()
 
     @staticmethod
-    def filter_by_soon():
-        today = timezone.now().date()
-        soon_limit = today + timezone.timedelta(days=7)
-
-        soonest_shift_subquery = Shift.objects.filter(
-            vacancy__event=OuterRef('vacancy__event'),
-            start_date__range=(today, soon_limit),
-            vacancy__state__name=VacancyStates.ACTIVE.value
-        ).order_by('start_date')
-
-        return Shift.objects.filter(
-            id=Subquery(soonest_shift_subquery.values('id')[:1])
-        ).select_related(
-            'vacancy__event',
-            'vacancy__job_type'
-        ).order_by('start_date')
+    def filter_by_soon(queryset):
+        """
+        Ordena los turnos por fecha de inicio más próxima
+        """
+        return queryset.order_by('start_date')
+    
 
     @staticmethod
     def filter_by_nearby(queryset, user):
