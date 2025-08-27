@@ -13,3 +13,5 @@ __pycache__/
 **/__init__.pyc
 **/apps.cpython-*.pyc
 **/models.cpython-*.pyc
+
+.vscode/
