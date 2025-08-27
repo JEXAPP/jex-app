@@ -67,7 +67,7 @@ class CreateEventSerializerTest(TestCase):
         data["end_date"] = date.today() + timedelta(days=2)
         serializer = CreateEventSerializer(data=data, context={"user": self.user})
         self.assertFalse(serializer.is_valid())
-        self.assertIn(EVENT_START_DATE_AFTER_END_DATE, serializer.errors)
+        self.assertIn(EVENT_START_DATE_AFTER_END_DATE, serializer.errors["non_field_errors"])
 
     def test_start_time_not_before_end_time_raises(self):
         data = self.valid_data.copy()
@@ -78,15 +78,14 @@ class CreateEventSerializerTest(TestCase):
         data["end_time"] = time(10, 0)
         serializer = CreateEventSerializer(data=data, context={"user": self.user})
         self.assertFalse(serializer.is_valid())
-        self.assertIn(EVENT_START_TIME_NOT_BEFORE_END_TIME, serializer.errors)
+        self.assertIn(EVENT_START_TIME_NOT_BEFORE_END_TIME, serializer.errors["non_field_errors"])
 
     def test_start_date_in_past_raises(self):
         data = self.valid_data.copy()
         data["start_date"] = date.today() - timedelta(days=1)
         serializer = CreateEventSerializer(data=data, context={"user": self.user})
         self.assertFalse(serializer.is_valid())
-        self.assertIn(EVENT_START_DATE_IN_PAST, serializer.errors)
-
+        self.assertIn(EVENT_START_DATE_IN_PAST, serializer.errors["non_field_errors"])
 
 class EventSerializersTest(TestCase):
 

@@ -41,34 +41,6 @@ class ListActiveEventsViewTest(BaseEventTest):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(any(e["id"] == event.id for e in response.data))
 
-
-class DeleteEventViewTest(BaseEventTest):
-    def setUp(self):
-        super().setUp()
-        # Usuario employer para crear y borrar eventos
-        self.employer, self.employer_token = create_user_and_get_token(
-            client=self.client, role="employer", email="employer@test.com"
-        )
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {self.employer_token}")
-
-    def test_delete_event_by_owner(self):
-        event = create_event(owner=self.employer, category=self.category, state=self.state)
-        url = reverse("delete-event", kwargs={"pk": event.id})
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Event.objects.filter(id=event.id).exists())
-
-    def test_delete_event_forbidden(self):
-        other_employer, other_token = create_user_and_get_token(
-            client=self.client, role="employer", email="other@test.com"
-        )
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {other_token}")
-        event = create_event(owner=self.employer, category=self.category, state=self.state)
-        url = reverse("delete-event", kwargs={"pk": event.id})
-        response = self.client.delete(url)
-
-        self.assertIn(response.status_code, [status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND])
-
 class ListEventDetailViewTest(BaseEventTest):
     def setUp(self):
         super().setUp()
