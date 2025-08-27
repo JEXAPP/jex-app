@@ -5,6 +5,8 @@ export const mailConfirmationStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.gray1,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   title: {
     fontSize: 42,

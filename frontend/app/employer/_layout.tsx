@@ -1,11 +1,11 @@
+import FooterNavEmployer from '@/constants/footers/FooterNavEmployer';
+import { transitionFade } from '@/constants/transitions';
+import { Colors } from '@/themes/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { router, Stack } from 'expo-router';
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { router, Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import FooterNav from '@/constants/footers/FooterNav';
-import { transitionFade } from '@/constants/transitions';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 const FOOTER_HEIGHT = 68;
 
@@ -35,7 +35,7 @@ export default function EmployeeLayout() {
 
       {/* Footer fijo, por fuera del Stack */}
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
-        <FooterNav basePath="/employer" />
+        <FooterNavEmployer basePath="/employer" />
       </View>
 
       {/* Espacio para no tapar contenido (si alguna screen no lo agrega) */}

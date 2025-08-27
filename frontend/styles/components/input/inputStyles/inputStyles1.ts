@@ -10,7 +10,7 @@ export const inputStyles1 = StyleSheet.create({
     borderRadius: Borders.soft,
     width: 350,
     alignSelf: 'center',
-    paddingVertical: 8,
+    height: 55,
     paddingHorizontal: 15, 
   },
   input: {

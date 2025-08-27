@@ -26,6 +26,9 @@ export const iconos = {
   flechaDerecha: (size: number, color: string) => (
     <Ionicons name="chevron-forward" size={size} color={color} />
   ),
+  flechaAbajo: (size: number, color: string) =>(
+    <Ionicons name="chevron-down" size={size} color={color} />
+  ),
   editar: (size: number, color: string) => (
     <MaterialIcons name="edit" size={size} color={color} />
   ),

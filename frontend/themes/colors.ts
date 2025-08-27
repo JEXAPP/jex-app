@@ -1,6 +1,6 @@
 export const Colors = {
   // Paleta Violeta
-  violet1: '#C6A9D9',
+  violet1: '#e8d1f8ff',
   violet2: '#8149A6',
   violet3: '#64278C',
   violet4: '#511F73',

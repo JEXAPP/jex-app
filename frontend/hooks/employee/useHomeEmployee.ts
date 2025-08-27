@@ -54,9 +54,9 @@ export const useHomeEmployee = () => {
 
 
   /** Funciones al presionar los títulos */
-  const goToSoonList = () => router.push('/');
-  const goToInterestList = () => router.push('/');
-  const goToNearList = () => router.push('/');
+  const goToSoonList = () => router.push('/employee/vacancy/extend-vacancy?category=soon');
+  const goToInterestList = () => router.push('/employee/vacancy/extend-vacancy?category=interests');
+  const goToNearList = () => router.push('/employee/vacancy/extend-vacancy?category=nearby');
   const goToSearchVacancy = () => router.push('/employee/vacancy/search-vacancy')
 
   return {

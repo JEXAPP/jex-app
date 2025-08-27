@@ -24,14 +24,15 @@ export const dropdownStyles1 = StyleSheet.create({
     backgroundColor: 'white',
   },
   itemSelected: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.gray1,
+    borderRadius: 12
   },
   itemText: {
-    color: '#333',
-    fontWeight: '500',
+    color: Colors.gray3,
+    fontFamily: 'interMedium',
   },
   itemTextSelected: {
-    color: Colors.violet1,
-    fontWeight: '700',
+    color: Colors.black,
+    fontFamily: 'interSemiBold',
   },
 });

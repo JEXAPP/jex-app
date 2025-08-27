@@ -1,7 +1,7 @@
 import React from 'react';
 import {View,Text,TouchableOpacity,ScrollView,StyleProp,TextStyle,ViewStyle,} from 'react-native';
 
-interface PlaceSuggestionsProps {
+interface SuggestionsProps {
   sugerencias: { descripcion: string; placeId: string }[];
   onSeleccionar: (item: { descripcion: string; placeId: string }) => void;
   styles: {
@@ -11,11 +11,11 @@ interface PlaceSuggestionsProps {
   };
 }
 
-export default function PlaceSuggestions({
+export default function Suggestions({
   sugerencias,
   onSeleccionar,
   styles,
-}: PlaceSuggestionsProps) {
+}: SuggestionsProps) {
   if (!sugerencias.length) return null;
 
   const primeras = sugerencias.slice(0, 10);

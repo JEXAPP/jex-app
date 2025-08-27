@@ -12,7 +12,7 @@ import { registerVacancyStyles as styles } from '@/styles/app/employer/vacancy/e
 import { turnoInputStyles } from '@/styles/app/employer/vacancy/edit-vacancy/turnoInputStyles';
 import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
 import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1';
-import { datePickerStyles2 } from '@/styles/components/picker/datePickerStyles/datePickerStyles2';
+import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
 import { timePickerStyles1 } from '@/styles/components/picker/timePickerStyles1';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
@@ -129,7 +129,7 @@ export default function EditVacancyScreen() {
                       label="Fecha Inicio:"
                       date= {turno.fechaInicio}
                       setDate={(date) => actualizarTurno(tIndex, 'fechaInicio', date)}
-                      styles={datePickerStyles2}
+                      styles={datePickerStyles1}
                     />
                   </View>
 
@@ -138,7 +138,7 @@ export default function EditVacancyScreen() {
                       label="Fecha Fin:"
                       date= {turno.fechaInicio}
                       setDate={(date) => actualizarTurno(tIndex, 'fechaFin', date)}
-                      styles={datePickerStyles2}
+                      styles={datePickerStyles1}
                     />
                   </View>
 

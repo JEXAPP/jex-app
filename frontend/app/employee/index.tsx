@@ -35,7 +35,7 @@ export default function HomeEmployeeScreen () {
         
           <View>
             <ButtonWithIcon
-              texto="Buscar"
+              texto="Buscar vacantes"
               icono={iconos.search(24, Colors.gray3)}
               onPress={goToSearchVacancy}
               styles={{...buttonWithIconStyles2, texto: {...buttonWithIconStyles2.texto, marginLeft: 10}}}

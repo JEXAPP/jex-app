@@ -13,7 +13,7 @@ export const backHeader: NativeStackNavigationOptions = {
   headerTransparent: true,
   headerLeft: () => (
     <Pressable onPress={() => router.back()} style={{ paddingHorizontal: 16 }}>
-      <Ionicons name="arrow-back" size={28} color={Colors.violet5} />
+      <Ionicons name="arrow-back" size={28} color={Colors.violet4} />
     </Pressable>
   ),
 };
@@ -23,7 +23,7 @@ export const exitHeader = (to: `/` ): NativeStackNavigationOptions => ({
   headerTransparent: true,
   headerLeft: () => (
     <Pressable onPress={() => router.push(to)} style={{ paddingHorizontal: 16 }}>
-      <Ionicons name="close" size={28} color={Colors.violet5} />
+      <Ionicons name="close" size={28} color={Colors.violet4} />
     </Pressable>
   ),
 });

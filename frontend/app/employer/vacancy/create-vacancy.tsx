@@ -4,7 +4,7 @@ import { IconButton } from '@/components/button/IconButton';
 import { Input } from '@/components/input/Input';
 import { CharCounter } from '@/components/others/CharCounter';
 import DatePicker from '@/components/picker/DatePicker';
-import {DropDown2} from '@/components/picker/DropDown2';
+import { DropDown2 } from '@/components/picker/DropDown2';
 import TimePicker from '@/components/picker/TimePicker';
 import { ClickWindow } from '@/components/window/ClickWindow';
 import { TempWindow } from '@/components/window/TempWindow';
@@ -17,7 +17,7 @@ import { buttonWithIconStyles1 } from '@/styles/components/button/buttonWithIcon
 import { iconButtonStyles1 } from '@/styles/components/button/iconButtonStyles1';
 import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1';
 import { charCounterStyles1 } from '@/styles/components/others/charCounterStyles1';
-import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles/datePickerStyles1';
+import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
 import { dropdown2Styles1 } from '@/styles/components/picker/dropdown2Styles1';
 import { timePickerStyles1 } from '@/styles/components/picker/timePickerStyles1';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
@@ -203,14 +203,14 @@ export default function RegisterVacancyScreen() {
 
                             <View style={styles.shiftRow}>
 
-                              <DatePicker
-                                label="Fecha Inicio"
-                                minimumDate={fechaInicioEvento}
-                                maximumDate={fechaFinEvento}
-                                date={turno.fechaInicio}
-                                setDate={(date) => actualizarTurno(vIndex, tIndex, 'fechaInicio', date)}
-                                styles={{...datePickerStyles1, selector:{...datePickerStyles1.selector, width: 140}}}
-                              />
+                                <DatePicker
+                                  label="Fecha Inicio"
+                                  minimumDate={fechaInicioEvento}
+                                  maximumDate={fechaFinEvento}
+                                  date={turno.fechaInicio}
+                                  setDate={(date) => actualizarTurno(vIndex, tIndex, 'fechaInicio', date)}
+                                  styles={{...datePickerStyles1, selector:{...datePickerStyles1.selector, width: 140}}}
+                                />
 
                               <TimePicker
                                 time={turno.horaInicio}
