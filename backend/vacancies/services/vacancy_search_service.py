@@ -15,28 +15,47 @@ class VacancySearchService:
     
 
     @staticmethod
-    def filter_by_role(queryset, search_value):
-        normalized_search = unidecode(search_value.lower()) if search_value else ""
+    def filter_by_roles(queryset, roles):
+        """
+        Filtra vacantes que coincidan con uno o varios roles (job_type o specific_job_type).
+        roles: lista de strings
+        """
+        if not roles:
+            return queryset.prefetch_related('shifts')
+
+        q_objects = Q()
+        for role in roles:
+            normalized_search = unidecode(role.lower())
+            q_objects |= (
+                Q(job_type__name__icontains=normalized_search) |
+                Q(specific_job_type__icontains=normalized_search)
+            )
+
         filtered_qs = queryset.annotate(
-                    unaccented_job_type=Unaccent('job_type__name'),
-                    unaccented_specific_job=Unaccent('specific_job_type')
-                ).filter(
-                    Q(unaccented_job_type__icontains=normalized_search) | 
-                    Q(unaccented_specific_job__icontains=normalized_search)
-                ).distinct()
-                
-        # Aplicar prefetch_related después del filtro para evitar duplicados
+            unaccented_job_type=Unaccent('job_type__name'),
+            unaccented_specific_job=Unaccent('specific_job_type')
+        ).filter(q_objects).distinct()
+
         return filtered_qs.prefetch_related('shifts')
 
     @staticmethod
-    def filter_by_event(queryset, event_name):
-        normalized_search = unidecode(event_name.lower()) if event_name else ""
+    def filter_by_events(queryset, events):
+        """
+        Filtra vacantes que coincidan con uno o varios nombres de evento.
+        events: lista de strings
+        """
+        if not events:
+            return queryset.prefetch_related('shifts')
+
+        q_objects = Q()
+        for event_name in events:
+            normalized_search = unidecode(event_name.lower())
+            q_objects |= Q(event__name__icontains=normalized_search)
 
         filtered_qs = queryset.annotate(
             unaccented_event=Unaccent('event__name')
-        ).filter(unaccented_event__icontains=normalized_search).distinct()
-        
-        # Aplicar prefetch_related después del filtro para evitar duplicados
+        ).filter(q_objects).distinct()
+
         return filtered_qs.prefetch_related('shifts')
 
     @staticmethod

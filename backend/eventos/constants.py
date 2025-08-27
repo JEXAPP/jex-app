@@ -8,6 +8,7 @@ class EventStates(str, Enum):
     IN_PROGRESS = "En curso"
     FINALIZED = "Finalizado"
     CANCELLED = "Cancelado"
+    DELETED = "Eliminado"
 
 class CategoryEnum(str, Enum):
     CONCIERTO = "Concierto"

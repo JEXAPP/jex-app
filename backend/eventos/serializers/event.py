@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from eventos.errors.events_messages import EVENT_START_DATE_AFTER_END_DATE, EVENT_START_TIME_NOT_BEFORE_END_TIME, EVENT_START_DATE_IN_PAST
+from eventos.errors.events_messages import EVENT_START_DATE_AFTER_END_DATE, EVENT_START_TIME_NOT_BEFORE_END_TIME, EVENT_START_DATE_IN_PAST, INVALID_STATE_ID
 from eventos.models.category_events import Category
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
@@ -105,6 +105,8 @@ class ListEventDetailSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "location",
+            "latitude",
+            "longitude",
             "category",
             "start_date",
             "start_time",
@@ -143,6 +145,14 @@ class ListEventVacanciesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ["event_name", "vacancies"]
+
+class UpdateEventStateSerializer(serializers.Serializer):
+    state_id = serializers.IntegerField()
+
+    def validate_state_id(self, value):
+        if not EventState.objects.filter(id=value).exists():
+            raise serializers.ValidationError(INVALID_STATE_ID)
+        return value
 
 
 

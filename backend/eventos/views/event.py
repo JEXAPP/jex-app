@@ -1,12 +1,16 @@
-from rest_framework.generics import CreateAPIView, ListAPIView, DestroyAPIView, RetrieveAPIView, UpdateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from eventos.constants import EventStates
+from eventos.errors.events_messages import EVENT_NOT_FOUND, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
 from eventos.models.event import Event
-from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer
+from eventos.models.state_events import EventState
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, UpdateEventStateSerializer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import NotFound
+from rest_framework.views import APIView
+from rest_framework import status
+
 
 from vacancies.constants import VacancyStates
 from vacancies.models.vacancy import Vacancy
@@ -48,22 +52,6 @@ class ListActiveEventsView(ListAPIView):
 
     queryset = Event.objects.all().filter(state__name=EventStates.PUBLISHED.value)
 
-
-class DeleteEventView(DestroyAPIView):
-    permission_classes = [IsAuthenticated, IsInGroup]
-    required_groups = [EMPLOYER_ROLE]
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_superuser:
-            return Event.objects.all()
-        return Event.objects.filter(owner=user)
-
-    def get_object(self):
-        try:
-            return super().get_object()
-        except NotFound:
-            raise NotFound("No tenés permiso o el evento no existe")
         
 class ListEventDetailView(RetrieveAPIView):
     serializer_class = ListEventDetailSerializer
@@ -118,3 +106,27 @@ class ListEventVacanciesView(RetrieveAPIView):
         ).prefetch_related(
             Prefetch("vacancies", queryset=vacancies_qs)
         )
+    
+class UpdateEventStateView(APIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def patch(self, request, pk):
+        serializer = UpdateEventStateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            event = Event.objects.select_related('state', 'owner').get(id=pk)
+        except Event.DoesNotExist:
+            return Response({"detail": EVENT_NOT_FOUND}, status=status.HTTP_404_NOT_FOUND)
+
+        if event.owner != request.user:
+            return Response({"detail": NO_PERMISSION_EVENT}, status=status.HTTP_403_FORBIDDEN)
+
+        new_state_id = serializer.validated_data['state_id']
+        new_state = EventState.objects.get(id=new_state_id)
+
+        event.state = new_state
+        event.save()
+
+        return Response({"detail": STATE_UPDATED_SUCCESS}, status=status.HTTP_200_OK)
