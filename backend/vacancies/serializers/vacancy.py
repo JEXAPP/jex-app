@@ -201,12 +201,25 @@ class SearchVacancyParamsSerializer(serializers.Serializer):
         ('date', 'Date'),
     ]
 
-
     choice = serializers.ChoiceField(choices=CHOICE_OPTIONS, required=True)
-    value = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+    value = serializers.ListField(
+        child=serializers.CharField(max_length=255),
+        required=False,
+        allow_empty=True,
+        allow_null=True
+    )
     date_from = serializers.DateField(required=False, allow_null=True, input_formats=['%d/%m/%Y'])
     date_to = serializers.DateField(required=False, allow_null=True, input_formats=['%d/%m/%Y'])
     order_by = serializers.CharField(max_length=50, required=False, allow_blank=True)
+
+    def to_internal_value(self, data):
+        """
+        Convierte 'value' a lista si llega como string plano
+        para soportar value=Uno o value=Uno&value=Dos
+        """
+        if isinstance(data.get("value"), str):
+            data["value"] = [data["value"]]
+        return super().to_internal_value(data)
 
     def validate(self, data):
         choice = data.get('choice')
@@ -215,7 +228,7 @@ class SearchVacancyParamsSerializer(serializers.Serializer):
         date_to = data.get('date_to')
 
         if choice in ['role', 'event']:
-            if not value:
+            if not value or len(value) == 0:
                 raise serializers.ValidationError(
                     f"'value' parameter is required when choice is '{choice}'"
                 )
@@ -224,8 +237,7 @@ class SearchVacancyParamsSerializer(serializers.Serializer):
                 raise serializers.ValidationError(
                     "'date_from' parameter is required when choice is 'date'"
                 )
-            
-            # Si no se proporciona date_to, usar la misma fecha que date_from (búsqueda de un solo día)
+            # Si no se proporciona date_to, usar la misma fecha que date_from
             if not date_to:
                 data['date_to'] = date_from
             elif date_from > date_to:

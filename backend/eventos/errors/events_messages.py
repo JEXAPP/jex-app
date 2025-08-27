@@ -1,3 +1,7 @@
 EVENT_START_DATE_AFTER_END_DATE = "La fecha de inicio no puede ser posterior a la fecha de finalización."
 EVENT_START_TIME_NOT_BEFORE_END_TIME = "La hora de inicio debe ser anterior a la hora de fin para el mismo día."
 EVENT_START_DATE_IN_PAST = "La fecha de inicio no puede ser en el pasado."
+INVALID_STATE_ID = "ID de estado inválido."
+EVENT_NOT_FOUND = "Evento no encontrado."
+NO_PERMISSION_EVENT = "No tienes permiso para cambiar el estado al evento."
+STATE_UPDATED_SUCCESS = "Estado actualizado con éxito."

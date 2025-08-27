@@ -84,53 +84,6 @@ class ListVacancyShiftView(ListAPIView):
             raise ValidationError("Invalid category. Must be 'interests', 'soon', or 'nearby'.")
 
         return base_qs
-    
-class SearchVacancyView(ListAPIView):
-    serializer_class = SearchVacancyResultSerializer
-    permission_classes = [IsAuthenticated, IsInGroup]
-    required_groups = [EMPLOYEE_ROLE, EMPLOYER_ROLE]
-    pagination_class = CustomPagination
-
-    def get_queryset(self):
-        params_data = {
-            'choice': self.request.query_params.get('choice'),
-            'value': self.request.query_params.get('value'),
-            'date_from': self.request.query_params.get('date_from'),
-            'date_to': self.request.query_params.get('date_to'),
-            'order_by': self.request.query_params.get('order_by')
-        }
-        
-        serializer = SearchVacancyParamsSerializer(data=params_data)
-        serializer.is_valid(raise_exception=True)
-        validated = serializer.validated_data
-
-        queryset = VacancySearchService.get_base_queryset()
-
-        choice = validated['choice']
-        
-        if choice == 'role':
-            queryset = VacancySearchService.filter_by_role(
-                queryset, 
-                validated.get('value')
-            )
-        elif choice == 'event':
-            queryset = VacancySearchService.filter_by_event(
-                queryset, 
-                validated.get('value')
-            )
-        elif choice == 'date':
-            queryset = VacancySearchService.filter_by_start_date(
-                queryset,
-                validated.get('date_from'),
-                validated.get('date_to')
-            )
-
-        queryset = VacancySearchService.order_queryset(
-            queryset, 
-            validated.get('order_by')
-        )
-
-        return queryset
 
 
 class SearchVacancyView(ListAPIView):
@@ -142,13 +95,11 @@ class SearchVacancyView(ListAPIView):
     def get_queryset(self):
         params_data = {
             'choice': self.request.query_params.get('choice'),
-            'value': self.request.query_params.get('value'),
+            'value': self.request.query_params.getlist('value'),
             'date_from': self.request.query_params.get('date_from'),
             'date_to': self.request.query_params.get('date_to'),
             'order_by': self.request.query_params.get('order_by')
         }
-        if self.request.query_params.get('value'):
-            params_data['value'] = self.request.query_params.get('value')
         if self.request.query_params.get('date_from'):
             params_data['date_from'] = self.request.query_params.get('date_from')
         if self.request.query_params.get('date_to'):
@@ -166,9 +117,9 @@ class SearchVacancyView(ListAPIView):
         qs = VacancySearchService.get_base_queryset()
 
         if choice == 'role':
-            qs = VacancySearchService.filter_by_role(qs, value)
+            qs = VacancySearchService.filter_by_roles(qs, value)
         elif choice == 'event':
-            qs = VacancySearchService.filter_by_event(qs, value)
+            qs = VacancySearchService.filter_by_events(qs, value)
         elif choice == 'date':
             qs = VacancySearchService.filter_by_date_range(qs, date_from, date_to)
 
@@ -192,7 +143,7 @@ class VacancyDetailView(RetrieveAPIView):
         ).prefetch_related(
             'shifts',
             'requirements'
-        )
+        )   
 
     def get_object(self):
         try:
