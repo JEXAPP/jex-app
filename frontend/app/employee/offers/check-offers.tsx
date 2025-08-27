@@ -1,3 +1,4 @@
+// index.tsx
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Image, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from 'react-native';
 import { activeOffersStyles as styles } from '@/styles/app/employee/offers/activeOffersStyles';
@@ -7,7 +8,7 @@ import { iconos } from '@/constants/iconos';
 import OfferSkeleton from '@/constants/skeletons/employee/offersSkeleton';
 
 export default function ActiveOffersScreen() {
-  const { offers, sortOffers, goToOfferDetail, loadingOffers } = useActiveOffers(); // 🔹 nuevo estado desde el hook
+  const { offers, sortOffers, goToOfferDetail, loadingOffers } = useActiveOffers();
   const [isSortMenuVisible, setIsSortMenuVisible] = useState(false);
   const [sortingLoading, setSortingLoading] = useState(false);
 
@@ -19,7 +20,7 @@ export default function ActiveOffersScreen() {
     }, 600);
   };
 
-  const showSkeleton = loadingOffers || sortingLoading; // 🔹 carga inicial o mientras ordena
+  const showSkeleton = loadingOffers || sortingLoading;
 
   return (
     <View style={styles.container}>
@@ -27,27 +28,31 @@ export default function ActiveOffersScreen() {
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>Ofertas</Text>
 
-          <View style={styles.sortContainer}>
-            <TouchableOpacity
-              onPress={() => setIsSortMenuVisible(prev => !prev)}
-              style={{ flexDirection: 'row', alignItems: 'center' }}>
-              {iconos.lista(20, Colors.gray3)}
-              <Text style={[styles.sortText, { marginLeft: 6 }]}>Ordenar por:</Text>
-            </TouchableOpacity>
-            {isSortMenuVisible && (
-              <View style={{ flexDirection: 'row', marginTop: 10 }}>
-                <TouchableOpacity onPress={() => handleSort('name')} style={styles.sortButton}>
-                  <Text style={styles.sortButtonText}>Nombre</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleSort('salary')} style={styles.sortButton}>
-                  <Text style={styles.sortButtonText}>Salario</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleSort('date')} style={styles.sortButton}>
-                  <Text style={styles.sortButtonText}>Fecha venc.</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
+          {/* 🔹 Mostrar "Ordenar por" SOLO si hay ofertas */}
+          {offers.length > 0 && (
+            <View style={styles.sortContainer}>
+              <TouchableOpacity
+                onPress={() => setIsSortMenuVisible(prev => !prev)}
+                style={{ flexDirection: 'row', alignItems: 'center' }}
+              >
+                {iconos.lista(20, Colors.gray3)}
+                <Text style={[styles.sortText, { marginLeft: 6 }]}>Ordenar por:</Text>
+              </TouchableOpacity>
+              {isSortMenuVisible && (
+                <View style={{ flexDirection: 'row', marginTop: 10 }}>
+                  <TouchableOpacity onPress={() => handleSort('name')} style={styles.sortButton}>
+                    <Text style={styles.sortButtonText}>Nombre</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleSort('salary')} style={styles.sortButton}>
+                    <Text style={styles.sortButtonText}>Salario</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleSort('date')} style={styles.sortButton}>
+                    <Text style={styles.sortButtonText}>Fecha venc.</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
 
           {showSkeleton ? (
             <OfferSkeleton />

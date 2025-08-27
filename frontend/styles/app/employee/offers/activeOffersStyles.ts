@@ -9,10 +9,10 @@ export const activeOffersStyles = StyleSheet.create({
     paddingHorizontal: 20
   },
   title: {
-    fontSize: 34,
+    fontSize: 48,
     fontFamily: 'titulos',
     color: Colors.violet4,
-    marginBottom: 20
+    marginBottom: 10
   },
   sortContainer: {
     backgroundColor: Colors.white,
