@@ -1,6 +1,7 @@
 from django.test import TestCase
 from datetime import date, timedelta, time
 
+from eventos.errors.events_messages import EVENT_START_DATE_AFTER_END_DATE, EVENT_START_DATE_IN_PAST, EVENT_START_TIME_NOT_BEFORE_END_TIME
 from eventos.models.category_events import Category
 from eventos.models.state_events import EventState
 from eventos.serializers.event import (
@@ -66,7 +67,7 @@ class CreateEventSerializerTest(TestCase):
         data["end_date"] = date.today() + timedelta(days=2)
         serializer = CreateEventSerializer(data=data, context={"user": self.user})
         self.assertFalse(serializer.is_valid())
-        self.assertIn("non_field_errors", serializer.errors)
+        self.assertIn(EVENT_START_DATE_AFTER_END_DATE, serializer.errors)
 
     def test_start_time_not_before_end_time_raises(self):
         data = self.valid_data.copy()
@@ -77,14 +78,14 @@ class CreateEventSerializerTest(TestCase):
         data["end_time"] = time(10, 0)
         serializer = CreateEventSerializer(data=data, context={"user": self.user})
         self.assertFalse(serializer.is_valid())
-        self.assertIn("non_field_errors", serializer.errors)
+        self.assertIn(EVENT_START_TIME_NOT_BEFORE_END_TIME, serializer.errors)
 
     def test_start_date_in_past_raises(self):
         data = self.valid_data.copy()
         data["start_date"] = date.today() - timedelta(days=1)
         serializer = CreateEventSerializer(data=data, context={"user": self.user})
         self.assertFalse(serializer.is_valid())
-        self.assertIn("non_field_errors", serializer.errors)
+        self.assertIn(EVENT_START_DATE_IN_PAST, serializer.errors)
 
 
 class EventSerializersTest(TestCase):

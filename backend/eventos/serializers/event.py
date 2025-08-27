@@ -48,9 +48,7 @@ class CreateEventSerializer(serializers.ModelSerializer):
 
         # si es el mismo día, start_time debe ser menor que end_time
         if start_date == end_date and start_time and end_time and start_time >= end_time:
-            raise serializers.ValidationError({
-                "non_field_errors": [EVENT_START_TIME_NOT_BEFORE_END_TIME]
-            })
+            raise serializers.ValidationError(EVENT_START_TIME_NOT_BEFORE_END_TIME)
 
     def _validate_start_date_future(self, data):
         start_date = data.get('start_date')
