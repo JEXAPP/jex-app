@@ -3,7 +3,9 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Octicons from '@expo/vector-icons/Octicons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native';
+import React from 'react';
 
 export const iconos = {
   error: (size: number, color: string) => (
@@ -25,6 +27,9 @@ export const iconos = {
   ),
   flechaDerecha: (size: number, color: string) => (
     <Ionicons name="chevron-forward" size={size} color={color} />
+  ),
+  flechaAbajo: (size: number, color: string) =>(
+    <Ionicons name="chevron-down" size={size} color={color} />
   ),
   editar: (size: number, color: string) => (
     <MaterialIcons name="edit" size={size} color={color} />
@@ -49,6 +54,15 @@ export const iconos = {
   ),
   trash: (size:number, color:string) => (
     <Ionicons name="trash" size={size} color={color} />
+  ),
+  full_star: (size:number, color:string) => (
+    <FontAwesome name="star" size={size} color={color} />
+  ),
+  half_star: (size:number, color:string) => (
+    <FontAwesome name="star-half-full" size={size} color={color} />
+  ),
+  empty_star: (size:number, color:string) => (
+    <FontAwesome name="star-o" size={size} color={color} />
   ),
   // ==== Footer Nav Icons ====
   footer_home: (active: boolean, size: number, color: string) =>
