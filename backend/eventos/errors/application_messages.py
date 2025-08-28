@@ -1,7 +1,0 @@
-VACANCY_NOT_FOUND = "La vacante no existe."
-VACANCY_NOT_ACTIVE = "La vacante no está activa para postulaciones."
-SHIFTS_NOT_BELONG_VACANCY = "Uno o más turnos no pertenecen a la vacante."
-EMPLOYEE_PROFILE_NOT_FOUND = "Perfil de empleado no encontrado para el usuario autenticado."
-ALREADY_APPLIED_ALL_SHIFTS = "Ya estás postulado a todos estos turnos."
-APPLICATIONS_CREATED_SUCCESS = "Postulaciones creadas con éxito."
-SHIFTS_IDS_MUST_BE_INTEGERES = "Todos los IDs de los turnos deben ser enteros"

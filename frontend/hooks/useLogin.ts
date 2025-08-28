@@ -154,7 +154,7 @@ export const useLogin = () => {
       if (role === 'employee') {
         router.push('/employee/offers/check-offers');
       } else if (role === 'employer') {
-        router.push('/employer');
+        router.push('/employer/vacancy/edit-vacancy');
       } else {
         // rol inválido o no presente → ir al selector de tipo de usuario
         router.replace('/auth/register/type-user');

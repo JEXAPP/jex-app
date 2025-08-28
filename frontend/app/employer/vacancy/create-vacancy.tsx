@@ -119,7 +119,6 @@ export default function RegisterVacancyScreen() {
                         actualizarRol(vIndex, seleccionado?.id.toString() || '', seleccionado?.name || '');
                       }}
                       placeholder={vacantes[vIndex].rolNombre || 'Elegí un rol'}
-
                       styles={dropdown2Styles1}
                     />
 

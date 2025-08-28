@@ -1,5 +1,5 @@
 from django.db import models
-from eventos.models.job_types import JobType
+from vacancies.models.job_types import JobType
 from user_auth.models.user import CustomUser
 
 class EmployeeProfile(models.Model):
