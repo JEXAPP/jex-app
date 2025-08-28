@@ -5,6 +5,9 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.cpython-*
+__pycache__/
+*.pyc
+*.pyd
 
 # Por si alguno se generó directamente en la raíz de una app
 **/__init__.pyc
