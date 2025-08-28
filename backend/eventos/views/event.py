@@ -88,10 +88,9 @@ class UpdateEventView(UpdateAPIView):
         response_serializer = CreateEventResponseSerializer(instance)
         return Response(response_serializer.data)
     
-class ListEventVacanciesView(RetrieveAPIView):
+class ListEventVacanciesView(ListAPIView):
     serializer_class = ListEventVacanciesSerializer
     permission_classes = [IsAuthenticated]
-    lookup_field = "pk"
 
     def get_queryset(self):
         user = self.request.user
