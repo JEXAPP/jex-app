@@ -31,6 +31,7 @@ export default function EmployeeLayout() {
         {/* Rutas RELATIVAS a /employee */}
         <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="vacancy/manipulate-vacancy" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="candidates/index" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 
       {/* Footer fijo, por fuera del Stack */}

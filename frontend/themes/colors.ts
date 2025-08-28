@@ -16,5 +16,6 @@ export const Colors = {
   red: '#ad1b1bff',
   green: '#407521ff',
   white: '#ffffff',
-  black: '#000000'
+  black: '#000000',
+  yellow: '#f1b81bff'
 };

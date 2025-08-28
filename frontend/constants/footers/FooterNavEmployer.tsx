@@ -21,14 +21,14 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
   // Activo si estamos exactamente en /employee o /employer (podés afinar lógica si querés)
   const isActive = (slot: number) => {
     if (slot === 0) return pathname === basePath || pathname === `${basePath}/`;
-    if (slot === 1) return pathname.startsWith(`/${basePath}/candidates`);
+    if (slot === 1) return pathname.startsWith(`${basePath}/candidates`);
     return false;
   };
 
   // Navega solo el primero; los otros quedan como no-op (disabled)
   const onPress = (slot: number) => {
     if (slot === 0) router.replace(basePath);
-    if (slot === 1) router.replace(`/${basePath}/candidates`);
+    if (slot === 1) router.replace(`${basePath}/candidates`);
     // slots 2..4 aún sin navegación
   };
 

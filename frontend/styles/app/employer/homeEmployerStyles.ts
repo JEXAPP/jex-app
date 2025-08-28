@@ -5,13 +5,14 @@ import { Borders } from '@/themes/borders';
 export const homeEmployerStyles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    marginTop: 20,
+    marginHorizontal: 20,
     backgroundColor: Colors.gray1,
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 15,
   },
   addEventButton: {
     marginTop: 6
