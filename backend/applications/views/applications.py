@@ -3,6 +3,7 @@ from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from applications.constants import OfferStates
 from applications.errors.application_messages import ALREADY_APPLIED_ALL_SHIFTS, APPLICATIONS_CREATED_SUCCESS
 from applications.models.applications import Application
 from applications.serializers.applications import (
@@ -19,6 +20,9 @@ from vacancies.models.vacancy import Vacancy
 from applications.models.applications import Application
 from vacancies.models.shifts import Shift
 from rest_framework.exceptions import NotFound
+
+from django.db.models import Count, Q
+
 
 
 class ApplicationCreateView(APIView):
@@ -59,9 +63,24 @@ class ListApplicationsByShiftView(RetrieveAPIView):
         ).filter(shift_id=shift_id).order_by("-created_at")
 
         try:
-            shift = Shift.objects.prefetch_related(
-                Prefetch("applications", queryset=applications_qs)
-            ).get(pk=shift_id, vacancy_id=vacancy_id)
+            shift = (
+                Shift.objects.prefetch_related(
+                    Prefetch("applications", queryset=applications_qs)
+                )
+                .annotate(
+                    quantity_offers=Count(
+                        "selected_offers",
+                        filter=Q(
+                            selected_offers__state__name__in=[
+                                OfferStates.PENDING.value,
+                                OfferStates.ACCEPTED.value,
+                            ]
+                        ),
+                        distinct=True,
+                    )
+                )
+                .get(pk=shift_id, vacancy_id=vacancy_id)
+            )
         except Shift.DoesNotExist:
             raise NotFound("Turno no encontrado para esta vacante")
 
