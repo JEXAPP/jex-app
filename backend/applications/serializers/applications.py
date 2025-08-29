@@ -137,11 +137,14 @@ class ApplicationByShiftSerializer(serializers.ModelSerializer):
 
 class ShiftWithApplicationsSerializer(serializers.ModelSerializer):
     shift_id = serializers.IntegerField(source="id")
+    quantity = serializers.IntegerField()
     start_time = CustomTimeField()
     end_time = CustomTimeField()
     start_date = CustomDateField()
     end_date = CustomDateField()
     applications = ApplicationByShiftSerializer(many=True, read_only=True)
+
+    quantity_offers = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Shift
@@ -151,7 +154,9 @@ class ShiftWithApplicationsSerializer(serializers.ModelSerializer):
             "end_time",
             "start_date",
             "end_date",
+            "quantity",
             "applications",
+            "quantity_offers",
         ]
 
 
