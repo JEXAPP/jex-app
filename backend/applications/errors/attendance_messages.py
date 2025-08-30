@@ -1,0 +1,4 @@
+NOT_ACCEPTED_OFFER = "El empleado no tiene una oferta aceptada para este turno."
+EMPLOYEE_NOT_FOUND = "Empleado no encontrado."
+SHIFT_NOT_FOUND = "Turno no encontrado."
+ALREADY_REGISTERED_ATTENDANCE = "El empleado ya tiene registrada asistencia para este turno."
