@@ -1,13 +1,13 @@
 from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView
 from applications.constants import OfferStates
-from applications.serializers.offer import OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer, OfferDetailSerializer
+from applications.serializers.offer import OfferAcceptedDetailSerializer, OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer, OfferDetailSerializer
 from rest_framework import permissions
 from django.utils import timezone
 from applications.models.offers import Offer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.exceptions import PermissionDenied
-from applications.errors.offer_messages import NOT_PERMISSIONS_OFFER
+from applications.errors.offer_messages import NOT_PERMISSION_ACCEPTED_OFFER, NOT_PERMISSIONS_OFFER
 from applications.models.offer_state import OfferState
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -70,3 +70,29 @@ class OfferDetailView(RetrieveAPIView):
         'application__shift__vacancy__event',
         'application__employee__user'
 )
+    
+
+class OfferAcceptedDetailView(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+    serializer_class = OfferAcceptedDetailSerializer
+    lookup_url_kwarg = "shift_id"
+
+    def get_object(self):
+        user = self.request.user
+        shift_id = self.kwargs[self.lookup_url_kwarg]
+
+        # buscamos estado ACCEPTED
+        state_accepted = get_object_or_404(OfferState, name=OfferStates.ACCEPTED.value)
+
+        # buscamos la oferta aceptada del turno para este empleado
+        offer = Offer.objects.filter(
+            selected_shift_id=shift_id,
+            employee__user=user,
+            state=state_accepted
+        ).select_related("selected_shift__vacancy").first()
+
+        if not offer:
+            raise PermissionDenied(NOT_PERMISSION_ACCEPTED_OFFER)
+
+        return offer.selected_shift

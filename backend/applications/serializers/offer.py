@@ -4,6 +4,7 @@ from applications.errors.application_messages import APPLICATION_NOT_FOUND, APPL
 from applications.errors.offer_messages import EMPLOYER_PROFILE_NOT_FOUND, OFFER_NOT_PENDING, REJECTION_REASON_REQUIRED
 from applications.models.applications import Application
 from applications.models.offers import Offer
+from applications.utils import get_job_type_display
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from eventos.serializers.event import EventSerializer
 from user_auth.models.employee import EmployeeProfile
@@ -12,6 +13,7 @@ from rest_framework import serializers
 from datetime import datetime
 from django.utils import timezone
 
+from vacancies.constants import JobTypesEnum
 from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
 from eventos.models.event import Event
@@ -213,3 +215,15 @@ class OfferDetailSerializer(serializers.ModelSerializer):
         fields = ["id", "expiration_date", "expiration_time", "additional_comments", "application"]
 
 
+
+class OfferAcceptedDetailSerializer(serializers.ModelSerializer):
+    vacancy_description = serializers.CharField(source="vacancy.description", read_only=True)
+    job_type = serializers.SerializerMethodField()
+    requirements = RequirementSerializer(source="vacancy.requirements", many=True, read_only=True)
+
+    class Meta:
+        model = Shift
+        exclude = ["quantity"]
+
+    def get_job_type(self, obj):
+        return get_job_type_display(obj.vacancy)
