@@ -5,18 +5,14 @@ export const editEventStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.gray1,
+    paddingTop: 40
   },
-  seccion: {
-    height: 70,
-    backgroundColor: Colors.gray1,
-  },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',
     marginTop: 20,
-    marginBottom: 20,
+    marginBottom: 10,
     marginLeft: 50
   },
   image: {
@@ -50,7 +46,7 @@ export const editEventStyles = StyleSheet.create({
     flexDirection: 'row', 
     justifyContent: 'center', 
     gap: 15,
-    marginTop: 15
+    marginTop: 10
   }, 
   description:{
     marginBottom: 5,

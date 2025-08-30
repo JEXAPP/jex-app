@@ -45,6 +45,9 @@ export const iconos = {
   lista: (size = 24, color = Colors.black) => (
     <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color} />
   ),
+  cuidado: (size: number, color: string) => (
+    <Ionicons name="alert-circle" size={size} color={color} />
+  ),
 
   exitoSinCirculo: (size: number, color: string) => (
     <Octicons name="check" size={size} color={color} />

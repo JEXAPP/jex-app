@@ -63,9 +63,6 @@ export default function EditVacancySkeleton() {
         {/* Card Vacante */}
         <View
           style={{
-            borderWidth: 2,
-            borderColor: '#D7DEE5',   // ← antes violet4
-            borderRadius: Borders.soft,
             padding: 20,
             marginBottom: 20,
             backgroundColor: Colors.gray1,
@@ -114,7 +111,6 @@ export default function EditVacancySkeleton() {
               borderRadius: 8,
               paddingHorizontal: 20,
               marginBottom: 16,
-              backgroundColor: Colors.gray2, // ← antes violet2
               paddingBottom: 20,
             }}
           >

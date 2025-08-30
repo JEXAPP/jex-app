@@ -1,7 +1,8 @@
 import { OrderButton } from '@/components/button/OrderButton';
 import { SelectableTag } from '@/components/button/SelectableTags';
 import SearchInput from '@/components/input/SearchInput';
-import { ShowVacancy } from '@/components/others/ShowVacancy';
+import { ShowVacancy } from '@/components/specifics/ShowVacancy';
+import { Vacancy } from '@/constants/interfaces';
 import SearchVacancySkeleton from '@/constants/skeletons/employee/vacancy/searchVacancySkeleton';
 import { useSearchVacancy } from '@/hooks/employee/vacancy/useSearchVacancy';
 import { searchVacancyStyles as styles } from '@/styles/app/employee/vacancy/searchVacancyStyles';
@@ -9,18 +10,8 @@ import { selectableTagStyles2 } from '@/styles/components/button/selectableTagsS
 import { searchInputStyles1 } from '@/styles/components/input/searchInputStyles1';
 import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
 import React, { useMemo } from 'react';
-import { FlatList, Keyboard, TouchableWithoutFeedback, View, Text, Image } from 'react-native';
+import { FlatList, Image, Keyboard, Text, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-interface Vacancy {
-  vacancy_id: number;
-  event_name: string;
-  start_date: string;
-  payment: string;
-  job_type_name: string;
-  specific_job_type?: string | null;
-  image_url?: string | null;
-}
 
 export default function SearchVacancyScreen() {
   const {

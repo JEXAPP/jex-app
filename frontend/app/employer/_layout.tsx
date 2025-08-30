@@ -40,7 +40,7 @@ export default function EmployeeLayout() {
       </View>
 
       {/* Espacio para no tapar contenido (si alguna screen no lo agrega) */}
-      <View style={{ height: FOOTER_HEIGHT + insets.bottom }} />
+      <View style={{ height: FOOTER_HEIGHT }} />
     </View>
   );
 }

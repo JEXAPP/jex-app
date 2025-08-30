@@ -5,12 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const FOOTER_HEIGHT = 68;
 
 export default function EmployeeLayout() {
-  const insets = useSafeAreaInsets();
   return (
     <View style={{ flex: 1 }}>
       {/* Navigator (solo screens como hijos) */}
@@ -31,6 +29,7 @@ export default function EmployeeLayout() {
         <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="profile/aditional-info" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="vacancy/search-vacancy" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 
       {/* Footer fijo, por fuera del Stack */}
@@ -39,7 +38,7 @@ export default function EmployeeLayout() {
       </View>
 
       {/* Espacio para no tapar contenido (si alguna screen no lo agrega) */}
-      <View style={{ height: FOOTER_HEIGHT + insets.bottom }} />
+      <View style={{ height: FOOTER_HEIGHT }} />
     </View>
   );
 }

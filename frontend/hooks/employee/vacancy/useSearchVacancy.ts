@@ -1,16 +1,7 @@
+import { Vacancy } from '@/constants/interfaces';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-
-interface Vacancy {
-  vacancy_id: number;
-  event_name: string;
-  start_date: string;
-  payment: string;
-  job_type_name: string;
-  specific_job_type?: string | null;
-  image_url?: string | null;
-}
 
 type FilterType = 'role' | 'date' | 'event';
 

@@ -6,6 +6,7 @@ export const datePickerStyles1 = StyleSheet.create({
   /* ---------- Selector cerrado ---------- */
   selector: {
     padding: 17,
+    width: 350,
     borderRadius: Borders.soft,
     backgroundColor: Colors.white,
   },

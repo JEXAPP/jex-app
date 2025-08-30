@@ -3,7 +3,7 @@ import { ButtonWithIcon } from '@/components/button/ButtonWithIcon';
 import { IconButton } from '@/components/button/IconButton';
 import { Input } from '@/components/input/Input';
 import { CharCounter } from '@/components/others/CharCounter';
-import DatePicker3 from '@/components/picker/DatePicker3';
+import DatePicker from '@/components/picker/DatePicker';
 import { DropDown2 } from '@/components/picker/DropDown2';
 import TimePicker from '@/components/picker/TimePicker';
 import { ClickWindow } from '@/components/window/ClickWindow';
@@ -158,7 +158,7 @@ export default function EditVacancyScreen() {
                       {expandedShift === turnoIndex && (
                         <>
                           <View style={styles.shiftRow}>
-                            <DatePicker3
+                            <DatePicker
                               label="Fecha Inicio"
                               minimumDate={fechaInicioEvento}
                               maximumDate={fechaFinEvento}
@@ -175,7 +175,7 @@ export default function EditVacancyScreen() {
                           </View>
 
                           <View style={styles.shiftRow}>
-                            <DatePicker3
+                            <DatePicker
                               label="Fecha Fin"
                               minimumDate={fechaInicioEvento}
                               maximumDate={fechaFinEvento}

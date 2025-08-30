@@ -1,22 +1,11 @@
+import { Vacancy } from '@/constants/interfaces';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useTokenValidations } from '@/services/internal/useTokenValidations';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
-
-interface Vacancy {
-  vacancy_id: number;
-  event_name: string;
-  start_date: string;
-  payment: string;
-  job_type_name: string;
-  specific_job_type?: string | null;
-  image_url?: string | null;
-}
-
 export const useHomeEmployee = () => {
   const router = useRouter();
-  // Hook para manejar la conexión con el backend
   const { requestBackend} = useBackendConection();
   const { validateToken } = useTokenValidations()
   const [loadingComienzo, setLoadingComienzo] = useState<boolean>(true)
@@ -47,28 +36,30 @@ export const useHomeEmployee = () => {
     fetchVacancies();
   }, []);
 
-  /** Función al presionar la tarjeta de una vacante */
+  // Función al presionar la tarjeta de una vacante 
   const goToVacancyDetails = (vacancy: Vacancy) => {
     router.push(`./employee/vacancy/apply-vacancy?id=${vacancy.vacancy_id}`);
   };
 
 
-  /** Funciones al presionar los títulos */
+  // Funciones al presionar los títulos 
   const goToSoonList = () => router.push('/employee/vacancy/extend-vacancy?category=soon');
   const goToInterestList = () => router.push('/employee/vacancy/extend-vacancy?category=interests');
   const goToNearList = () => router.push('/employee/vacancy/extend-vacancy?category=nearby');
   const goToSearchVacancy = () => router.push('/employee/vacancy/search-vacancy')
 
+
+  const sections = [
+    { title: 'Según tus intereses', data: interestVacancies, onPressTitle: goToInterestList, showArrow: true },
+    { title: 'Próximos eventos',   data: soonVacancies,     onPressTitle: goToSoonList,     showArrow: true },
+    { title: 'Cerca tuyo',         data: nearVacancies,     onPressTitle: goToNearList,     showArrow: true },
+  ];
+
   return {
-    soonVacancies,
-    interestVacancies,
-    nearVacancies,
+    sections,
     loadingComienzo,
     errorVacancies,
+    goToSearchVacancy,
     goToVacancyDetails,
-    goToSoonList,
-    goToInterestList,
-    goToNearList,
-    goToSearchVacancy
   };
 };

@@ -1,10 +1,11 @@
+import { ShowVacancy } from '@/components/specifics/ShowVacancy';
+import { Vacancy } from '@/constants/interfaces';
+import SearchVacancySkeleton from '@/constants/skeletons/employee/vacancy/searchVacancySkeleton';
+import { useExtendVacancy} from '@/hooks/employee/vacancy/useExtendVacancy';
+import { extendVacancyStyles as styles } from '@/styles/app/employee/vacancy/extendVacancyStyles';
 import React from 'react';
 import { FlatList, Keyboard, Text, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ShowVacancy } from '@/components/others/ShowVacancy';
-import { useExtendVacancy, Vacancy } from '@/hooks/employee/vacancy/useExtendVacancy';
-import { extendVacancyStyles as styles } from '@/styles/app/employee/vacancy/extendVacancyStyles';
-import SearchVacancySkeleton from '@/constants/skeletons/employee/vacancy/searchVacancySkeleton';
 
 export default function ListVacancyByCategoryScreen() {
     

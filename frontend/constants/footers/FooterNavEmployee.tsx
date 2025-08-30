@@ -7,8 +7,7 @@ import { Colors } from '@/themes/colors';
 import { iconos } from '../iconos';
 
 type Props = {
-  basePath: '/employee' | '/employer';
-  // opcional: override de estilos
+  basePath: '/employee';
   styles?: typeof s;
 };
 
@@ -18,20 +17,24 @@ const FooterNavEmployee: React.FC<Props> = ({ basePath }) => {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
 
-  // Activo si estamos exactamente en /employee o /employer (podés afinar lógica si querés)
+  // Activar
   const isActive = (slot: number) => {
-    if (slot === 0) return pathname === basePath || pathname === `${basePath}/`;
+    if (slot === 0) return pathname === basePath || pathname.startsWith(`${basePath}/vacancy`);
+    if (slot === 1) return pathname.startsWith(`${basePath}/offers`);
     return false;
   };
 
-  // Navega solo el primero; los otros quedan como no-op (disabled)
+  // Navegar
   const onPress = (slot: number) => {
     if (slot === 0) router.replace(basePath);
-    // slots 2..4 aún sin navegación
+    if (slot === 1) router.push(`${basePath}/offers`);
   };
 
-  // Para que visualmente el disabled no “rompa” accesibilidad/feedback
-  const isDisabled = (slot: number) => slot !== 0;
+  // Deshabilitar
+  const isDisabled = (slot: number) => {
+    // ahora habilitamos 0 (home) y 1 (inbox/offers)
+    return slot > 1;
+  };
 
   return (
     <View style={[s.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
@@ -43,11 +46,10 @@ const FooterNavEmployee: React.FC<Props> = ({ basePath }) => {
         disabled={isDisabled(0)}
         style={s.item}
       >
-        {isActive(0) ? (
-          iconos.footer_home(true, ICON_SIZE, Colors.white)
-        ) : (
-         iconos.footer_home(false, ICON_SIZE, Colors.white)
-        )}
+        {isActive(0) 
+          ? iconos.footer_home(true, ICON_SIZE, Colors.white)
+          : iconos.footer_home(false, ICON_SIZE, Colors.white)
+        }
       </Pressable>
 
       <Pressable
@@ -57,9 +59,10 @@ const FooterNavEmployee: React.FC<Props> = ({ basePath }) => {
         disabled={isDisabled(1)}
         style={s.item}
       >
-        {/* No click: Octicons 'inbox' / Click: FA6 'inbox' (ambos blancos) */}
-        {iconos.footer_inbox(false, ICON_SIZE, Colors.white)}
-        {/* Activo deshabilitado: no hay navegación por ahora, no se muestra indicador */}
+        {isActive(1)
+          ? iconos.footer_inbox(true, ICON_SIZE, Colors.white)
+          : iconos.footer_inbox(false, ICON_SIZE, Colors.white)
+        }
       </Pressable>
 
       {/* 3) Briefcase (MaterialCommunityIcons) */}

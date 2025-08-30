@@ -61,62 +61,59 @@ export default function EditEventSkeleton() {
   return (
     <View style={[styles.container, { backgroundColor: Colors.gray1 }]}>
       {/* barra superior fantasma */}
-      <View style={[styles.seccion, { backgroundColor: Colors.gray1 }]} />
+      <View style={{ backgroundColor: Colors.gray1 }} />
 
       <ScrollView contentContainerStyle={[styles.scroll, { gap: 10 }]} keyboardShouldPersistTaps="handled">
         {/* Header: título + imagen */}
         <View style={[styles.header, { marginLeft: 0, gap: 12 }]}>
           {/* Título (dos líneas simuladas) */}
           <View style={{ flexShrink: 1 }}>
-            <SkeletonBox w={260} h={28} br={Borders.soft} stretch />
-            <SkeletonBox w={180} h={22} br={Borders.soft} mt={10} />
+            <SkeletonBox w={200} h={35} br={Borders.soft} mt={10} />
           </View>
           {/* Avatar/ilustración */}
-          <Circle size={80} />
+          <Circle size={70} />
         </View>
 
         {/* Input: Nombre del evento */}
-        <SkeletonBox h={46} br={Borders.soft} stretch />
+        <SkeletonBox h={55} br={Borders.soft} w={350} mt={15} />
 
         {/* Descripción + contador */}
-        <View style={{ marginTop: 8, marginBottom: 4 }}>
+        <View style={{ marginTop: 15, marginBottom: 4 }}>
           {/* TextArea */}
           <SkeletonBox h={120} br={Borders.soft} stretch />
         </View>
 
         {/* Picker: Rubro del Evento (label + selector) */}
-        <View style={{ marginTop: 4 }}>
-           <SkeletonBox h={46} br={Borders.soft} stretch />
-        </View>
+        <SkeletonBox h={55} br={Borders.soft} mt={15} stretch />
 
         {/* Input: Ubicación */}
-        <SkeletonBox h={46} br={Borders.soft} stretch />
+        <SkeletonBox h={55} br={Borders.soft} mt={15} stretch />
 
         {/* Row1: Fecha inicio + Hora inicio */}
-        <View style={[styles.row1, { gap: 30, marginTop: 15, marginBottom: 10, justifyContent: 'center' }]}>
+        <View style={[styles.row1, { gap: 20, marginTop: 15, marginBottom: 10, justifyContent: 'center' }]}>
           <View>
-            <SkeletonBox w={140} h={46} br={Borders.soft} />
+            <SkeletonBox w={200} h={55} br={Borders.soft} />
           </View>
           <View>
-            <SkeletonBox w={100} h={46} br={Borders.soft} />
+            <SkeletonBox w={110} h={55} br={Borders.soft} />
           </View>
         </View>
 
         {/* Row2: Fecha fin + Hora fin */}
-        <View style={[styles.row2, { gap: 30, justifyContent: 'center' }]}>
+        <View style={[styles.row2, { gap: 20, justifyContent: 'center' }]}>
           <View>
-            <SkeletonBox w={140} h={46} br={Borders.soft} />
+            <SkeletonBox w={200} h={55} br={Borders.soft} />
           </View>
           <View>
-            <SkeletonBox w={100} h={46} br={Borders.soft} />
+            <SkeletonBox w={110} h={55} br={Borders.soft} />
           </View>
         </View>
       </ScrollView>
 
       {/* Row3: Botones Guardar / Eliminar */}
-      <View style={[styles.row3, { gap: 15, paddingHorizontal: 26, marginBottom: 16 }]}>
-        <SkeletonBox w={120} h={46} br={Borders.soft} />
-        <SkeletonBox w={120} h={46} br={Borders.soft} />
+      <View style={[styles.row3, { gap: 15, paddingHorizontal: 15, marginBottom: 16 }]}>
+        <SkeletonBox w={150} h={55} br={Borders.soft} />
+        <SkeletonBox w={150} h={55} br={Borders.soft} />
       </View>
     </View>
   );

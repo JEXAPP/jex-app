@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Suggestions from '../picker/Suggestions';
 import DatePicker from '@/components/picker/DatePicker';
 import { Colors } from '@/themes/colors';
-import { suggestionsStyles2 } from '@/styles/components/picker/suggestionsStyles2';
+import { suggestionsStyles2 } from '@/styles/components/picker/suggestionsStyles/suggestionsStyles2';
 
 type Mode = 'text-suggestions' | 'text' | 'date';
 interface Option { id: number | string; label: string; }

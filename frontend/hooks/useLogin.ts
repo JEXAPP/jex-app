@@ -152,9 +152,9 @@ export const useLogin = () => {
       const role = decoded.role;
 
       if (role === 'employee') {
-        router.push('/employee/offers/check-offers');
+        router.push('/employee');
       } else if (role === 'employer') {
-        router.push('/employer/vacancy/edit-vacancy');
+        router.push('/employer');
       } else {
         // rol inválido o no presente → ir al selector de tipo de usuario
         router.replace('/auth/register/type-user');
@@ -168,7 +168,7 @@ export const useLogin = () => {
   // Navega al registro normal (no por Google)
   const handleNavigateToRegister = async () => {
     await SecureStore.setItemAsync('desde-google', 'false');
-    router.push('/employee/offers/check-offers');
+    router.push('/auth/register');
   };
 
   // Navega a la pantalla para recuperar contraseña

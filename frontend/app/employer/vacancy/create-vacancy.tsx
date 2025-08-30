@@ -100,7 +100,7 @@ export default function RegisterVacancyScreen() {
                       <Button
                         texto="Eliminar"
                         onPress={() => eliminarVacante(vIndex)}
-                        styles={{boton: {...buttonStyles1.boton, width: 80, paddingVertical: 5, marginBottom: 0, backgroundColor: Colors.gray2}, texto: {...buttonStyles1.texto, fontSize: 15}}}
+                        styles={{boton: {...buttonStyles1.boton, width: 80, backgroundColor: Colors.gray2, height: 30, marginBottom: 0}, texto: {...buttonStyles1.texto, fontSize: 15}}}
                       />)}
 
                     </View>
@@ -266,10 +266,10 @@ export default function RegisterVacancyScreen() {
 
                             {vacante.turnos.length > 1 && (
                               <ButtonWithIcon
-                                icono={iconos.trash(24, Colors.violet4)}
+                                icono={iconos.trash(18, Colors.violet4)}
                                 texto="Eliminar turno"
                                 onPress={() => eliminarTurno(vIndex, tIndex)}
-                                styles={{ ...buttonWithIconStyles1, boton: { ...buttonWithIconStyles1.boton, width: 200, marginBottom: 20}, texto: {...buttonWithIconStyles1.texto, marginRight: 0} }}
+                                styles={{ ...buttonWithIconStyles1, boton: { ...buttonWithIconStyles1.boton, width: 200, marginBottom: 20, height: 45}, texto: {...buttonWithIconStyles1.texto, marginRight: 0} }}
                               />
                             )}
 
@@ -283,7 +283,7 @@ export default function RegisterVacancyScreen() {
                     <Button
                         texto="Agregar turno"
                         onPress={() => agregarTurno(vIndex)}
-                        styles={{ ...buttonStyles1, boton: { ...buttonStyles1.boton, paddingVertical: 10, width: 250, backgroundColor: Colors.violet2, } }}
+                        styles={{ ...buttonStyles1, boton: { ...buttonStyles1.boton, width: 200, backgroundColor: Colors.violet2, height: 40 } }}
                       />
 
                   </>

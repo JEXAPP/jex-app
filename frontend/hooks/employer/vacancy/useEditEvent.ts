@@ -1,6 +1,8 @@
+import useGooglePlaces from '@/services/external/useGooglePlaces';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Keyboard } from 'react-native';
 
 type Option = { id: number | string; name: string };
 
@@ -28,13 +30,15 @@ const dateToString = (d: Date | null): string | null => {
 
 export const useEditEvent = () => {
   const router = useRouter();
-  const eventId = useLocalSearchParams<{ id?: string }>(); 
+  const {id} = useLocalSearchParams()
+  const eventId = id
   const { requestBackend } = useBackendConection();
 
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [loading, setLoading] = useState(false);
-
+  const { sugerencias, setSugerencias, buscarSugerencias, obtenerCoordenadas } = useGooglePlaces();
   const [nombreEvento, setNombreEvento] = useState('');
+  const [ubicacionId, setUbicacionId] = useState('');
   const [descripcionEvento, setDescripcionEvento] = useState('');
   const [ubicacionEvento, setUbicacionEvento] = useState('');
   const [fechaInicioEvento, setFechaInicioEvento] = useState<Date | null>(null);
@@ -44,7 +48,6 @@ export const useEditEvent = () => {
 
   const [rubros, setRubros] = useState<Option[]>([]);
   const [selectedRubro, setSelectedRubro] = useState<Option | null>(null);
-  const setRubro = (opt: Option) => setSelectedRubro(opt);
 
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -91,6 +94,7 @@ export const useEditEvent = () => {
       return;
     }
     try {
+      
       const data = await requestBackend(`/api/events/detail/${eventId}/`, null, 'GET');
       setNombreEvento(data?.name ?? '');
       setDescripcionEvento(data?.description ?? '');
@@ -127,6 +131,8 @@ export const useEditEvent = () => {
     setUbicacionEvento(txt);
     const was = originalLocationRef.current.location || '';
     setLocationDirty(txt !== was);
+    buscarSugerencias(txt);
+
   };
 
   //Guardar
@@ -134,6 +140,7 @@ export const useEditEvent = () => {
     if (!guardarHabilitado) return;
     setLoading(true);
     try {
+      const coords = locationDirty ? await obtenerCoordenadas(ubicacionId) : {lat:originalLocationRef.current.lat, lng: originalLocationRef.current.long };
       const payload: any = {
         name:nombreEvento,
         description:descripcionEvento,
@@ -143,8 +150,8 @@ export const useEditEvent = () => {
         start_time: horaInicio.length === 5 ? `${horaInicio}:00` : horaInicio, // HH:mm:ss
         end_date: dateToString(fechaFinEvento),
         end_time: horaFin.length === 5 ? `${horaFin}:00` : horaFin,
-        latitud: locationDirty ? null : (originalLocationRef.current.lat ?? null),
-        longitud: locationDirty ? null : (originalLocationRef.current.long ?? null),
+        latitud: coords.lat,
+        longitud: coords.lng,
       };
       await requestBackend(`/api/events/update/${eventId}/`, payload, 'PUT');
       //console.log(payload)
@@ -179,8 +186,16 @@ export const useEditEvent = () => {
   const closeError = () => setShowError(false);
   const closeSuccess = () => setShowSuccess(false);
 
+  const seleccionarUbicacion = (item: { descripcion: string; placeId: string }) => {
+    setUbicacionEvento(item.descripcion);
+    setUbicacionId(item.placeId);
+    setSugerencias([]);
+    Keyboard.dismiss();
+  };
+
   return {
     nombreEvento,
+    sugerencias,
     descripcionEvento,
     fechaInicioEvento,
     fechaFinEvento,
@@ -190,6 +205,7 @@ export const useEditEvent = () => {
     rubros,
     selectedRubro,
     setSelectedRubro,
+    seleccionarUbicacion,
     setNombreEvento,
     setDescripcionEvento,
     setFechaInicioEvento,
