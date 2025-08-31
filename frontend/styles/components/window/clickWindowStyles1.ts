@@ -13,11 +13,10 @@ export const clickWindowStyles1 = StyleSheet.create({
   },
   modalWrapper: {
     position: 'relative',
-    width: '80%',
+    width: 300,
     alignItems: 'center',
     overflow: 'visible',
   },
-
   modal: {
     backgroundColor: Colors.white,
     padding: 20,

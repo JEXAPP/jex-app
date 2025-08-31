@@ -64,7 +64,7 @@ export const timePickerStyles1 = StyleSheet.create({
     fontSize: 20,
     color: Colors.black,
     fontFamily: 'interSemiBold',
-    marginBottom: 15
+    marginBottom: 15,
   },
   selectionOverlay: {
     position: 'absolute',
@@ -91,21 +91,42 @@ export const timePickerStyles1 = StyleSheet.create({
     width: '100%',
     zIndex: 3,
   },
-  confirmButton: {
-    backgroundColor: Colors.violet4,
-    paddingHorizontal: 30,
-    paddingVertical: 12,
+
+  // === Acciones ===
+  actionsRow: {
+    flexDirection: 'row',
+    gap: 15,
+    marginTop: 14,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: Colors.gray12,
+    justifyContent: 'center',
+    height: 40,
     borderRadius: Borders.semirounded,
-    marginTop: 10,
+  },
+  cancelText: {
+    color: Colors.gray3,
+    fontSize: 16,
+    fontFamily: 'interMedium',
+    textAlign: 'center',
+  },
+  confirmButton: {
+    flex: 1,
+    backgroundColor: Colors.violet4,
+    justifyContent: 'center',
+    borderRadius: Borders.semirounded,
   },
   confirmText: {
     color: Colors.white,
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'interBold',
+    textAlign: 'center',
   },
+
   selectedItem: {
-  fontSize: 22,
-  fontFamily: 'interSemiBold',
-  color: Colors.black,
-},
+    fontSize: 22,
+    fontFamily: 'interSemiBold',
+    color: Colors.black,
+  },
 });

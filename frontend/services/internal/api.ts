@@ -97,7 +97,6 @@ export function getApi(): AxiosInstance {
       if (error.response) {
         console.log('[API ERROR]', error.response.status, error.response.config?.url);
         if (error.response?.status !== 500 && error.response?.data) {
-          console.log('Error Response Data:', error.response.data);
         }
       } else {
         console.log('[API ERROR]', error.message);

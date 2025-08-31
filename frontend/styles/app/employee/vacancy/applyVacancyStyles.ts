@@ -187,4 +187,7 @@ export const applyVacancyStyles = StyleSheet.create({
     fontSize: 12,
     color: Colors.gray3,
   },
+  multiple: {
+    gap: 5
+  }
 })

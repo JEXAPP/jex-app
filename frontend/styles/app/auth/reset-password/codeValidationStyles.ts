@@ -3,7 +3,8 @@ import { Colors } from '@/themes/colors';
 
 export const codeValidationStyles = StyleSheet.create({
   container:{
-    flex: 1
+    flex: 1,
+    
   },
   title: {
     fontSize: 42,

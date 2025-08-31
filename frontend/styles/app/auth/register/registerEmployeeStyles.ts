@@ -28,7 +28,8 @@ export const registerEmployeeStyles = StyleSheet.create({
   },
   opcionesContainer: {
     gap: 15,
-    marginBottom: 50
+    marginBottom: 50,
+    alignItems: 'center'
   },
   texto:{
     fontFamily: 'interBold',

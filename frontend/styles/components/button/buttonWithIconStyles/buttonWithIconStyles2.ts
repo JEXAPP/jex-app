@@ -20,7 +20,7 @@ export const buttonWithIconStyles2 = StyleSheet.create({
     color: Colors.gray3, 
   },
   texto: {
-    fontSize: 17,
+    fontSize: 16,
     fontFamily: 'interMedium',
     color: Colors.gray3,
     flex: 1,

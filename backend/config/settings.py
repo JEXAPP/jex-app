@@ -1,4 +1,6 @@
 from datetime import timedelta
+import sys
+import os
 
 """
 Django settings for config project.
@@ -52,13 +54,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'user_auth',
-    'django.contrib.sites',  # ← necesario para allauth
+    'django.contrib.sites',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt.token_blacklist',
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'eventos',
+    'vacancies',
+    'applications',
     'allauth',
     'allauth.account',
 
@@ -156,7 +160,8 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ]
+    ],
+    'EXCEPTION_HANDLER': 'config.exception_handler.custom_exception_handler'
 
 
 }
@@ -164,16 +169,33 @@ REST_FRAMEWORK = {
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),  
-        'USER': os.getenv('DB_USER'),        
-        'PASSWORD': os.getenv('DB_PASSWORD'),  
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': '5432',
+
+IS_TEST = 'test' in sys.argv
+
+if IS_TEST:
+    # DB local para tests
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('TEST_DB_NAME'),
+            'USER': os.getenv('TEST_DB_USER'),
+            'PASSWORD': os.getenv('TEST_DB_PASSWORD'),
+            'HOST': os.getenv('TEST_DB_HOST'),
+            'PORT': os.getenv('TEST_DB_PORT', '5432'),
+        }
     }
-}
+else:
+    # DB remota normal
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'HOST': os.getenv('DB_HOST'),
+            'PORT': os.getenv('DB_PORT', '5432'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

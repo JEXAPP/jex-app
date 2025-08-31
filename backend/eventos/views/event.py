@@ -1,9 +1,21 @@
-from rest_framework.generics import CreateAPIView
-from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer
-from user_auth.constants import EMPLOYER_ROLE
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from eventos.constants import EventStates
+from eventos.errors.events_messages import EVENT_NOT_FOUND, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
+from eventos.models.event import Event
+from eventos.models.state_events import EventState
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, UpdateEventStateSerializer
+from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
+
+
+from vacancies.constants import VacancyStates
+from vacancies.models.vacancy import Vacancy
+from django.db.models import Prefetch
+
 
 
 class CreateEventView(CreateAPIView):
@@ -30,4 +42,90 @@ class CreateEventView(CreateAPIView):
         response_serializer = CreateEventResponseSerializer(event)
         return Response(response_serializer.data, status=201)
 
+class ListActiveEventsView(ListAPIView):
+    """
+    Listar eventos activos
+    """
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE, EMPLOYEE_ROLE]
+    serializer_class = ListActiveEventsSerializer
+
+    queryset = Event.objects.all().filter(state__name=EventStates.PUBLISHED.value)
+
+        
+class ListEventDetailView(RetrieveAPIView):
+    serializer_class = ListEventDetailSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE, EMPLOYEE_ROLE]
+    lookup_field = "pk"
+
+    def get_queryset(self):
+        return Event.objects.all()
     
+class UpdateEventView(UpdateAPIView):
+    serializer_class = CreateEventSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    lookup_field = "pk"
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return Event.objects.all()
+        return Event.objects.filter(owner=user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['user'] = self.request.user
+        return context
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object() 
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        response_serializer = CreateEventResponseSerializer(instance)
+        return Response(response_serializer.data)
+    
+class ListEventVacanciesView(ListAPIView):
+    serializer_class = ListEventVacanciesSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        vacancies_qs = Vacancy.objects.filter(
+            state__name=VacancyStates.ACTIVE.value
+        ).select_related("job_type").prefetch_related("shifts")
+
+        return Event.objects.filter(
+            owner=user,
+            state__name=EventStates.PUBLISHED.value
+        ).prefetch_related(
+            Prefetch("vacancies", queryset=vacancies_qs)
+        )
+    
+class UpdateEventStateView(APIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def patch(self, request, pk):
+        serializer = UpdateEventStateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            event = Event.objects.select_related('state', 'owner').get(id=pk)
+        except Event.DoesNotExist:
+            return Response({"detail": EVENT_NOT_FOUND}, status=status.HTTP_404_NOT_FOUND)
+
+        if event.owner != request.user:
+            return Response({"detail": NO_PERMISSION_EVENT}, status=status.HTTP_403_FORBIDDEN)
+
+        new_state_id = serializer.validated_data['state_id']
+        new_state = EventState.objects.get(id=new_state_id)
+
+        event.state = new_state
+        event.save()
+
+        return Response({"detail": STATE_UPDATED_SUCCESS}, status=status.HTTP_200_OK)

@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from eventos.models.job_types import JobType
-from eventos.serializers.job_types import ListJobTypesSerializer
+from vacancies.models.job_types import JobType
+from vacancies.serializers.job_types import ListJobTypesSerializer
 from media_utils.models import Image, ImageType
 from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.user import CustomUser
-from user_auth.models.employee import EmployeeProfile # CAMBIAR ESTO
+from user_auth.models.employee import EmployeeProfile
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import Group
 from django.db.models import Q
@@ -23,17 +23,17 @@ class EmployeeRegisterSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email is already in use.")
+            raise serializers.ValidationError("El email ya esta en uso")
         return value
 
     def validate_dni(self, value):
         if EmployeeProfile.objects.filter(dni=value).exists():
-            raise serializers.ValidationError("DNI is already in use.")
+            raise serializers.ValidationError("El DNI ya esta en uso")
         return value
     
     def validate_phone(self, value):
         if CustomUser.objects.filter(phone=value).exists():
-            raise serializers.ValidationError("Phone is already in use.")
+            raise serializers.ValidationError("El telefono ya esta en uso")
         return value
 
     def create(self, validated_data):
@@ -84,16 +84,16 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
         
 
         if not user.is_authenticated:
-            raise serializers.ValidationError("User must be authenticated.")
+            raise serializers.ValidationError("El usuario debe estar autenticado")
 
         if hasattr(user, 'employee_profile'):
-            raise serializers.ValidationError("Employee profile is already completed.")
+            raise serializers.ValidationError("El perfil de empleado ya esta completado")
 
         if EmployeeProfile.objects.filter(dni=data['dni']).exists():
-            raise serializers.ValidationError("DNI is already in use.")
+            raise serializers.ValidationError("El DNI ya esta en uso")
     
         if CustomUser.objects.filter(Q(phone=data['phone']) & ~Q(id=user.id)).exists():
-            raise serializers.ValidationError("Phone is already in use.")
+            raise serializers.ValidationError("El telefono ya esta en uso")
 
         return data
 
