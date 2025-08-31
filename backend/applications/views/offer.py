@@ -1,9 +1,10 @@
-from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from applications.constants import OfferStates
-from applications.serializers.offer import OfferAcceptedDetailSerializer, OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer, OfferDetailSerializer
-from rest_framework import permissions
+from applications.serializers.offer import OfferAcceptedDetailSerializer, OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer, OfferDetailSerializer, OfferEventByStateSerializer
+from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from applications.models.offers import Offer
+from eventos.models.event import Event
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.exceptions import PermissionDenied
@@ -15,7 +16,7 @@ from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
 
 class OfferCreateView(CreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
     serializer_class = OfferCreateSerializer
 
@@ -27,7 +28,7 @@ class OfferCreateView(CreateAPIView):
         return context
 
 class OfferConsultView(ListAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE, EMPLOYER_ROLE]
     serializer_class = OfferConsultSerializer
 
@@ -44,7 +45,7 @@ class OfferConsultView(ListAPIView):
         )
 
 class DecideOfferView(CreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE]
     serializer_class = OfferDecisionSerializer
     lookup_url_kwarg = 'offer_id'
@@ -63,7 +64,7 @@ class DecideOfferView(CreateAPIView):
         return Response({'detail': 'Offer decision saved successfully.'}, status=status.HTTP_200_OK)
     
 class OfferDetailView(RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE, EMPLOYER_ROLE]
     serializer_class = OfferDetailSerializer
     queryset = Offer.objects.select_related(
@@ -71,9 +72,34 @@ class OfferDetailView(RetrieveAPIView):
         'application__employee__user'
 )
     
+class ListOfferEventByState(ListAPIView):
+    serializer_class = OfferEventByStateSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def get_queryset(self):
+        event_id = self.kwargs.get("event_id")
+        state_id = self.kwargs.get("state_id")
+
+        event = get_object_or_404(Event, id=event_id)
+
+        return (
+            Offer.objects.filter(
+                selected_shift__vacancy__event=event,
+                state_id=state_id
+            )
+            .select_related(
+                "employee__user",
+                "selected_shift__vacancy__job_type",
+                "selected_shift__vacancy__event",
+                "state"
+            )
+        )
+
+    
 
 class OfferAcceptedDetailView(RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE]
     serializer_class = OfferAcceptedDetailSerializer
     lookup_url_kwarg = "shift_id"

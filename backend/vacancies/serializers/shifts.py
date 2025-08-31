@@ -27,3 +27,13 @@ class ShiftSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shift
         fields = ['id', 'start_date', 'end_date', 'start_time', 'end_time', 'payment', 'quantity']
+
+class ShiftDetailForOfferByStateSerializer(serializers.ModelSerializer):
+    start_date = serializers.DateField(format="%d/%m/%Y")
+    end_date = serializers.DateField(format="%d/%m/%Y")
+    start_time = serializers.TimeField(format="%H:%M")
+    end_time = serializers.TimeField(format="%H:%M")
+
+    class Meta:
+        model = Shift
+        fields = ['id', 'start_date', 'end_date', 'start_time', 'end_time', 'payment']

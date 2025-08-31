@@ -95,6 +95,13 @@ class ListActiveEventsSerializer(serializers.ModelSerializer):
         model = Event
         fields = ['id', 'name']
 
+class ListEventsByEmployerSerializer(serializers.ModelSerializer):
+    
+    state = EventStateSerializer()
+    class Meta:
+        model = Event
+        fields = ['id', 'name', 'state']
+
 
 class ListEventDetailSerializer(serializers.ModelSerializer):
 

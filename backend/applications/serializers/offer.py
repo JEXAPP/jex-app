@@ -7,10 +7,8 @@ from applications.models.offers import Offer
 from applications.utils import get_job_type_display
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from eventos.serializers.event import EventSerializer
-from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
 from rest_framework import serializers
-from datetime import datetime
 from django.utils import timezone
 
 from vacancies.constants import JobTypesEnum
@@ -20,6 +18,7 @@ from eventos.models.event import Event
 from vacancies.serializers.job_types import ListJobTypesSerializer
 from applications.models.offers import OfferState
 from vacancies.models.requirements import Requirements
+from vacancies.serializers.shifts import ShiftDetailForOfferByStateSerializer
 
 
 class OfferCreateSerializer(serializers.ModelSerializer):
@@ -213,6 +212,38 @@ class OfferDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Offer
         fields = ["id", "expiration_date", "expiration_time", "additional_comments", "application"]
+
+class OfferStateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OfferState
+        fields = ["id", "name"]
+
+class OfferEventByStateSerializer(serializers.ModelSerializer):
+    employee_name = serializers.CharField(source="employee.user.first_name", read_only=True)
+    employee_lastname = serializers.CharField(source="employee.user.last_name", read_only=True)
+    job_type = serializers.SerializerMethodField()
+    shift = ShiftDetailForOfferByStateSerializer(source="selected_shift", read_only=True)
+    offer_state = OfferStateSerializer(source="state", read_only=True)
+
+    expiration_date = CustomDateField(required=False)
+    expiration_time = CustomTimeField(required=False)
+
+    class Meta:
+        model = Offer
+        fields = [
+            "id",
+            "employee_name",
+            "employee_lastname",
+            "job_type",
+            "shift",
+            "offer_state",
+            "expiration_date",
+            "expiration_time",
+        ]
+
+    def get_job_type(self, obj):
+        v = obj.selected_shift.vacancy
+        return v.specific_job_type if v.job_type.id == 11 and v.specific_job_type else v.job_type.name
 
 
 
