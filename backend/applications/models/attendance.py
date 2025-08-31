@@ -2,6 +2,7 @@ from django.utils import timezone
 from django.db import models
 
 from user_auth.models.employee import EmployeeProfile
+from user_auth.models.employer import EmployerProfile
 from vacancies.models.shifts import Shift
 
 
@@ -12,7 +13,7 @@ class Attendance(models.Model):
     check_in = models.DateTimeField(default=timezone.now) 
     
     verified_by = models.ForeignKey(
-        "user_auth.EmployerProfile",
+        EmployerProfile,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
