@@ -3,7 +3,7 @@ from eventos.constants import EventStates
 from eventos.errors.events_messages import EVENT_NOT_FOUND, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
-from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, UpdateEventStateSerializer
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, UpdateEventStateSerializer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
@@ -129,3 +129,27 @@ class UpdateEventStateView(APIView):
         event.save()
 
         return Response({"detail": STATE_UPDATED_SUCCESS}, status=status.HTTP_200_OK)
+
+class ListEventsByEmployerView(ListAPIView):
+    """
+    Lista los eventos activos del empleador autenticado.
+    """
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ListEventsByEmployerSerializer
+    active_states = [
+        EventStates.PUBLISHED.value,
+        EventStates.IN_PROGRESS.value,
+        EventStates.FINALIZED.value,
+    ]
+
+    def get_queryset(self):
+        user = self.request.user
+        return (
+            Event.objects
+            .filter(
+                owner=user,
+                state__name__in=self.active_states
+            )
+            .only("id", "name", "state")
+        )
