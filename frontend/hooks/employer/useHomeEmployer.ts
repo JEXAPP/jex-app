@@ -149,12 +149,13 @@ export const useHomeEmployer = () => {
     if (currentEventIndex > 0) setCurrentEventIndex(i => i - 1);
   };
 
-  const goToEditEvent = () => router.push('/employer/vacancy/create-event');
+  const goToEditEvent = (id: number) => router.push(`/employer/vacancy/edit-event?id=${id}`);
   const goToCreateEvent = () => router.push('/employer/vacancy/create-event');
   const goToCreateVacancy = (id: number, fechaInicio: string, fechaFin: string) => 
     router.push(`/employer/vacancy/create-vacancy?id=${id}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}`);
   const goToVacancyDetail = (vacancyId: number) =>
     router.push(`/employer/vacancy/manipulate-vacancy?id=${vacancyId}`);
+  
 
   return {
     // datos

@@ -5,10 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 interface Props {
   onPress: any;
   content: string;                  
-  sizeContent?: number;            
+  sizeContent: number;            
   sizeButton?: number;             
   backgroundColor?: string;       
-  contentColor?: string;            
+  contentColor: string;            
   styles: {
     button: StyleProp<ViewStyle>;
     text: StyleProp<TextStyle>;
@@ -20,10 +20,10 @@ interface Props {
 export const IconButton: React.FC<Props> = ({
   onPress,
   content,
-  sizeContent = 20,
+  sizeContent,
   sizeButton,
   backgroundColor,
-  contentColor = '#000',
+  contentColor,
   styles,
   accessibilityLabel,
   hitSlop = 6,

@@ -1,3 +1,4 @@
+import React from 'react'
 import { SelectableTag } from '@/components/button/SelectableTags';
 import { ClickWindow } from '@/components/window/ClickWindow';
 import { useApplyVacancy } from '@/hooks/employee/vacancy/useApplyVacancy';
@@ -11,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { iconos } from '@/constants/iconos';
 
 export default function ManipulateVacancyScreen() {
   const router = useRouter();
@@ -18,7 +20,6 @@ export default function ManipulateVacancyScreen() {
   const {
     vacanteId,
     vacanteOculta,
-    setVacanteOculta,
     alerta, setAlerta,
     onConfirmOcultar,
     onConfirmMostrar,
@@ -52,7 +53,7 @@ export default function ManipulateVacancyScreen() {
             title="Editar"
             iconName="pencil"
             selected={false}
-            onPress={() => router.push(`./vacancy/edit-vacancy?id=${vacanteId}`)}
+            onPress={() => router.push(`/employer/vacancy/edit-vacancy?id=${vacanteId}`)}
             styles={selectableTagStyles2}
           />
           <SelectableTag
@@ -74,7 +75,7 @@ export default function ManipulateVacancyScreen() {
           onCancelPress={() => setAlerta(null)}
           onClose={onConfirmOcultar}
           styles={clickWindowStyles1}
-          icono={<Ionicons name="alert-circle" size={30} color={Colors.violet4} />}
+          icono={iconos.cuidado(30, Colors.white)}
         />
         <ClickWindow
           visible={alerta === 'Mostrar'}
@@ -85,7 +86,7 @@ export default function ManipulateVacancyScreen() {
           onCancelPress={() => setAlerta(null)}
           onClose={onConfirmMostrar}
           styles={clickWindowStyles1}
-          icono={<Ionicons name="alert-circle" size={30} color={Colors.violet4} />}
+          icono={iconos.cuidado(30, Colors.white)}
         />
 
         <ClickWindow

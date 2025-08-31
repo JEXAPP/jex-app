@@ -7,31 +7,34 @@ import { Colors } from '@/themes/colors';
 import { iconos } from '../iconos';
 
 type Props = {
-  basePath: '/employee' | '/employer';
-  // opcional: override de estilos
+  basePath: '/employer';
   styles?: typeof s;
 };
 
 const ICON_SIZE = 24;
 
-const FooterNav: React.FC<Props> = ({ basePath }) => {
+const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
 
-  // Activo si estamos exactamente en /employee o /employer (podés afinar lógica si querés)
+  // Activar
   const isActive = (slot: number) => {
-    if (slot === 0) return pathname === basePath || pathname === `${basePath}/`;
-    return false; // por ahora solo primero activo
+    if (slot === 0) return pathname === basePath || pathname.startsWith(`${basePath}/vacancy`);;
+    if (slot === 1) return pathname.startsWith(`${basePath}/candidates`);
+    return false;
   };
 
-  // Navega solo el primero; los otros quedan como no-op (disabled)
+  // Navegar
   const onPress = (slot: number) => {
     if (slot === 0) router.replace(basePath);
-    // slots 1..4 sin navegación por ahora
+    if (slot === 1) router.replace(`${basePath}/candidates`);
   };
 
-  // Para que visualmente el disabled no “rompa” accesibilidad/feedback
-  const isDisabled = (slot: number) => slot !== 0;
+  // Deshabilitar
+  const isDisabled = (slot: number) => {
+    // ahora habilitamos 0 (home) y 1 (inbox/candidates)
+    return slot > 1;
+  };
 
   return (
     <View style={[s.container, { paddingBottom: Math.max(insets.bottom, 8) }]}>
@@ -43,11 +46,11 @@ const FooterNav: React.FC<Props> = ({ basePath }) => {
         disabled={isDisabled(0)}
         style={s.item}
       >
-        {isActive(0) ? (
-          iconos.footer_home(true, ICON_SIZE, Colors.white)
-        ) : (
-         iconos.footer_home(false, ICON_SIZE, Colors.white)
-        )}
+        {isActive(0) 
+          ? iconos.footer_home(true, ICON_SIZE, Colors.white)
+          : iconos.footer_home(false, ICON_SIZE, Colors.white)
+        }
+        
       </Pressable>
 
       <Pressable
@@ -57,9 +60,10 @@ const FooterNav: React.FC<Props> = ({ basePath }) => {
         disabled={isDisabled(1)}
         style={s.item}
       >
-        {/* No click: Octicons 'inbox' / Click: FA6 'inbox' (ambos blancos) */}
-        {iconos.footer_inbox(false, ICON_SIZE, Colors.white)}
-        {/* Activo deshabilitado: no hay navegación por ahora, no se muestra indicador */}
+        {isActive(1)
+          ? iconos.footer_inbox(true, ICON_SIZE, Colors.white)
+          : iconos.footer_inbox(false, ICON_SIZE, Colors.white)
+        }
       </Pressable>
 
       {/* 3) Briefcase (MaterialCommunityIcons) */}
@@ -98,4 +102,4 @@ const FooterNav: React.FC<Props> = ({ basePath }) => {
   );
 };
 
-export default memo(FooterNav);
+export default memo(FooterNavEmployer);

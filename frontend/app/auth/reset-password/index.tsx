@@ -28,7 +28,7 @@ export default function MailConfirmationScreen() {
 
   return (
 
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView edges={['top', 'left', 'right']}>
 
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
 

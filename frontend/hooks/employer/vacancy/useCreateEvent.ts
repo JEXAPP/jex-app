@@ -7,7 +7,6 @@ import { Keyboard } from 'react-native';
 export const useCreateEvent = () => {
   const router = useRouter();
   
-
   const [nombreEvento, setNombreEvento] = useState('');
   const [descripcionEvento, setDescripcionEvento] = useState('');
   const [fechaInicioEvento, setFechaInicioEvento] = useState<Date | null>(null);

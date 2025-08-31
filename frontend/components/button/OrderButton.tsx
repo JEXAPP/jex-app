@@ -10,6 +10,7 @@ interface OrderButtonProps {
   defaultIndex?: number;
   dropdownVisibleCount?: number;     
   dropdownPlacement?: 'auto'|'above'|'below';
+  dropdownWidth?: number;
 }
 
 export const OrderButton: React.FC<OrderButtonProps> = ({
@@ -18,7 +19,8 @@ export const OrderButton: React.FC<OrderButtonProps> = ({
   defaultOption,
   defaultIndex,
   dropdownVisibleCount = 4,    
-  dropdownPlacement = 'below',  
+  dropdownPlacement = 'below',
+  dropdownWidth = 280,  
 }) => {
   const initialIndex = useMemo(() => {
     if (typeof defaultIndex === 'number' && defaultIndex >= 0 && defaultIndex < options.length) return defaultIndex;
@@ -60,7 +62,7 @@ export const OrderButton: React.FC<OrderButtonProps> = ({
         selectedValue={selectedIndex + 1}
         onSelect={(opt, idx) => { setSelectedIndex(idx); onSelect(opt.value); }}
         anchorRef={anchorRef}
-        width="anchor"
+        width={dropdownWidth}
         itemHeight={44}
         visibleCount={dropdownVisibleCount}   
         placement={dropdownPlacement}          
