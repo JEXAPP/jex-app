@@ -1,6 +1,7 @@
 from django.urls import path
 from applications.views.applications import ApplicationCreateView, ListApplicationsByShiftView, ApplicationDetailView
-from applications.views.offer import  OfferCreateView, OfferConsultView, DecideOfferView, OfferDetailView
+from applications.views.attendance import AttendanceValidationView
+from applications.views.offer import  OfferAcceptedDetailView, OfferCreateView, OfferConsultView, DecideOfferView, OfferDetailView
 
 
 
@@ -12,4 +13,6 @@ urlpatterns = [
     path('offers/<int:pk>/detail/', OfferDetailView.as_view(), name='offer-detail'),
     path('offers/<int:offer_id>/decide/', DecideOfferView.as_view(), name='offer-decision'),
     path("by-vacancy/<int:vacancy_pk>/shift/<int:shift_pk>/", ListApplicationsByShiftView.as_view(), name="applications-by-shift"),
+    path("offer-detail/<int:shift_id>/accepted/", OfferAcceptedDetailView.as_view(), name="accepted-offer-detail"),
+    path("validate/<int:shift_id>/user/<int:user_id>/", AttendanceValidationView.as_view(), name="attendance-validate"),
 ]

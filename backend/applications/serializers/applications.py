@@ -129,10 +129,10 @@ class ApplicationByShiftSerializer(serializers.ModelSerializer):
         return f"{user.first_name} {user.last_name}".strip()
     
     def get_profile_image(self, obj):
-            user = obj.employee.user
-            if user.profile_image:
-                return user.profile_image 
-            return None
+        user = obj.employee.user
+        if user.profile_image:
+            return user.profile_image 
+        return None
 
 
 class ShiftWithApplicationsSerializer(serializers.ModelSerializer):
