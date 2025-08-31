@@ -3,7 +3,11 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Octicons from '@expo/vector-icons/Octicons';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native';
+import React from 'react';
+import { Colors } from '@/themes/colors';
+
 
 export const iconos = {
   error: (size: number, color: string) => (
@@ -26,6 +30,9 @@ export const iconos = {
   flechaDerecha: (size: number, color: string) => (
     <Ionicons name="chevron-forward" size={size} color={color} />
   ),
+  flechaAbajo: (size: number, color: string) =>(
+    <Ionicons name="chevron-down" size={size} color={color} />
+  ),
   editar: (size: number, color: string) => (
     <MaterialIcons name="edit" size={size} color={color} />
   ),
@@ -35,8 +42,18 @@ export const iconos = {
   ordenar: (size: number, color: string) => (
     <MaterialIcons name="sort-by-alpha" size={size} color={color}/>
   ),
+  lista: (size = 24, color = Colors.black) => (
+    <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color} />
+  ),
+  cuidado: (size: number, color: string) => (
+    <Ionicons name="alert-circle" size={size} color={color} />
+  ),
+
   exitoSinCirculo: (size: number, color: string) => (
     <Octicons name="check" size={size} color={color} />
+  ),
+  reloj: (size: number, color: string) => (
+    <Octicons name="clock" size={size} color={color} />
   ),
   error_outline: (size: number, color: string) => (
     <MaterialIcons name="error-outline" size={size} color={color} />
@@ -49,6 +66,15 @@ export const iconos = {
   ),
   trash: (size:number, color:string) => (
     <Ionicons name="trash" size={size} color={color} />
+  ),
+  full_star: (size:number, color:string) => (
+    <FontAwesome name="star" size={size} color={color} />
+  ),
+  half_star: (size:number, color:string) => (
+    <FontAwesome name="star-half-full" size={size} color={color} />
+  ),
+  empty_star: (size:number, color:string) => (
+    <FontAwesome name="star-o" size={size} color={color} />
   ),
   // ==== Footer Nav Icons ====
   footer_home: (active: boolean, size: number, color: string) =>

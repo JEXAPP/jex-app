@@ -1,3 +1,4 @@
+import React from 'react';
 import { Button } from '@/components/button/Button';
 import { SelectableTag } from '@/components/button/SelectableTags';
 import { TempWindow } from '@/components/window/TempWindow';
@@ -53,15 +54,18 @@ export default function ApplyVacancyScreen() {
         <View style={styles.header}>
 
           <View style={styles.headerTop}>
+
             <Image
               source={require('@/assets/images/jex/Jex-FotoPerfil.png')}
               style={styles.logoWrapper}
             />
 
             <View style={styles.headerText}>
+
               <Text style={styles.eventTitle}>{job.title}</Text>
 
               <View style={styles.ratingWrapper}>
+
                 {Array.from({ length: stars }).map((_, index) => (
                   <Ionicons
                     key={index}
@@ -70,6 +74,7 @@ export default function ApplyVacancyScreen() {
                     style={styles.starsIcon}
                   />
                 ))}
+
               </View>
 
             </View>
@@ -87,75 +92,102 @@ export default function ApplyVacancyScreen() {
 
         {job.requirements.map((item: string, index: number) => (
           <View key={index} style={styles.organizerArea}>
+
             <Text style={styles.bulletNumber}>{index + 1}.</Text>
             <Text style={styles.containerBulletPoints}>{item}</Text>
+
           </View>
         ))}
 
         <Text style={styles.containerSubtitle}>Turnos disponibles</Text>
         
-        {turnos.map((bloque) => (
-          <View key={bloque.id}>
-            <Text style={[styles.containerText2]}>
-              {bloque.dia}
-            </Text>
-            {bloque.turnos.map((turno) => (
-              <SelectableTag
-                styles={selectableTagStyles1}
-                key={turno.id}
-                title={turno.horario}
-                subtitle={turno.paga}
-                iconName="time"
-                selected={turnosSeleccionados.includes(turno.id)}
-                onPress={() => handleToggleTurnos(turno.id)}
-              />
-            ))}
-          </View>
-        ))}
+        <View style={styles.multiple}>
+          {turnos.map((bloque) => (
+            <View key={bloque.id}>
+
+              <Text style={[styles.containerText2]}>
+                {bloque.dia}
+              </Text>
+              <View style={styles.multiple}>
+              {bloque.turnos.map((turno) => (              
+                  <SelectableTag
+                    styles={selectableTagStyles1}
+                    key={turno.id}
+                    title={turno.horario}
+                    subtitle={turno.paga}
+                    iconName="time"
+                    selected={turnosSeleccionados.includes(turno.id)}
+                    onPress={() => handleToggleTurnos(turno.id)}
+                  />              
+              ))}
+              </View>
+
+            </View>
+          ))}
+        </View>
 
         <View style={styles.separator} />
 
         <Text style={styles.containerSubtitle}>Conocé al organizador</Text>
 
         <View style={styles.organizerContainer}>
+
           <View>
+
             <Image
               source={require('@/assets/images/jex/Jex-FotoPerfil.png')}
               style={styles.logoWrapper}
             />
+
             <View style={styles.organizerNameTag}>
+
               <Text style={styles.organizerNameText}>{organizer.name}</Text>
+
             </View>
+
           </View>
 
           <View style={styles.organizerInfo}>
+
             <View style={styles.organizerInfoItem}>
               <Text style={styles.organizerInfoValue}>{organizer.reviews}</Text>
               <Text style={styles.organizerInfoLabel}>Evaluaciones</Text>
+
             </View>
 
             <View style={styles.organizerInfoItem}>
+
               <Text style={styles.organizerInfoValue}>
                 {organizer.rating} <Text style={{ color: Colors.violet5 }}>★</Text>
               </Text>
               <Text style={styles.organizerInfoLabel}>Puntaje</Text>
+
             </View>
 
             <View style={styles.organizerInfoItem}>
+
               <Text style={styles.organizerInfoValue}>
                 {organizer.jexTime.split(' ')[0]}
               </Text>
               <Text style={styles.organizerInfoLabel}>Años en Jex</Text>
+
             </View>
+
           </View>
+
         </View>
+
       </ScrollView>
 
       <View style={styles.applyBox}>
+
         <View style={styles.applyBox2}>
+
           <Text style={styles.salary}>{salarioAMostrar}</Text>
           <Text style={styles.deadline}>Vence el {job.deadline}</Text>
+
         </View>
+
         <Button
           onPress={handleApply}
           disabled={!turnoSeleccionadoValido}
@@ -165,6 +197,7 @@ export default function ApplyVacancyScreen() {
           texto="Postularme"
           loading={loading}
         />
+
       </View>
 
       <TempWindow

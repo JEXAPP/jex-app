@@ -3,7 +3,7 @@ import { transitionFade } from '@/constants/transitions';
 import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { Pressable } from 'react-native';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { Colors } from '@/themes/colors';
 
 export default function AuthLayout() {
   return (

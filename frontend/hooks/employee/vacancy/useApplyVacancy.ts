@@ -1,42 +1,9 @@
+import { Job, Organizer, Requirement, Shift } from '@/constants/interfaces';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useDataTransformation } from '@/services/internal/useDataTransformation';
 import { useTokenValidations } from '@/services/internal/useTokenValidations';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-
-interface Requirement {
-  description: string;
-}
-
-interface Shift {
-  id: number;
-  dia: string;
-  turnos: {
-    id: number;
-    horario: string;
-    paga: string;
-  }[];
-}
-
-interface Job {
-  title: string;
-  description: string;
-  role: string;
-  date: string;
-  time: string;
-  requirements: string[];
-  salary: string;
-  deadline: string;
-  mapImage: string;
-  rating: number;
-}
-
-interface Organizer {
-  name: string;
-  reviews: number;
-  rating: number;
-  jexTime: string;
-}
 
 export const useApplyVacancy = () => {
 
@@ -82,7 +49,7 @@ export const useApplyVacancy = () => {
     const salarios = turnos
       .flatMap(t => t.turnos)
       .filter(t => turnosSeleccionados.includes(t.id))
-      .map(t => Number(t.paga.replace(/\D/g, ''))); // solo números
+      .map(t => Number(t.paga.replace(/\D/g, '')));
 
     const mayorSalario = Math.max(...salarios);
     return `${mayorSalario.toLocaleString('es-AR')} ARS`;
@@ -113,22 +80,44 @@ export const useApplyVacancy = () => {
         jexTime: '1 año'
       });
 
-      setTurnos(
-        vacante.shifts.map((shift: any) => ({
+      // === Agrupar shifts por día ===
+      const grupos = new Map<string, Shift>();
+
+      for (const shift of vacante.shifts) {
+        const dia = formatFechaLarga(shift.start_date);
+        const pagoBase = typeof shift.payment === 'string'
+          ? shift.payment.slice(0, -3)
+          : String(shift.payment);
+
+        if (!grupos.has(dia)) {
+          grupos.set(dia, { id: dia, dia, turnos: [] });
+        }
+
+        grupos.get(dia)!.turnos.push({
           id: shift.id,
-          dia: formatFechaLarga(shift.start_date),
-          turnos: [
-            {
-              id: shift.id,
-              horario: `${shift.start_time.substring(0, 5)} a ${shift.end_time.substring(0, 5)}`,
-              paga: `${shift.payment.slice(0, -3)} ARS`,
-            }
-          ]
+          horario: `${shift.start_time.substring(0,5)} a ${shift.end_time.substring(0,5)}`,
+          paga: `${pagoBase} ARS`,
+        });
+      }
+
+      // === Convertir a array y ordenar ===
+      const turnosOrdenados = Array.from(grupos.values())
+        .map(bloque => ({
+          ...bloque,
+          turnos: bloque.turnos.sort((a, b) =>
+            a.horario.localeCompare(b.horario, 'es') // compara las horas tipo "08:00 a 12:00"
+          )
         }))
-      );
+        .sort((a, b) => {
+          // parseo las fechas originales (usando start_date en vez de string formateado si querés más precisión)
+          const fechaA = new Date(a.dia);
+          const fechaB = new Date(b.dia);
+          return fechaA.getTime() - fechaB.getTime();
+        });
+
+      setTurnos(turnosOrdenados);
 
     } catch (err) {
-
       console.log('Hubo un error al cargar los datos:', err)
       setErrorMessage('Error al cargar los datos del trabajo');
       setShowError(true);
@@ -136,6 +125,8 @@ export const useApplyVacancy = () => {
       setLoading(false);
     }
   };
+
+
 
   const handleApply = async () => {
 

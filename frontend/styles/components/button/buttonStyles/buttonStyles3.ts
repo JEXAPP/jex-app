@@ -6,7 +6,8 @@ import { StyleSheet } from 'react-native';
 
 export const buttonStyles3 = StyleSheet.create({
   boton: {
-    paddingVertical: 14,
+    justifyContent: 'center',
+    height: 50,
     alignItems: 'baseline',
     borderRadius: Borders.soft,
     marginBottom: 10,

@@ -3,7 +3,6 @@ import { Colors } from '@/themes/colors';
 
 export const mailConfirmationStyles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: Colors.gray1,
   },
   title: {
@@ -24,7 +23,6 @@ export const mailConfirmationStyles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
     marginTop: 65
-
   },
   inputContainer: {
     marginBottom: 310,

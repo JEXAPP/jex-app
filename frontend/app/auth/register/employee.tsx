@@ -1,6 +1,8 @@
 import { Button } from '@/components/button/Button';
-import PlaceSuggestions from '@/components/others/PlaceSuggestions';
+import { Input } from '@/components/input/Input';
+import { Stepper } from '@/components/others/Stepper';
 import DatePicker from '@/components/picker/DatePicker';
+import Suggestions from '@/components/picker/Suggestions';
 import { ClickWindow } from '@/components/window/ClickWindow';
 import { TempWindow } from '@/components/window/TempWindow';
 import { iconos } from '@/constants/iconos';
@@ -9,16 +11,14 @@ import { registerEmployeeStyles as styles } from '@/styles/app/auth/register/reg
 import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
 import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonStyles4';
 import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1';
-import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles/datePickerStyles1';
-import { placeSuggestionsStyles1 } from '@/styles/components/picker/placeSuggestionsStyles1';
+import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
+import { suggestionsStyles1 } from '@/styles/components/picker/suggestionsStyles/suggestionsStyles1';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
 import { Colors } from '@/themes/colors';
 import React from 'react';
 import { Image, Keyboard, Text, TouchableWithoutFeedback, View } from 'react-native';
-import { Input } from '@/components/input/Input';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Stepper } from '@/components/others/Stepper';
 
 export default function RegisterEmployeeScreen() {
   const {
@@ -88,10 +88,10 @@ export default function RegisterEmployeeScreen() {
               styles={inputStyles1}
             />
 
-            <PlaceSuggestions 
+            <Suggestions 
               sugerencias={sugerencias} 
               onSeleccionar={seleccionarUbicacion} 
-              styles={placeSuggestionsStyles1}
+              styles={suggestionsStyles1}
             />
 
             <Input 

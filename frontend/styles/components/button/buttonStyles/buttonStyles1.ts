@@ -6,11 +6,12 @@ import { StyleSheet } from 'react-native';
 
 export const buttonStyles1 = StyleSheet.create({
   boton: {
-    paddingVertical: 14,
+    justifyContent: 'center',
     alignItems: 'center',
     borderRadius: Borders.soft,
     marginBottom: 10,
     width: 350,
+    height: 50,
     alignSelf: 'center',
     backgroundColor: Colors.violet4,
   },

@@ -1,34 +1,33 @@
+import { Borders } from '@/themes/borders';
+import { Colors } from '@/themes/colors';
 import { StyleSheet } from 'react-native';
 
 export const searchInputStyles1 = StyleSheet.create({
   container: {
-    width: '100%',
-    marginVertical: 12,
+    width: 350,
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 12,
-    paddingHorizontal: 8,
-    flexWrap: 'wrap',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
+    height: 50
   },
   searchIcon: {
     marginRight: 8,
+    marginLeft: 20
   },
   chip: {
     flexDirection: 'row',
-    backgroundColor: '#E1E9EE',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 4,
-    marginVertical: 4,
+    backgroundColor: Colors.violet1,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: Borders.rounded,
+    justifyContent: 'center'
   },
   chipText: {
-    color: '#333',
+    color: Colors.black,
+    fontFamily:'interMedium'
   },
   chipClose: {
     marginLeft: 4,
@@ -38,22 +37,44 @@ export const searchInputStyles1 = StyleSheet.create({
     minWidth: 80,
     paddingVertical: 8,
   },
-  suggestionList: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderTopWidth: 0,
-    borderRadius: 8,
-    marginTop: 4,
-    backgroundColor: '#fff',
-    maxHeight: 150,
+  chipsRowScrollContainer: {
+    flex: 1,
   },
-  suggestionItem: {
+  chipsRowScroll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: 8,
+  },
+  textInputInline: {
+    flexGrow: 0,
+    minWidth: 120, 
     paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    fontSize: 15,
+    fontFamily: 'interMedium',
+    color: Colors.gray3,
   },
-  suggestionText: {
-    color: '#333',
+  dateSummaryWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'nowrap',   
+    gap: 8,
+    paddingVertical: 6,
+  },
+  rangeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,        
+  },
+  rangeSeparator: {
+    marginHorizontal: 6,
+  },
+  clearRangeBtn: { 
+    marginLeft: 6 
+  },
+  datePlaceholder: {
+    color: Colors.gray2,
+    fontSize: 15,
+    fontFamily: 'interMedium'
   },
 });

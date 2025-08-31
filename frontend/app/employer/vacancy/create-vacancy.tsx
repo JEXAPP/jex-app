@@ -4,7 +4,7 @@ import { IconButton } from '@/components/button/IconButton';
 import { Input } from '@/components/input/Input';
 import { CharCounter } from '@/components/others/CharCounter';
 import DatePicker from '@/components/picker/DatePicker';
-import {DropDown2} from '@/components/picker/DropDown2';
+import { DropDown2 } from '@/components/picker/DropDown2';
 import TimePicker from '@/components/picker/TimePicker';
 import { ClickWindow } from '@/components/window/ClickWindow';
 import { TempWindow } from '@/components/window/TempWindow';
@@ -17,7 +17,7 @@ import { buttonWithIconStyles1 } from '@/styles/components/button/buttonWithIcon
 import { iconButtonStyles1 } from '@/styles/components/button/iconButtonStyles1';
 import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1';
 import { charCounterStyles1 } from '@/styles/components/others/charCounterStyles1';
-import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles/datePickerStyles1';
+import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
 import { dropdown2Styles1 } from '@/styles/components/picker/dropdown2Styles1';
 import { timePickerStyles1 } from '@/styles/components/picker/timePickerStyles1';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
@@ -100,7 +100,7 @@ export default function RegisterVacancyScreen() {
                       <Button
                         texto="Eliminar"
                         onPress={() => eliminarVacante(vIndex)}
-                        styles={{boton: {...buttonStyles1.boton, width: 80, paddingVertical: 5, marginBottom: 0, backgroundColor: Colors.gray2}, texto: {...buttonStyles1.texto, fontSize: 15}}}
+                        styles={{boton: {...buttonStyles1.boton, width: 80, backgroundColor: Colors.gray2, height: 30, marginBottom: 0}, texto: {...buttonStyles1.texto, fontSize: 15}}}
                       />)}
 
                     </View>
@@ -119,7 +119,6 @@ export default function RegisterVacancyScreen() {
                         actualizarRol(vIndex, seleccionado?.id.toString() || '', seleccionado?.name || '');
                       }}
                       placeholder={vacantes[vIndex].rolNombre || 'Elegí un rol'}
-
                       styles={dropdown2Styles1}
                     />
 
@@ -203,14 +202,14 @@ export default function RegisterVacancyScreen() {
 
                             <View style={styles.shiftRow}>
 
-                              <DatePicker
-                                label="Fecha Inicio"
-                                minimumDate={fechaInicioEvento}
-                                maximumDate={fechaFinEvento}
-                                date={turno.fechaInicio}
-                                setDate={(date) => actualizarTurno(vIndex, tIndex, 'fechaInicio', date)}
-                                styles={{...datePickerStyles1, selector:{...datePickerStyles1.selector, width: 140}}}
-                              />
+                                <DatePicker
+                                  label="Fecha Inicio"
+                                  minimumDate={fechaInicioEvento}
+                                  maximumDate={fechaFinEvento}
+                                  date={turno.fechaInicio}
+                                  setDate={(date) => actualizarTurno(vIndex, tIndex, 'fechaInicio', date)}
+                                  styles={{...datePickerStyles1, selector:{...datePickerStyles1.selector, width: 140}}}
+                                />
 
                               <TimePicker
                                 time={turno.horaInicio}
@@ -267,10 +266,10 @@ export default function RegisterVacancyScreen() {
 
                             {vacante.turnos.length > 1 && (
                               <ButtonWithIcon
-                                icono={iconos.trash(24, Colors.violet4)}
+                                icono={iconos.trash(18, Colors.violet4)}
                                 texto="Eliminar turno"
                                 onPress={() => eliminarTurno(vIndex, tIndex)}
-                                styles={{ ...buttonWithIconStyles1, boton: { ...buttonWithIconStyles1.boton, width: 200, marginBottom: 20}, texto: {...buttonWithIconStyles1.texto, marginRight: 0} }}
+                                styles={{ ...buttonWithIconStyles1, boton: { ...buttonWithIconStyles1.boton, width: 200, marginBottom: 20, height: 45}, texto: {...buttonWithIconStyles1.texto, marginRight: 0} }}
                               />
                             )}
 
@@ -284,7 +283,7 @@ export default function RegisterVacancyScreen() {
                     <Button
                         texto="Agregar turno"
                         onPress={() => agregarTurno(vIndex)}
-                        styles={{ ...buttonStyles1, boton: { ...buttonStyles1.boton, paddingVertical: 10, width: 250, backgroundColor: Colors.violet2, } }}
+                        styles={{ ...buttonStyles1, boton: { ...buttonStyles1.boton, width: 200, backgroundColor: Colors.violet2, height: 40 } }}
                       />
 
                   </>

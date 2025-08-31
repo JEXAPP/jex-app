@@ -2,8 +2,11 @@ import { transitionFade } from '@/constants/transitions';
 import fontMap from '@/themes/fonts';
 import { useFonts } from 'expo-font';
 import { SplashScreen, Stack } from 'expo-router';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts(fontMap);

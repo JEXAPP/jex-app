@@ -13,6 +13,7 @@ type DropdownProps<T = any> = {
   selectedValue?: T;
   onSelect: (option: DropdownOption<T>, index: number) => void;
   anchorRef: React.RefObject<View | null>;
+  onOpened?: () => void;
 
   width?: WidthMode;           
   maxWidth?: number;           
@@ -151,6 +152,8 @@ export function Dropdown<T = any>({
             renderItem={renderItem}
             style={{ maxHeight: layout.h }}
             bounces={false}
+            keyboardShouldPersistTaps="always"
+            keyboardDismissMode="none"
           />
         </Animated.View>
       )}
