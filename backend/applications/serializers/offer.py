@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from applications.constants import OfferStates
 from applications.errors.application_messages import APPLICATION_NOT_FOUND, APPLICATION_PERMISSION_DENIED
-from applications.errors.offer_messages import EMPLOYER_PROFILE_NOT_FOUND, OFFER_NOT_PENDING, REJECTION_REASON_REQUIRED, MAX_OFFERS_REACHED
+from applications.errors.offer_messages import EMPLOYER_PROFILE_NOT_FOUND, OFFER_NOT_PENDING, MAX_OFFERS_REACHED
 from applications.models.applications import Application
 from applications.models.offers import Offer
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
