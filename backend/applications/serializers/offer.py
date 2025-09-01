@@ -42,7 +42,7 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         except Application.DoesNotExist:
             raise serializers.ValidationError(APPLICATION_NOT_FOUND)
 
-        # Verificación de permisos
+        # Verificación de permisos comentraio para que me deje push
         if application.shift.vacancy.event.owner != user:
             raise serializers.ValidationError(APPLICATION_PERMISSION_DENIED)
 
