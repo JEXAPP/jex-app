@@ -9,8 +9,9 @@ export const inputStyles1 = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: Borders.soft,
     width: 350,
+    minHeight: 55,
     alignSelf: 'center',
-    paddingVertical: 8,
+    height: 55,
     paddingHorizontal: 15, 
   },
   input: {

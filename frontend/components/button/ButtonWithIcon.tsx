@@ -2,7 +2,7 @@ import React, { ReactElement } from 'react';
 import { StyleProp, Text, TextStyle, TouchableOpacity, ViewStyle } from 'react-native';
 
 interface ButtonWithIconProps {
-  texto: string;
+  texto?: string;
   icono: ReactElement;
   onPress: () => void;
   disabled?: boolean;

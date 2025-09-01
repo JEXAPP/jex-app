@@ -1,13 +1,14 @@
-from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView
 from applications.constants import OfferStates
-from applications.serializers.offer import OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer, OfferDetailSerializer
-from rest_framework import permissions
+from applications.serializers.offer import OfferAcceptedDetailSerializer, OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer, OfferDetailSerializer, OfferEventByStateSerializer
+from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from applications.models.offers import Offer
+from eventos.models.event import Event
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.exceptions import PermissionDenied
-from applications.errors.offer_messages import NOT_PERMISSIONS_OFFER
+from applications.errors.offer_messages import NOT_PERMISSION_ACCEPTED_OFFER, NOT_PERMISSIONS_OFFER
 from applications.models.offer_state import OfferState
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
@@ -15,7 +16,7 @@ from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
 
 class OfferCreateView(CreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
     serializer_class = OfferCreateSerializer
 
@@ -27,7 +28,7 @@ class OfferCreateView(CreateAPIView):
         return context
 
 class OfferConsultView(ListAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE, EMPLOYER_ROLE]
     serializer_class = OfferConsultSerializer
 
@@ -44,7 +45,7 @@ class OfferConsultView(ListAPIView):
         )
 
 class DecideOfferView(CreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE]
     serializer_class = OfferDecisionSerializer
     lookup_url_kwarg = 'offer_id'
@@ -63,10 +64,61 @@ class DecideOfferView(CreateAPIView):
         return Response({'detail': 'Offer decision saved successfully.'}, status=status.HTTP_200_OK)
     
 class OfferDetailView(RetrieveAPIView):
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE, EMPLOYER_ROLE]
     serializer_class = OfferDetailSerializer
     queryset = Offer.objects.select_related(
         'application__shift__vacancy__event',
         'application__employee__user'
 )
+    
+class ListOfferEventByState(ListAPIView):
+    serializer_class = OfferEventByStateSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def get_queryset(self):
+        event_id = self.kwargs.get("event_id")
+        state_id = self.kwargs.get("state_id")
+
+        event = get_object_or_404(Event, id=event_id)
+
+        return (
+            Offer.objects.filter(
+                selected_shift__vacancy__event=event,
+                state_id=state_id
+            )
+            .select_related(
+                "employee__user",
+                "selected_shift__vacancy__job_type",
+                "selected_shift__vacancy__event",
+                "state"
+            )
+        )
+
+    
+
+class OfferAcceptedDetailView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+    serializer_class = OfferAcceptedDetailSerializer
+    lookup_url_kwarg = "shift_id"
+
+    def get_object(self):
+        user = self.request.user
+        shift_id = self.kwargs[self.lookup_url_kwarg]
+
+        # buscamos estado ACCEPTED
+        state_accepted = get_object_or_404(OfferState, name=OfferStates.ACCEPTED.value)
+
+        # buscamos la oferta aceptada del turno para este empleado
+        offer = Offer.objects.filter(
+            selected_shift_id=shift_id,
+            employee__user=user,
+            state=state_accepted
+        ).select_related("selected_shift__vacancy").first()
+
+        if not offer:
+            raise PermissionDenied(NOT_PERMISSION_ACCEPTED_OFFER)
+
+        return offer.selected_shift

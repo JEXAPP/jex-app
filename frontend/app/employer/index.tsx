@@ -125,7 +125,7 @@ export default function useHomeEmployerScreen() {
                       <Text style={styles.eventDetail}>Ubicación: {currentEvent?.ubicacion}</Text>
                     </View>
 
-                    <TouchableOpacity onPress={goToEditEvent}>
+                    <TouchableOpacity onPress={() => goToEditEvent(currentEvent.id)}>
                       {iconos.editar(22, Colors.violet4)}
                     </TouchableOpacity>
 

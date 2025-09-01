@@ -10,7 +10,7 @@ export const loginStyles = StyleSheet.create({
   },
   header: {
     marginBottom: 50,
-    marginTop: 50,
+    marginTop: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

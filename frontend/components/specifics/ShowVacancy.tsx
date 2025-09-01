@@ -2,8 +2,8 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
 
-import { showVacancyStyles1 } from '@/styles/components/others/showVacancyStyles/showVacancyStyles1';
-import { showVacancyStyles2 } from '@/styles/components/others/showVacancyStyles/showVacancyStyles2';
+import { showVacancyStyles1 } from '@/styles/components/specifics/showVacancyStyles/showVacancyStyles1';
+import { showVacancyStyles2 } from '@/styles/components/specifics/showVacancyStyles/showVacancyStyles2';
 import { Colors } from '@/themes/colors';
 import { useDataTransformation } from '@/services/internal/useDataTransformation';
 
