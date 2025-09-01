@@ -51,9 +51,24 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         except EmployerProfile.DoesNotExist:
             raise serializers.ValidationError(EMPLOYER_PROFILE_NOT_FOUND)
 
+        shift = application.shift
+
+        max_quantity = shift.quantity
+        current_offers = Offer.objects.filter(
+            selected_shift=shift
+        ).exclude(state_id=3).count()
+
+        if current_offers >= max_quantity:
+            raise serializers.ValidationError(
+                f"No se pueden crear más ofertas para este turno. "
+                f"Cantidad máxima permitida: {max_quantity}."
+    )
+
+
         attrs['application'] = application
         attrs['employer'] = employer
         return attrs
+        
 
     def create(self, validated_data):
         application = validated_data.pop('application')
