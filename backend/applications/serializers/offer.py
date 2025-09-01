@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from applications.constants import OfferStates
 from applications.errors.application_messages import APPLICATION_NOT_FOUND, APPLICATION_PERMISSION_DENIED
-from applications.errors.offer_messages import EMPLOYER_PROFILE_NOT_FOUND, OFFER_NOT_PENDING, REJECTION_REASON_REQUIRED, MAX_OFFERS_REACHED
+from applications.errors.offer_messages import EMPLOYER_PROFILE_NOT_FOUND, OFFER_NOT_PENDING, REJECTION_REASON_REQUIRED
 from applications.models.applications import Application
 from applications.models.offers import Offer
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
@@ -60,7 +60,8 @@ class OfferCreateSerializer(serializers.ModelSerializer):
 
         if current_offers >= max_quantity:
             raise serializers.ValidationError(
-                MAX_OFFERS_REACHED.format(max_quantity=max_quantity)
+                f"No se pueden crear más ofertas para este turno. "
+                f"Cantidad máxima permitida: {max_quantity}."
     )
 
 
