@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from applications.constants import OfferStates
 from applications.errors.application_messages import APPLICATION_NOT_FOUND, APPLICATION_PERMISSION_DENIED
-from applications.errors.offer_messages import EMPLOYER_PROFILE_NOT_FOUND, OFFER_NOT_PENDING, REJECTION_REASON_REQUIRED
+from applications.errors.offer_messages import EMPLOYER_PROFILE_NOT_FOUND, OFFER_NOT_PENDING, MAX_OFFERS_REACHED
 from applications.models.applications import Application
 from applications.models.offers import Offer
 from applications.utils import get_job_type_display
@@ -43,7 +43,7 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         except Application.DoesNotExist:
             raise serializers.ValidationError(APPLICATION_NOT_FOUND)
 
-        # Verificación de permisos
+        # Verificación de permisos comentraio para que me deje push
         if application.shift.vacancy.event.owner != user:
             raise serializers.ValidationError(APPLICATION_PERMISSION_DENIED)
 
@@ -52,9 +52,23 @@ class OfferCreateSerializer(serializers.ModelSerializer):
         except EmployerProfile.DoesNotExist:
             raise serializers.ValidationError(EMPLOYER_PROFILE_NOT_FOUND)
 
+        shift = application.shift
+
+        max_quantity = shift.quantity
+        current_offers = Offer.objects.filter(
+            selected_shift=shift
+        ).exclude(state_id=3).count()
+
+        if current_offers >= max_quantity:
+            raise serializers.ValidationError(
+                MAX_OFFERS_REACHED.format(max_quantity=max_quantity)
+    )
+
+
         attrs['application'] = application
         attrs['employer'] = employer
         return attrs
+        
 
     def create(self, validated_data):
         application = validated_data.pop('application')
