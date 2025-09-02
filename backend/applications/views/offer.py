@@ -6,6 +6,7 @@ from django.utils import timezone
 from applications.models.offers import Offer
 from eventos.models.event import Event
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
+from user_auth.models.employee import EmployeeProfile
 from user_auth.permissions import IsInGroup
 from rest_framework.exceptions import PermissionDenied
 from applications.errors.offer_messages import NOT_PERMISSION_ACCEPTED_OFFER, NOT_PERMISSIONS_OFFER
@@ -14,6 +15,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
+
+from user_auth.serializers.employee import EmployeeForSearchSerializer
 
 class OfferCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
@@ -122,3 +125,19 @@ class OfferAcceptedDetailView(RetrieveAPIView):
             raise PermissionDenied(NOT_PERMISSION_ACCEPTED_OFFER)
 
         return offer.selected_shift
+    
+        
+
+class EmployeeSearchDetailView(RetrieveAPIView):
+    serializer_class = EmployeeForSearchSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    lookup_url_kwarg = "employee_id"
+
+    def get_queryset(self):
+        return EmployeeProfile.objects.select_related("user", "user__profile_image").prefetch_related("job_types")
+
+    def get_object(self):
+        employee_id = self.kwargs[self.lookup_url_kwarg]
+        employee = get_object_or_404(self.get_queryset(), id=employee_id)
+
+        return employee
