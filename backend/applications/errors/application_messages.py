@@ -4,3 +4,4 @@ APPLICATIONS_CREATED_SUCCESS = "Postulaciones creadas con éxito."
 
 APPLICATION_NOT_FOUND = "La postulación no existe."
 APPLICATION_PERMISSION_DENIED = "No tenés permiso para crear esta oferta."
+NOT_FOUND_SHIFT = "Turno no encontrado para esta vacante aplicada."
