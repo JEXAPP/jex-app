@@ -13,6 +13,7 @@ import { Image, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { iconos } from '@/constants/iconos';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 export default function ManipulateVacancyScreen() {
   const router = useRouter();
@@ -33,8 +34,11 @@ export default function ManipulateVacancyScreen() {
   if (!job) {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Cargando datos...</Text>
-      </SafeAreaView>
+              <Text>Cargando datos...</Text>
+              <View style={{ marginTop: -140 }}>
+                <DotsLoader />
+              </View>
+            </SafeAreaView>
     );
   }
 

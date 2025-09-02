@@ -15,6 +15,7 @@ import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonSty
 import { iconos } from '@/constants/iconos';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { ClickWindow } from '@/components/window/ClickWindow';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 
 export default function ApplyVacancyScreen() {
@@ -41,6 +42,9 @@ export default function ApplyVacancyScreen() {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <Text>Cargando datos...</Text>
+        <View style={{ marginTop: -140 }}>
+          <DotsLoader />
+        </View>
       </SafeAreaView>
     );
   }

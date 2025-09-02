@@ -12,6 +12,7 @@ import { iconButtonStyles1 } from '../../styles/components/button/iconButtonStyl
 import { SelectableTag } from '@/components/button/SelectableTags';
 import { selectableTagStyles2 } from '@/styles/components/button/selectableTagsStyles/selectableTagsStyles2';
 import { ScrollView } from 'react-native-gesture-handler';
+import HomeEventsSkeleton from '@/constants/skeletons/employer/homeEventsSkeleton';
 
 export default function useHomeEmployerScreen() {
   const {
@@ -31,6 +32,10 @@ export default function useHomeEmployerScreen() {
     selectableStates,
     selectedState, setSelectedState,
   } = useHomeEmployer();
+
+  if (loading) {
+    return <HomeEventsSkeleton />;
+  }
 
   return (
 
