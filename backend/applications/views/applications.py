@@ -1,10 +1,11 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from applications.constants import OfferStates
-from applications.errors.application_messages import ALREADY_APPLIED_ALL_SHIFTS, APPLICATIONS_CREATED_SUCCESS
+from applications.errors.application_messages import ALREADY_APPLIED_ALL_SHIFTS, APPLICATIONS_CREATED_SUCCESS, NOT_FOUND_SHIFT
 from applications.models.applications import Application
 from applications.serializers.applications import (
     ApplicationCreateSerializer,
@@ -53,35 +54,27 @@ class ListApplicationsByShiftView(RetrieveAPIView):
         vacancy_id = self.kwargs["vacancy_pk"]
         shift_id = self.kwargs["shift_pk"]
 
-        try:
-            vacancy = Vacancy.objects.get(pk=vacancy_id)
-        except Vacancy.DoesNotExist:
-            raise NotFound("Vacante no encontrada")
-
         applications_qs = Application.objects.select_related(
             "employee__user", "employee__user__profile_image"
         ).filter(shift_id=shift_id).order_by("-created_at")
 
-        try:
-            shift = (
-                Shift.objects.prefetch_related(
-                    Prefetch("applications", queryset=applications_qs)
+        shift = get_object_or_404(
+            Shift.objects.prefetch_related(
+                Prefetch("applications", queryset=applications_qs)
+            ).annotate(
+                quantity_offers=Count(
+                    "selected_offers",
+                    filter=Q(
+                        selected_offers__state__name__in=[
+                            OfferStates.PENDING.value,
+                            OfferStates.ACCEPTED.value,
+                        ]
+                    ),
+                    distinct=True,
                 )
-                .annotate(
-                    quantity_offers=Count(
-                        "selected_offers",
-                        filter=Q(
-                            selected_offers__state__name__in=[
-                                OfferStates.PENDING.value,
-                                OfferStates.ACCEPTED.value,
-                            ]
-                        ),
-                        distinct=True,
-                    )
-                )
-                .get(pk=shift_id, vacancy_id=vacancy_id)
-            )
-        except Shift.DoesNotExist:
-            raise NotFound("Turno no encontrado para esta vacante")
+            ),
+            pk=shift_id,
+            vacancy_id=vacancy_id
+        )
 
         return shift
