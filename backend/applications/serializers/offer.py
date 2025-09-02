@@ -271,9 +271,12 @@ class OfferAcceptedDetailSerializer(serializers.ModelSerializer):
 
     # Campos de la vacancy
     vacancy_description = serializers.CharField(source="vacancy.description", read_only=True)
-    specific_job_type = serializers.CharField(source="vacancy.specific_job_type", read_only=True)
     job_type = serializers.SerializerMethodField()
     requirements = RequirementSerializer(source="vacancy.requirements", many=True, read_only=True)
+
+    # Campos del evento
+    event_name = serializers.CharField(source="vacancy.event.name", read_only=True)
+    event_location = serializers.CharField(source="vacancy.event.location", read_only=True)
 
     class Meta:
         model = Shift
@@ -285,9 +288,10 @@ class OfferAcceptedDetailSerializer(serializers.ModelSerializer):
             "end_time",
             "payment",
             "vacancy_description",
-            "specific_job_type",
             "job_type",
             "requirements",
+            "event_name",
+            "event_location",
         ]
 
     def get_job_type(self, obj):
