@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from applications.constants import ApplicationStates
+from applications.models.applications_states import ApplicationState
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from vacancies.constants import VacancyStates
 from applications.errors.application_messages import EMPLOYEE_PROFILE_NOT_FOUND
@@ -65,9 +66,11 @@ class ApplicationCreateSerializer(serializers.Serializer):
 
             if not new_shift_ids:
                 return False  # No se crean nuevas postulaciones
+            
+            pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
 
             Application.objects.bulk_create([
-                Application(employee=employee, shift_id=shift_id, status=ApplicationStates.PENDING.value)
+                Application(employee=employee, shift_id=shift_id, state=pending_state)
                 for shift_id in new_shift_ids
             ])
 

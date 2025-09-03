@@ -2,7 +2,7 @@ from enum import Enum
 
 class ApplicationStates(str, Enum):
     PENDING = "PENDING"
-    ACCEPTED = "ACCEPTED"
+    OFFERT = "OFERTADA"
     REJECTED = "REJECTED"
     CANCELED = "CANCELED"
 
