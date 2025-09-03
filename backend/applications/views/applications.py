@@ -42,8 +42,30 @@ class ApplicationCreateView(APIView):
 
 
 class ApplicationDetailView(RetrieveAPIView):
-    queryset = Application.objects.select_related('employee__user', 'shift')
-    serializer_class = ApplicationDetailSerializer 
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ApplicationDetailSerializer
+    lookup_url_kwarg = "application_id"
+
+    def get_object(self):
+        application_id = self.kwargs.get(self.lookup_url_kwarg)
+        return get_object_or_404(
+            Application.objects.select_related(
+                "employee__user__profile_image",
+                "shift__vacancy__event",
+                "shift__vacancy__job_type"
+            ).prefetch_related(
+                "employee__job_types",
+                "shift__vacancy__requirements"
+            ),
+            id=application_id
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['user'] = self.request.user
+        return context
+    
     
 class ListApplicationsByShiftView(RetrieveAPIView):
     serializer_class = ShiftWithApplicationsSerializer

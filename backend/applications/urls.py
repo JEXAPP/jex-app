@@ -1,13 +1,13 @@
 from django.urls import path
 from applications.views.applications import ApplicationCreateView, ListApplicationsByShiftView, ApplicationDetailView
 from applications.views.attendance import AttendanceValidationView
-from applications.views.offer import  ListOfferEventByState, OfferAcceptedDetailView, OfferCreateView, OfferConsultView, DecideOfferView, OfferDetailView
+from applications.views.offer import  EmployeeSearchDetailView, ListOfferEventByState, OfferAcceptedDetailView, OfferCreateView, OfferConsultView, DecideOfferView, OfferDetailView
 
 
 
 urlpatterns = [
     path('apply/', ApplicationCreateView.as_view(), name='apply'),
-    path('apply/<int:pk>/detail/', ApplicationDetailView.as_view(), name='application-detail'),
+    path('apply/<int:application_id>/detail/', ApplicationDetailView.as_view(), name='application-detail'),
     path('<int:application_id>/offer/', OfferCreateView.as_view(), name='offer-create'),
     path("by-vacancy/<int:vacancy_pk>/shift/<int:shift_pk>/", ListApplicationsByShiftView.as_view(), name="applications-by-shift"),
     path('offers/consult/', OfferConsultView.as_view(), name='offer-consult'),
@@ -16,4 +16,6 @@ urlpatterns = [
     path('offers/<int:event_id>/state/<int:state_id>/', ListOfferEventByState.as_view(), name='offer-list-by-state'),
     path("offer-detail/<int:shift_id>/accepted/", OfferAcceptedDetailView.as_view(), name="accepted-offer-detail"),
     path("validate/<int:shift_id>/user/<int:user_id>/", AttendanceValidationView.as_view(), name="attendance-validate"),
+    path("employees/search/<int:employee_id>/", EmployeeSearchDetailView.as_view(), name="employee-search-detail"),
+
 ]

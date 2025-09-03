@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.employee import EmployeeProfile
 from user_auth.permissions import IsInGroup
-from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, EmployeeAdditionalInfoSerializer, EmployeeRegisterSerializer
+from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, EmployeeAdditionalInfoSerializer, EmployeeForSearchSerializer, EmployeeRegisterSerializer
 
 class EmployeeRegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -50,3 +50,4 @@ class EmployeeAdditionalInfoView(APIView):
 
         except Exception as e:
             return Response({"detail": f"Unexpected error: {str(e)}"}, status=500)
+        
