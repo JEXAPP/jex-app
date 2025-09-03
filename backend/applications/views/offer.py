@@ -119,7 +119,10 @@ class OfferAcceptedDetailView(RetrieveAPIView):
             selected_shift_id=shift_id,
             employee__user=user,
             state=state_accepted
-        ).select_related("selected_shift__vacancy").first()
+        ).select_related(
+            "selected_shift__vacancy__event",
+            "selected_shift__vacancy__job_type"
+        ).first()
 
         if not offer:
             raise PermissionDenied(NOT_PERMISSION_ACCEPTED_OFFER)

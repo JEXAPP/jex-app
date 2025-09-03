@@ -3,7 +3,7 @@ from rest_framework import serializers
 from vacancies.models.job_types import JobType
 from vacancies.serializers.job_types import ListJobTypesSerializer
 from media_utils.models import Image, ImageType
-from user_auth.utils import calculate_age, get_city_country, get_username_from_email
+from user_auth.utils import calculate_age, get_city_locality, get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.user import CustomUser
 from user_auth.models.employee import EmployeeProfile
@@ -21,6 +21,9 @@ class EmployeeRegisterSerializer(serializers.Serializer):
     birth_date = serializers.DateField(input_formats=["%d/%m/%Y"], required=False)
     latitude = serializers.FloatField(required=False)
     longitude = serializers.FloatField(required=False)
+
+    first_name = serializers.CharField(max_length=50)
+    last_name = serializers.CharField(max_length=50)
 
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
@@ -46,6 +49,8 @@ class EmployeeRegisterSerializer(serializers.Serializer):
         birth_date = validated_data.get('birth_date', None)
         latitude = validated_data.get('latitude')
         longitude = validated_data.get('longitude')
+        first_name = validated_data['first_name']
+        last_name = validated_data['last_name']
 
         username = get_username_from_email(email)
 
@@ -53,6 +58,8 @@ class EmployeeRegisterSerializer(serializers.Serializer):
             username=username,
             email=email,
             phone=phone,
+            first_name=first_name,
+            last_name=last_name,
             role='employee',
             password=make_password(password)
         )
@@ -193,10 +200,11 @@ class EmployeeForApplicationSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     job_types = serializers.SerializerMethodField()
     age = serializers.SerializerMethodField()
+    approximate_location = serializers.SerializerMethodField()
 
     class Meta:
         model = EmployeeProfile
-        fields = ["profile_image", "name", "job_types", "description", "age"]
+        fields = ["profile_image", "name", "job_types", "description", "age", "approximate_location"]
 
     def get_profile_image(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
@@ -209,6 +217,9 @@ class EmployeeForApplicationSerializer(serializers.ModelSerializer):
 
     def get_age(self, obj):
         return calculate_age(obj.birth_date)
+
+    def get_location(self, obj):
+        return get_city_locality(obj.address)
 
 
 class EmployeeForSearchSerializer(serializers.ModelSerializer):
@@ -235,4 +246,4 @@ class EmployeeForSearchSerializer(serializers.ModelSerializer):
         return calculate_age(obj.birth_date)
 
     def get_approximate_location(self, obj):
-        return get_city_country(obj.address)
+        return get_city_locality(obj.address)

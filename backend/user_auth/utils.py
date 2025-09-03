@@ -18,14 +18,23 @@ def calculate_age(birth_date):
     return today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
 
 
-def get_city_country(address):
+def get_city_locality(address):
     """
-    Devuelve solo ciudad y país, cortando calle y otros detalles.
-    Supone que address es algo como "Calle Falsa 123, Ciudad, Provincia, País"
+    Extrae localidad y ciudad de un string de Google Autocomplete.
+    Devuelve 'localidad, ciudad' o solo ciudad si no hay localidad.
     """
     if not address:
         return None
-    parts = address.split(",")
+    
+    parts = [p.strip() for p in address.split(",")]
     if len(parts) < 2:
-        return address.strip()
-    return ", ".join([p.strip() for p in parts[-2:]])
+        return address.strip()  # Devuelve lo que haya si es muy corto
+    
+    # Última parte es el país, ignoramos
+    # Tomamos las dos partes antes del país
+    city = parts[-2]
+    if len(parts) >= 3:
+        locality = parts[-3]
+        return f"{locality}, {city}"
+    else:
+        return city
