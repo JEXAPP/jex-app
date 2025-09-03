@@ -166,17 +166,15 @@ class OfferDecisionSerializer(serializers.Serializer):
 
         offer.confirmed_at = timezone.now()
 
-        #try:
-        #     employee_profile = EmployeeProfile.objects.get(user=user)
-        #     offer.confirmed_by = employee_profile
-        # except EmployerProfile.DoesNotExist:
-        #     raise serializers.ValidationError("No se encontró el perfil del empleador.")
-
         if self.validated_data['rejected']:
-            offer.state = OfferState.objects.get(id=3)
+            offer.state = OfferState.objects.get(OfferStates.REJECTED.value)
             offer.rejection_reason = self.validated_data.get('rejection_reason', '')
+            # Volver la postulacion a PENDING
+            pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
+            offer.application.state = pending_state
+            offer.application.save(update_fields=['state'])
         else:
-            offer.state = OfferState.objects.get(id=2)
+            offer.state = OfferState.objects.get(OfferStates.ACCEPTED.value)
             offer.rejection_reason = None
 
 
