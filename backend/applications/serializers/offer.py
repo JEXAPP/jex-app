@@ -161,7 +161,7 @@ class OfferDecisionSerializer(serializers.Serializer):
         offer = self.context['offer']
         user = self.context['request'].user
 
-        if offer.state_id != 1:
+        if offer.state != ApplicationStates.PENDING.value:
             raise serializers.ValidationError(OFFER_NOT_PENDING)
 
         offer.confirmed_at = timezone.now()
@@ -176,6 +176,10 @@ class OfferDecisionSerializer(serializers.Serializer):
         else:
             offer.state = OfferState.objects.get(OfferStates.ACCEPTED.value)
             offer.rejection_reason = None
+            # Cambiar el estado de la postulacion a CONFIRMED
+            confirmed_state = ApplicationState.objects.get(name=ApplicationStates.CONFIRMED.value)
+            offer.application.state = confirmed_state
+            offer.application.save(update_fields=['state'])
 
 
         offer.save()

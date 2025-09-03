@@ -4,10 +4,16 @@ from django.db import migrations
 
 def create_application_states(apps, schema_editor):
     ApplicationState = apps.get_model("applications", "ApplicationState")
-    states = ["PENDING", "OFERTADA", "REJECTED", "CANCELED"]
+    states = ["PENDING", "OFFERED", "CONFIRMED", "REJECTED", "CANCELED"]
 
     for state in states:
         ApplicationState.objects.create(name=state)
+
+def delete_application_states(apps, schema_editor):
+    ApplicationState = apps.get_model('applications', 'ApplicationState')
+    ApplicationState.objects.filter(
+        name__in=["PENDING", "OFFERED", "CONFIRMED", "REJECTED", "CANCELED"]
+    ).delete()
 
 class Migration(migrations.Migration):
 
@@ -16,5 +22,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(create_application_states)
+        migrations.RunPython(create_application_states, delete_application_states)
     ]
