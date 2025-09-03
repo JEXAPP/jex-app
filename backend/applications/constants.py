@@ -14,3 +14,7 @@ class OfferStates(str, Enum):
     REJECTED = "REJECTED"
     CANCELED = "CANCELED"
     EXPIRED = "EXPIRED"
+
+
+ENABLE_ACTION="enable"
+DISABLE_ACTION="disable"

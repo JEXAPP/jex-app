@@ -12,7 +12,7 @@ from applications.models.offer_state import OfferState
 from applications.models.offers import Offer
 from user_auth.models.employee import EmployeeProfile
 from vacancies.models.shifts import Shift
-from applications.constants import OfferStates
+from applications.constants import DISABLE_ACTION, ENABLE_ACTION, OfferStates
 
 
 class AttendanceValidationSerializer(serializers.Serializer):
@@ -71,3 +71,31 @@ class AttendanceResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Attendance
         fields = ["id", "employee", "shift", "check_in", "verified_by"]
+
+
+class QRPermissionToggleSerializer(serializers.Serializer):
+    shift_id = serializers.IntegerField()
+    action = serializers.ChoiceField(choices=[ENABLE_ACTION, DISABLE_ACTION])
+
+    def validate_shift_id(self, value):
+        shift = get_object_or_404(Shift, pk=value)
+        request_user = self.context['request'].user
+
+        # Validar que el usuario es dueño del evento
+        if shift.vacancy.event.owner != request_user:
+            raise serializers.ValidationError(NOT_EVENT_OWNER)
+
+        return value
+
+    def save(self):
+        shift_id = self.validated_data["shift_id"]
+        action = self.validated_data["action"]
+        shift = Shift.objects.get(pk=shift_id)
+
+        if action == ENABLE_ACTION:
+            shift.qr_enabled = True
+        elif action == DISABLE_ACTION:
+            shift.qr_enabled = False
+
+        shift.save()
+        return shift

@@ -1,6 +1,6 @@
 from django.urls import path
 from applications.views.applications import ApplicationCreateView, ListApplicationsByShiftView, ApplicationDetailView
-from applications.views.attendance import AttendanceValidationView
+from applications.views.attendance import AttendanceValidationView, QRPermissionToggleView
 from applications.views.offer import  EmployeeSearchDetailView, ListOfferEventByState, OfferAcceptedDetailView, OfferCreateView, OfferConsultView, DecideOfferView, OfferDetailView
 
 
@@ -17,5 +17,5 @@ urlpatterns = [
     path("offer-detail/<int:shift_id>/accepted/", OfferAcceptedDetailView.as_view(), name="accepted-offer-detail"),
     path("validate/<int:shift_id>/user/<int:user_id>/", AttendanceValidationView.as_view(), name="attendance-validate"),
     path("employees/search/<int:employee_id>/", EmployeeSearchDetailView.as_view(), name="employee-search-detail"),
-
+    path("shift/<int:shift_id>/qr/<str:action>/", QRPermissionToggleView.as_view(), name="shift-qr-toggle"),
 ]
