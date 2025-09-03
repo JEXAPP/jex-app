@@ -1,8 +1,9 @@
 from rest_framework import serializers
-from applications.constants import OfferStates
-from applications.errors.application_messages import APPLICATION_NOT_FOUND, APPLICATION_PERMISSION_DENIED
+from applications.constants import ApplicationStates, OfferStates
+from applications.errors.application_messages import APPLICATION_NOT_FOUND, APPLICATION_NOT_PENDING, APPLICATION_PERMISSION_DENIED
 from applications.errors.offer_messages import EMPLOYER_PROFILE_NOT_FOUND, OFFER_NOT_PENDING, MAX_OFFERS_REACHED
 from applications.models.applications import Application
+from applications.models.applications_states import ApplicationState
 from applications.models.offers import Offer
 from applications.utils import get_job_type_display
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
@@ -39,6 +40,7 @@ class OfferCreateSerializer(serializers.ModelSerializer):
                 'employee__user',
                 'shift__vacancy__event',
                 'shift__vacancy__job_type'
+                'state'
             ).get(id=application_id)
         except Application.DoesNotExist:
             raise serializers.ValidationError(APPLICATION_NOT_FOUND)
@@ -51,6 +53,10 @@ class OfferCreateSerializer(serializers.ModelSerializer):
             employer = EmployerProfile.objects.get(user=user)
         except EmployerProfile.DoesNotExist:
             raise serializers.ValidationError(EMPLOYER_PROFILE_NOT_FOUND)
+        
+        pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
+        if application.state_id != pending_state.id:
+            raise serializers.ValidationError(APPLICATION_NOT_PENDING)
 
         shift = application.shift
 
@@ -84,9 +90,13 @@ class OfferCreateSerializer(serializers.ModelSerializer):
             state=state_pending,
             **validated_data
         )
+
+        offert_state = ApplicationState.objects.get(name=ApplicationStates.OFFERT.value)
+
+        application.state = offert_state
+        application.save(update_fields=['state'])
+
         return offer
-
-
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -151,23 +161,25 @@ class OfferDecisionSerializer(serializers.Serializer):
         offer = self.context['offer']
         user = self.context['request'].user
 
-        if offer.state_id != 1:  # PENDING
+        if offer.state != ApplicationStates.PENDING.value:
             raise serializers.ValidationError(OFFER_NOT_PENDING)
 
         offer.confirmed_at = timezone.now()
 
-        #try:
-        #     employee_profile = EmployeeProfile.objects.get(user=user)
-        #     offer.confirmed_by = employee_profile
-        # except EmployerProfile.DoesNotExist:
-        #     raise serializers.ValidationError("No se encontró el perfil del empleador.")
-
         if self.validated_data['rejected']:
-            offer.state = OfferState.objects.get(id=3)  # REJECTED
+            offer.state = OfferState.objects.get(OfferStates.REJECTED.value)
             offer.rejection_reason = self.validated_data.get('rejection_reason', '')
+            # Volver la postulacion a PENDING
+            pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
+            offer.application.state = pending_state
+            offer.application.save(update_fields=['state'])
         else:
-            offer.state = OfferState.objects.get(id=2)  # ACCEPTED
+            offer.state = OfferState.objects.get(OfferStates.ACCEPTED.value)
             offer.rejection_reason = None
+            # Cambiar el estado de la postulacion a CONFIRMED
+            confirmed_state = ApplicationState.objects.get(name=ApplicationStates.CONFIRMED.value)
+            offer.application.state = confirmed_state
+            offer.application.save(update_fields=['state'])
 
 
         offer.save()

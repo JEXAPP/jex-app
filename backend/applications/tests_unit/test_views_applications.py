@@ -5,6 +5,7 @@ from applications.models.applications import Application
 from eventos.models.category_events import Category
 from eventos.models.state_events import EventState
 from eventos.tests_unit.utils import create_event, create_user_and_get_token
+from user_auth.models.employee import EmployeeProfile
 from vacancies.constants import VacancyStates
 from vacancies.models.vacancy import Vacancy
 from vacancies.models.vacancy_state import VacancyState

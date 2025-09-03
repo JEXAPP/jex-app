@@ -21,6 +21,9 @@ class EmployeeRegisterSerializer(serializers.Serializer):
     latitude = serializers.FloatField(required=False)
     longitude = serializers.FloatField(required=False)
 
+    first_name = serializers.CharField(max_length=50)
+    last_name = serializers.CharField(max_length=50)
+
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
             raise serializers.ValidationError("El email ya esta en uso")
@@ -45,6 +48,8 @@ class EmployeeRegisterSerializer(serializers.Serializer):
         birth_date = validated_data.get('birth_date', None)
         latitude = validated_data.get('latitude')
         longitude = validated_data.get('longitude')
+        first_name = validated_data['first_name']
+        last_name = validated_data['last_name']
 
         username = get_username_from_email(email)
 
@@ -52,6 +57,8 @@ class EmployeeRegisterSerializer(serializers.Serializer):
             username=username,
             email=email,
             phone=phone,
+            first_name=first_name,
+            last_name=last_name,
             role='employee',
             password=make_password(password)
         )
