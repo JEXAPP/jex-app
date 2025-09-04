@@ -2,10 +2,12 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from applications.errors.attendance_messages import (
     EMPLOYEE_NOT_FOUND,
+    NO_ACCEPTED_OFFER,
     NOT_ACCEPTED_OFFER,
     NOT_EVENT_OWNER,
     SHIFT_NOT_FOUND,
-    ALREADY_REGISTERED_ATTENDANCE
+    ALREADY_REGISTERED_ATTENDANCE,
+    SHIFT_NOT_QR_ENABLED
 )
 from applications.models.attendance import Attendance
 from applications.models.offer_state import OfferState
@@ -99,3 +101,35 @@ class QRPermissionToggleSerializer(serializers.Serializer):
 
         shift.save()
         return shift
+    
+
+
+class QRShiftValidationSerializer(serializers.Serializer):
+    shift_id = serializers.IntegerField()
+
+    def validate(self, data):
+        request = self.context["request"]
+        user = request.user
+
+        # Obtener empleado
+        employee = get_object_or_404(EmployeeProfile, user=user)
+        shift = get_object_or_404(Shift, pk=data["shift_id"])
+
+        # Validar que el shift tiene QR habilitado
+        if not shift.qr_enabled:
+            raise serializers.ValidationError(SHIFT_NOT_QR_ENABLED)
+
+        # Validar que el empleado tenga una oferta aceptada para este shift
+        accepted_state = get_object_or_404(OfferState, name=OfferStates.ACCEPTED.value)
+        accepted_offer = Offer.objects.filter(
+            employee=employee,
+            selected_shift=shift,
+            state=accepted_state
+        ).first()
+
+        if not accepted_offer:
+            raise serializers.ValidationError(NO_ACCEPTED_OFFER)
+
+        data["employee"] = employee
+        data["shift"] = shift
+        return data
