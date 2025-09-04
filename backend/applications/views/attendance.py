@@ -1,8 +1,8 @@
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework import permissions, status
 from rest_framework.response import Response
-from applications.serializers.attendance import AttendanceValidationSerializer, AttendanceResponseSerializer, QRPermissionToggleSerializer
-from user_auth.constants import EMPLOYER_ROLE
+from applications.serializers.attendance import AttendanceValidationSerializer, AttendanceResponseSerializer, QRPermissionToggleSerializer, QRShiftValidationSerializer
+from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from applications.models.attendance import Attendance
 
@@ -41,3 +41,23 @@ class QRPermissionToggleView(CreateAPIView):
             "shift_id": shift.id,
             "qr_enabled": shift.qr_enabled
         }, status=status.HTTP_200_OK)
+    
+
+class QRShiftValidationView(RetrieveAPIView):
+    serializer_class = QRShiftValidationSerializer
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def get_object(self):
+        return {"shift_id": self.kwargs["shift_id"]}
+
+    def retrieve(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
+        serializer.is_valid(raise_exception=True)
+        employee = serializer.validated_data["employee"]
+        shift = serializer.validated_data["shift"]
+
+        return Response({
+            "employee_id": employee.user.id,
+            "shift_id": shift.id
+        })
