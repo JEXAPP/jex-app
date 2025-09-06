@@ -1,0 +1,55 @@
+name: Deploy Backend on Develop or Main
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+    paths:
+      - 'backend/**'
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up SSH key
+      uses: webfactory/ssh-agent@v0.8.1
+      with:
+        ssh-private-key: ${{ secrets.EC2_PEM }}
+
+    - name: Deploy backend via SSH
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          cd /home/ubuntu/backend
+
+          echo "Pull latest code"
+          git pull origin ${GITHUB_REF#refs/heads/}
+
+          # Crear virtualenv solo si no existe
+          if [ -d "venv" ]; then
+              echo "Activating existing virtualenv"
+          else
+              echo "Creating virtualenv"
+              python3 -m venv venv
+          fi
+          source venv/bin/activate
+
+          echo "Install dependencies"
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+          echo "Apply migrations"
+          python manage.py migrate
+
+          echo "Collect static files"
+          python manage.py collectstatic --noinput
+
+          echo "Restart Gunicorn"
+          sudo systemctl restart gunicorn
+
+          echo "Backend deployed successfully!"
+        EOF
