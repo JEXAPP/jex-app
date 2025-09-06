@@ -24,7 +24,7 @@ jobs:
     - name: Deploy backend via SSH
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-          cd /home/ubuntu/backend
+          cd /home/ubuntu/jex-app/backend
 
           echo "Pull latest code"
           git pull origin ${GITHUB_REF#refs/heads/}
@@ -48,8 +48,9 @@ jobs:
           echo "Collect static files"
           python manage.py collectstatic --noinput
 
-          echo "Restart Gunicorn"
-          sudo systemctl restart gunicorn
+          echo "Restart Backend service"
+          sudo systemctl daemon-reload
+          sudo systemctl restart jex-backend
 
           echo "Backend deployed successfully!"
         EOF
