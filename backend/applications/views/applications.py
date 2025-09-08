@@ -51,7 +51,7 @@ class ApplicationDetailView(RetrieveAPIView):
         application_id = self.kwargs.get(self.lookup_url_kwarg)
         return get_object_or_404(
             Application.objects.select_related(
-                "employee__user__profile_image",
+                "employee__user",
                 "shift__vacancy__event",
                 "shift__vacancy__job_type"
             ).prefetch_related(

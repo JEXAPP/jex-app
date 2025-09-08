@@ -2,8 +2,10 @@ from django.forms import ValidationError
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from config.pagination import CustomPagination
 from vacancies.errors.vacancies_messages import VACANCY_NOT_FOUND
+from vacancies.models.requirements import Requirements
+from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
-from vacancies.serializers.vacancy import EmployerEventsWithVacanciesSerializer, ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer
+from vacancies.serializers.vacancy import EmployerEventsWithVacanciesSerializer, ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer, VacancyWithShiftsSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from vacancies.services.vacancy_list_service import VacancyListService
@@ -13,7 +15,7 @@ from rest_framework.response import Response
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from rest_framework.exceptions import NotFound
 from eventos.models.event import Event
-
+from django.db.models import Prefetch
 
 class CreateVacancyView(CreateAPIView):
     serializer_class = VacancySerializer
@@ -162,3 +164,18 @@ class EmployerEventsWithVacanciesView(ListAPIView):
             'vacancies__state',
             'vacancies__job_type'
         )
+
+class ListVacancyWithShiftView(RetrieveAPIView):
+    serializer_class = VacancyWithShiftsSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def get_queryset(self):
+        user = self.request.user
+        # Seleccionamos job_type con select_related y prefetch solo los campos necesarios
+        return Vacancy.objects.filter(event__owner=user).select_related(
+            'job_type'
+        ).prefetch_related(
+            Prefetch('requirements', queryset=Requirements.objects.only('id', 'description')),
+            Prefetch('shifts', queryset=Shift.objects.only('id', 'start_date', 'end_date', 'start_time', 'end_time', 'payment'))
+        ).order_by('id')

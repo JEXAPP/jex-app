@@ -84,7 +84,7 @@ class ApplicationCreateSerializer(serializers.Serializer):
 
 class ApplicationDetailSerializer(serializers.ModelSerializer):
     employee = EmployeeForApplicationSerializer()
-    shift = ShiftForApplicationSerializer(source="shift", required=False)
+    shift = ShiftForApplicationSerializer(required=False)
 
     class Meta:
         model = Application
@@ -101,7 +101,7 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
 class ApplicationByShiftSerializer(serializers.ModelSerializer):
     application_id = serializers.IntegerField(source="id")
     created_at = CustomDateField()
-    employee_id = serializers.IntegerField(source="employee.id")
+    employee_id = serializers.IntegerField(source="employee.user_id")
     full_name = serializers.SerializerMethodField()
     profile_image = serializers.SerializerMethodField()
 

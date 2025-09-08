@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from applications.utils import get_job_type_display
 from eventos.errors.events_messages import EVENT_START_DATE_AFTER_END_DATE, EVENT_START_TIME_NOT_BEFORE_END_TIME, EVENT_START_DATE_IN_PAST, INVALID_STATE_ID
 from eventos.models.category_events import Category
 from eventos.models.event import Event
@@ -166,8 +167,25 @@ class UpdateEventStateSerializer(serializers.Serializer):
         if not EventState.objects.filter(id=value).exists():
             raise serializers.ValidationError(INVALID_STATE_ID)
         return value
-
-
-
+    
+class VacancyEventSerializer(serializers.ModelSerializer):
+    vacancy_id = serializers.IntegerField(source='id')
+    job_type_name = serializers.SerializerMethodField()
 
     
+    class Meta:
+        model = Vacancy
+        fields = ['vacancy_id', 'job_type_name']
+
+    def get_job_type_name(self, obj):
+        return get_job_type_display(obj)
+
+class ListEventsWithVacanciesSerializer(serializers.ModelSerializer):
+    event_id = serializers.IntegerField(source='id', read_only=True)
+    event_name = serializers.CharField(source='name', read_only=True)
+    vacancies = VacancyEventSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Event
+        fields = ['event_id', 'event_name', 'vacancies']
+

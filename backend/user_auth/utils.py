@@ -20,21 +20,22 @@ def calculate_age(birth_date):
 
 def get_city_locality(address):
     """
-    Extrae localidad y ciudad de un string de Google Autocomplete.
-    Devuelve 'localidad, ciudad' o solo ciudad si no hay localidad.
+    Extrae barrio y provincia de un string de Google Autocomplete.
+    Formato esperado: "Calle Numero, Barrio, Provincia, Pais".
+    Devuelve:
+      - "Barrio, Provincia" si hay al menos 3 partes antes del país,
+      - "Provincia" o el único valor disponible si hay menos partes,
+      - None si la entrada es vacía.
     """
     if not address:
         return None
-    
-    parts = [p.strip() for p in address.split(",")]
-    if len(parts) < 2:
-        return address.strip()  # Devuelve lo que haya si es muy corto
-    
-    # Última parte es el país, ignoramos
-    # Tomamos las dos partes antes del país
-    city = parts[-2]
+
+    parts = [p.strip() for p in address.split(",") if p.strip()]
+    if not parts:
+        return None
+
     if len(parts) >= 3:
-        locality = parts[-3]
-        return f"{locality}, {city}"
-    else:
-        return city
+        barrio = parts[-3]
+        provincia = parts[-2]
+        return f"{barrio}, {provincia}"
+    return parts[0]

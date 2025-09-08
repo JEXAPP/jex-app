@@ -8,10 +8,11 @@ from vacancies.models.vacancy import Vacancy
 from vacancies.models.vacancy_state import VacancyState
 from vacancies.serializers.job_types import ListJobTypesSerializer
 from vacancies.serializers.requirements import CreateRequirementSerializer, RequirementSerializer
-from vacancies.serializers.shifts import CreateShiftSerializer, ShiftSerializer
+from vacancies.serializers.shifts import CreateShiftSerializer, ShiftForOfferSerializer, ShiftSerializer
 from eventos.serializers.event import EventSerializer
 from eventos.models.event import Event
 from django.db import transaction
+from applications.utils import get_job_type_display
 
 from vacancies.serializers.vacancy_state import ListsVacancyStates
 
@@ -288,3 +289,20 @@ class EmployerEventsWithVacanciesSerializer(serializers.ModelSerializer):
             'start_time', 'end_time', 'location', 
             'vacancies'
         ]
+
+class VacancyWithShiftsSerializer(serializers.ModelSerializer):
+    job_type_name = serializers.SerializerMethodField(read_only=True)
+    requirements = RequirementSerializer(many=True, read_only=True)
+    shifts = ShiftForOfferSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Vacancy
+        fields = [
+            'id', 'description', 
+            'job_type_name', 'requirements', 'shifts'
+        ]
+
+    def get_job_type_name(self, obj):
+        return get_job_type_display(obj)
+
+    
