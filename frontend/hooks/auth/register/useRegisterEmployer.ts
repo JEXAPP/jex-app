@@ -38,9 +38,10 @@ export const useRegisterEmployer = () => {
         const token = await SecureStore.getItemAsync('google-token');
 
         if (datosGuardados && telefono) {
+          const telefonoParseado = JSON.parse(telefono); 
           setRegistroPrevio({
             ...JSON.parse(datosGuardados),
-            phone: telefono,
+            phone: telefonoParseado.phone // 👈 solo el string limpio
           });
         }
 
@@ -117,7 +118,7 @@ export const useRegisterEmployer = () => {
   // Cierra el modal de éxito y redirige a crear evento
   const closeSuccess = () => {
     setShowSuccess(false);
-    router.push('./crear-evento');
+    router.push('/employer');
   };
 
   // Cierra el modal de error

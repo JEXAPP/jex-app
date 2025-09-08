@@ -48,7 +48,7 @@ export default function HomeEventsSkeleton() {
       <ScrollView
         contentContainerStyle={{
           padding: 16,
-          paddingTop: 100, // margen superior para que no quede pegado
+          paddingTop: 90, // margen superior para que no quede pegado
           paddingBottom: 20,
           gap: 18,
         }}
@@ -63,26 +63,15 @@ export default function HomeEventsSkeleton() {
             <SkeletonBox w={40} h={40} br={20} />
         </View>
 
-        {/* Input buscar */}
-        <SkeletonBox h={85} br={Borders.soft} stretch />
-
-
-        <SkeletonBox h={55} br={Borders.soft} stretch />
-
-        {/* Chips de filtros */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-          <SkeletonBox w={100} h={30} br={Borders.rounded} />
-          <SkeletonBox w={100} h={30} br={Borders.rounded} />
-          <SkeletonBox w={100} h={30} br={Borders.rounded} />
-          
-        </View>
 
         {/* Cards de vacantes */}
         <View style={{ gap: 14, marginTop: 10 }}>
-          <SkeletonBox h={90} br={Borders.soft} stretch />
-          <SkeletonBox h={90} br={Borders.soft} stretch />
-          <SkeletonBox h={90} br={Borders.soft} stretch />
-          <SkeletonBox h={90} br={Borders.soft} stretch />
+          <SkeletonBox h={80} br={Borders.soft} stretch />
+          <SkeletonBox h={80} br={Borders.soft} stretch />
+          <SkeletonBox h={80} br={Borders.soft} stretch />
+          <SkeletonBox h={80} br={Borders.soft} stretch />
+          <SkeletonBox h={80} br={Borders.soft} stretch />
+          <SkeletonBox h={80} br={Borders.soft} stretch />
         </View>
       </ScrollView>
     </View>

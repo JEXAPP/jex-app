@@ -53,7 +53,7 @@ export default function StateOffersScreen() {
       <View style={styles.eventHeader}>
         {canGoPrev && (
           <TouchableOpacity style={styles.eventNavButton} onPress={goPrevEvent}>
-            <Ionicons name="chevron-back" size={20} color={"#4B0082"} />
+            <Ionicons name="chevron-back" size={20} color= {"#4B0082"} />
           </TouchableOpacity>
         )}
 

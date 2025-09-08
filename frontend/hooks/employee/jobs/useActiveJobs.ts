@@ -1,11 +1,11 @@
 // hooks/employee/jobs/useActiveJobs.ts
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
+import useBackendConection from "@/services/internal/useBackendConection";
 
 export type Job = {
   id: number;
   eventName: string;
-  eventType: string;
   date: string;
   role: string;
   salary: string;
@@ -16,46 +16,59 @@ export type Job = {
 
 export const useActiveJobs = () => {
   const router = useRouter();
+  const { requestBackend } = useBackendConection();
   const [jobs, setJobs] = useState<Job[]>([]);
 
-  useEffect(() => {
-    // Hardcodeo de prueba
-    const today = new Date();
-
-    const jobsMock: Job[] = [
-      {
-        id: 1,
-        eventName: "Torneo Nacional Futbol 2021",
-        eventType: "Deporte",
-        date: "18 y 19 de Febrero del 2025",
-        role: "Fotógrafo",
-        salary: "90.000",
-        startDate: "2025-09-18",
-        image: require("@/assets/images/Publicidad1.png"),
-        daysRemaining: 0,
-      },
-      {
-        id: 2,
-        eventName: "Vibras",
-        eventType: "Festival",
-        date: "28 de Febrero del 2025",
-        role: "Técnico de Escenario",
-        salary: "90.000",
-        startDate: "2025-09-28",
-        image: require("@/assets/images/Publicidad1.png"),
-        daysRemaining: 0,
-      },
+  const formatDate = (dateStr: string) => {
+    const months = [
+      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
     ];
+    const d = new Date(dateStr);
+    return `${d.getDate()} de ${months[d.getMonth()]} del ${d.getFullYear()}`;
+  };
 
-    // calcular días restantes dinámicamente
-    const withDays = jobsMock.map((job) => {
-      const start = new Date(job.startDate);
-      const diffMs = start.getTime() - today.getTime();
-      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-      return { ...job, daysRemaining: diffDays };
-    });
+  const formatNumberAR = (v: string | number) => {
+    const n = Number(v);
+    return isNaN(n) ? String(v) : new Intl.NumberFormat("es-AR").format(n);
+  };
 
-    setJobs(withDays);
+  useEffect(() => {
+    let mounted = true;
+    const fetchJobs = async () => {
+      try {
+        const today = new Date();
+        const data = await requestBackend("/api/applications/employee-jobs/", null, "GET");
+        if (!mounted) return;
+
+        const normalized: Job[] = (data ?? []).map((item: any, idx: number) => {
+          const startDate = item.shift?.start_date ?? "";
+          const start = new Date(startDate);
+          const diffMs = start.getTime() - today.getTime();
+          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+          return {
+            id: item.event?.id ?? idx, // fallback si no viene id
+            eventName: item.event?.name ?? "Evento sin nombre",
+            date: startDate ? formatDate(startDate) : "Sin fecha",
+            role: item.shift?.job_type ?? "Sin rol",
+            salary: formatNumberAR(item.shift?.payment ?? 0),
+            startDate,
+            image: require("@/assets/images/Publicidad1.png"), // 👈 default por ahora
+            daysRemaining: diffDays,
+          };
+        });
+
+        setJobs(normalized);
+      } catch (e) {
+        console.log("Error cargando trabajos activos:", e);
+      }
+    };
+
+    fetchJobs();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const goToJobDetail = (job: Job) => {

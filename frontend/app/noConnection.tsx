@@ -1,31 +1,64 @@
-import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Image, StyleSheet, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button } from "@/components/button/Button"; // tu botón reutilizable
+import NetInfo from "@react-native-community/netinfo";
+import { useRouter } from "expo-router";
+import { Button } from "@/components/button/Button";
+import { Colors } from "@/themes/colors";
 
-export default function NoWifiScreen({ onRetry }: { onRetry: () => void }) {
+export default function NoWifiScreen() {
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleRetry = async () => {
+  if (loading) return;
+  setLoading(true);
+
+  try {
+    const state = await NetInfo.fetch();
+
+    if (state.isConnected) {
+      // ⏳ esperar un poco para mostrar la ruedita
+      setTimeout(() => {
+        router.push("/auth/reset-password");
+      }, 1000); 
+    } else {
+      setLoading(false);
+    }
+  } catch (err) {
+    setLoading(false);
+  }
+};
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <View style={styles.content}>
         <Image
-          source={require("@/assets/images/jex/Jex-Sin-Wifi.png")} // 👈 tu imagen
+          source={require("@/assets/images/jex/Jex-Sin-Wifi.png")}
           style={styles.image}
           resizeMode="contain"
         />
 
         <Text style={styles.title}>Sin conexión</Text>
         <Text style={styles.subtitle}>
-          Parece que no tenés internet en este momento.{"\n"}Verificá tu conexión e intentá de nuevo.
+          Parece que no tenés internet en este momento.{"\n"}
+          Verificá tu conexión e intentá de nuevo.
         </Text>
 
-        <Button
-          texto="Reintentar"
-          onPress={onRetry}
-          styles={{
-            boton: styles.retryButton,
-            texto: styles.retryText,
-          }}
-        />
+        {loading ? (
+          <View style={styles.retryButton}>
+            <ActivityIndicator color="#fff" />
+          </View>
+        ) : (
+          <Button
+            texto="Reintentar"
+            onPress={handleRetry}
+            styles={{
+              boton: styles.retryButton,
+              texto: styles.retryText,
+            }}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -34,7 +67,7 @@ export default function NoWifiScreen({ onRetry }: { onRetry: () => void }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff", // limpio
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -50,7 +83,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#4B0082", // tu violeta
+    color: Colors.violet4,
     marginBottom: 10,
     textAlign: "center",
   },
@@ -62,7 +95,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   retryButton: {
-    backgroundColor: "#4B0082",
+    backgroundColor: Colors.violet4,
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 10,

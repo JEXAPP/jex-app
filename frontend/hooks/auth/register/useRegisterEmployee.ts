@@ -87,9 +87,10 @@ export const useRegisterEmployee = () => {
         const tokenGoogle = await SecureStore.getItemAsync('google-token');
 
         if (datosGuardados && telefono) {
+          const telefonoParseado = JSON.parse(telefono); 
           setRegistroPrevio({
             ...JSON.parse(datosGuardados),
-            phone: telefono
+            phone: telefonoParseado.phone // 👈 solo el string limpio
           });
         }
 
@@ -164,55 +165,65 @@ export const useRegisterEmployee = () => {
   };
 
     const handleRegistrarEmpleado = async () => {
-    // Validación de los campos del formulario
-    if (!validarCampos()) return;
+  if (!validarCampos()) return;
 
-    // Validamos que haya datos previos del registro
-    if (!registroPrevio) {
-      setErrorMessage('No se encontró la información previa del registro');
-      setShowError(true);
-      return;
-    }
+  if (!registroPrevio) {
+    setErrorMessage('No se encontró la información previa del registro');
+    setShowError(true);
+    return;
+  }
 
-    // Obtenemos las coordenadas de la ubicación
-    const coords = await obtenerCoordenadas(ubicacionId)
+  const coords = await obtenerCoordenadas(ubicacionId);
 
-    // Preparamos el payload con todos los datos del usuario
-    const payload = {
-      first_name: nombre,
-      last_name: apellido,
-      address: ubicacion,
-      latitude: coords.lat,
-      longitude: coords.lng,
-      dni: dni.replace(/\./g, ''),
-      birth_date: formatearFecha(fechaNacimiento!),
-      ...registroPrevio,
-    };
-
-
-    setLoading(true);
-    try {
-      // Si viene de Google, usamos otro endpoint
-      if (desdeGoogle) {
-        await requestBackend('/api/auth/google/register', {
-          tokenGoogle: googleToken,
-          datosAdicionales: payload
-        }, 'POST');
-      } else {
-        await requestBackend('/api/auth/register/employee/', payload, 'POST');
-      }
-
-      // Mostramos modal de éxito
-      setLoading(false);
-      setShowSuccess(true);
-
-    } catch (error: any) {
-      // Captura y muestra de errores del servidor
-      const mensaje = error?.response?.data?.message || 'No se pudo completar el registro';
-      setErrorMessage(mensaje);
-      setShowError(true);
-    }
+  const payload = {
+    first_name: nombre,
+    last_name: apellido,
+    address: ubicacion,
+    latitude: coords.lat,
+    longitude: coords.lng,
+    dni: dni.replace(/\./g, ''),
+    birth_date: formatearFecha(fechaNacimiento!),
+    ...registroPrevio,
   };
+
+  setLoading(true);
+  try {
+    // Registro normal
+    if (!desdeGoogle) {
+      await requestBackend('/api/auth/register/employee/', payload, 'POST');
+
+      // 👇 login automático después del registro
+      const loginRes = await requestBackend(
+        '/api/auth/login/jwt/',
+        {
+          email: registroPrevio.email,
+          password: registroPrevio.password, // ojo: asegurate que en registroPrevio esté la password
+        },
+        'POST'
+      );
+
+      // Guardar tokens en SecureStore
+      await SecureStore.setItemAsync('access', loginRes.access);
+      await SecureStore.setItemAsync('refresh', loginRes.refresh);
+    } else {
+      // Registro por Google (ya se maneja distinto)
+      await requestBackend('/api/auth/google/register', {
+        tokenGoogle: googleToken,
+        datosAdicionales: payload
+      }, 'POST');
+    }
+
+    setLoading(false);
+    setShowSuccess(true);
+
+  } catch (error: any) {
+    setLoading(false);
+    const mensaje = error?.response?.data?.message || 'No se pudo completar el registro';
+    setErrorMessage(mensaje);
+    setShowError(true);
+  }
+};
+
 
   // Cierra el modal de éxito y redirige a la home
   const closeSuccess = () => {

@@ -25,7 +25,7 @@ export default function ActiveJobsScreen() {
   ];
 
   const handleSort = (order: number) => {
-    const opt = orderOptions[order - 1]; // porque tu OrderButton devuelve i+1
+    const opt = orderOptions[order - 1];
     let ordered = [...jobs];
 
     switch (opt) {
@@ -87,7 +87,6 @@ export default function ActiveJobsScreen() {
               />
               <View style={styles.eventInfo}>
                 <Text style={styles.eventName}>{job.eventName}</Text>
-                <Text style={styles.eventType}>{job.eventType}</Text>
               </View>
               <View style={styles.daysPill}>
                 <Text style={styles.daysPillText}>

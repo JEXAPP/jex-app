@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 import { Colors } from '@/themes/colors';
 import { Dropdown, DropdownOption } from '@/components/picker/DropDown';
@@ -10,9 +10,13 @@ import { selectableTagStyles2 } from '@/styles/components/button/selectableTagsS
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDataTransformation } from '@/services/internal/useDataTransformation';
 
+// 👉 import skeleton
+import HomeCandidatesSkeleton from '@/constants/skeletons/employer/candidates/homeCandidatesSkeleton';
+
 export default function ChooseCandidatesScreen() {
+  const [loadingScreen, setLoadingScreen] = useState(true);
+
   const {
-    // datos y estado
     eventName,
     currentEventIndex,
     vacancies, shiftInfo,
@@ -25,6 +29,22 @@ export default function ChooseCandidatesScreen() {
     handlePrevEvent, handleNextEvent, handleSelectVacancy, handleSelectShift, goToCandidateDetail
   } = useChooseCandidates();
   const { formatFechaCorta } = useDataTransformation();
+
+  // 🔥 Simulación de pantalla de carga por 3s
+  useEffect(() => {
+    const timer = setTimeout(() => setLoadingScreen(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 👉 Mientras dura la carga inicial, mostramos solo el skeleton
+  if (loadingScreen) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.gray1 }}>
+        <HomeCandidatesSkeleton />
+      </SafeAreaView>
+    );
+  }
+
 
   // 1) Sin eventos
   if (hasNoEvents) {

@@ -152,7 +152,7 @@ export const useLogin = () => {
       const role = decoded.role;
 
       if (role === 'employee') {
-        router.push('/employee/jobs/activeJobs');
+        router.push('/employee');
       } else if (role === 'employer') {
         router.push('/employer');
       } else {
@@ -165,10 +165,9 @@ export const useLogin = () => {
     }
   };
 
-  // Navega al registro normal (no por Google)
-  const handleNavigateToRegister = async () => {
+ const handleNavigateToRegister = async () => {
     await SecureStore.setItemAsync('desde-google', 'false');
-    router.push('/employer/offers');
+    router.push('/auth/register');
   };
 
   // Navega a la pantalla para recuperar contraseña
