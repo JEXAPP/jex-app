@@ -1,5 +1,8 @@
 from datetime import date
 from rest_framework import serializers
+from applications.errors.offer_messages import INVALID_RANGE_DATE, INVALID_RANGE_TIME, MISSING_PROVINCE
+from eventos.formatters.date_time import CustomDateField
+from vacancies.formatters.date_time import CustomTimeField
 from vacancies.models.job_types import JobType
 from vacancies.serializers.job_types import ListJobTypesSerializer
 from media_utils.models import Image, ImageType
@@ -198,28 +201,16 @@ class EmployeeAdditionalInfoSerializer(serializers.ModelSerializer):
 class EmployeeForApplicationSerializer(serializers.ModelSerializer):
     profile_image = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
-    job_types = serializers.SerializerMethodField()
-    age = serializers.SerializerMethodField()
-    approximate_location = serializers.SerializerMethodField()
 
     class Meta:
         model = EmployeeProfile
-        fields = ["profile_image", "name", "job_types", "description", "age", "approximate_location"]
+        fields = ["profile_image", "name"]
 
     def get_profile_image(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
 
     def get_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
-
-    def get_job_types(self, obj):
-        return [jt.name for jt in obj.job_types.all()]
-
-    def get_age(self, obj):
-        return calculate_age(obj.birth_date)
-
-    def get_location(self, obj):
-        return get_city_locality(obj.address)
 
 
 class EmployeeForSearchSerializer(serializers.ModelSerializer):
@@ -247,3 +238,51 @@ class EmployeeForSearchSerializer(serializers.ModelSerializer):
 
     def get_approximate_location(self, obj):
         return get_city_locality(obj.address)
+    
+class EmployeeProfileSearchSerializer(serializers.ModelSerializer):
+    employee_id = serializers.IntegerField()
+    profile_image = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    approximate_location = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EmployeeProfile
+        fields = ["employee_id", "profile_image", "name", "approximate_location"]
+
+    def get_profile_image(self, obj):
+        return obj.user.profile_image.url if obj.user.profile_image else None
+
+    def get_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
+    def get_job_types(self, obj):
+        return [jt.name for jt in obj.job_types.all()]
+
+    def get_approximate_location(self, obj):
+        return get_city_locality(obj.address)
+
+class EmployeeSearchFilterSerializer(serializers.Serializer):
+    province = serializers.CharField(required=False, allow_blank=True)
+    locality = serializers.CharField(required=False, allow_blank=True)
+
+    start_date = CustomDateField(required=False)
+    end_date = CustomDateField(required=False)
+    start_time = CustomTimeField(required=False)
+    end_time = CustomTimeField(required=False)
+
+    min_stars = serializers.IntegerField(required=False, min_value=1)
+    min_jobs = serializers.IntegerField(required=False, min_value=0)
+
+    def validate(self, data):
+        if data.get("locality") and not data.get("province"):
+            raise serializers.ValidationError(MISSING_PROVINCE)
+
+        if data.get("start_date") and data.get("end_date"):
+            if data["start_date"] > data["end_date"]:
+                raise serializers.ValidationError(INVALID_RANGE_DATE)
+
+        if data.get("start_time") and data.get("end_time"):
+            if data["start_time"] > data["end_time"]:
+                raise serializers.ValidationError(INVALID_RANGE_TIME)
+
+        return data

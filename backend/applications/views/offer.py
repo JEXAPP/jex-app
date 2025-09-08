@@ -1,9 +1,11 @@
-from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, ListAPIView, GenericAPIView
 from applications.constants import OfferStates
 from applications.serializers.offer import OfferAcceptedDetailSerializer, OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer, OfferDetailSerializer, OfferEventByStateSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
 from applications.models.offers import Offer
+from applications.services.employee_search_service import EmployeeSearchService
+from config.pagination import CustomPagination
 from eventos.models.event import Event
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.models.employee import EmployeeProfile
@@ -15,20 +17,26 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
-
-from user_auth.serializers.employee import EmployeeForSearchSerializer
+from user_auth.serializers.employee import EmployeeForSearchSerializer, EmployeeProfileSearchSerializer, EmployeeSearchFilterSerializer
+from vacancies.models.shifts import Shift
+from vacancies.serializers.shifts import ListOfferEmployeeSerializer
 
 class OfferCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
     serializer_class = OfferCreateSerializer
 
-
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context['user'] = self.request.user
-        context['application_id'] = self.kwargs['application_id']
+        context['application_id'] = self.request.data.get('application_id')
         return context
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({'detail': 'Created offers'}, status=status.HTTP_201_CREATED)
 
 class OfferConsultView(ListAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
@@ -144,3 +152,61 @@ class EmployeeSearchDetailView(RetrieveAPIView):
         employee = get_object_or_404(self.get_queryset(), id=employee_id)
 
         return employee
+    
+class EmployeeSearchView(ListAPIView):
+    serializer_class = EmployeeProfileSearchSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        # Validar filtros desde query params
+        filter_serializer = EmployeeSearchFilterSerializer(data=self.request.query_params)
+        filter_serializer.is_valid(raise_exception=True)
+        filters = filter_serializer.validated_data
+        
+        # Obtener queryset base
+        qs = EmployeeSearchService.get_base_queryset()
+        
+        # Aplicar filtros de ubicación
+        qs = EmployeeSearchService.filter_by_location(
+            qs, 
+            province=filters.get("province"),
+            locality=filters.get("locality")
+        )
+        
+        # Aplicar filtros de disponibilidad
+        qs = EmployeeSearchService.filter_by_availability(
+            qs,
+            start_date=filters.get("start_date"),
+            end_date=filters.get("end_date"),
+            start_time=filters.get("start_time"),
+            end_time=filters.get("end_time")
+        )
+        
+        # Aplicar filtros de historial laboral
+        qs = EmployeeSearchService.filter_by_job_history(
+            qs,
+            min_jobs=filters.get("min_jobs")
+
+        )
+
+        # Aplicar filtros de calificación
+        qs = EmployeeSearchService.filter_by_rating(
+            qs,
+            min_rating=filters.get("min_rating")
+        )
+        
+        return qs
+
+class ListOfferEmployeeShiftsView(ListAPIView):
+    serializer_class = ListOfferEmployeeSerializer
+    permission_classes = [IsAuthenticated]
+    required_groups = [EMPLOYER_ROLE]
+
+    def get_queryset(self):
+        employee_id = self.kwargs["employee_id"]
+        return Shift.objects.filter(
+            selected_offers__employee=employee_id,
+            selected_offers__state__name=OfferStates.ACCEPTED.value
+        ).distinct()
