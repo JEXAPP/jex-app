@@ -201,7 +201,7 @@ class EmployeeSearchView(ListAPIView):
 
 class ListOfferEmployeeShiftsView(ListAPIView):
     serializer_class = ListOfferEmployeeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
 
     def get_queryset(self):
