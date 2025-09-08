@@ -1,6 +1,7 @@
 from datetime import date
 from rest_framework import serializers
-from applications.errors.offer_messages import INVALID_RANGE_DATE, INVALID_RANGE_TIME, MISSING_PROVINCE
+from applications.errors.offer_messages import INVALID_RANGE_DATE, INVALID_RANGE_TIME
+from applications.errors.employee_messages import MISSING_PROVINCE
 from eventos.formatters.date_time import CustomDateField
 from vacancies.formatters.date_time import CustomTimeField
 from vacancies.models.job_types import JobType
