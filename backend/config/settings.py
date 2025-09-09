@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'eventos',
     'vacancies',
     'applications',
+    'notifications',
     'allauth',
     'allauth.account',
 
