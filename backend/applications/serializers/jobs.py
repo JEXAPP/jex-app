@@ -9,10 +9,11 @@ from vacancies.models.shifts import Shift
 
 class EventForEmployeeJobsSerializer(serializers.ModelSerializer):
     state = serializers.CharField(source="state.name")
+    category = serializers.CharField(source="category.name")
 
     class Meta:
         model = Event
-        fields = ["id", "name", "state"]
+        fields = ["id", "name", "state", "category"]
 
 
 class ShiftForEmployeeJobsSerializer(serializers.ModelSerializer):
