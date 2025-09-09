@@ -55,6 +55,7 @@ class SetNotificationReadBulkView(APIView):
         notification_ids = request.data.get("notifications_ids", [])
         read_value = request.data.get("read", True)  # default True
 
+        # Validaciones de formato
         if not isinstance(notification_ids, list) or not all(isinstance(i, int) for i in notification_ids):
             return Response(
                 {"detail": "notifications_ids debe ser una lista de enteros."},
@@ -67,11 +68,18 @@ class SetNotificationReadBulkView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        notifications = Notification.objects.filter(
-            id__in=notification_ids,
-            user=request.user
-        )
+        # 🔹 Buscar notificaciones del usuario
+        notifications = Notification.objects.filter(user=request.user, id__in=notification_ids)
+        found_ids = set(notifications.values_list('id', flat=True))
+        missing_ids = set(notification_ids) - found_ids
 
+        if missing_ids:
+            return Response(
+                {"detail": "Notificación no encontrada"},  # constante de tu errors.py
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # 🔹 Actualizar todas las que existen
         updated_count = notifications.update(read=read_value)
 
         return Response(
