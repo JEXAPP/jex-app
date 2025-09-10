@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'eventos',
     'vacancies',
     'applications',
+    'notifications',
     'allauth',
     'allauth.account',
 
@@ -253,3 +254,7 @@ CLOUDINARY_STORAGE = {
     'API_KEY': os.getenv("CLOUDINARY_API_KEY"),
     'API_SECRET': os.getenv("CLOUDINARY_API_SECRET"),
 }
+
+# Expo PUSH API
+
+EXPO_PUSH_API_URL = os.getenv("EXPO_PUSH_API_URL")
