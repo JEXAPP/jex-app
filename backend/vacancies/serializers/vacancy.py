@@ -1,5 +1,6 @@
 from datetime import datetime
 from rest_framework import serializers
+from eventos.serializers.state_events import EventStateSerializer
 from vacancies.constants import JobTypesEnum, VacancyStates
 from vacancies.errors.vacancies_messages import NO_PERMISSION_EVENT, SHIFTS_OUT_OF_EVENT, SHIFTS_START_AFTER_END, SPECIFIC_JOB_TYPE_NOT_ALLOWED, SPECIFIC_JOB_TYPE_REQUIRED
 from vacancies.formatters.date_time import CustomDateField, CustomTimeField
@@ -288,6 +289,17 @@ class EmployerEventsWithVacanciesSerializer(serializers.ModelSerializer):
             'id', 'name', 'start_date', 'end_date', 
             'start_time', 'end_time', 'location', 
             'vacancies'
+        ]
+
+
+class EmployerEventsWithVacanciesByIdSerializer(serializers.ModelSerializer):
+    vacancies = VacancyWithBasicInfoSerializer(many=True, read_only=True)
+    state = EventStateSerializer(read_only=True)
+
+    class Meta:
+        model = Event
+        fields = [
+            'id', 'name', 'state', 'vacancies'
         ]
 
 class VacancyWithShiftsSerializer(serializers.ModelSerializer):
