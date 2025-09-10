@@ -3,7 +3,7 @@
 
 from config.pagination import CustomPagination
 from notifications.models.notification import Notification
-from notifications.serializers.notification import ListNotificationSerializer, SetNotificationReadSerializer
+from notifications.serializers.notification import ListNotificationSerializer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
