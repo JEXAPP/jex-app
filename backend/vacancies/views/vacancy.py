@@ -164,6 +164,30 @@ class EmployerEventsWithVacanciesView(ListAPIView):
             'vacancies__state',
             'vacancies__job_type'
         )
+    
+class EmployerEventsWithVacanciesByIdView(ListAPIView):
+
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = EmployerEventsWithVacanciesSerializer
+
+    def get_queryset(self):
+        event_id = self.kwargs.get("event_id")
+        user = self.request.user
+
+        try:
+            event = Event.objects.get(id=event_id)
+        except Event.DoesNotExist:
+            raise NotFound(detail="Evento no encontrado.")
+
+        if event.employer != user:
+            raise NotFound(detail="Evento no encontrado.")
+
+        queryset = Vacancy.objects.filter(event=event, employer=user).order_by("id")
+
+        return queryset
+
+
 
 class ListVacancyWithShiftView(RetrieveAPIView):
     serializer_class = VacancyWithShiftsSerializer
