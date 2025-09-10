@@ -5,7 +5,7 @@ from vacancies.errors.vacancies_messages import VACANCY_NOT_FOUND
 from vacancies.models.requirements import Requirements
 from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
-from vacancies.serializers.vacancy import EmployerEventsWithVacanciesSerializer, ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer, VacancyWithShiftsSerializer
+from vacancies.serializers.vacancy import EmployerEventsWithVacanciesByIdSerializer, EmployerEventsWithVacanciesSerializer, ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer, VacancyWithShiftsSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from vacancies.services.vacancy_list_service import VacancyListService
@@ -165,27 +165,26 @@ class EmployerEventsWithVacanciesView(ListAPIView):
             'vacancies__job_type'
         )
     
-class EmployerEventsWithVacanciesByIdView(ListAPIView):
-
+class EmployerEventsWithVacanciesByIdView(RetrieveAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
-    serializer_class = EmployerEventsWithVacanciesSerializer
+    serializer_class = EmployerEventsWithVacanciesByIdSerializer
+    lookup_url_kwarg = "event_id"
 
     def get_queryset(self):
-        event_id = self.kwargs.get("event_id")
         user = self.request.user
+        return Event.objects.filter(owner=user)
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        event_id = self.kwargs.get(self.lookup_url_kwarg)
 
         try:
-            event = Event.objects.get(id=event_id)
+            event = queryset.get(id=event_id)
         except Event.DoesNotExist:
             raise NotFound(detail="Evento no encontrado.")
 
-        if event.employer != user:
-            raise NotFound(detail="Evento no encontrado.")
-
-        queryset = Vacancy.objects.filter(event=event, employer=user).order_by("id")
-
-        return queryset
+        return event
 
 
 
