@@ -9,10 +9,11 @@ from vacancies.models.shifts import Shift
 
 class EventForEmployeeJobsSerializer(serializers.ModelSerializer):
     state = serializers.CharField(source="state.name")
+    category = serializers.CharField(source="category.name")
 
     class Meta:
         model = Event
-        fields = ["id", "name", "state"]
+        fields = ["id", "name", "state", "category"]
 
 
 class ShiftForEmployeeJobsSerializer(serializers.ModelSerializer):
@@ -24,7 +25,7 @@ class ShiftForEmployeeJobsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Shift
-        fields = ["start_date", "end_date", "start_time", "end_time", "job_type"]
+        fields = ["start_date", "end_date", "start_time", "end_time", "job_type", "payment"]
 
     def get_job_type(self, obj):
         return get_job_type_display(obj.vacancy)
