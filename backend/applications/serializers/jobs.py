@@ -25,7 +25,7 @@ class ShiftForEmployeeJobsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Shift
-        fields = ["start_date", "end_date", "start_time", "end_time", "job_type"]
+        fields = ["start_date", "end_date", "start_time", "end_time", "job_type", "payment"]
 
     def get_job_type(self, obj):
         return get_job_type_display(obj.vacancy)
