@@ -1,4 +1,5 @@
 import requests
+from config import settings
 from notifications.models.notification import Notification
 from notifications.models.notification_type import NotificationType
 
@@ -35,7 +36,7 @@ def send_notification(user, title, message, notification_type_name):
             "data": {"type": notification_type_name}
         }
         try:
-            requests.post("https://exp.host/--/api/v2/push/send", json=payload, timeout=5)
+            requests.post(settings.EXPO_PUSH_API_URL, json=payload, timeout=5)
         except requests.RequestException:
             pass
             

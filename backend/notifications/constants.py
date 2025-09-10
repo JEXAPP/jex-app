@@ -13,3 +13,4 @@ class NotificationTypes(str, Enum):
     EVENT_CREATION = "EVENT_CREATION"
     EVENT_UPDATE = "EVENT_UPDATE"
     JOBS = "JOBS"
+
