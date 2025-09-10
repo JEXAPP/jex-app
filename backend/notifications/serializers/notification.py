@@ -6,6 +6,7 @@ class NotificationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationType
         fields = ["id", "name"]
+
 class ListNotificationSerializer(serializers.ModelSerializer):
     created_at = serializers.DateTimeField(
         format="%d/%m/%Y %H:%M",
@@ -24,16 +25,3 @@ class ListNotificationSerializer(serializers.ModelSerializer):
             "created_at"
         ]
 
-
-class SetNotificationReadSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Notification
-        fields = ["read"]
-        extra_kwargs = {
-            "read": {"required": True}
-        }
-
-    def update(self, instance, validated_data):
-        instance.read = validated_data["read"]
-        instance.save(update_fields=["read"])
-        return instance
