@@ -66,7 +66,7 @@ type ShiftInfo = {
 };
 
 const ENDPOINTS = {
-  eventsVacancies: '/api/events/vacancies',
+  eventsVacancies: '/api/events/vacancies/',
   applicationsByVacancyShift: (vacancyId: number, shiftId: number) =>
     `/api/applications/by-vacancy/${vacancyId}/shift/${shiftId}`,
 };
@@ -130,7 +130,7 @@ export const useChooseCandidates = () => {
     setLoadingEventVacancies(true);
     setError(null);
     try {
-      const data: EventsVacanciesAPI = await requestBackend(ENDPOINTS.eventsVacancies, 'GET');
+      const data: EventsVacanciesAPI = await requestBackend('/api/events/vacancies/', null, 'GET');
       
       const mapped: EventItem[] = data.map((e, idx) => ({
         id: `evt_${idx}`,

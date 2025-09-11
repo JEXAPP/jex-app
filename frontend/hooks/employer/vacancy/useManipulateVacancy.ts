@@ -42,7 +42,7 @@ export const useManipulateVacancy = () => {
     if (estadosCache) { setEstadosVacante(estadosCache); return; }
     if (!inflightEstadosPromise) {
       inflightEstadosPromise = (async () => {
-        const result = await requestRef.current('/api/vacancy-states/', null, 'GET');
+        const result = await requestRef.current('/api/vacancies/vacancy-states/', null, 'GET');
         return Array.isArray(result) ? (result as EstadoDTO[]) : [];
       })();
     }

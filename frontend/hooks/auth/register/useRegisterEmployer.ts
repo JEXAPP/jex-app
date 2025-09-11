@@ -60,6 +60,20 @@ export const useRegisterEmployer = () => {
     cargarDatos();
   }, []);
 
+  const limitarDecimales = (num: number, maxDigits = 15): number => {
+  // Convertimos a string
+  const str = num.toString();
+
+  if (str.length <= maxDigits) return num;
+
+  // Si es muy largo, redondeamos a menos decimales
+  const [intPart, decPart = ""] = str.split(".");
+
+  // calculamos cuántos decimales podemos dejar
+  const maxDec = Math.max(0, maxDigits - intPart.length - 1); 
+  return parseFloat(num.toFixed(maxDec));
+};
+
   // Valida campos antes de enviar al backend
   const validarCampos = () => {
     if (!nombreEmpresa.trim()) {

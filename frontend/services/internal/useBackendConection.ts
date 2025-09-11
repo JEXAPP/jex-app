@@ -1,7 +1,10 @@
 import { Method } from 'axios';
 import { getApi } from './api';
 
-type RequestConfig = Omit<Parameters<ReturnType<typeof getApi>['request']>[0], 'url'|'method'|'data'>;
+type RequestConfig = Omit<
+  Parameters<ReturnType<typeof getApi>['request']>[0],
+  'url' | 'method' | 'data'
+>;
 
 export default function useBackendConection<T = any>() {
   const requestBackend = async (
@@ -19,5 +22,6 @@ export default function useBackendConection<T = any>() {
     });
     return res.data;
   };
-  return { requestBackend }; 
+
+  return { requestBackend };
 }

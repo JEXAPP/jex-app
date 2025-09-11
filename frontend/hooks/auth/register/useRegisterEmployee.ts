@@ -57,6 +57,21 @@ export const useRegisterEmployee = () => {
     return `${dia}/${mes}/${anio}`;
   };
 
+
+  const limitarDecimales = (num: number, maxDigits = 15): number => {
+  // Convertimos a string
+  const str = num.toString();
+
+  if (str.length <= maxDigits) return num;
+
+  // Si es muy largo, redondeamos a menos decimales
+  const [intPart, decPart = ""] = str.split(".");
+
+  // calculamos cuántos decimales podemos dejar
+  const maxDec = Math.max(0, maxDigits - intPart.length - 1); 
+  return parseFloat(num.toFixed(maxDec));
+};
+
   // Formatea el DNI con puntos mientras se escribe
   const handleChangeDni = (text: string) => {
     let limpio = text.replace(/\D/g, '');
@@ -175,12 +190,16 @@ export const useRegisterEmployee = () => {
 
   const coords = await obtenerCoordenadas(ubicacionId);
 
+  // Redondeamos para no superar 15 dígitos
+  const lat = limitarDecimales(coords.lat);
+  const lng = limitarDecimales(coords.lng);
+
   const payload = {
     first_name: nombre,
     last_name: apellido,
     address: ubicacion,
-    latitude: coords.lat,
-    longitude: coords.lng,
+    latitude: lat,
+    longitude: lng,
     dni: dni.replace(/\./g, ''),
     birth_date: formatearFecha(fechaNacimiento!),
     ...registroPrevio,

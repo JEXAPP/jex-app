@@ -19,7 +19,7 @@ export default function AdminPanelScreen() {
     handlePrevEvent,
     goToCreateEvent,
     goToEditEvent,
-    goToVacancies
+    goToVacancies,
   } = useAdminPanel();
 
   if (loading) {
@@ -37,7 +37,7 @@ if (events.length === 0) {
           styles={iconButtonStyles1}
           onPress={goToCreateEvent}
           content="+"
-          backgroundColor={Colors.gray2}
+          backgroundColor={Colors.gray2} 
           contentColor={Colors.white}
         />
       </View>
@@ -60,6 +60,8 @@ if (events.length === 0) {
   );
 }
 
+
+ 
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
@@ -110,15 +112,16 @@ if (events.length === 0) {
         {/* Cards */}
         <View style={styles.cardsContainer}>
           <TouchableOpacity
-  style={styles.card}
-  onPress={() => goToVacancies(currentEvent.id)}
->
-  <View style={styles.cardContent}>
-    {iconos.vacantes(22, Colors.violet4)}
-    <Text style={styles.cardText}>Vacantes</Text>
-  </View>
-  {iconos.flechaDerecha(22, Colors.violet4)}
-</TouchableOpacity>
+          style={styles.card}
+          onPress={() => goToVacancies(currentEvent.id)}
+        >
+          <View style={styles.cardContent}>
+            {iconos.vacantes(22, Colors.violet4)}
+            <Text style={styles.cardText}>Vacantes</Text>
+          </View>
+          {iconos.flechaDerecha(22, Colors.violet4)}
+        </TouchableOpacity>
+
 
 
           <TouchableOpacity

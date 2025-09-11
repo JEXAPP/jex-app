@@ -21,7 +21,8 @@ export const adminPanelStyles = StyleSheet.create({
     lineHeight: 60,
     fontFamily: 'titulos',
     color: Colors.violet4,
-    marginHorizontal: 10
+    marginHorizontal: 10,
+    marginBottom: 10,
   },
   noEventsText: {
     marginTop: 40,
@@ -86,7 +87,7 @@ export const adminPanelStyles = StyleSheet.create({
 eventEstadoBadge: {
   position: "absolute",
   top: -25,       // 👈 lo subimos un poquito
-  right: -20,     // 👈 lo pegamos a la derecha
+  right: 70,     // 👈 lo pegamos a la derecha
   backgroundColor: Colors.gray12,
   borderRadius: 14,
   paddingHorizontal: 10,

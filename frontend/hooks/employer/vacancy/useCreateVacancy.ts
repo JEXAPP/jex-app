@@ -3,6 +3,7 @@ import useBackendConection from '@/services/internal/useBackendConection';
 import { useDataTransformation } from '@/services/internal/useDataTransformation';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import useVacancies from './useVacancies';
 
 // Tipos
 type Turno = {
@@ -68,6 +69,7 @@ const turnoCompleto = (t: Turno) =>
   !!t.fechaInicio && !!t.horaInicio && !!t.fechaFin && !!t.horaFin && !!t.pago && !!t.cantidad;
 
 export const useCreateVacancy = () => {
+  const { horaInicioEvento, horaFinEvento, currentEvent } = useVacancies();
   const { stringToDate } = useDataTransformation();
   const router = useRouter();
   const { requestBackend } = useBackendConection();
@@ -299,15 +301,20 @@ export const useCreateVacancy = () => {
       await requestBackend('/api/vacancies/create/', payload, 'POST');
       setShowSuccess(true);
     } catch (error: any) {
-      console.log(error)
-      const mensaje =
-        error?.response?.data?.message ||
-        'Error al registrar las vacantes';
-      setErrorMessage(mensaje);
-      setShowError(true);
-    } finally {
-      setLoading(false);
-    }
+  
+
+  // Intenta usar primero el mensaje específico que mande el backend
+  const mensaje =
+    error?.response?.data?.error ||   // 👈 acá lees lo que vos querés
+    error?.response?.data?.message || // fallback si es otra estructura
+    'Error al registrar las vacantes'; // fallback genérico
+
+  setErrorMessage(mensaje);
+  setShowError(true);
+} finally {
+  setLoading(false);
+}
+
   };
 
   const closeSuccess = () => {
@@ -364,5 +371,8 @@ export const useCreateVacancy = () => {
     loading,
     fechaInicioEvento,
     fechaFinEvento,
+    horaInicioEvento,   // 👈 lo devolvés
+    horaFinEvento,
+    currentEvent,
   };
 };

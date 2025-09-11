@@ -140,7 +140,7 @@ export const useEditVacancy = (idVacancy: string | number) => {
         return;
       }
         const data = await requestBackend(`/api/vacancies/${idVacancy}/details`, null, 'GET');
-        const roles: Rol[] = await requestBackend('/api/vacancies/job-types', null, 'GET');
+        const roles: Rol[] = await requestBackend('/api/vacancies/job-types/', null, 'GET');
         setRolesDisponibles(roles);
 
         // Fechas del evento (como fallback y límites)

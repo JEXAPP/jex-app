@@ -20,7 +20,7 @@ export default function NoWifiScreen() {
     if (state.isConnected) {
       // ⏳ esperar un poco para mostrar la ruedita
       setTimeout(() => {
-        router.push("/auth/reset-password");
+        router.push("./login");
       }, 1000); 
     } else {
       setLoading(false);

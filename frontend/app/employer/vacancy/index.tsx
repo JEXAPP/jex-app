@@ -88,7 +88,9 @@ export default function VacanciesScreen() {
                 goToCreateVacancy(
                   currentEvent.id,
                   currentEvent.fechaInicio,
-                  currentEvent.fechaFin
+                  currentEvent.fechaFin,
+                  currentEvent.horaInicio,
+                  currentEvent.horaFin
                 )
               }
               content="+"
