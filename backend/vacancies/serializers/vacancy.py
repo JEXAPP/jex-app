@@ -282,24 +282,14 @@ class EmployerEventsWithVacanciesSerializer(serializers.ModelSerializer):
     end_date = CustomDateField(read_only=True)
     start_time = CustomTimeField(read_only=True)
     end_time = CustomTimeField(read_only=True)
-
-    class Meta:
-        model = Event
-        fields = [
-            'id', 'name', 'start_date', 'end_date', 
-            'start_time', 'end_time', 'location', 
-            'vacancies'
-        ]
-
-
-class EmployerEventsWithVacanciesByIdSerializer(serializers.ModelSerializer):
-    vacancies = VacancyWithBasicInfoSerializer(many=True, read_only=True)
     state = EventStateSerializer(read_only=True)
 
     class Meta:
         model = Event
         fields = [
-            'id', 'name', 'state', 'vacancies'
+            'id', 'name', 'state', 'start_date', 'end_date', 
+            'start_time', 'end_time', 'location', 
+            'vacancies'
         ]
 
 class VacancyWithShiftsSerializer(serializers.ModelSerializer):
