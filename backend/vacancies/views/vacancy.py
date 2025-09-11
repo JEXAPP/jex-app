@@ -5,7 +5,7 @@ from vacancies.errors.vacancies_messages import VACANCY_NOT_FOUND
 from vacancies.models.requirements import Requirements
 from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
-from vacancies.serializers.vacancy import EmployerEventsWithVacanciesByIdSerializer, EmployerEventsWithVacanciesSerializer, ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer, VacancyWithShiftsSerializer
+from vacancies.serializers.vacancy import EmployerEventsWithVacanciesSerializer, ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer, VacancyWithShiftsSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from vacancies.services.vacancy_list_service import VacancyListService
@@ -168,7 +168,7 @@ class EmployerEventsWithVacanciesView(ListAPIView):
 class EmployerEventsWithVacanciesByIdView(RetrieveAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
-    serializer_class = EmployerEventsWithVacanciesByIdSerializer
+    serializer_class = EmployerEventsWithVacanciesSerializer
     lookup_url_kwarg = "event_id"
 
     def get_queryset(self):
