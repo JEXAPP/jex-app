@@ -240,7 +240,7 @@ class EmployeeForSearchSerializer(serializers.ModelSerializer):
         return get_city_locality(obj.address)
     
 class EmployeeProfileSearchSerializer(serializers.ModelSerializer):
-    employee_id = serializers.IntegerField()
+    employee_id = serializers.IntegerField(source="id")
     profile_image = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
     approximate_location = serializers.SerializerMethodField()
@@ -254,9 +254,6 @@ class EmployeeProfileSearchSerializer(serializers.ModelSerializer):
 
     def get_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
-
-    def get_job_types(self, obj):
-        return [jt.name for jt in obj.job_types.all()]
 
     def get_approximate_location(self, obj):
         return get_city_locality(obj.address)
