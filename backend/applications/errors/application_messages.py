@@ -6,3 +6,5 @@ APPLICATION_NOT_FOUND = "La postulación no existe."
 APPLICATION_PERMISSION_DENIED = "No tenés permiso para crear esta oferta."
 NOT_FOUND_SHIFT = "Turno no encontrado para esta vacante aplicada."
 NOT_PERMISSION_APPLICATION = "No tenés permiso para ver esta postulación."
+
+NOT_VALID_APPLICATION_STATE = "La postulación no está en estado pendiente."

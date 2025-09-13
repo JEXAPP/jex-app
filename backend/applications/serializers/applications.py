@@ -150,4 +150,3 @@ class ShiftWithApplicationsSerializer(serializers.ModelSerializer):
             "quantity_offers",
         ]
 
-

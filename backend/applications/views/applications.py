@@ -1,12 +1,13 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import RetrieveAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from applications.constants import OfferStates
-from applications.errors.application_messages import ALREADY_APPLIED_ALL_SHIFTS, APPLICATIONS_CREATED_SUCCESS, NOT_FOUND_SHIFT
+from applications.constants import ApplicationStates, OfferStates
+from applications.errors.application_messages import ALREADY_APPLIED_ALL_SHIFTS, APPLICATIONS_CREATED_SUCCESS, NOT_FOUND_SHIFT, NOT_PERMISSION_APPLICATION, NOT_VALID_APPLICATION_STATE
 from applications.models.applications import Application
+from applications.models.applications_states import ApplicationState
 from applications.serializers.applications import (
     ApplicationCreateSerializer,
     ApplicationDetailSerializer,
@@ -16,12 +17,8 @@ from user_auth.permissions import IsInGroup
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from rest_framework.generics import RetrieveAPIView
 from django.db.models import Prefetch
-
-from vacancies.models.vacancy import Vacancy
 from applications.models.applications import Application
 from vacancies.models.shifts import Shift
-from rest_framework.exceptions import NotFound
-
 from django.db.models import Count, Q
 
 
@@ -100,3 +97,24 @@ class ListApplicationsByShiftView(RetrieveAPIView):
         )
 
         return shift
+    
+
+class ApplicationStatusRejectedUpdateView(UpdateAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def put(self, request, application_id):
+        application = get_object_or_404(Application, pk=application_id)
+        # Validar que el employer sea el owner del evento de la vacante de ese turno
+        employer = request.user
+        event_owner = application.shift.vacancy.event.owner
+        if employer != event_owner:
+            return Response(NOT_PERMISSION_APPLICATION, status=status.HTTP_403_FORBIDDEN)
+
+        # Validar que la postulación esté en estado PENDING
+        if application.state.name != ApplicationStates.PENDING.value:
+            return Response(NOT_VALID_APPLICATION_STATE, status=status.HTTP_400_BAD_REQUEST)
+
+        application.state = ApplicationState.objects.get(name=ApplicationStates.REJECTED.value)
+        application.save()
+        return Response({"message": "Application status updated successfully"}, status=status.HTTP_200_OK)
