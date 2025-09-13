@@ -1,5 +1,5 @@
 from django.urls import path
-from applications.views.applications import ApplicationCreateView, ListApplicationsByShiftView, ApplicationDetailView
+from applications.views.applications import ApplicationCreateView, ApplicationStatusRejectedUpdateView, ListApplicationsByShiftView, ApplicationDetailView
 from applications.views.attendance import AttendanceValidationView, QRPermissionToggleView, QRShiftValidationView
 from applications.views.jobs import EmployeeJobsView
 from applications.views.jobs import EmployeeJobsView
@@ -24,4 +24,5 @@ urlpatterns = [
     path("shift/<int:shift_id>/qr/<str:action>/", QRPermissionToggleView.as_view(), name="shift-qr-toggle"),
     path("shifts/<int:shift_id>/qr/validate/", QRShiftValidationView.as_view(), name="shift-qr-validate"),
     path("employee-jobs/", EmployeeJobsView.as_view(), name="employee-jobs"),
+    path('applications/rejected/<int:application_id>/', ApplicationStatusRejectedUpdateView.as_view(), name='application-status-update'),
 ]
