@@ -348,6 +348,9 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
 
 
 class OfferAcceptedDetailSerializer(serializers.ModelSerializer):
+    # Sobrescribimos el id para que sea el de la Offer
+    id = serializers.IntegerField(source="offer.id", read_only=True)
+
     # Campos del shift
     start_date = CustomDateField()
     end_date = CustomDateField()
@@ -381,5 +384,5 @@ class OfferAcceptedDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_job_type(self, obj):
-        return get_job_type_display(obj.vacancy)
+        return obj.vacancy.get_job_type_display()
     
