@@ -107,36 +107,35 @@ class ListOfferEventByState(ListAPIView):
             )
         )
 
-    
 
 class OfferAcceptedDetailView(RetrieveAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE]
     serializer_class = OfferAcceptedDetailSerializer
-    lookup_url_kwarg = "shift_id"
+    lookup_url_kwarg = "offer_id"
 
     def get_object(self):
         user = self.request.user
-        shift_id = self.kwargs[self.lookup_url_kwarg]
+        offer_id = self.kwargs[self.lookup_url_kwarg]
 
-        # buscamos estado ACCEPTED
         state_accepted = get_object_or_404(OfferState, name=OfferStates.ACCEPTED.value)
 
-        # buscamos la oferta aceptada del turno para este empleado
-        offer = Offer.objects.filter(
-            selected_shift_id=shift_id,
-            employee__user=user,
-            state=state_accepted
-        ).select_related(
+        offer = Offer.objects.select_related(
             "selected_shift__vacancy__event",
             "selected_shift__vacancy__job_type"
+        ).filter(
+            id=offer_id,
+            employee__user=user,
+            state=state_accepted
         ).first()
 
         if not offer:
             raise PermissionDenied(NOT_PERMISSION_ACCEPTED_OFFER)
 
-        return offer.selected_shift
-    
+        # inyectamos la oferta en el shift
+        shift = offer.selected_shift
+        shift.offer = offer  
+        return shift
         
 
 class EmployeeSearchDetailView(RetrieveAPIView):

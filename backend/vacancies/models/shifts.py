@@ -11,7 +11,5 @@ class Shift(models.Model):
     payment = models.DecimalField(max_digits=10, decimal_places=2, null=False, blank=False)
     quantity = models.PositiveIntegerField(null=False, blank=False)
 
-    qr_enabled = models.BooleanField(default=False)
-
     def __str__(self):
         return f"{self.start_time} - {self.end_time} for {self.vacancy.name}"
