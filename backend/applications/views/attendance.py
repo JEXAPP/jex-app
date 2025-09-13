@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from applications.constants import OfferStates
 from applications.models.offer_state import OfferState
 from applications.models.offers import Offer
-from applications.serializers.attendance import AttendanceValidationSerializer, AttendanceResponseSerializer, QRPermissionToggleSerializer, QRShiftValidationSerializer
+from applications.serializers.attendance import AttendanceValidationSerializer, AttendanceResponseSerializer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from applications.models.attendance import Attendance
