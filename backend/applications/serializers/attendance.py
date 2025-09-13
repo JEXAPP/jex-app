@@ -18,43 +18,19 @@ from applications.constants import DISABLE_ACTION, ENABLE_ACTION, OfferStates
 
 
 class AttendanceValidationSerializer(serializers.Serializer):
-    shift_id = serializers.IntegerField()
-    employee_id = serializers.IntegerField()
-
     def validate(self, attrs):
-        shift_id = attrs.get("shift_id")
-        employee_id = attrs.get("employee_id")
         request_user = self.context['request'].user
+        offer = self.context['offer']
 
-        attrs["shift"] = self._validate_shift(shift_id)
-        attrs["employee"] = self._validate_employee(employee_id)
-        self._validate_offer(shift_id, employee_id)
-        self._validate_attendance_exists(shift_id, employee_id)
-        self._validate_event_owner(attrs["shift"], request_user)
+        shift = offer.selected_shift
+        employee = offer.employee
 
+        self._validate_attendance_exists(shift.id, employee.id)
+        self._validate_event_owner(shift, request_user)
+
+        attrs["shift"] = shift
+        attrs["employee"] = employee
         return attrs
-
-    def _validate_shift(self, shift_id):
-        try:
-            return Shift.objects.get(pk=shift_id)
-        except Shift.DoesNotExist:
-            raise serializers.ValidationError(SHIFT_NOT_FOUND)
-
-    def _validate_employee(self, employee_id):
-        try:
-            return EmployeeProfile.objects.get(pk=employee_id)
-        except EmployeeProfile.DoesNotExist:
-            raise serializers.ValidationError(EMPLOYEE_NOT_FOUND)
-
-    def _validate_offer(self, shift_id, employee_id):
-        state_accepted = get_object_or_404(OfferState, name=OfferStates.ACCEPTED.value)
-        has_offer = Offer.objects.filter(
-            selected_shift_id=shift_id,
-            employee_id=employee_id,
-            state=state_accepted
-        ).exists()
-        if not has_offer:
-            raise serializers.ValidationError(NOT_ACCEPTED_OFFER)
 
     def _validate_attendance_exists(self, shift_id, employee_id):
         if Attendance.objects.filter(employee_id=employee_id, shift_id=shift_id).exists():

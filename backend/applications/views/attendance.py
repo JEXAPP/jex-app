@@ -1,20 +1,36 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework import permissions, status
 from rest_framework.response import Response
+from applications.constants import OfferStates
+from applications.models.offer_state import OfferState
+from applications.models.offers import Offer
 from applications.serializers.attendance import AttendanceValidationSerializer, AttendanceResponseSerializer, QRPermissionToggleSerializer, QRShiftValidationSerializer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from applications.models.attendance import Attendance
 
 
-class AttendanceValidationView(CreateAPIView):
+class AttendanceConfirmationView(CreateAPIView):
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
     serializer_class = AttendanceValidationSerializer
+    lookup_url_kwarg = "offer_id"
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        offer_id = self.kwargs[self.lookup_url_kwarg]
+
+        state_accepted = get_object_or_404(OfferState, name=OfferStates.ACCEPTED.value)
+        offer = get_object_or_404(
+            Offer.objects.select_related("selected_shift__vacancy__event", "employee"),
+            pk=offer_id,
+            state=state_accepted
+        )
+
+        # Pasamos la oferta al serializer por context
+        serializer = self.get_serializer(data={}, context={"request": request, "offer": offer})
         serializer.is_valid(raise_exception=True)
+
         attendance = Attendance.objects.create(
             employee=serializer.validated_data["employee"],
             shift=serializer.validated_data["shift"],
@@ -24,40 +40,40 @@ class AttendanceValidationView(CreateAPIView):
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
     
 
-class QRPermissionToggleView(CreateAPIView):
-    serializer_class = QRPermissionToggleSerializer
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
-    required_groups = [EMPLOYER_ROLE]
+# class QRPermissionToggleView(CreateAPIView):
+#     serializer_class = QRPermissionToggleSerializer
+#     permission_classes = [permissions.IsAuthenticated, IsInGroup]
+#     required_groups = [EMPLOYER_ROLE]
 
-    def create(self, request, *args, **kwargs):
-        data = {
-            "shift_id": self.kwargs.get("shift_id"),
-            "action": self.kwargs.get("action")
-        }
-        serializer = self.get_serializer(data=data, context={"request": request})
-        serializer.is_valid(raise_exception=True)
-        shift = serializer.save()
-        return Response({
-            "shift_id": shift.id,
-            "qr_enabled": shift.qr_enabled
-        }, status=status.HTTP_200_OK)
+#     def create(self, request, *args, **kwargs):
+#         data = {
+#             "shift_id": self.kwargs.get("shift_id"),
+#             "action": self.kwargs.get("action")
+#         }
+#         serializer = self.get_serializer(data=data, context={"request": request})
+#         serializer.is_valid(raise_exception=True)
+#         shift = serializer.save()
+#         return Response({
+#             "shift_id": shift.id,
+#             "qr_enabled": shift.qr_enabled
+#         }, status=status.HTTP_200_OK)
     
 
-class QRShiftValidationView(RetrieveAPIView):
-    serializer_class = QRShiftValidationSerializer
-    permission_classes = [permissions.IsAuthenticated, IsInGroup]
-    required_groups = [EMPLOYEE_ROLE]
+# class QRShiftValidationView(RetrieveAPIView):
+#     serializer_class = QRShiftValidationSerializer
+#     permission_classes = [permissions.IsAuthenticated, IsInGroup]
+#     required_groups = [EMPLOYEE_ROLE]
 
-    def get_object(self):
-        return {"shift_id": self.kwargs["shift_id"]}
+#     def get_object(self):
+#         return {"shift_id": self.kwargs["shift_id"]}
 
-    def retrieve(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object())
-        serializer.is_valid(raise_exception=True)
-        employee = serializer.validated_data["employee"]
-        shift = serializer.validated_data["shift"]
+#     def retrieve(self, request, *args, **kwargs):
+#         serializer = self.get_serializer(self.get_object())
+#         serializer.is_valid(raise_exception=True)
+#         employee = serializer.validated_data["employee"]
+#         shift = serializer.validated_data["shift"]
 
-        return Response({
-            "employee_id": employee.user.id,
-            "shift_id": shift.id
-        })
+#         return Response({
+#             "employee_id": employee.user.id,
+#             "shift_id": shift.id
+#         })
