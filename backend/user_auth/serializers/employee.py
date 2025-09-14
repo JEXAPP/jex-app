@@ -207,7 +207,7 @@ class EmployeeForApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmployeeProfile
-        fields = ["profile_image", "name", "description", "age"]
+        fields = ["profile_image", "name", "description", "age", "approximate_location"]
 
     def get_profile_image(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
