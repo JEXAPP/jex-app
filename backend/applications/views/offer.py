@@ -20,6 +20,7 @@ from rest_framework.generics import RetrieveAPIView
 from user_auth.serializers.employee import EmployeeForSearchSerializer, EmployeeProfileSearchSerializer, EmployeeSearchFilterSerializer
 from vacancies.models.shifts import Shift
 from vacancies.serializers.shifts import ListOfferEmployeeSerializer
+from django.db.models import Q
 
 class OfferCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
@@ -47,12 +48,9 @@ class OfferConsultView(ListAPIView):
         user = self.request.user
         state_pending = OfferState.objects.get(name=OfferStates.PENDING.value)
         return Offer.objects.select_related(
-            'application__shift__vacancy__event',
-            'application__shift__vacancy__event__event_image'
-            'application__employee__user'
+            'selected_shift__vacancy__event__event_image'
         ).filter(
             employee__user=user,
-            application__shift__vacancy__event__start_date__gte=timezone.now().date(),
             state=state_pending
         )
 
@@ -80,9 +78,7 @@ class OfferDetailView(RetrieveAPIView):
     required_groups = [EMPLOYEE_ROLE, EMPLOYER_ROLE]
     serializer_class = OfferDetailSerializer
     queryset = Offer.objects.select_related(
-        'application__shift__vacancy__event',
-        'application__shift__vacancy__event__event_image'
-        'application__employee__user'
+        'selected_shift__vacancy__event__event_image'
 )
     
 class ListOfferEventByState(ListAPIView):

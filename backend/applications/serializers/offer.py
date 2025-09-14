@@ -224,15 +224,15 @@ class OfferConsultSerializer(serializers.ModelSerializer):
             "event_image_public_id"]
 
     def get_event_image_url(self, obj):
-        event_image = getattr(obj.application.shift.vacancy.event, 'event_image', None)
-        if event_image:
-            return event_image.url
+        shift = obj.selected_shift or getattr(obj.application, 'shift', None)
+        if shift and shift.vacancy and shift.vacancy.event and shift.vacancy.event.event_image:
+            return shift.vacancy.event.event_image.url
         return None
 
     def get_event_image_public_id(self, obj):
-        event_image = getattr(obj.application.shift.vacancy.event, 'event_image', None)
-        if event_image:
-            return event_image.public_id
+        shift = obj.selected_shift or getattr(obj.application, 'shift', None)
+        if shift and shift.vacancy and shift.vacancy.event and shift.vacancy.event.event_image:
+            return shift.vacancy.event.event_image.public_id
         return None
 
 
@@ -336,15 +336,17 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             "event_image_public_id"]
 
     def get_event_image_url(self, obj):
-        event_image = getattr(obj.application.shift.vacancy.event, 'event_image', None)
-        if event_image:
-            return event_image.url
-        return None
+            if obj.selected_shift and obj.selected_shift.vacancy and obj.selected_shift.vacancy.event:
+                event_image = obj.selected_shift.vacancy.event.event_image
+                if event_image:
+                    return event_image.url
+            return None
 
     def get_event_image_public_id(self, obj):
-        event_image = getattr(obj.application.shift.vacancy.event, 'event_image', None)
-        if event_image:
-            return event_image.public_id
+        if obj.selected_shift and obj.selected_shift.vacancy and obj.selected_shift.vacancy.event:
+            event_image = obj.selected_shift.vacancy.event.event_image
+            if event_image:
+                return event_image.public_id
         return None
 
 class OfferStateSerializer(serializers.ModelSerializer):

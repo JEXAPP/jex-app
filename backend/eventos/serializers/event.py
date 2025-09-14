@@ -116,16 +116,20 @@ class EventSerializer(serializers.ModelSerializer):
     owner = EventOwnerSerializer()
     category = ListCategorySerializer()
     state = EventStateSerializer()
-    event_image_public_id = serializers.CharField(
-        source="event_image.public_id", read_only=True
-    )
-    event_image_url = serializers.CharField(
-        source="event_image.url", read_only=True
-    )
+    event_image_public_id = serializers.SerializerMethodField()
+    event_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
         fields = ['id', 'name', 'description', 'owner', 'category', 'state', 'event_image_public_id', 'event_image_url']
+
+    def get_event_image_public_id(self, obj):
+        event_image = getattr(obj, 'event_image', None)
+        return event_image.public_id if event_image else None
+
+    def get_event_image_url(self, obj):
+        event_image = getattr(obj, 'event_image', None)
+        return event_image.url if event_image else None
 
 class ListActiveEventsSerializer(serializers.ModelSerializer):
     class Meta:
