@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from applications.serializers.offer import RequirementSerializer
+from applications.utils import get_job_type_display
 from eventos.formatters.date_time import CustomDateField
 from vacancies.formatters.date_time import CustomTimeField
 from vacancies.models.shifts import Shift

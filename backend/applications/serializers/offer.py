@@ -12,15 +12,11 @@ from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
 from rest_framework import serializers
 from django.utils import timezone
-
-from vacancies.constants import JobTypesEnum
 from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
 from eventos.models.event import Event
-from vacancies.serializers.job_types import ListJobTypesSerializer
 from applications.models.offers import OfferState
 from vacancies.models.requirements import Requirements
-from vacancies.serializers.shifts import ShiftDetailForOfferByStateSerializer
 
 
 class OfferCreateSerializer(serializers.ModelSerializer):
@@ -354,6 +350,17 @@ class OfferStateSerializer(serializers.ModelSerializer):
         model = OfferState
         fields = ["id", "name"]
 
+class ShiftDetailForOfferByStateSerializer(serializers.ModelSerializer):
+
+    start_date = CustomDateField()
+    end_date = CustomDateField()
+    start_time = CustomTimeField()    
+    end_time = CustomTimeField()
+
+    class Meta:
+        model = Shift
+        fields = ['id', 'start_date', 'end_date', 'start_time', 'end_time', 'payment']
+
 class OfferEventByStateSerializer(serializers.ModelSerializer):
     employee_name = serializers.CharField(source="employee.user.first_name", read_only=True)
     employee_lastname = serializers.CharField(source="employee.user.last_name", read_only=True)
@@ -378,35 +385,19 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
         ]
 
     def get_job_type(self, obj):
-        v = obj.selected_shift.vacancy
-        return v.specific_job_type if v.job_type.id == 11 and v.specific_job_type else v.job_type.name
+        return get_job_type_display(obj.selected_shift.vacancy)
 
 
-
-class OfferAcceptedDetailSerializer(serializers.ModelSerializer):
-    # Sobrescribimos el id para que sea el de la Offer
-    id = serializers.IntegerField(source="offer.id", read_only=True)
-
-    # Campos del shift
-    start_date = CustomDateField()
-    end_date = CustomDateField()
-    start_time = CustomTimeField()
-    end_time = CustomTimeField()
-    payment = serializers.DecimalField(max_digits=10, decimal_places=2)
-
-    # Campos de la vacancy
+class ShiftDetailOfferAcceptedSerializer(serializers.ModelSerializer):
     vacancy_description = serializers.CharField(source="vacancy.description", read_only=True)
     job_type = serializers.SerializerMethodField()
     requirements = RequirementSerializer(source="vacancy.requirements", many=True, read_only=True)
-
-    # Campos del evento
     event_name = serializers.CharField(source="vacancy.event.name", read_only=True)
     event_location = serializers.CharField(source="vacancy.event.location", read_only=True)
 
     class Meta:
         model = Shift
         fields = [
-            "id",
             "start_date",
             "end_date",
             "start_time",
@@ -420,5 +411,14 @@ class OfferAcceptedDetailSerializer(serializers.ModelSerializer):
         ]
 
     def get_job_type(self, obj):
-        return obj.vacancy.get_job_type_display()
-    
+        return get_job_type_display(obj.vacancy)
+
+class OfferAcceptedDetailSerializer(serializers.ModelSerializer):
+    shift = ShiftDetailOfferAcceptedSerializer(source="selected_shift", read_only=True)
+
+    class Meta:
+        model = Offer
+        fields = [
+            "id",
+            "shift"
+        ]
