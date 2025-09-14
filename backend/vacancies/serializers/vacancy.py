@@ -216,7 +216,6 @@ class SearchVacancyResultSerializer(serializers.ModelSerializer):
     vacancy_id = serializers.IntegerField(source='id')
     event_name = serializers.CharField(source='event.name', read_only=True)
     start_date = serializers.SerializerMethodField()
-    event_image = serializers.SerializerMethodField()
     payment = serializers.SerializerMethodField()
     job_type_name = serializers.SerializerMethodField()
     event_image_url = serializers.SerializerMethodField()
@@ -230,7 +229,9 @@ class SearchVacancyResultSerializer(serializers.ModelSerializer):
             'start_date', 
             'payment',
             'job_type_name',
-            'specific_job_type'
+            'specific_job_type',
+            'event_image_url',
+            'event_image_public_id'
         ]
 
     def get_start_date(self, obj):
