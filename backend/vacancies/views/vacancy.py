@@ -140,6 +140,7 @@ class VacancyDetailView(RetrieveAPIView):
             'event__owner__profile_image',
             'event__category',
             'event__state',
+            'event__event_image',
             'job_type',
             'state'
         ).prefetch_related(

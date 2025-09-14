@@ -27,6 +27,7 @@ class VacancyListService:
             id=Subquery(best_shift_per_event.values('id')[:1])
         ).select_related(
             'vacancy__event',
+            'vacancy__event__event_image'
             'vacancy__job_type'
         ).order_by('vacancy__event__id')
 
