@@ -48,6 +48,7 @@ class OfferConsultView(ListAPIView):
         state_pending = OfferState.objects.get(name=OfferStates.PENDING.value)
         return Offer.objects.select_related(
             'application__shift__vacancy__event',
+            'application__shift__vacancy__event__event_image'
             'application__employee__user'
         ).filter(
             employee__user=user,
@@ -80,6 +81,7 @@ class OfferDetailView(RetrieveAPIView):
     serializer_class = OfferDetailSerializer
     queryset = Offer.objects.select_related(
         'application__shift__vacancy__event',
+        'application__shift__vacancy__event__event_image'
         'application__employee__user'
 )
     

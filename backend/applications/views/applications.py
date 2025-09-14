@@ -19,8 +19,7 @@ from rest_framework.generics import RetrieveAPIView
 from django.db.models import Prefetch
 from applications.models.applications import Application
 from vacancies.models.shifts import Shift
-from django.db.models import Count, Q
-
+from django.db.models import Q, Count, Prefetch, F
 
 
 class ApplicationCreateView(APIView):
@@ -75,7 +74,10 @@ class ListApplicationsByShiftView(RetrieveAPIView):
 
         applications_qs = Application.objects.select_related(
             "employee__user", "employee__user__profile_image"
-        ).filter(shift_id=shift_id).order_by("-created_at")
+        ).filter(
+            shift_id=shift_id,
+            state__name=ApplicationStates.PENDING.value
+        ).order_by("-created_at")
 
         shift = get_object_or_404(
             Shift.objects.prefetch_related(
@@ -91,6 +93,8 @@ class ListApplicationsByShiftView(RetrieveAPIView):
                     ),
                     distinct=True,
                 )
+            ).filter(
+                ~Q(quantity_offers=F("quantity"))
             ),
             pk=shift_id,
             vacancy_id=vacancy_id

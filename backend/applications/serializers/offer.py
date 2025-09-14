@@ -213,10 +213,25 @@ class OfferConsultSerializer(serializers.ModelSerializer):
     application = ApplicationSerializer()
     expiration_date = CustomDateField()
     expiration_time = CustomTimeField()
+    event_image_url = serializers.SerializerMethodField()
+    event_image_public_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
-        fields = ["id", "expiration_date", "expiration_time", 'application']
+        fields = ["id", "expiration_date", "expiration_time", 'application', "event_image_url",
+            "event_image_public_id"]
+
+    def get_event_image_url(self, obj):
+        event_image = getattr(obj.application.shift.vacancy.event, 'event_image', None)
+        if event_image:
+            return event_image.url
+        return None
+
+    def get_event_image_public_id(self, obj):
+        event_image = getattr(obj.application.shift.vacancy.event, 'event_image', None)
+        if event_image:
+            return event_image.public_id
+        return None
 
 
 class OfferDecisionSerializer(serializers.Serializer):
@@ -308,10 +323,25 @@ class OfferDetailSerializer(serializers.ModelSerializer):
     additional_comments = serializers.CharField()
     expiration_date = CustomDateField()
     expiration_time = CustomTimeField()
+    event_image_url = serializers.SerializerMethodField()
+    event_image_public_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
-        fields = ["id", "expiration_date", "expiration_time", "additional_comments", "application"]
+        fields = ["id", "expiration_date", "expiration_time", "additional_comments", "application", "event_image_url",
+            "event_image_public_id"]
+
+    def get_event_image_url(self, obj):
+        event_image = getattr(obj.application.shift.vacancy.event, 'event_image', None)
+        if event_image:
+            return event_image.url
+        return None
+
+    def get_event_image_public_id(self, obj):
+        event_image = getattr(obj.application.shift.vacancy.event, 'event_image', None)
+        if event_image:
+            return event_image.public_id
+        return None
 
 class OfferStateSerializer(serializers.ModelSerializer):
     class Meta:

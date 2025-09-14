@@ -15,7 +15,7 @@ class VacancySearchService:
         """
         return (
             Vacancy.objects
-            .select_related("event", "job_type", "state")
+            .select_related("event", "event__event_image","job_type", "state")
             .prefetch_related("shifts")
             .filter(state__name=VacancyStates.ACTIVE.value)
         )

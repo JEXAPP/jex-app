@@ -116,10 +116,16 @@ class EventSerializer(serializers.ModelSerializer):
     owner = EventOwnerSerializer()
     category = ListCategorySerializer()
     state = EventStateSerializer()
+    event_image_public_id = serializers.CharField(
+        source="event_image.public_id", read_only=True
+    )
+    event_image_url = serializers.CharField(
+        source="event_image.url", read_only=True
+    )
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'description', 'owner', 'category', 'state']
+        fields = ['id', 'name', 'description', 'owner', 'category', 'state', 'event_image_public_id', 'event_image_url']
 
 class ListActiveEventsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -141,6 +147,8 @@ class ListEventDetailSerializer(serializers.ModelSerializer):
     start_time = CustomTimeField()
     end_time = CustomTimeField()
     category = ListCategorySerializer()
+    event_image_url = serializers.SerializerMethodField()
+    event_image_public_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -156,7 +164,19 @@ class ListEventDetailSerializer(serializers.ModelSerializer):
             "start_time",
             "end_date",
             "end_time",
+            "event_image_url",
+            "event_image_public_id",
         ]
+
+    def get_event_image_url(self, obj):
+        if obj.event_image:
+            return obj.event_image.url
+        return None
+
+    def get_event_image_public_id(self, obj):
+        if obj.event_image:
+            return obj.event_image.public_id
+        return None
 
 
 class VacancyByEventSerializer(serializers.ModelSerializer):

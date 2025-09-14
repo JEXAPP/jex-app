@@ -143,10 +143,12 @@ class ListVacancyShiftSerializer(serializers.ModelSerializer):
     job_type_name = serializers.CharField(source='vacancy.job_type.name')
     specific_job_type = serializers.CharField(source='vacancy.specific_job_type', allow_blank=True)
     start_date = CustomDateField()
+    event_image_public_id = serializers.CharField(source='vacancy.event.event_image.public_id', read_only=True)
+    event_image_url = serializers.CharField(source='vacancy.event.event_image.url', read_only=True)
 
     class Meta:
         model = Shift
-        fields = ['vacancy_id', 'event_name', 'start_date', 'payment', 'job_type_name', 'specific_job_type']
+        fields = ['vacancy_id', 'event_name', 'start_date', 'payment', 'job_type_name', 'specific_job_type', 'event_image_public_id', 'event_image_url']
 
 
 
@@ -214,8 +216,11 @@ class SearchVacancyResultSerializer(serializers.ModelSerializer):
     vacancy_id = serializers.IntegerField(source='id')
     event_name = serializers.CharField(source='event.name', read_only=True)
     start_date = serializers.SerializerMethodField()
+    event_image = serializers.SerializerMethodField()
     payment = serializers.SerializerMethodField()
     job_type_name = serializers.SerializerMethodField()
+    event_image_url = serializers.SerializerMethodField()
+    event_image_public_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Vacancy
@@ -247,7 +252,17 @@ class SearchVacancyResultSerializer(serializers.ModelSerializer):
         if obj.job_type:
             return obj.job_type.name
         return obj.specific_job_type if obj.specific_job_type else None
-       
+    
+    def get_event_image_url(self, obj):
+        if obj.event.event_image:
+            return obj.event.event_image.url
+        return None
+
+    def get_event_image_public_id(self, obj):
+        if obj.event.event_image:
+            return obj.event.event_image.public_id
+        return None
+    
 
 """
 Serializer to list vacancy by ID
