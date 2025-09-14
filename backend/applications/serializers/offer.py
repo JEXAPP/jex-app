@@ -336,11 +336,11 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             "event_image_public_id"]
 
     def get_event_image_url(self, obj):
-            if obj.selected_shift and obj.selected_shift.vacancy and obj.selected_shift.vacancy.event:
-                event_image = obj.selected_shift.vacancy.event.event_image
-                if event_image:
-                    return event_image.url
-            return None
+        if obj.selected_shift and obj.selected_shift.vacancy and obj.selected_shift.vacancy.event:
+            event_image = obj.selected_shift.vacancy.event.event_image
+            if event_image:
+                return event_image.url
+        return None
 
     def get_event_image_public_id(self, obj):
         if obj.selected_shift and obj.selected_shift.vacancy and obj.selected_shift.vacancy.event:
