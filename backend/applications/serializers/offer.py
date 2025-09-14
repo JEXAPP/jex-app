@@ -279,7 +279,6 @@ class VacancyDetailSerializer(serializers.ModelSerializer):
     requirements = RequirementSerializer(many=True, read_only=True)
 
 
-
     class Meta:
         model = Vacancy
         fields = ["id", "description", "event", "job_type", "requirements"]
