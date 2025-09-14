@@ -275,9 +275,8 @@ class EventDetailSerializer(serializers.ModelSerializer):
 
 class VacancyDetailSerializer(serializers.ModelSerializer):
     event = EventDetailSerializer()
-    job_type = ListJobTypesSerializer()
+    job_type = serializers.SerializerMethodField()
     requirements = RequirementSerializer(many=True, read_only=True)
-
 
 
     class Meta:
@@ -286,6 +285,9 @@ class VacancyDetailSerializer(serializers.ModelSerializer):
 
     def get_requirements(self, obj):
         return [r.description for r in obj.requirements.all()]
+    
+    def get_job_type(self, obj):
+        return get_job_type_display(obj)
 
 class ShiftDetailSerializer(serializers.ModelSerializer):
     vacancy = VacancyDetailSerializer()
