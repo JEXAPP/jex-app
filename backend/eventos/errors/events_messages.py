@@ -6,3 +6,4 @@ EVENT_NOT_FOUND = "Evento no encontrado."
 NO_PERMISSION_EVENT = "No tienes permiso para cambiar el estado al evento."
 STATE_UPDATED_SUCCESS = "Estado actualizado con éxito."
 BOTH_PROFILE_IMAGE_FIELDS_REQUIRED = "Both profile_image_url and profile_image_id are required."
+ESTADO_DELETED_NO_CONFIGURADO = "Estado 'DELETED' no configurado.",
