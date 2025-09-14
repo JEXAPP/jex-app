@@ -22,5 +22,5 @@ urlpatterns = [
     path("employees/search/", EmployeeSearchView.as_view(), name="employee-search"),
     path("employees/search/<int:employee_id>/", EmployeeSearchDetailView.as_view(), name="employee-search-detail"),
     path("employee-jobs/", EmployeeJobsView.as_view(), name="employee-jobs"),
-    path('/rejected/<int:application_id>/', ApplicationStatusRejectedUpdateView.as_view(), name='application-status-update'),
+    path('rejected/<int:application_id>/', ApplicationStatusRejectedUpdateView.as_view(), name='application-status-update'),
 ]
