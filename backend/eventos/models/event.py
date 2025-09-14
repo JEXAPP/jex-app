@@ -1,6 +1,7 @@
 from django.db import models
 from eventos.models.category_events import Category
 from eventos.models.state_events import EventState
+from media_utils.models import Image
 from user_auth.models.user import CustomUser
 
 
@@ -21,6 +22,13 @@ class Event(models.Model):
     owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='events')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='events')
     state = models.ForeignKey(EventState, on_delete=models.CASCADE, related_name='events')
+    event_image = models.OneToOneField(
+        Image,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='event_image'
+    )
 
     def __str__(self):
         return self.name

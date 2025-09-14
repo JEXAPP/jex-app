@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from applications.utils import get_job_type_display
-from eventos.errors.events_messages import EVENT_START_DATE_AFTER_END_DATE, EVENT_START_TIME_NOT_BEFORE_END_TIME, EVENT_START_DATE_IN_PAST, INVALID_STATE_ID
+from eventos.errors.events_messages import BOTH_PROFILE_IMAGE_FIELDS_REQUIRED, EVENT_START_DATE_AFTER_END_DATE, EVENT_START_TIME_NOT_BEFORE_END_TIME, EVENT_START_DATE_IN_PAST, INVALID_STATE_ID
 from eventos.models.category_events import Category
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
@@ -8,12 +8,13 @@ from eventos.constants import EventStates
 from eventos.serializers.category_events import ListCategorySerializer
 from eventos.serializers.state_events import EventStateSerializer
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
+from media_utils.models import Image, ImageType
 from media_utils.serializers import ImageSerializer
 from user_auth.models.user import CustomUser
 from datetime import date
 from vacancies.models.vacancy import Vacancy
 
-
+    
 class CreateEventSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(), source='category', write_only=True
@@ -23,19 +24,23 @@ class CreateEventSerializer(serializers.ModelSerializer):
     end_date = CustomDateField()
     start_time = CustomTimeField()
     end_time = CustomTimeField()
+    profile_image_url = serializers.CharField(allow_null=True, required=False)
+    profile_image_id = serializers.IntegerField(allow_null=True, required=False)
 
     class Meta:
         model = Event
         fields = [
-            'id', 'name', 'description', 'start_date', 'end_date', 
-            'start_time', 'end_time', 'location', 'created_at', 
-            'updated_at', 'category_id', 'latitude', 'longitude'
+            'id', 'name', 'description', 'start_date', 'end_date',
+            'start_time', 'end_time', 'location', 'created_at',
+            'updated_at', 'category_id', 'latitude', 'longitude',
+            'profile_image_url', 'profile_image_id',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'owner']
 
     def validate(self, data):
         self._validate_dates(data)
         self._validate_start_date_future(data)
+        self._validate_image_fields(data)
         return data
 
     def _validate_dates(self, data):
@@ -47,7 +52,6 @@ class CreateEventSerializer(serializers.ModelSerializer):
         if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError(EVENT_START_DATE_AFTER_END_DATE)
 
-        # si es el mismo día, start_time debe ser menor que end_time
         if start_date == end_date and start_time and end_time and start_time >= end_time:
             raise serializers.ValidationError(EVENT_START_TIME_NOT_BEFORE_END_TIME)
 
@@ -56,11 +60,37 @@ class CreateEventSerializer(serializers.ModelSerializer):
         if start_date and start_date < date.today():
             raise serializers.ValidationError(EVENT_START_DATE_IN_PAST)
 
+    def _validate_image_fields(self, data):
+        profile_image_url = data.get('profile_image_url')
+        profile_image_id = data.get('profile_image_id')
+
+        if not profile_image_url or not profile_image_id:
+            raise serializers.ValidationError(BOTH_PROFILE_IMAGE_FIELDS_REQUIRED)
+
     def create(self, validated_data):
         user = self.context['user']
+
+        image_url = validated_data.pop('profile_image_url', None)
+        image_id = validated_data.pop('profile_image_id', None)
+
+        image_obj = None
+        if image_url and image_id:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=image_id,
+                defaults={
+                    'url': image_url,
+                    'type': ImageType.EVENT,
+                    'uploaded_by': user,
+                }
+            )
+
         public_state = EventState.objects.get(name=EventStates.PUBLISHED.value)
+
         validated_data['owner'] = user
         validated_data['state'] = public_state
+        if image_obj:
+            validated_data['event_image'] = image_obj
+
         return Event.objects.create(**validated_data)
 
    
