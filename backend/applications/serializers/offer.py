@@ -179,13 +179,15 @@ class EventSerializer(serializers.ModelSerializer):
 
 class VacancySerializer(serializers.ModelSerializer):
     event = EventSerializer()
-    job_type= ListJobTypesSerializer()
-    
+    job_type = serializers.SerializerMethodField()
     
 
     class Meta:
         model = Vacancy
         fields = ["id", "description", "event", "job_type"]
+
+    def get_job_type(self, obj):
+        return get_job_type_display(obj)
     
 
 class ShiftSerializer(serializers.ModelSerializer):
