@@ -1,6 +1,6 @@
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from eventos.constants import EventStates
-from eventos.errors.events_messages import EVENT_NOT_FOUND, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
+from eventos.errors.events_messages import ESTADO_DELETED_NO_CONFIGURADO, EVENT_NOT_FOUND, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
 from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer
@@ -105,7 +105,8 @@ class ListEventVacanciesView(ListAPIView):
         ).prefetch_related(
             Prefetch("vacancies", queryset=vacancies_qs)
         )
-    
+
+
 class UpdateEventStateView(APIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
@@ -129,6 +130,36 @@ class UpdateEventStateView(APIView):
         event.save()
 
         return Response({"detail": STATE_UPDATED_SUCCESS}, status=status.HTTP_200_OK)
+
+    
+class DeleteEventView(APIView):
+    """
+    Elimina lógicamente un evento cambiando su estado a 'DELETED'.
+    """
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def delete(self, request, pk):
+        try:
+            event = Event.objects.select_related('state', 'owner').get(id=pk)
+        except Event.DoesNotExist:
+            return Response(EVENT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        if event.owner != request.user:
+            return Response(NO_PERMISSION_EVENT, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            deleted_state = EventState.objects.get(name=EventStates.DELETED.value)
+        except EventState.DoesNotExist:
+            return Response(ESTADO_DELETED_NO_CONFIGURADO, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        event.state = deleted_state
+        event.save()
+
+        return Response({"detail": "Evento eliminado correctamente."}, status=status.HTTP_200_OK)
+
+
+
 
 class ListEventsByEmployerView(ListAPIView):
     """
