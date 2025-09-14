@@ -105,7 +105,32 @@ class ListEventVacanciesView(ListAPIView):
         ).prefetch_related(
             Prefetch("vacancies", queryset=vacancies_qs)
         )
-    
+
+
+class UpdateEventStateView(APIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def patch(self, request, pk):
+        serializer = UpdateEventStateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            event = Event.objects.select_related('state', 'owner').get(id=pk)
+        except Event.DoesNotExist:
+            return Response({"detail": EVENT_NOT_FOUND}, status=status.HTTP_404_NOT_FOUND)
+
+        if event.owner != request.user:
+            return Response({"detail": NO_PERMISSION_EVENT}, status=status.HTTP_403_FORBIDDEN)
+
+        new_state_id = serializer.validated_data['state_id']
+        new_state = EventState.objects.get(id=new_state_id)
+
+        event.state = new_state
+        event.save()
+
+        return Response({"detail": STATE_UPDATED_SUCCESS}, status=status.HTTP_200_OK)
+
     
 class DeleteEventView(APIView):
     """

@@ -1,5 +1,5 @@
 from django.urls import path
-from eventos.views.event import CreateEventView, ListEventsByEmployerView, ListActiveEventsView, ListEventDetailView, ListEventVacanciesView, ListEventsWithVacanciesView, UpdateEventView, UpdateEventStateView
+from eventos.views.event import CreateEventView, DeleteEventView, ListEventsByEmployerView, ListActiveEventsView, ListEventDetailView, ListEventVacanciesView, ListEventsWithVacanciesView, UpdateEventStateView, UpdateEventView
 from eventos.views.category_events import ListCategoryView
 
 
