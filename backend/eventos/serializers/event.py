@@ -25,7 +25,7 @@ class CreateEventSerializer(serializers.ModelSerializer):
     start_time = CustomTimeField()
     end_time = CustomTimeField()
     profile_image_url = serializers.CharField(allow_null=True, required=False)
-    profile_image_id = serializers.IntegerField(allow_null=True, required=False)
+    profile_image_id = serializers.CharField(allow_null=True, required=False)
 
     class Meta:
         model = Event
