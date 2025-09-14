@@ -116,8 +116,10 @@ class OfferAcceptedDetailView(RetrieveAPIView):
         user = self.request.user
         offer_id = self.kwargs[self.lookup_url_kwarg]
 
+        # Traemos el estado ACCEPTED
         state_accepted = get_object_or_404(OfferState, name=OfferStates.ACCEPTED.value)
 
+        # Obtenemos la oferta del usuario
         offer = Offer.objects.select_related(
             "selected_shift__vacancy__event",
             "selected_shift__vacancy__job_type"
@@ -130,10 +132,7 @@ class OfferAcceptedDetailView(RetrieveAPIView):
         if not offer:
             raise PermissionDenied(NOT_PERMISSION_ACCEPTED_OFFER)
 
-        # inyectamos la oferta en el shift
-        shift = offer.selected_shift
-        shift.offer = offer  
-        return shift
+        return offer
         
 
 class EmployeeSearchDetailView(RetrieveAPIView):
