@@ -141,6 +141,7 @@ class OfferAcceptedDetailView(RetrieveAPIView):
 class EmployeeSearchDetailView(RetrieveAPIView):
     serializer_class = EmployeeForSearchSerializer
     permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
     lookup_url_kwarg = "employee_id"
 
     def get_queryset(self):
