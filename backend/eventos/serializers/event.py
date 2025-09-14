@@ -70,8 +70,8 @@ class CreateEventSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context['user']
 
-        image_url = validated_data.get('profile_image_url', None)
-        image_id = validated_data.get('profile_image_id', None)
+        image_url = validated_data.pop('profile_image_url', None)
+        image_id = validated_data.pop('profile_image_id', None)
 
         image_obj = None
         if image_url and image_id:
