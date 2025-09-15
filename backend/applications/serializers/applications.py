@@ -2,7 +2,7 @@ from rest_framework import serializers
 from applications.constants import ApplicationStates
 from applications.models.applications_states import ApplicationState
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
-from user_auth.serializers.employee import EmployeeForApplicationSerializer
+from user_auth.utils import get_city_locality, calculate_age
 from vacancies.constants import VacancyStates
 from applications.errors.application_messages import EMPLOYEE_PROFILE_NOT_FOUND, NOT_PERMISSION_APPLICATION, NOT_PERMISSION_APPLICATION
 from vacancies.errors.vacancies_messages import SHIFTS_IDS_MUST_BE_INTEGERES, SHIFTS_NOT_BELONG_VACANCY, VACANCY_NOT_ACTIVE, VACANCY_NOT_FOUND
@@ -83,12 +83,39 @@ class ApplicationCreateSerializer(serializers.Serializer):
 
 
 class ApplicationDetailSerializer(serializers.ModelSerializer):
-    employee = EmployeeForApplicationSerializer()
-    shift = ShiftForApplicationSerializer(required=False)
+    current_shift = ShiftForApplicationSerializer(source='shift', read_only=True)
+    shifts = serializers.SerializerMethodField()
+    profile_image = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    description = serializers.CharField(source='employee.description')
+    age = serializers.SerializerMethodField()
+    approximate_location = serializers.SerializerMethodField()
 
     class Meta:
         model = Application
-        fields = ["employee", "shift"]
+        fields = ["current_shift", "shifts", "profile_image", "name", "description", "age", "approximate_location"]
+
+    def get_profile_image(self, obj):
+        return obj.employee.user.profile_image.url if obj.employee.user.profile_image else None
+
+    def get_name(self, obj):
+        return f"{obj.employee.user.first_name} {obj.employee.user.last_name}"
+    
+    def get_age(self, obj):
+        return calculate_age(obj.employee.birth_date)
+    
+    def get_approximate_location(self, obj):
+        return get_city_locality(obj.employee.address)
+
+    def get_shifts(self, obj):
+        """
+        Devuelve los otros shifts de la misma vacante a la que el empleado se postuló.
+        Excluye el shift actual.
+        """
+        current_shift_id = obj.shift.id if obj.shift else None
+        vacancy_shifts = getattr(obj.shift.vacancy, "_prefetched_objects_cache", {}).get("shifts", obj.shift.vacancy.shifts.all())
+        other_shifts = [s for s in vacancy_shifts if s.id != current_shift_id]
+        return ShiftForApplicationSerializer(other_shifts, many=True).data
 
     def validate(self, attrs):
         user = self.context.get("user")

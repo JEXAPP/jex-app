@@ -6,3 +6,6 @@ NOT_EVENT_OWNER = "No eres el propietario del evento para este turno."
 
 NO_ACCEPTED_OFFER = "El empleado no tiene una oferta aceptada para este turno."
 SHIFT_NOT_QR_ENABLED = "El turno no tiene el check-in por QR habilitado."
+EMPLOYEE_DOES_NOT_MATCH_TOKEN = "El empleado no coincide con el token."
+TOKEN_MISSING_REQUIRED_FIELDS = "Token missing required fields."
+INVALID_TOKEN = "Token inválido o expirado."
