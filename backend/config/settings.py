@@ -258,3 +258,7 @@ CLOUDINARY_STORAGE = {
 # Expo PUSH API
 
 EXPO_PUSH_API_URL = os.getenv("EXPO_PUSH_API_URL")
+
+QR_JWT_SECRET = os.getenv("QR_JWT_SECRET")
+QR_JWT_ALGORITHM = os.getenv("QR_JWT_ALGORITHM", default="HS256")
+QR_JWT_EXP_MINUTES = int(os.getenv("QR_JWT_EXP_MINUTES", default=2))

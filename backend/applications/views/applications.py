@@ -51,6 +51,7 @@ class ApplicationDetailView(RetrieveAPIView):
                 "shift__vacancy__event",
                 "shift__vacancy__job_type"
             ).prefetch_related(
+                "shift__vacancy__shifts",
                 "employee__job_types",
                 "shift__vacancy__requirements"
             ),
