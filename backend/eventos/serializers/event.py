@@ -93,6 +93,29 @@ class CreateEventSerializer(serializers.ModelSerializer):
 
         return Event.objects.create(**validated_data)
 
+    def update(self, instance, validated_data):
+        image_url = validated_data.pop('profile_image_url', None)
+        image_id = validated_data.pop('profile_image_id', None)
+
+        if image_url and image_id:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=image_id,
+                defaults={
+                    'url': image_url,
+                    'type': ImageType.EVENT,
+                    'uploaded_by': self.context['user'],
+                }
+            )
+            validated_data['event_image'] = image_obj
+        elif image_url is None and image_id is None:
+            validated_data['event_image'] = None
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        instance.save()
+        return instance
+
    
 class CreateEventResponseSerializer(serializers.ModelSerializer):
     class Meta:
