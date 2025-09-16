@@ -8,3 +8,4 @@ NOT_FOUND_SHIFT = "Turno no encontrado para esta vacante aplicada."
 NOT_PERMISSION_APPLICATION = "No tenés permiso para ver esta postulación."
 
 NOT_VALID_APPLICATION_STATE = "La postulación no está en estado pendiente."
+INVALID_APPLICATION_RELATIONSHIPS = "Relaciones de postulación no válidas."
