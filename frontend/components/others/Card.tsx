@@ -22,12 +22,11 @@ interface SelectableTagProps {
   disabled?: boolean;
 }
 
-export const SelectableTag = ({
+export const Card = ({
   title,
   subtitle,
   iconName,
   selected,
-  onPress,
   styles,
   disabled = false
 }: SelectableTagProps) => {
@@ -35,7 +34,6 @@ export const SelectableTag = ({
   if (disabled) return null;
   return (
     <TouchableOpacity
-      onPress={onPress}
       style={[styles.tag, selected && styles.tagSelected]}
     >
       <View style={styles.tagContent}>

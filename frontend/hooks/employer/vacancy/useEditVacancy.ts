@@ -1,19 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useTokenValidations } from '@/services/internal/useTokenValidations';
+import { useLocalSearchParams } from 'expo-router';
 
 type Turno = {
   fechaInicio: Date | null;
   horaInicio: string;
   fechaFin: Date | null;
   horaFin: string;
-  pago: string;      // mantener como string para inputs controlados
-  cantidad: string;  // idem
+  pago: string;
+  cantidad: string;
 };
 
 type Vacante = {
-  rol: string;       // siempre el ID como string
-  rolNombre: string; // nombre legible
+  rol: string;
+  rolNombre: string;
   otrosRol: string;
   descripcion: string;
   requerimientos: string[];
@@ -33,61 +34,37 @@ const formatearFecha = (d: Date): string => {
 // Acepta Date, timestamp, "YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss...", "DD/MM/YYYY"
 const parseBackendDate = (v: unknown): Date | null => {
   if (!v) return null;
-
-  if (v instanceof Date) {
-    return new Date(v.getFullYear(), v.getMonth(), v.getDate());
-  }
-
+  if (v instanceof Date) return new Date(v.getFullYear(), v.getMonth(), v.getDate());
   if (typeof v === 'number') {
     const d = new Date(v);
     return isNaN(d.getTime()) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
   }
-
   if (typeof v === 'string') {
     const s = v.trim();
-
-    // YYYY-MM-DD o YYYY-MM-DDTHH:mm:ssZ
     const mISO = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
-    if (mISO) {
-      const y = +mISO[1], m = +mISO[2], d = +mISO[3];
-      return new Date(y, m - 1, d);
-    }
-
-    // DD/MM/YYYY
+    if (mISO) return new Date(+mISO[1], +mISO[2] - 1, +mISO[3]);
     const mDMY = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s);
-    if (mDMY) {
-      const d = +mDMY[1], m = +mDMY[2], y = +mDMY[3];
-      return new Date(y, m - 1, d);
-    }
-
-    // Último intento
+    if (mDMY) return new Date(+mDMY[3], +mDMY[2] - 1, +mDMY[1]);
     const d2 = new Date(s);
     return isNaN(d2.getTime()) ? null : new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
   }
-
   return null;
 };
 
 const normalizarPago = (raw: string): string => {
   const s = (raw ?? '').toString().trim();
   if (!s) return '0.00';
-
-  // Caso 1: "14.000,50" (es-AR)
   if (/,\d{1,2}$/.test(s)) {
     const sinMiles = s.replace(/\./g, '');
     const conPunto = sinMiles.replace(',', '.');
     const n = Number(conPunto);
     return Number.isFinite(n) ? n.toFixed(2) : '0.00';
   }
-
-  // Caso 2: "14,000.50" o "14000.50" (en-US / mixed)
   if (/\.\d{1,2}$/.test(s)) {
     const sinMiles = s.replace(/,/g, '');
     const n = Number(sinMiles);
     return Number.isFinite(n) ? n.toFixed(2) : '0.00';
   }
-
-  // Caso 3: enteros, con o sin separadores
   const soloDigitos = s.replace(/[^\d]/g, '');
   if (!soloDigitos) return '0.00';
   const n = Number(soloDigitos);
@@ -105,13 +82,15 @@ const emptyVacancy: Vacante = {
   turnos: [emptyTurno],
 };
 
-export const useEditVacancy = (idVacancy: string | number) => {
+export const useEditVacancy = () => {
   const { requestBackend } = useBackendConection();
   const { validateToken } = useTokenValidations();
 
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const idVacancy = Number(id);
+
   const [vacante, setVacante] = useState<Vacante>(emptyVacancy);
   const [rolesDisponibles, setRolesDisponibles] = useState<Rol[]>([]);
-
   const opcionesDropdown = useMemo(
     () => rolesDisponibles.map(r => ({ id: r.id.toString(), name: r.name })),
     [rolesDisponibles]
@@ -128,26 +107,31 @@ export const useEditVacancy = (idVacancy: string | number) => {
   const [fechaInicioEvento, setFechaInicioEvento] = useState<Date | undefined>(undefined);
   const [fechaFinEvento, setFechaFinEvento] = useState<Date | undefined>(undefined);
 
-  useEffect(() => {
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const v = await validateToken('employer');
-      if (!v.ok) {
-        setErrorMessage('Tu sesión no es válida o no sos employer.');
-        setShowError(true);
-        // router.replace('/login'); // si querés redirigir
-        return;
-      }
-        const data = await requestBackend(`/api/vacancies/${idVacancy}/details`, null, 'GET');
-        const roles: Rol[] = await requestBackend('/api/vacancies/job-types', null, 'GET');
-        setRolesDisponibles(roles);
+  // Evita múltiples fetch en dev/StrictMode
+  const fetchedRef = useRef(false);
 
-        // Fechas del evento (como fallback y límites)
+  useEffect(() => {
+    (async () => {
+      if (fetchedRef.current) return;
+      fetchedRef.current = true;
+
+      setLoading(true);
+      try {
+        // validar sesión
+        const v = await validateToken('employer');
+        if (!v.ok) {
+          setErrorMessage('Tu sesión no es válida o no sos employer.');
+          setShowError(true);
+          return;
+        }
+        const data = await requestBackend(`/api/vacancies/${idVacancy}/details`, null, 'GET'); //info de la vacante
+
+        const roles: Rol[] = await requestBackend('/api/vacancies/job-types/', null, 'GET'); //roles
+        setRolesDisponibles(Array.isArray(roles) ? roles : []);
+
         const eventStart = parseBackendDate((data as any)?.event?.start_date);
         const eventEnd   = parseBackendDate((data as any)?.event?.end_date);
 
-        // Shifts → estado interno Date | null
         let turnos: Turno[] = ((data as any)?.shifts || []).map((t: any) => {
           const fi = parseBackendDate(t?.start_date);
           const ff = parseBackendDate(t?.end_date);
@@ -161,7 +145,7 @@ export const useEditVacancy = (idVacancy: string | number) => {
           };
         });
 
-        // (Opcional) Fallback: completar fechas vacías con las del evento
+        // Completar fechas vacías con las del evento (opcional)
         turnos = turnos.map(t => ({
           ...t,
           fechaInicio: t.fechaInicio ?? eventStart ?? null,
@@ -171,14 +155,14 @@ export const useEditVacancy = (idVacancy: string | number) => {
         // Límites para los DatePicker
         const inicios = turnos.map(t => t.fechaInicio).filter(Boolean) as Date[];
         const fines   = turnos.map(t => t.fechaFin).filter(Boolean) as Date[];
-
         const minDate = inicios.length ? new Date(Math.min(...inicios.map(d => d.getTime()))) : (eventStart ?? undefined);
         const maxDate = fines.length   ? new Date(Math.max(...fines.map(d => d.getTime())))   : (eventEnd   ?? undefined);
 
         setFechaInicioEvento(minDate);
         setFechaFinEvento(maxDate);
 
-        const rolId = roles.find(r => r.name === (data as any)?.job_type)?.id?.toString() ?? '';
+        const rolId = (Array.isArray(roles) ? roles : [])
+          .find(r => r.name === (data as any)?.job_type)?.id?.toString() ?? '';
 
         setVacante({
           rol: rolId,
@@ -196,9 +180,8 @@ export const useEditVacancy = (idVacancy: string | number) => {
       } finally {
         setLoading(false);
       }
-    };
-    fetchData();
-  }, [idVacancy]);
+    })();
+  }, [idVacancy, validateToken, requestBackend]);
 
   const actualizarCampo = <K extends keyof Vacante>(campo: K, valor: Vacante[K]) =>
     setVacante(prev => ({ ...prev, [campo]: valor }));
@@ -230,7 +213,6 @@ export const useEditVacancy = (idVacancy: string | number) => {
   const eliminarTurno = (tIndex: number) =>
     setVacante(prev => ({ ...prev, turnos: prev.turnos.filter((_, i) => i !== tIndex) }));
 
-  // Type-safe e inmutable
   const actualizarTurno = <K extends keyof Turno>(tIndex: number, campo: K, valor: Turno[K]) =>
     setVacante(prev => {
       const turnos = [...prev.turnos];
@@ -241,8 +223,7 @@ export const useEditVacancy = (idVacancy: string | number) => {
         if (valor === null) {
           nuevoValor = null as Turno[K];
         } else if (valor instanceof Date) {
-          const d = new Date(valor.getFullYear(), valor.getMonth(), valor.getDate()); // 00:00
-          nuevoValor = d as Turno[K];
+          nuevoValor = new Date(valor.getFullYear(), valor.getMonth(), valor.getDate()) as Turno[K];
         }
       }
 
@@ -262,7 +243,7 @@ export const useEditVacancy = (idVacancy: string | number) => {
 
     return {
       description: v.descripcion,
-      job_type_id: selectedRole ? selectedRole.id : null,  // siempre ID (incluye “Otro”)
+      job_type_id: selectedRole ? selectedRole.id : null,
       specific_job_type: isOtro ? (v.otrosRol || null) : null,
       requirements: v.requerimientos.filter(Boolean),
       shifts: v.turnos.map(t => ({
@@ -285,7 +266,7 @@ export const useEditVacancy = (idVacancy: string | number) => {
         return;
       }
       const payload = buildPayload(vacante);
-      // await requestBackend(`/api/vacancies/${idVacancy}`, payload, 'PUT');
+      await requestBackend(`/api/vacancies/${idVacancy}/`, payload, 'PUT');
       console.log(payload);
       setShowSuccess(true);
     } catch {
@@ -297,22 +278,15 @@ export const useEditVacancy = (idVacancy: string | number) => {
   };
 
   return {
-    // datos
     vacante,
     opcionesDropdown,
     rolesDisponibles,
-
-    // límites fecha
     fechaInicioEvento,
     fechaFinEvento,
-
-    // flags
     loading,
     showError,
     errorMessage,
     showSuccess,
-
-    // mutadores
     actualizarCampo,
     actualizarRequerimiento,
     agregarRequerimiento,
@@ -321,14 +295,10 @@ export const useEditVacancy = (idVacancy: string | number) => {
     eliminarTurno,
     actualizarTurno,
     actualizarRol,
-
-    // expanders
     expandedVacancy,
     expandedShift,
     toggleVacancy,
     toggleShift,
-
-    // acciones
     handleGuardarCambios,
     closeError,
     closeSuccess,
