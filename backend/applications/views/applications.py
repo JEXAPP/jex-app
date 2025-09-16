@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from applications.constants import ApplicationStates, OfferStates
-from applications.errors.application_messages import ALREADY_APPLIED_ALL_SHIFTS, APPLICATIONS_CREATED_SUCCESS, NOT_FOUND_SHIFT, NOT_PERMISSION_APPLICATION, NOT_VALID_APPLICATION_STATE
+from applications.errors.application_messages import ALREADY_APPLIED_ALL_SHIFTS, APPLICATIONS_CREATED_SUCCESS, INVALID_APPLICATION_RELATIONSHIPS, NOT_FOUND_SHIFT, NOT_PERMISSION_APPLICATION, NOT_VALID_APPLICATION_STATE
 from applications.models.applications import Application
 from applications.models.applications_states import ApplicationState
 from applications.serializers.applications import (
@@ -107,11 +107,14 @@ class ApplicationStatusRejectedUpdateView(UpdateAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
 
-    def put(self, request, application_id):
+    def put(self, request, application_id, *args, **kwargs):
         application = get_object_or_404(Application, pk=application_id)
         # Validar que el employer sea el owner del evento de la vacante de ese turno
         employer = request.user
-        event_owner = application.shift.vacancy.event.owner
+        try:
+            event_owner = application.shift.vacancy.event.owner
+        except AttributeError:
+            return Response(INVALID_APPLICATION_RELATIONSHIPS, status=status.HTTP_400_BAD_REQUEST)
         if employer != event_owner:
             return Response(NOT_PERMISSION_APPLICATION, status=status.HTTP_403_FORBIDDEN)
 
