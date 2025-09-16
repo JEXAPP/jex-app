@@ -1,6 +1,7 @@
 import { Button } from '@/components/button/Button';
 import { Input } from '@/components/input/Input';
 import { CharCounter } from '@/components/others/CharCounter';
+import { UploadImage } from '@/components/others/UploadImage';
 import DatePicker from '@/components/picker/DatePicker';
 import { Picker } from '@/components/picker/Picker';
 import Suggestions from '@/components/picker/Suggestions';
@@ -52,6 +53,9 @@ export default function CreateEventScreen() {
     showSuccess,
     closeError,
     closeSuccess,
+    setImagenFile,
+    imagenPerfil,
+    setImagenPerfil,
     continuarHabilitado
   } = useCreateEvent();
 
@@ -67,6 +71,17 @@ export default function CreateEventScreen() {
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+
+          <UploadImage
+                        shape="square"
+                         defaultImage={require('@/assets/images/jex/Jex-FotoPerfil.png')}
+                        onChange={(file, uri) => {
+                        setImagenFile(file);
+                        setImagenPerfil(uri);
+                        }}
+                        containerStyle={{ alignItems: 'center' }}
+                        imageStyle={styles.profileImage}
+                    />
           
           <Input
             placeholder="Nombre del evento"

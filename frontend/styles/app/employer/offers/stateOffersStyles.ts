@@ -35,7 +35,7 @@ export const stateOffersStyles = StyleSheet.create({
     eventStateBadge: {
     position: "absolute",
     top: -25,
-    right: 2,
+    right: 50,
     backgroundColor: "#E5E5E5",
     borderRadius: 14,
     paddingVertical: 3,

@@ -14,6 +14,12 @@ export const createEventStyles = StyleSheet.create({
     marginBottom: 20,
     marginLeft: 50
   },
+  profileImage: {
+    width: 130,
+    height: 130,
+    borderRadius: 60,
+    marginBottom: -10,
+},
   image: {
     width: 80,
     height: 80,

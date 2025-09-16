@@ -136,4 +136,30 @@ export const activeJobsStyles = StyleSheet.create({
     color: Colors.black,
     fontFamily: "interBold",
   },
+  noJobsCard: {
+  backgroundColor: Colors.white,
+  borderRadius: 15,
+  padding: 20,
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginTop: -30
+},
+noJobsTitle: {
+  fontSize: 22,
+  fontFamily: "interBold",
+  color: Colors.violet4,
+  marginBottom: 10,
+},
+noJobsImage: {
+  width: 220,
+  height: 220,
+  marginBottom: 15,
+},
+noJobsSubtitle: {
+  fontSize: 16,
+  fontFamily: "interRegular",
+  color: Colors.gray3,
+  textAlign: "center",
+},
+
 });

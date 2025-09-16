@@ -1,8 +1,15 @@
 import useGooglePlaces from '@/services/external/useGooglePlaces';
+import { useUploadImageServ } from '@/services/external/useUploadImage';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Keyboard } from 'react-native';
+
+type UploadableImage = {
+  uri: string;
+  name: string;
+  type: string;
+};
 
 export const useCreateEvent = () => {
   const router = useRouter();
@@ -22,6 +29,11 @@ export const useCreateEvent = () => {
   const { requestBackend} = useBackendConection();
   const [loading, setLoading] = useState(false);
   const [continuarHabilitado, setContinuarHabilitado] = useState(false);
+
+  const [imagenPerfil, setImagenPerfil] = useState<string | null>(null);
+  const [imagenFile, setImagenFile] = useState<UploadableImage | null>(null);
+  const { uploadImage } = useUploadImageServ();
+  
 
   // Rubros
   const [rubros, setRubros] = useState<{ id: number; name: string }[]>([]);
@@ -137,7 +149,20 @@ const limitarDecimales = (num: number, maxDigits = 15): number => {
       const fechaFinFormateada = fechaFinEvento ? `${fechaFinEvento.getDate().toString().padStart(2, '0')}/${(fechaFinEvento.getMonth() + 1).toString().padStart(2, '0')}/${fechaFinEvento.getFullYear()}`: ''
 
       // Preparamos el payload con todos los datos del evento
-      const payload = {
+    const payload: {
+      name: string;
+      description: string;
+      location: string;
+      latitude: number;
+      longitude: number;
+      start_date: string;
+      end_date: string;
+      start_time: string | null;
+      end_time: string | null;
+      category_id: number | string | undefined;
+      profile_image_id: string | null;
+      profile_image_url: string | null;
+    } = {
       name: nombreEvento,
       description: descripcionEvento,
       location: ubicacionEvento,
@@ -148,7 +173,16 @@ const limitarDecimales = (num: number, maxDigits = 15): number => {
       start_time: horaInicio,
       end_time: horaFin,
       category_id: selectedRubro?.id,
+      profile_image_id: null,
+      profile_image_url: null,
     };
+
+
+     if (imagenFile) {
+        const upload = await uploadImage(imagenFile.uri);
+        payload.profile_image_url = upload.image_url;
+        payload.profile_image_id = upload.image_id;
+      }
 
       // Enviamos al backend
       const data = await requestBackend('/api/events/create/', payload, 'POST');
@@ -157,7 +191,7 @@ const limitarDecimales = (num: number, maxDigits = 15): number => {
 
       setShowSuccess(true);
       // Si fue exitoso, mostramos mensaje de éxito
-      router.push(`./create-vacancy?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`)
+      router.replace(`./create-vacancy?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`)
       
     } catch (error: any) {
       // Manejo de errores
@@ -198,6 +232,9 @@ const limitarDecimales = (num: number, maxDigits = 15): number => {
     setSelectedRubro,
     loadingRubros,
     errorRubros,
-    continuarHabilitado
+    continuarHabilitado,
+    setImagenFile,
+    imagenPerfil,
+    setImagenPerfil
   };
 };
