@@ -45,20 +45,8 @@ class ShiftDetailForOfferByStateSerializer(serializers.ModelSerializer):
         model = Shift
         fields = ['id', 'start_date', 'end_date', 'start_time', 'end_time', 'payment']
 
-class VacancyForApplicationSerializer(serializers.ModelSerializer):
-    job_type = serializers.CharField(source='job_type.name', read_only=True)
-    requirements = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Vacancy
-        fields = ["job_type", "description", "requirements"]
-
-    def get_requirements(self, obj):
-        return [r.description for r in obj.requirements.all()]
 
 class ShiftForApplicationSerializer(serializers.ModelSerializer):
-    vacancy = VacancyForApplicationSerializer(read_only=True)
-
     start_date = CustomDateField()
     end_date = CustomDateField()
     start_time = CustomTimeField()
@@ -67,7 +55,7 @@ class ShiftForApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Shift
-        fields = ["start_date", "start_time", "end_date", "end_time", "payment", "vacancy"]
+        fields = ["start_date", "start_time", "end_date", "end_time", "payment"]
 
 class ShiftForOfferSerializer(serializers.ModelSerializer):
 
