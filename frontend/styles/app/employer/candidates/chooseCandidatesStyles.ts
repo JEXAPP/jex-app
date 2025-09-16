@@ -6,9 +6,8 @@ export const chooseCandidatesStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.gray1,
-    marginHorizontal: 16,
-    marginTop: 20,
-  },
+    marginHorizontal: 20,
+   },
   title: {
     fontSize: 50,
     lineHeight: 60,

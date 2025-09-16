@@ -58,8 +58,10 @@ export const useApplyVacancy = () => {
   const fetchJobData = async () => {
     setLoading(true)
     try {
+      
       const vacante = await requestBackend(`/api/vacancies/${idVancancy}/details`, null, 'GET');
-
+      console.log(vacante)
+      
       setJob({
         title: vacante.event.name,
         description: vacante.description,

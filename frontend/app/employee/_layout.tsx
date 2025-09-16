@@ -1,4 +1,4 @@
-import FooterNavEmployee from '@/constants/footers/FooterNavEmployee';
+import FooterNavEmployee from '@/constants/navigation/FooterNavEmployee';
 import { transitionFade } from '@/constants/transitions';
 import { Colors } from '@/themes/colors';
 import { Ionicons } from '@expo/vector-icons';

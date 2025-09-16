@@ -1,3 +1,7 @@
+export type Id = number | string;
+export interface IdLabel<V extends Id = number> { id: V; label: string; }
+export interface Paginated<T> { count: number; next?: string | null; previous?: string | null; results: T[]; }
+
 export interface Vacancy {
   vacancy_id: number;
   event_name: string;
@@ -5,7 +9,29 @@ export interface Vacancy {
   payment: string;
   job_type_name: string;
   specific_job_type?: string | null;
-  image_url?: string | null;
+  event_image_public_id?: string | null;
+  event_image_url?: string | null;
+  quantity?: number;            
+  quantity_offers?: number;    
+  quantity_shifts?: number;
+  shift_ids?: number[];
+}
+
+export interface VacancySummary {
+  id: number;
+  roleName: string;
+  shiftIds: number[];
+  quantity?: number;
+  quantityOffers?: number;
+}
+
+export interface Candidate {
+  id: number;            
+  employeeId: number;
+  fullName: string;
+  avatarUrl?: string | null;
+  createdAt: string;
+  shiftId: number;
 }
 
 export interface Shift {

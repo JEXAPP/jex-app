@@ -1,18 +1,18 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { Colors } from '@/themes/colors';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  View,
-  Text,
   Modal,
-  TouchableOpacity,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   ScrollView,
   StyleProp,
+  Text,
   TextStyle,
-  ViewStyle,
-  NativeSyntheticEvent,
-  NativeScrollEvent
+  TouchableOpacity,
+  View,
+  ViewStyle
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Colors } from '@/themes/colors';
 
 interface TimePickerProps {
   time: string | null;

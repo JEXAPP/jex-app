@@ -55,6 +55,7 @@ export const useDetailOffers = () => {
       setLoading(true);
       try {
         const data = await requestBackend(`/api/applications/offers/${id}/detail/`, null, "GET");
+        console.log(data)
         if (!mounted) return;
 
         const shift = data?.application?.shift;

@@ -2,6 +2,7 @@ import { Button } from '@/components/button/Button';
 import { ButtonWithIcon } from '@/components/button/ButtonWithIcon';
 import { Input } from '@/components/input/Input';
 import { CharCounter } from '@/components/others/CharCounter';
+import { UploadImage } from '@/components/others/UploadImage';
 import DatePicker from '@/components/picker/DatePicker';
 import { Picker } from '@/components/picker/Picker';
 import Suggestions from '@/components/picker/Suggestions';
@@ -40,6 +41,8 @@ export default function EditEventScreen() {
     rubros,
     selectedRubro,
     loading,
+    imageID,
+    imageURL,
     setSelectedRubro,
     seleccionarUbicacion,
     setNombreEvento,
@@ -50,6 +53,7 @@ export default function EditEventScreen() {
     handleUbicacion,
     setHoraInicio,
     setHoraFin,
+    setImagenFile,
     showError,
     errorMessage,
     showSuccess,
@@ -80,6 +84,17 @@ export default function EditEventScreen() {
               style={styles.image}
             />
           </View>
+
+          <UploadImage
+            mode="edit"
+            initialImageUrl={imageURL} 
+            shape="square"
+            size={140}
+            defaultImage={require('@/assets/images/jex/Jex-Publicidad.png')}
+            onChange={(file, uri) => {
+              setImagenFile(file)
+            }}
+          />
 
             <Input
               placeholder="Nombre del evento"
