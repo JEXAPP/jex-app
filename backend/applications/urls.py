@@ -1,5 +1,5 @@
 from django.urls import path
-from applications.views.applications import ApplicationCreateView, ApplicationStatusRejectedUpdateView, ListApplicationsByShiftView, ApplicationDetailView
+from applications.views.applications import ApplicationCreateView, ApplicationDetailForOffer, ApplicationStatusRejectedUpdateView, ListApplicationsByShiftView, ApplicationDetailView
 from applications.views.attendance import AttendanceConfirmationView, GenerateQRTokenView
 from applications.views.jobs import EmployeeJobsView
 from applications.views.jobs import EmployeeJobsView
@@ -8,6 +8,7 @@ from applications.views.offer import  EmployeeSearchDetailView, EmployeeSearchVi
 
 
 urlpatterns = [
+    path('<int:application_id>/detail/', ApplicationDetailForOffer.as_view(), name='application-detail'),
     path('apply/', ApplicationCreateView.as_view(), name='apply'),
     path('apply/<int:application_id>/detail/', ApplicationDetailView.as_view(), name='application-detail'),
     path('offers/', OfferCreateView.as_view(), name='offer-create'),

@@ -10,6 +10,7 @@ from applications.models.applications import Application
 from applications.models.applications_states import ApplicationState
 from applications.serializers.applications import (
     ApplicationCreateSerializer,
+    ApplicationDetailForOfferSerializer,
     ApplicationDetailSerializer,
     ShiftWithApplicationsSerializer,
 )
@@ -125,3 +126,14 @@ class ApplicationStatusRejectedUpdateView(UpdateAPIView):
         application.state = ApplicationState.objects.get(name=ApplicationStates.REJECTED.value)
         application.save()
         return Response({"message": "Application status updated successfully"}, status=status.HTTP_200_OK)
+    
+class ApplicationDetailForOffer(RetrieveAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ApplicationDetailForOfferSerializer
+    lookup_url_kwarg = "application_id"
+
+    queryset = Application.objects.select_related(
+        "employee__user__profile_image",
+        "shift__vacancy__job_type"
+    ).prefetch_related("shift__vacancy__requirements")

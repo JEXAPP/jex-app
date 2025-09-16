@@ -147,10 +147,7 @@ class ApplicationByShiftSerializer(serializers.ModelSerializer):
         return f"{user.first_name} {user.last_name}".strip()
     
     def get_profile_image(self, obj):
-        user = obj.employee.user
-        if user.profile_image:
-            return user.profile_image 
-        return None
+        return obj.employee.user.profile_image.url if obj.employee.user.profile_image else None
 
 
 class ShiftWithApplicationsSerializer(serializers.ModelSerializer):
@@ -177,3 +174,47 @@ class ShiftWithApplicationsSerializer(serializers.ModelSerializer):
             "quantity_offers",
         ]
 
+
+class ApplicationDetailForOfferSerializer(serializers.ModelSerializer):
+    employee = serializers.SerializerMethodField()
+    shift = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Application
+        fields = ["employee", "shift"]
+
+    def get_employee(self, obj):
+        user = obj.employee.user
+        image = user.profile_image
+        return {
+            "profile_image": image.url if image else None,
+            "name": f"{user.first_name} {user.last_name}".strip()
+        }
+
+    def get_shift(self, obj):
+        shift = obj.shift
+        vacancy = shift.vacancy
+
+        # job_type: si es 11 (Otro) usar specific_job_type
+        job_type_name = (
+            vacancy.specific_job_type
+            if vacancy.job_type_id == 11 and vacancy.specific_job_type
+            else vacancy.job_type.name
+        )
+
+        requirements = list(
+            vacancy.requirements.values_list("description", flat=True)
+        )
+
+        return {
+            "start_date": shift.start_date.strftime("%d/%m/%Y"),
+            "start_time": shift.start_time.strftime("%H:%M"),
+            "end_date": shift.end_date.strftime("%d/%m/%Y"),
+            "end_time": shift.end_time.strftime("%H:%M"),
+            "payment": str(shift.payment),
+            "vacancy": {
+                "job_type": job_type_name,
+                "description": vacancy.description,
+                "requirements": requirements,
+            },
+        }
