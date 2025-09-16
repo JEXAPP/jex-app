@@ -134,16 +134,12 @@ export default function CreateOfferScreen() {
         {/* Vencimiento */}
         <Text style={s.sectionTitle}>Vencimiento</Text>
         <DatePicker
-          variant="inline"
-          open={true}
-          onOpenChange={() => {}}
-          label=""
-          date={expirationDate}
-          setDate={setExpirationDate as any}
-          styles={datePickerStyles1}
-          minimumDate={new Date()}
-          maximumDate={new Date(new Date().getFullYear() + 1, 11, 31)}
-        />
+  // 👇 sin variant => "default"; NO pases open/onOpenChange
+    label="Seleccioná una fecha"
+    date={date}
+    setDate={setDate}
+    styles={datePickerStyles1}
+    />
         <View style={{ height: 8 }} />
         <TimePicker
           label="Hora de vencimiento"
