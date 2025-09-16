@@ -198,25 +198,21 @@ class EmployeeAdditionalInfoSerializer(serializers.ModelSerializer):
         return rep
 
 
-class EmployeeForSearchSerializer(serializers.ModelSerializer):
+class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
     profile_image = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
-    job_types = serializers.SerializerMethodField()
     age = serializers.SerializerMethodField()
     approximate_location = serializers.SerializerMethodField()
 
     class Meta:
         model = EmployeeProfile
-        fields = ["profile_image", "name", "job_types", "description", "age", "approximate_location"]
+        fields = ["profile_image", "name", "description", "age", "approximate_location"]
 
     def get_profile_image(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
 
     def get_name(self, obj):
         return f"{obj.user.first_name} {obj.user.last_name}"
-
-    def get_job_types(self, obj):
-        return [jt.name for jt in obj.job_types.all()]
 
     def get_age(self, obj):
         return calculate_age(obj.birth_date)

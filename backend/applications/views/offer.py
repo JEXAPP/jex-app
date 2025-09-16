@@ -17,7 +17,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.generics import RetrieveAPIView
-from user_auth.serializers.employee import EmployeeForSearchSerializer, EmployeeProfileSearchSerializer, EmployeeSearchFilterSerializer
+from user_auth.serializers.employee import EmployeeForOfferSearchSerializer, EmployeeProfileSearchSerializer, EmployeeSearchFilterSerializer
 from vacancies.models.shifts import Shift
 from vacancies.serializers.shifts import ListOfferEmployeeSerializer
 from django.db.models import Q
@@ -136,7 +136,7 @@ class OfferAcceptedDetailView(RetrieveAPIView):
         
 
 class EmployeeSearchDetailView(RetrieveAPIView):
-    serializer_class = EmployeeForSearchSerializer
+    serializer_class = EmployeeForOfferSearchSerializer
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
     lookup_url_kwarg = "employee_id"
