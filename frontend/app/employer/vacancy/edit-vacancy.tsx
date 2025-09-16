@@ -55,7 +55,7 @@ export default function EditVacancyScreen() {
     loading,
     fechaInicioEvento,
     fechaFinEvento,
-  } = useEditVacancy(id!);
+  } = useEditVacancy();
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']}>

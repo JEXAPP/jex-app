@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import { SelectableTag } from '@/components/button/SelectableTags';
 import { ClickWindow } from '@/components/window/ClickWindow';
 import { useApplyVacancy } from '@/hooks/employee/vacancy/useApplyVacancy';
@@ -11,29 +11,43 @@ import { Colors } from '@/themes/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { Image, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { iconos } from '@/constants/iconos';
+import ManipulateVacancySkeleton from '@/constants/skeletons/employer/manipulateVacancySkeleton'; 
+import { Button } from '@/components/button/Button';
+import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
+import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonStyles4';
+import { Card } from '@/components/others/Card';
 
 export default function ManipulateVacancyScreen() {
-  const router = useRouter();
-
   const {
-    vacanteId,
-    vacanteOculta,
-    alerta, setAlerta,
+    alerta, 
+    setAlerta,
     onConfirmOcultar,
     onConfirmMostrar,
-    onConfirmEliminar
+    onConfirmEliminar,
+    onConfirmActivar,
+    onIrAEditar,
+    canEditar, 
+    canEliminar, 
+    canOcultar, 
+    canMostrar,
+    canPublicar,
+    loadingEstados,
+    handlePublicar,
+    publicarDisabled, 
+    estadoActual
   } = useManipulateVacancy();
 
   const { job, turnos, turnosSeleccionados, handleToggleTurnos } = useApplyVacancy();
 
   const stars = job?.rating ? Math.round(job.rating) : 0;
 
-  if (!job) {
+  const isLoading = loadingEstados || !job
+
+  if (isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Cargando datos...</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.gray1 }} edges={['top', 'left', 'right']}>
+        <ManipulateVacancySkeleton />
       </SafeAreaView>
     );
   }
@@ -42,26 +56,43 @@ export default function ManipulateVacancyScreen() {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <View style={styles.headerTop}>
         <View style={styles.tagsContainer}>
+          {/* Ocultar / Mostrar */}
           <SelectableTag
-            title={vacanteOculta ? 'Mostrar' : 'Ocultar'}
-            iconName={vacanteOculta ? 'eye' : 'eye-off'}
-            selected={vacanteOculta}
+            title="Ocultar"
+            iconName="eye-off"
+            selected={false}
             styles={selectableTagStyles2}
-            onPress={() => setAlerta(vacanteOculta ? 'Mostrar' : 'Ocultar')}
+            onPress={() => setAlerta('Ocultar')}
+            disabled={!canOcultar}
           />
+
+          <SelectableTag
+            title="Mostrar"
+            iconName="eye"
+            selected={false}
+            styles={selectableTagStyles2}
+            onPress={() => setAlerta('Mostrar')}
+            disabled={!canMostrar}
+          />
+
+          {/* Editar */}
           <SelectableTag
             title="Editar"
             iconName="pencil"
             selected={false}
-            onPress={() => router.push(`/employer/vacancy/edit-vacancy?id=${vacanteId}`)}
             styles={selectableTagStyles2}
+            onPress={onIrAEditar}
+            disabled={!canEditar}
           />
+
+          {/* Eliminar */}
           <SelectableTag
             title="Eliminar"
             iconName="trash"
             selected={false}
-            onPress={() => setAlerta('Eliminar')}
             styles={selectableTagStyles2}
+            onPress={() => setAlerta('Eliminar')}
+            disabled={!canEliminar}
           />
         </View>
 
@@ -69,7 +100,7 @@ export default function ManipulateVacancyScreen() {
         <ClickWindow
           visible={alerta === 'Ocultar'}
           title="¡CUIDADO!"
-          message="Al ocultar esta publicación..."
+          message="Al ocultar esta publicación nadie podrá postularse"
           buttonText="Aceptar"
           cancelButtonText="Cancelar"
           onCancelPress={() => setAlerta(null)}
@@ -80,7 +111,7 @@ export default function ManipulateVacancyScreen() {
         <ClickWindow
           visible={alerta === 'Mostrar'}
           title="¡CUIDADO!"
-          message="Esta publicación volverá a estar visible..."
+          message="Esta publicación volverá a estar visible"
           buttonText="Aceptar"
           cancelButtonText="Cancelar"
           onCancelPress={() => setAlerta(null)}
@@ -88,17 +119,28 @@ export default function ManipulateVacancyScreen() {
           styles={clickWindowStyles1}
           icono={iconos.cuidado(30, Colors.white)}
         />
-
         <ClickWindow
           visible={alerta === 'Eliminar'}
           title="¡Cuidado!"
-          message="Esta acción eliminará la vacante..."
+          message="Esta acción eliminará la vacante de forma permanente"
           buttonText="Aceptar"
           cancelButtonText="Cancelar"
           onCancelPress={() => setAlerta(null)}
           onClose={onConfirmEliminar}
           styles={clickWindowStyles1}
-          icono={<Ionicons name="alert-circle" size={40} color={Colors.violet4} />}
+          icono={<Ionicons name="alert" size={40} color={Colors.violet4} />}
+        />
+
+        <ClickWindow
+          visible={alerta === 'Publicar'}
+          title="¡Cuidado!"
+          message="Una vez publicada la vacante no podrás editarla"
+          buttonText="Aceptar"
+          cancelButtonText="Cancelar"
+          onCancelPress={() => setAlerta(null)}
+          onClose={onConfirmActivar}
+          styles={clickWindowStyles1}
+          icono={<Ionicons name="alert" size={40} color={Colors.violet4} />}
         />
       </View>
 
@@ -140,7 +182,7 @@ export default function ManipulateVacancyScreen() {
           <View key={bloque.id}>
             <Text style={styles.containerText2}>{bloque.dia}</Text>
             {bloque.turnos.map((turno) => (
-              <SelectableTag
+              <Card
                 styles={selectableTagStyles1}
                 key={turno.id}
                 title={turno.horario}
@@ -153,6 +195,15 @@ export default function ManipulateVacancyScreen() {
           </View>
         ))}
       </ScrollView>
+
+      {canPublicar && (
+        <Button
+          texto="Publicar"
+          onPress={() => setAlerta('Publicar')}
+          styles={publicarDisabled ? buttonStyles4 : buttonStyles1}
+          disabled={publicarDisabled}
+        />
+      )}
     </SafeAreaView>
   );
 }
