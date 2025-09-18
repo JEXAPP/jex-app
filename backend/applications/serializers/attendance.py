@@ -110,7 +110,7 @@ class GenerateQRTokenSerializer(serializers.Serializer):
 class OfferByEventSerializer(serializers.ModelSerializer):
     employee_id = serializers.IntegerField(source="employee.user.id", read_only=True)
     employee_name = serializers.CharField(source="employee.user.get_full_name", read_only=True)
-    job_type = serializers.CharField(source="selected_shift.job_type.name", read_only=True)
+    job_type = serializers.SerializerMethodField()
     has_attendance = serializers.SerializerMethodField()
 
     class Meta:
