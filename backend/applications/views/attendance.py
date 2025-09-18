@@ -67,7 +67,7 @@ class AttendanceDetailByEvent(RetrieveAPIView):
 
         # Filtramos las offers aceptadas de los shifts de ese evento
         offers = Offer.objects.filter(
-            selected_shift__event=event,
+            selected_shift__vacancy__event=event,
             state=offer_accepted_state
         ).select_related("employee__user", "selected_shift__job_type").order_by("selected_shift__start_date", "selected_shift__start_time")
 
