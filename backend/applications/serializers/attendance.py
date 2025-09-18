@@ -116,7 +116,6 @@ class OfferByEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Offer
         fields = [
-            "id",  # id de la offer
             "employee_id",
             "employee_name",
             "job_type",
