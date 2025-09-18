@@ -1,7 +1,12 @@
+from sched import Event
+from django.shortcuts import get_object_or_404
 from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework import permissions, status
 from rest_framework.response import Response
-from applications.serializers.attendance import AttendanceValidationSerializer, AttendanceResponseSerializer, GenerateQRTokenSerializer
+from applications.constants import OfferStates
+from applications.models.offer_state import OfferState
+from applications.models.offers import Offer
+from applications.serializers.attendance import AttendanceValidationSerializer, AttendanceResponseSerializer, GenerateQRTokenSerializer, OfferByEventSerializer
 from applications.utils import generate_qr_token
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
@@ -44,3 +49,27 @@ class GenerateQRTokenView(RetrieveAPIView):
         token = generate_qr_token(offer.id, offer.employee.id)
 
         return Response({"qr_token": token}, status=status.HTTP_200_OK)
+    
+
+class AttendanceDetailByEvent(RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = OfferByEventSerializer
+
+    def get(self, request, *args, **kwargs):
+        event_id = kwargs.get("event_id")
+        if not event_id:
+            return Response({"detail": "event_id is required"}, status=400)
+
+        # Traemos el evento
+        event = get_object_or_404(Event, id=event_id)
+        offer_accepted_state = get_object_or_404(OfferState, name=OfferStates.ACCEPTED.value)
+
+        # Filtramos las offers aceptadas de los shifts de ese evento
+        offers = Offer.objects.filter(
+            selected_shift__event=event,
+            state=offer_accepted_state
+        ).select_related("employee__user", "selected_shift__job_type").order_by("selected_shift__start_date", "selected_shift__start_time")
+
+        serializer = self.get_serializer(offers, many=True)
+        return Response(serializer.data, status=200)
