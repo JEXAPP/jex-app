@@ -1,4 +1,3 @@
-from sched import Event
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework import permissions, status
@@ -11,6 +10,7 @@ from applications.utils import generate_qr_token
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from applications.models.attendance import Attendance
+from eventos.models.event import Event
 
 
 
