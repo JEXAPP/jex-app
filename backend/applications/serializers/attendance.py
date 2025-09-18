@@ -11,7 +11,7 @@ from applications.errors.attendance_messages import (
 from applications.models.attendance import Attendance
 from applications.models.offer_state import OfferState
 from applications.models.offers import Offer
-from applications.utils import decode_qr_token
+from applications.utils import decode_qr_token, get_job_type_display
 from notifications.errors.device_messages import INVALID_TOKEN
 
 
@@ -104,3 +104,32 @@ class GenerateQRTokenSerializer(serializers.Serializer):
         """
         offer_id = self.validated_data['offer_id']
         return Offer.objects.get(pk=offer_id)
+    
+
+
+class OfferByEventSerializer(serializers.ModelSerializer):
+    employee_id = serializers.IntegerField(source="employee.user.id", read_only=True)
+    employee_name = serializers.CharField(source="employee.user.get_full_name", read_only=True)
+    job_type = serializers.CharField(source="selected_shift.job_type.name", read_only=True)
+    has_attendance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Offer
+        fields = [
+            "employee_id",
+            "employee_name",
+            "job_type",
+            "has_attendance",
+        ]
+
+
+    def get_job_type(self, obj):
+         return get_job_type_display(obj.selected_shift.vacancy)
+
+
+    def get_has_attendance(self, obj):
+        # Buscar asistencia por shift y employee
+        return Attendance.objects.filter(
+            shift=obj.selected_shift,
+            employee=obj.employee
+        ).exists()
