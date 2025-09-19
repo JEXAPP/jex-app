@@ -17,7 +17,7 @@ export const useLogin = () => {
   const router = useRouter();
 
   // Hook para manejar la conexión con el backend
-  const { requestBackend } = useBackendConection(); // ya no hay loading aquí
+  const { requestBackend } = useBackendConection(); 
   const [loading, setLoading] = useState(false);
 
   // Estados para el login tradicional
@@ -152,9 +152,9 @@ export const useLogin = () => {
       const role = decoded.role;
 
       if (role === 'employee') {
-        router.push('/employee');
+        router.push('/employee/job/job-details');
       } else if (role === 'employer') {
-        router.push('/employer');
+        router.push('/employer/event/attendance');
       } else {
         // rol inválido o no presente → ir al selector de tipo de usuario
         router.replace('/auth/register/type-user');

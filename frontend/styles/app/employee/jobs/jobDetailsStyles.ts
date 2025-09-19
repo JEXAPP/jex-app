@@ -6,7 +6,7 @@ export const jobDetailsStyles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     marginBottom: 16,
-    marginTop: 28,
+    marginTop: 35,
   },
   scroll: {
     paddingHorizontal: 20,

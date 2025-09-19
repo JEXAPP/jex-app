@@ -49,11 +49,11 @@ export default function useHomeEmployerScreen() {
               <View style={styles.addEventButton}>
 
                 <IconButton
-                  sizeButton={24}
-                  sizeContent={22}
+                  sizeButton={30}
+                  sizeContent={20}
                   styles={iconButtonStyles1}
                   onPress={goToCreateEvent}
-                  content="+"
+                  content="add"
                   backgroundColor={Colors.gray2}
                   contentColor={Colors.white}
                 />
@@ -144,10 +144,10 @@ export default function useHomeEmployerScreen() {
 
                     <IconButton
                       sizeButton={35}
-                      sizeContent={27}
+                      sizeContent={25}
                       styles={iconButtonStyles1}
                       onPress={() => goToCreateVacancy(currentEvent.id, currentEvent.fechaInicio, currentEvent.fechaFin)}
-                      content="+"
+                      content="add-outline"
                       backgroundColor={Colors.violet4}
                       contentColor={Colors.white}
                     />

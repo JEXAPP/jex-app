@@ -43,6 +43,7 @@ export const useHomeEmployer = () => {
       setLoading(true);
       try {
         const data = await requestBackend('/api/vacancies/by-employer/', null, 'GET');
+        console.log(data)
         if (!mounted) return;
         const mappedEvents = data.map((evento: any) => {
           const fechaInicio = evento.start_date ? formatearFecha(evento.start_date) : null;
