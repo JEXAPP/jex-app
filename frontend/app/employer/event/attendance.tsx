@@ -1,74 +1,123 @@
-
 import React from 'react';
-import { Image, Keyboard, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View, } from 'react-native';
+import {Keyboard,ScrollView,Text,TouchableOpacity,TouchableWithoutFeedback,View,Image} from 'react-native';
 import { attendanceStyles as styles } from '../../../styles/app/employer/event/attendanceStyles';
 import { useAttendance } from '@/hooks/employer/event/useAttendance';
-import { CameraView } from 'expo-camera';
-import { Button } from '@/components/button/Button';
-import { TempWindow } from '@/components/window/TempWindow';
-import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
-import { buttonStyles2 } from '@/styles/components/button/buttonStyles/buttonStyles2';
+import { ScannerModal } from '@/components/window/ScannerWindow';
+import { ConfirmationModal } from '@/components/window/ConfirmationWindow';
+import { SelectableTag } from '@/components/button/SelectableTags';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/themes/colors';
+import { selectableTagStyles2 } from '../../../styles/components/button/selectableTagsStyles/selectableTagsStyles2';
+import AttendanceSkeleton from '@/constants/skeletons/employer/attendanceSkeleton';
 
 export default function AttendanceScreen() {
-const {
+  const {
     isScannerOpen,
-    scanState,
-    showConfirm,
-    setShowConfirm,
     startScan,
     stopScan,
-    onBarcodeScanned,
-} = useAttendance();
+    handleScannedValue,
+    confirmVisible,
+    confirmAttendance,
+    cancelConfirm,
+    scanState,
+    loadingEmployees,
+    jobTypes,
+    selectedJobType,
+    setSelectedJobType,
+    currentList,
+  } = useAttendance();
+
+  const occ: Record<string, number> = {};
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
+      <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-            <View style={styles.header}>
-                <Text style={styles.title}>Asistencia</Text>
+          <View style={styles.header}>
+            <Text style={styles.title}>Asistencia</Text>
+          </View>
+
+          <TouchableOpacity style={styles.card} onPress={startScan}>
+            <View>
+              <Image
+                source={require('@/assets/images/jex/Jex-Escanear.png')}
+                style={styles.jex}
+              />
             </View>
+            <View style={styles.qrRight}>
+              <Text style={styles.text}>Escaneá</Text>
+            </View>
+          </TouchableOpacity>
 
-            <TouchableOpacity
-                style={styles.card}
-                onPress={startScan}>
-                <View>
-                    <Image source={require('@/assets/images/jex/Jex-Escanear.png')} style={styles.jex}/>            
-                </View>
-                <View style={styles.qrRight}>
-                    <Text style={styles.text}>Escaneá</Text>
-                </View>
-            </TouchableOpacity>
+          {loadingEmployees ? (
+            <AttendanceSkeleton />
+          ) : (
+            <>
+              {jobTypes.length ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.tagsContent}
+                >
+                  {jobTypes.map((jt) => (
+                    <View key={jt} style={styles.tagItem}>
+                      <SelectableTag
+                        title={jt}
+                        selected={selectedJobType === jt}
+                        onPress={() => setSelectedJobType(jt)}
+                        styles={selectableTagStyles2}
+                      />
+                    </View>
+                  ))}
+                </ScrollView>
+              ) : null}
 
-         </ScrollView>
+              <View style={styles.cardList}>
+                {selectedJobType && currentList.length ? (
+                  currentList.map((emp, idx) => {
+                    const base = `${emp.employee_id}-${emp.job_type}`;
+                    occ[base] = (occ[base] ?? 0) + 1;
+                    const rowKey = `${base}#${occ[base]}`;
 
-        {isScannerOpen && (
-        <>
-        <CameraView
-            facing="back"
-            style={{ position:'absolute', inset:0 }}
-            barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-            onBarcodeScanned={onBarcodeScanned}
+                    return (
+                      <View key={rowKey}>
+                        <View style={styles.row}>
+                          <Text style={styles.name}>{emp.employee_name}</Text>
+                          <Ionicons
+                            name={emp.has_attendance ? 'checkmark' : 'remove'}
+                            size={20}
+                            color={emp.has_attendance ? Colors.violet2 : Colors.gray3}
+                          />
+                        </View>
+                        {idx < currentList.length - 1 ? <View style={styles.separator} /> : null}
+                      </View>
+                    );
+                  })
+                ) : (
+                  <Text style={styles.emptyText}>
+                    {selectedJobType ? `Sin personas en ${selectedJobType}.` : 'Sin datos.'}
+                  </Text>
+                )}
+              </View>
+            </>
+          )}
+        </ScrollView>
+
+        <ScannerModal visible={isScannerOpen} onClose={stopScan} onScanned={handleScannedValue} />
+
+        <ConfirmationModal
+          visible={confirmVisible}
+          onConfirm={confirmAttendance}
+          onCancel={cancelConfirm}
+          confirming={scanState.kind === 'posting'}
         />
-        <Button
-            texto="Cerrar"
-            onPress={stopScan}
-            styles={buttonStyles2}
-        />
 
-        </>
-      )}
-
-      <TempWindow
-        visible={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        duration={800} // 0.8 segundos, ajustá a gusto
-        styles={tempWindowStyles1}
-        icono={scanState.kind === 'ok' ? 'checkmark-circle' : 'close-circle'}
-    />
-        </View>
+        {scanState.kind === 'error' && scanState.msg ? (
+          <View style={styles.error}>
+            <Text style={styles.text}>{scanState.msg}</Text>
+          </View>
+        ) : null}
+      </View>
     </TouchableWithoutFeedback>
-        
-
-
-
-    )}
+  );
+}

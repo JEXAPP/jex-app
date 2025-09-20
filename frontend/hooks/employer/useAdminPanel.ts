@@ -1,7 +1,7 @@
 // hooks/employer/useAdminPanel.ts
 import useBackendConection from "@/services/internal/useBackendConection";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type EventItem = {
   id: number;

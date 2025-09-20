@@ -1,23 +1,24 @@
 import React, { useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ScrollView, Text, View, ActivityIndicator } from 'react-native';
+import { ScrollView, Text, View} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
 import { jobDetailsStyles as styles } from '@/styles/app/employee/jobs/jobDetailsStyles';
 import StaticWeekCalendar from '@/components/others/StaticWeekCalendar';
 import { Button } from '@/components/button/Button';
-import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonStyles4';
-import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
 import { useJobDetails } from '@/hooks/employee/job/useJobDetails';
 import QRCode from 'react-native-qrcode-svg';
 import ImageWindow from '@/components/window/ImageWindow';
 import { NumberedList } from '@/components/list/NumberedList';
+import { buttonStyles6 } from '@/styles/components/button/buttonStyles/buttonStyles6';
+import { IconButton } from '@/components/button/IconButton';
+import JobDetailsSkeleton from '@/constants/skeletons/employee/jobs/jobDetailsSkeleton';
 
 export default function JobDetailScreen() {
   const {
     job,
     attendanceEnabled,
-    generateQr,
+    generateQR,
     generating,
     qrValue,
     loading,
@@ -26,6 +27,14 @@ export default function JobDetailScreen() {
 
   const [showInfo, setShowInfo] = useState(false);
   const [showQR, setShowQR] = useState(false);
+
+    if (loading) {
+    return (
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+        <JobDetailsSkeleton />
+      </SafeAreaView>
+    );
+  }
 
   if (!job) {
     return (
@@ -89,18 +98,35 @@ export default function JobDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Botón generar QR 
-      <View style={styles.buttonSpace}>
+      {/* Botón generar QR */}
+      <View style={[styles.buttonSpace, { flexDirection: 'row', alignItems: 'center' }]}>
+        <View style={{ flex: 1, minWidth: 0 }}>
         <Button
           texto={generating ? 'Generando...' : 'Generar QR'}
-          styles={attendanceEnabled ? buttonStyles1 : buttonStyles4}
+          styles={attendanceEnabled ? buttonStyles6 : buttonStyles6}
           onPress={() => {
-            setShowQR(true);   // <- abre el ImageWindow ya
-            generateQr();}}
+            setShowQR(true);   
+            generateQR();}}
           disabled={!attendanceEnabled || generating || loading}
           loading={generating || loading}
         />
-      </View>*/}
+        </View>
+
+        <View style={{ marginLeft: 12, flexShrink: 0}}>
+          <IconButton
+            onPress={() => setShowInfo(true)}
+            content="information-circle"
+            sizeContent={30}
+            sizeButton={50}
+            backgroundColor= {Colors.violet4}
+            contentColor={Colors.white}
+            styles={{
+                  button: {},
+                  text: {},
+                }}
+          />
+        </View>
+      </View>
 
       {/* Modales */}
       <ImageWindow
@@ -115,7 +141,9 @@ export default function JobDetailScreen() {
       <ImageWindow
         visible={showQR}
         title="¡Escaneame!"
-        onClose={() => setShowQR(false)}
+        onClose={() => {
+          setShowQR(false);
+        }}
       >
         {qrValue ? (
           <QRCode value={qrValue} size={260} />

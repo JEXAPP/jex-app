@@ -14,8 +14,9 @@ interface DecodedToken {
 
 export const useLogin = () => {
   const router = useRouter();
-  const { requestBackend } = useBackendConection();
 
+  // Hook para manejar la conexión con el backend
+  const { requestBackend } = useBackendConection(); 
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -137,9 +138,9 @@ export const useLogin = () => {
       const role = decoded.role;
 
       if (role === 'employee') {
-        router.push('/employee');
+        router.push('/employee/job/job-details');
       } else if (role === 'employer') {
-        router.push('/employer');
+        router.push('/employer/event/attendance');
       } else {
         router.replace('/auth/register/type-user');
       }
