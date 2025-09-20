@@ -28,7 +28,18 @@ export const iconos = {
     <Ionicons name="chevron-back" size={size} color={color}/>
   ),
   flechaIzquierdaVolver: (size:number, color:string) => (
-    <Ionicons name="arrow-back-outline" size={size} color={color} />
+    <Ionicons name="arrow-back-outline" size={size} color={color} />),
+  vacantes: (size: number, color: string) => (
+    <MaterialCommunityIcons name="briefcase-outline" size={size} color={color} />
+  ),
+  asistencia: (size: number, color: string) => (
+    <MaterialIcons name="how-to-reg" size={size} color={color} />
+  ),
+  estrella: (size: number, color: string) => (
+    <FontAwesome name="star" size={size} color={color} />
+  ),
+  reportes: (size: number, color: string) => (
+    <MaterialIcons name="insert-chart-outlined" size={size} color={color} />
   ),
   flechaDerecha: (size: number, color: string) => (
     <Ionicons name="chevron-forward" size={size} color={color} />

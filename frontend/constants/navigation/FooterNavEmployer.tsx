@@ -21,6 +21,7 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
   const isActive = (slot: number) => {
     if (slot === 0) return pathname === basePath || pathname.startsWith(`${basePath}/vacancy`);;
     if (slot === 1) return pathname.startsWith(`${basePath}/candidates`);
+    if (slot === 2) return pathname.startsWith(`${basePath}/offers`);
     return false;
   };
 
@@ -28,12 +29,13 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
   const onPress = (slot: number) => {
     if (slot === 0) router.replace(basePath);
     if (slot === 1) router.replace(`${basePath}/candidates`);
+    if (slot === 2) router.replace(`${basePath}/offers`);
   };
 
   // Deshabilitar
   const isDisabled = (slot: number) => {
     // ahora habilitamos 0 (home) y 1 (inbox/candidates)
-    return slot > 1;
+    return slot > 2;
   };
 
   return (
@@ -74,7 +76,10 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
         disabled={isDisabled(2)}
         style={s.item}
       >
-        {iconos.footer_briefcase(false, ICON_SIZE, Colors.white)}
+        {isActive(2) 
+          ? iconos.footer_briefcase(true, ICON_SIZE, Colors.white)
+          : iconos.footer_briefcase(false, ICON_SIZE, Colors.white)
+        }
       </Pressable>
 
       {/* 4) Chat (MaterialIcons) */}

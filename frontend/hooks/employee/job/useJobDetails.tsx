@@ -17,10 +17,7 @@ interface Job {
 const toHHMM = (t?: string | null) => (t ? String(t).slice(0, 5) : null);
 
 export function useJobDetails() {
-  // const params = useLocalSearchParams<{ offer_id?: string }>();
-  // const offerId = Number(params.offer_id) || 0;
-
-  const offerId = 4;
+  const offerId = 14
 
   const { requestBackend } = useBackendConection();
   const [loading, setLoading] = useState<boolean>(false);

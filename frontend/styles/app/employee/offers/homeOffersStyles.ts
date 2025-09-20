@@ -41,10 +41,11 @@ export const homeOffersStyles = StyleSheet.create({
     marginRight: 10
   },
   offerInfo: {
-    marginTop: 5,
-    flexDirection: 'column',
-    justifyContent: 'flex-start'
-  },
+  marginTop: 5,
+  flexDirection: "column",
+  justifyContent: "flex-start",
+  flex: 1 // 👈 le da espacio flexible para que el texto pueda ocupar varias líneas
+},
   noOffersCard: {
     backgroundColor: Colors.white,
     borderRadius: 15,
@@ -77,11 +78,12 @@ export const homeOffersStyles = StyleSheet.create({
     color: Colors.gray3
   },
   role: {
-    fontFamily: 'interBold',
-    fontSize: 22,
-    marginBottom: 5,
-    color: Colors.black
-  },
+  fontFamily: "interBold",
+  fontSize: 22,
+  marginBottom: 5,
+  color: Colors.black,
+  flexWrap: "wrap" // 👈 permite que el texto baje de línea
+},
   salary: {
     fontFamily: 'interBold',
     fontSize: 18,

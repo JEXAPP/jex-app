@@ -1,6 +1,5 @@
-// app/employer/candidates/choose-candidates.tsx
-import React from 'react';
-import { ActivityIndicator, FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/themes/colors';
 import { Dropdown, DropdownOption } from '@/components/picker/DropDown';
@@ -11,9 +10,12 @@ import { useChooseCandidates } from '@/hooks/employer/candidates/useChooseCandid
 import { chooseCandidatesStyles as s } from '@/styles/app/employer/candidates/chooseCandidatesStyles';
 import { useDataTransformation } from '@/services/internal/useDataTransformation';
 
+import ChooseCandidatesSkeleton from '@/constants/skeletons/employer/candidates/chooseCandidatesSkeleton';
+import { ApplicantsSquaresSkeleton } from '@/constants/skeletons/employer/candidates/applicantsSquaresSkeleton';
 export default function ChooseCandidatesScreen() {
+  const [loadingScreen, setLoadingScreen] = useState(true);
+
   const {
-    // datos y estado
     eventName,
     currentEventIndex,
     vacancies,
@@ -41,7 +43,6 @@ export default function ChooseCandidatesScreen() {
 
     // vacíos
     hasNoEvents,
-    hasEventsButNoVacanciesGlobal,
     currentEventHasNoVacancies,
     hasVacanciesButNoCandidates,
 
@@ -51,12 +52,25 @@ export default function ChooseCandidatesScreen() {
     handleSelectVacancy,
     handleSelectShift,
     openCandidateDetail,
-    showShiftTags,
     // utils
     splitFirstSpace,
   } = useChooseCandidates();
 
   const { formatFechaCorta } = useDataTransformation();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoadingScreen(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 🔸 Skeleton de página completa durante: splash local o carga de eventos/vacantes
+  if (loadingScreen || loadingEventVacancies) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.gray1 }}>
+        <ChooseCandidatesSkeleton />
+      </SafeAreaView>
+    );
+  }
 
   // 1) Sin eventos
   if (hasNoEvents) {
@@ -64,19 +78,12 @@ export default function ChooseCandidatesScreen() {
       <View style={s.container}>
         <View style={s.emptyBox}>
           <Text style={s.emptyTitle}>No tenés eventos aún</Text>
-          <Text style={s.emptySubtitle}>Creá un evento para empezar a recibir postulaciones.</Text>
-        </View>
-      </View>
-    );
-  }
-
-  // 2) Hay eventos pero ninguna vacante global
-  if (hasEventsButNoVacanciesGlobal) {
-    return (
-      <View style={s.container}>
-        <View style={s.emptyBox}>
-          <Text style={s.emptyTitle}>Todavía no creaste vacantes</Text>
-          <Text style={s.emptySubtitle}>Agregá una vacante a alguno de tus eventos.</Text>
+          <Image
+            source={require('@/assets/images/jex/Jex-Sin-Eventos.png')}
+            style={s.emptyImage}
+            resizeMode="contain"
+          />
+          <Text style={s.emptySubtitle}>Creá un evento para recibir postulaciones</Text>
         </View>
       </View>
     );
@@ -142,7 +149,7 @@ export default function ChooseCandidatesScreen() {
             ) : null}
           </View>
 
-        <View style={s.centerSlot}>
+          <View style={s.centerSlot}>
             <Text style={s.eventName}>{eventName || '—'}</Text>
           </View>
 
@@ -185,14 +192,19 @@ export default function ChooseCandidatesScreen() {
 
         {/* Si el evento actual no tiene vacantes, mostrar vacío del evento */}
         {currentEventHasNoVacancies ? (
-          <View style={s.emptyBox}>
-            <Text style={s.emptyTitle}>Este evento no tiene vacantes</Text>
-            <Text style={s.emptySubtitle}>Elegí otro evento o creá una vacante.</Text>
+          <View style={s.emptyBox2}>
+            <Text style={s.emptyTitle}>No hay vacantes activas</Text>
+            <Image
+              source={require('@/assets/images/jex/Jex-Sin-Vacantes.png')}
+              style={s.emptyImage}
+              resizeMode="contain"
+            />
+            <Text style={s.emptySubtitle}>Publicá una vacante para recibir postulaciones</Text>
           </View>
         ) : (
           <>
-            {/* Tags de Turnos (solo si hay más de un turno) */}
-            {currentVacancy && showShiftTags && (
+            {/* Tags de Turnos (solo si hay más de un turno) — no skeletonizar */}
+            {currentVacancy && shiftTags && (
               <View style={s.tagsRow}>
                 {shiftTags.map((t) => {
                   const isSelected = selectedShiftId === t.id;
@@ -226,29 +238,41 @@ export default function ChooseCandidatesScreen() {
               </View>
             )}
 
-            {(loadingEventVacancies || loadingApplications) && (
-              <View style={s.loadingBox}>
-                <ActivityIndicator size="small" />
+            {/* ⏳ Mientras cargan sólo postulaciones → Skeleton de cuadrados */}
+            {loadingApplications && (
+              <View style={{ paddingVertical: 8 }}>
+                <ApplicantsSquaresSkeleton />
               </View>
             )}
+
             {!!error && <Text style={s.error}>{error}</Text>}
 
-            {/* 🔒 Si el turno está lleno: NO mostrar solicitudes ni grilla */}
-            {isFull ? (
-              <View style={s.emptyBox}>
-                <Text style={s.emptyTitle}>Turno lleno</Text>
+            {/* Si el turno está lleno: NO mostrar solicitudes ni grilla */}
+            {!loadingApplications && isFull ? (
+              <View style={s.emptyBox3}>
+                <Text style={s.emptyTitle}>Turno Lleno</Text>
+                <Image
+                  source={require('@/assets/images/jex/Jex-Postulacion-Lleno.png')}
+                  style={s.emptyImage2}
+                  resizeMode="contain"
+                />
                 <Text style={s.emptySubtitle}>
-                  Alcanzaste el máximo de ofertas para este turno.
+                  Alcanzaste el máximo de ofertas para este turno
                 </Text>
               </View>
             ) : (
               <>
                 {/* 🛈 Sin postulaciones (sólo cuando terminó de cargar) */}
                 {!loadingApplications && hasVacanciesButNoCandidates ? (
-                  <View style={s.emptyBox}>
+                  <View style={s.emptyBox3}>
                     <Text style={s.emptyTitle}>No hay postulaciones</Text>
+                    <Image
+                      source={require('@/assets/images/jex/Jex-Postulacion-Vacio.png')}
+                      style={s.emptyImage3}
+                      resizeMode="contain"
+                    />
                     <Text style={s.emptySubtitle}>
-                      Compartí tu vacante para recibir candidatos.
+                      Compartí tu vacante para recibir candidatos
                     </Text>
                   </View>
                 ) : null}
@@ -276,7 +300,6 @@ export default function ChooseCandidatesScreen() {
                             }
                             style={s.avatar}
                           />
-                          {/* Si querés el pill de “Vinculado”, ponelo acá */}
                         </View>
 
                         <Text style={s.name} numberOfLines={1}>

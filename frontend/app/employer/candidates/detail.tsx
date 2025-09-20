@@ -1,4 +1,3 @@
-// app/employer/candidates/detail.tsx
 import React, { useMemo } from 'react';
 import { ImageBackground, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,14 +13,15 @@ import ImageOnline from '@/components/others/ImageOnline';
 import { ClickWindow } from '@/components/window/ClickWindow';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 
-type RouteParams = { source: 'application' | 'search'; id: string };
+type RouteParams = { source: 'application' | 'search'; id: string; vacancyId?: string };
 
 export default function EmployeeDetailScreen() {
-  const { source, id } = useLocalSearchParams<RouteParams>() as unknown as RouteParams;
+  const { source, id, vacancyId } = useLocalSearchParams<RouteParams>() as RouteParams;
+
   const {
     loading, error, data, shiftSummary, goBack, onGenerateOffer,
     confirmRejectVisible, openConfirmReject, closeConfirmReject, confirmReject
-  } = useEmployeeDetail({ source, id });
+  } = useEmployeeDetail({ source, id, vacancyId });
 
   const headerBadges = useMemo(() => {
     const items: Array<{ icon?: React.ReactNode; text: string; bg: string }> = [];
@@ -137,12 +137,11 @@ export default function EmployeeDetailScreen() {
               styles={{ boton: s.btnOutline, texto: s.btnOutlineText } as any}
             />
           )}
-          <ButtonWithIcon
-            texto="Generar Oferta"
-            onPress={onGenerateOffer}
-            icono={<Ionicons name="document-text-outline" size={20} color={Colors.white} />}
-            styles={{ boton: s.btnPrimary, texto: s.btnPrimaryText, icono: s.btnPrimaryIcon } as any}
-          />
+          <Button
+              texto="Me interesa"
+              onPress={onGenerateOffer}
+              styles={{ boton: s.btnPrimary, texto: s.btnPrimaryText } as any}
+            />
         </View>
       </ScrollView>
 
@@ -154,9 +153,9 @@ export default function EmployeeDetailScreen() {
         buttonText="Sí, rechazar"
         cancelButtonText="Cancelar"
         icono={<Ionicons name="alert-circle" size={28} color={Colors.violet4} />}
-        onClose={confirmReject}          // confirma y ejecuta el PUT del hook
+        onClose={confirmReject}
         onCancelPress={closeConfirmReject}
-        styles={clickWindowStyles1}      
+        styles={clickWindowStyles1}
       />
     </SafeAreaView>
   );

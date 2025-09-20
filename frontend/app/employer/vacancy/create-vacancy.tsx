@@ -27,6 +27,8 @@ import React from 'react';
 import { Image, Keyboard, ScrollView, Text, TouchableWithoutFeedback, View, } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+
+
 export default function RegisterVacancyScreen() {
   const {
     vacantes,
@@ -53,7 +55,10 @@ export default function RegisterVacancyScreen() {
     toggleShift,
     loading,
     fechaInicioEvento,
-    fechaFinEvento
+    fechaFinEvento,
+    horaInicioEvento,
+    horaFinEvento,
+    
   } = useCreateVacancy();
 
   return (

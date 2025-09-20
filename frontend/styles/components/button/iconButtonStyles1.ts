@@ -9,6 +9,7 @@ export const iconButtonStyles1 = StyleSheet.create({
   },
   text: {
     fontFamily: 'interBold',
-    alignSelf: 'center'
+    alignSelf: 'center',
+    
   }
 });

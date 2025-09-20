@@ -60,6 +60,7 @@ export default function useBackendConection<T = any>() {
       throw normalized;
     }
   };
+
   return { requestBackend };
 }
 

@@ -32,18 +32,14 @@ export const useManipulateVacancy = () => {
     return map;
   }, [estadosVacante]);
 
-  const fetchEstados = useCallback(async (): Promise<EstadoDTO[]> => {
-    try {
-      const result = await requestRef.current('/api/vacancies/vacancy-states/', null, 'GET');
-      console.log('[vacancy-states OK]', result);
-      return Array.isArray(result) ? (result as EstadoDTO[]) : [];
-    } catch (error: any) {
-      if (error?.response) {
-        console.log('[vacancy-states ERROR]', error.response.status, error.response.data);
-      } else {
-        console.log('[vacancy-states ERROR]', error?.message ?? error);
-      }
-      return [];
+  // Trae estados con cache + dedupe
+  const fetchEstados = useCallback(async () => {
+    if (estadosCache) { setEstadosVacante(estadosCache); return; }
+    if (!inflightEstadosPromise) {
+      inflightEstadosPromise = (async () => {
+        const result = await requestRef.current('/api/vacancies/vacancy-states/', null, 'GET');
+        return Array.isArray(result) ? (result as EstadoDTO[]) : [];
+      })();
     }
   }, []);
 

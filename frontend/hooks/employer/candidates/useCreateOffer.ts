@@ -1,306 +1,235 @@
-// hooks/employer/offers/useCreateOffer.ts
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import useBackendConection from '@/services/internal/useBackendConection';
+import { useRouter } from 'expo-router';
 
-type Source = 'application' | 'search';
-type Params = {
+export type Source = 'application' | 'search';
+
+export type RouteParams = {
   source: Source;
-  id: string; // applicationId si source='application' | employeeId si source='search'
-  // opcional en postulación: vacancyId por si querés mostrarlo
+  id: string;           // applicationId (application) | employeeId (search)
+  vacancyId?: string;   // SOLO en search: id de la vacante ya elegida
+  personName?: string;  // SOLO en search: nombre para header
+  photoUrl?: string;    // SOLO en search: url de foto para header
 };
 
-type EventOption = { id: number; name: string };
-type VacancyOption = { id: number; name: string };
+type EventWithVacancies = {
+  event_id: number;
+  event_name: string;
+  vacancies: { vacancy_id: number; job_type_name: string }[];
+};
 
-type VacancyDetailAPI = {
+export type VacancyDetail = {
   id: number;
-  description: string | null;
+  description: string;
   job_type_name: string;
-  requirements: { description: string }[];
-  shifts: Array<{
+  requirements: { description: string }[] | string[];
+  shifts: {
     id: number;
     start_date: string; // dd/mm/yyyy
     end_date: string;   // dd/mm/yyyy
     start_time: string; // HH:MM
     end_time: string;   // HH:MM
     payment: string;    // "15000.00"
-    is_full?: boolean;  // si el backend alguna vez lo manda
-  }>;
+  }[];
 };
 
-type ApplicationDetailAPI = {
+type ApplicationDetail = {
   employee: { profile_image: string | null; name: string };
   shift: {
-    start_date: string; end_date: string; start_time: string; end_time: string; payment: string;
-    vacancy: { job_type: string; description: string | null; requirements: string[] };
-  };
+    start_date: string; end_date: string;
+    start_time: string; end_time: string;
+    payment: string;
+    vacancy: { job_type: string; description: string; requirements: string[] }
+  }
 };
 
-type BusyAPI = Array<{
-  id: number;
-  start_date: string; end_date: string; start_time: string; end_time: string; // ISO en este endpoint
-}>;
-
-function moneyARS(v: string | number) {
-  const n = typeof v === 'string' ? Number(v) : v;
-  if (Number.isNaN(n)) return String(v);
-  return `${Math.round(n).toLocaleString('es-AR')} ARS`;
-}
-function ddmmyyyyToLabel(dmy: string) {
-  const [d, m, y] = dmy.split('/').map(Number);
-  const dt = new Date(y, m - 1, d);
-  const fmt = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
-  const s = fmt.format(dt);
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-const shiftLabel = (s: {start_date:string;end_date:string;start_time:string;end_time:string}) =>
-  `${s.start_time}hs - ${s.end_time}hs`;
-
-export const useCreateOffer = () => {
-  const router = useRouter();
+export function useCreateOffer(params: RouteParams) {
   const { requestBackend } = useBackendConection();
-  const { source, id } = useLocalSearchParams<{source: Source; id: string}>() as any;
+  const router = useRouter();
 
-  // ===== UI principal =====
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string | null>(null);
+  // refs para evitar re-renders
+  const sourceRef = useRef(params.source);
+  const idRef = useRef(params.id);
+  const vacancyIdRef = useRef(params.vacancyId);
 
-  // ===== Selección previa (solo búsqueda) =====
-  const [selectorOpen, setSelectorOpen] = useState(source === 'search'); // modal previo
-  const [events, setEvents] = useState<EventOption[]>([]);
-  const [vacancies, setVacancies] = useState<VacancyOption[]>([]);
-  const [selectedEventId, setSelectedEventId] = useState<string>('');    // DropDown2 usa string
-  const [selectedVacancyId, setSelectedVacancyId] = useState<string>('');
+  // header (persona)
+  const [employeeName, setEmployeeName] = useState<string>(params.personName ?? '—');
+  const [employeeImage, setEmployeeImage] = useState<string | null>(params.photoUrl ?? null);
 
-  // ===== Detalle de vacante + turnos disponibles =====
-  const [vacancyDetail, setVacancyDetail] = useState<VacancyDetailAPI | null>(null);
-  const [availableShifts, setAvailableShifts] = useState<VacancyDetailAPI['shifts']>([]);
-  const [chosenShiftId, setChosenShiftId] = useState<number | null>(null);
+  // detalle de vacante y shifts
+  const [vacancyDetail, setVacancyDetail] = useState<VacancyDetail | null>(null);
+  const [selectedShiftIds, setSelectedShiftIds] = useState<number[]>([]);
 
-  // ===== Postulación (resumen directo) =====
-  const [applicationDetail, setApplicationDetail] = useState<ApplicationDetailAPI | null>(null);
+  // expiración + comentario
+  const [expDate, setExpDate] = useState<Date | null>(null);
+  const [expTime, setExpTime] = useState<string | null>(null);
+  const [comment, setComment] = useState('');
 
-  // ===== Datos de oferta =====
-  const [expirationDate, setExpirationDate] = useState<Date | null>(null); // DatePicker
-  const [expirationTime, setExpirationTime] = useState<string | null>(null); // TimePicker (HH:mm)
-  const [comments, setComments] = useState<string>('');
+  // modal (solo búsqueda sin vacancyId)
+  const [modalVisible, setModalVisible] = useState(
+    sourceRef.current === 'search' && !vacancyIdRef.current
+  );
+  const [events, setEvents] = useState<EventWithVacancies[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
+  const [vacancyOptions, setVacancyOptions] = useState<{ id: number; name: string }[]>([]);
+  const [selectedVacancyId, setSelectedVacancyId] = useState<number | null>(null);
 
-  // ===== Busy (búsqueda) — para debug por ahora
-  const [busy, setBusy] = useState<BusyAPI>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  // flags de “ya llamé”
-  const fetchedEvents = useRef(false);
-  const fetchedVacancy = useRef(false);
-  const fetchedAppDetail = useRef(false);
-  const fetchedBusy = useRef(false);
-
-  // ---------- CARGA INICIAL ----------
+  // ========= CARGAS INICIALES =========
+  // Postulación (application): GET /api/applications/:id/detail/
   useEffect(() => {
+    if (sourceRef.current !== 'application') return;
+
     (async () => {
       try {
-        setLoading(true);
-        setError(null);
+        const appId = idRef.current;
+        const res: ApplicationDetail = await requestBackend(`/api/applications/${appId}/detail/`, null, 'GET');
 
-        if (source === 'application') {
-          if (fetchedAppDetail.current) return;
-          fetchedAppDetail.current = true;
+        setEmployeeName(res?.employee?.name ?? params.personName ?? '—');
+        setEmployeeImage(res?.employee?.profile_image ?? params.photoUrl ?? null);
 
-          const url = `/api/applications/apply/${id}/detail/`;
-          const app: ApplicationDetailAPI = await requestBackend(url, null, 'GET');
-          console.log('[GET]', url, app);
-          setApplicationDetail(app);
-
-          // “Vacante” simplificada desde el detalle de aplicación
-          const fakeVacancy: VacancyDetailAPI = {
-            id: 0,
-            job_type_name: app.shift.vacancy.job_type,
-            description: app.shift.vacancy.description,
-            requirements: (app.shift.vacancy.requirements || []).map(d => ({ description: d })),
-            shifts: [{
+        const vac: VacancyDetail = {
+          id: -1,
+          job_type_name: res.shift?.vacancy?.job_type ?? '—',
+          description: res.shift?.vacancy?.description ?? '',
+          requirements: (res.shift?.vacancy?.requirements ?? []),
+          shifts: [
+            {
               id: 0,
-              start_date: app.shift.start_date,
-              end_date: app.shift.end_date,
-              start_time: app.shift.start_time,
-              end_time: app.shift.end_time,
-              payment: app.shift.payment,
-            }],
-          };
-          setVacancyDetail(fakeVacancy);
-          setAvailableShifts(fakeVacancy.shifts);
-          setChosenShiftId(fakeVacancy.shifts[0]?.id ?? null);
-        } else {
-          // BÚSQUEDA: abrir modal y precargar eventos+vacantes
-          if (fetchedEvents.current) return;
-          fetchedEvents.current = true;
-
-          const url = `/api/events/with-vacancies-availables/`;
-          const evs: Array<{event_id:number; event_name:string; vacancies:{vacancy_id:number; job_type_name:string}[]}> =
-            await requestBackend(url, null, 'GET');
-          console.log('[GET]', url, evs);
-
-          const evOpts = evs.map(e => ({ id: e.event_id, name: e.event_name }));
-          setEvents(evOpts);
-
-          // si querés precargar la primera lista de vacantes:
-          const first = evs[0];
-          if (first) {
-            setSelectedEventId(String(first.event_id));
-            setVacancies(first.vacancies.map(v => ({ id: v.vacancy_id, name: v.job_type_name })));
-            setSelectedVacancyId(first.vacancies[0] ? String(first.vacancies[0].vacancy_id) : '');
-          }
-        }
-      } catch (e: any) {
-        setError(e?.message || 'Error al cargar');
-      } finally {
-        setLoading(false);
+              start_date: res.shift.start_date,
+              end_date: res.shift.end_date,
+              start_time: res.shift.start_time,
+              end_time: res.shift.end_time,
+              payment: res.shift.payment,
+            },
+          ],
+        };
+        setVacancyDetail(vac);
+        setSelectedShiftIds([0]); // único turno seleccionado
+      } catch (e) {
+        console.log('Error GET /api/applications/:id/detail', e);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // <— deps vacías para evitar bucles
+  }, []);
 
-  // Cargar detalle de vacante al confirmar selección (búsqueda)
-  const confirmSelector = async () => {
-    try {
-      if (!selectedVacancyId) {
-        Alert.alert('Elegí una vacante.');
-        return;
+  // Búsqueda (search): si NO viene vacancyId -> abrir modal y cargar eventos
+  useEffect(() => {
+    if (sourceRef.current !== 'search' || vacancyIdRef.current) return;
+
+    (async () => {
+      try {
+        const evs: EventWithVacancies[] = await requestBackend('/api/events/with-vacancies-availables/', null, 'GET');
+        setEvents(evs || []);
+      } catch (e) {
+        console.log('Error GET events availables', e);
       }
-      const vId = Number(selectedVacancyId);
-      const url = `/api/vacancies/${vId}/shifts/`;
-      const det: VacancyDetailAPI = await requestBackend(url, null, 'GET');
-      console.log('[GET]', url, det);
+    })();
+  }, []);
 
-      // filtrar llenos si backend manda is_full=true
-      const avail = (det.shifts || []).filter(s => s.is_full !== true);
-      setVacancyDetail(det);
-      setAvailableShifts(avail);
-      setChosenShiftId(avail[0]?.id ?? null);
+  // Búsqueda (search): si viene vacancyId por params -> cargar detalle directo
+  useEffect(() => {
+    if (sourceRef.current !== 'search' || !vacancyIdRef.current) return;
 
-      // Busy del empleado (para búsqueda)
-      if (source === 'search' && !fetchedBusy.current) {
-        fetchedBusy.current = true;
-        const busyUrl = `/api/applications/offers/${id}/shifts`;
-        const busyRes: BusyAPI = await requestBackend(busyUrl, null, 'GET');
-        console.log('[GET]', busyUrl, busyRes);
-        setBusy(busyRes || []);
+    (async () => {
+      try {
+        const vacancyIdNum = Number(vacancyIdRef.current);
+        const detail: VacancyDetail = await requestBackend(`/api/vacancies/${vacancyIdNum}/shifts/`, null, 'GET');
+        setVacancyDetail(detail);
+        setSelectedVacancyId(vacancyIdNum);
+        if (detail?.shifts?.length === 1) setSelectedShiftIds([detail.shifts[0].id]);
+        else setSelectedShiftIds([]);
+        setModalVisible(false);
+      } catch (e) {
+        console.log('Error GET vacancy detail (by param)', e);
       }
+    })();
+  }, []);
 
-      setSelectorOpen(false);
-    } catch (e: any) {
-      setError(e?.message || 'Error al cargar vacante');
-    }
-  };
-
-  // Cambiar evento en el modal => actualizar lista de vacantes
-  const onChangeEvent = (eventId: string, rawAll?: any[]) => {
+  // ========= HANDLERS MODAL (BÚSQUEDA) =========
+  const onSelectEvent = (eventId: number) => {
     setSelectedEventId(eventId);
-    const evIdNum = Number(eventId);
-    const found = (rawAll || []).find(e => e.event_id === evIdNum);
-    if (found) {
-      const vacs = (found.vacancies || []).map((v: any) => ({ id: v.vacancy_id, name: v.job_type_name }));
-      setVacancies(vacs);
-      setSelectedVacancyId(vacs[0] ? String(vacs[0].id) : '');
+    const ev = events.find(e => e.event_id === eventId);
+    const opts = (ev?.vacancies ?? []).map(v => ({ id: v.vacancy_id, name: v.job_type_name }));
+    setVacancyOptions(opts);
+    setSelectedVacancyId(null);
+  };
+
+  const onSelectVacancy = async (vacancyId: number) => {
+    try {
+      const detail: VacancyDetail = await requestBackend(`/api/vacancies/${vacancyId}/shifts/`, null, 'GET');
+      setVacancyDetail(detail);
+      setSelectedVacancyId(vacancyId);
+      if (detail?.shifts?.length === 1) setSelectedShiftIds([detail.shifts[0].id]);
+      else setSelectedShiftIds([]);
+      setModalVisible(false);
+    } catch (e) {
+      console.log('Error GET vacancy detail', e);
     }
   };
 
-  // Datos render
-  const header = useMemo(() => {
-    if (source === 'application' && applicationDetail) {
-      return {
-        name: applicationDetail.employee.name,
-        profileImage: applicationDetail.employee.profile_image,
-      };
-    }
-    return null;
-  }, [source, applicationDetail]);
+  const formatDDMMYYYY = (d: Date) => {
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  };
 
-  // POST crear oferta
+  // ========= SUBMIT =========
+  const buildBody = () => {
+    const base = {
+      additional_comments: comment,
+      expiration_date: expDate ? formatDDMMYYYY(expDate) : null, // dd/mm/yyyy
+      expiration_time: expTime ?? null,
+    };
+
+    if (sourceRef.current === 'application') {
+      return { ...base, application_id: Number(idRef.current) };
+    }
+    // search: id = employee_id
+    return { ...base, employee_id: Number(idRef.current), shift_ids: selectedShiftIds };
+  };
+
   const submitOffer = async () => {
     try {
-      if (!expirationDate || !expirationTime) {
-        Alert.alert('Completá fecha y hora de vencimiento.');
-        return;
-      }
-
-      const payload =
-        source === 'application'
-          ? {
-              application_id: Number(id),
-              additional_comments: comments || '',
-              expiration_date: toDDMMYYYY(expirationDate),
-              expiration_time: expirationTime,
-            }
-          : {
-              employee_id: Number(id),
-              shift_ids: chosenShiftId ? [chosenShiftId] : [],
-              additional_comments: comments || '',
-              expiration_date: toDDMMYYYY(expirationDate),
-              expiration_time: expirationTime,
-            };
-
-      const url = `/api/applications/offers/`;
-      const res = await requestBackend(url, payload, 'POST');
-      console.log('[POST]', url, payload, res);
-      Alert.alert('Oferta creada', 'Se envió la oferta correctamente.');
-      router.back();
-    } catch (e: any) {
-      setError(e?.message || 'No se pudo crear la oferta');
+      setLoading(true);
+      const body = buildBody();
+      const res = await requestBackend('/api/applications/offers/', body, 'POST');
+      return res;
+    } catch (e) {
+      console.log('Error POST /api/applications/offers/', e);
+      throw e;
+    } finally {
+      setLoading(false);
     }
   };
 
+  // ========= HELPERS =========
+  function moneyARS(v: string | number | null | undefined) {
+    if (v == null) return '—';
+    const n = typeof v === 'string' ? Number(v) : v;
+    if (Number.isNaN(n)) return String(v);
+    return `${Math.round(n).toLocaleString('es-AR')} ARS`;
+  }
+  function hhmmLabel(hhmm?: string | null) {
+    if (!hhmm) return '';
+    const [hh = '00', mm = '00'] = (hhmm || '').split(':');
+    return `${hh.padStart(2, '0')}:${mm.padStart(2, '0')}hs`;
+  }
+
+  const handleCancel = () => router.back();
+
   return {
-    // origen
-    source, id,
-
-    // ui principal
-    loading, error,
-
-    // header (postulación)
-    header,
-
-    // selector previo (búsqueda)
-    selectorOpen, setSelectorOpen,
-    events, vacancies,
-    selectedEventId, setSelectedEventId,
-    selectedVacancyId, setSelectedVacancyId,
-    confirmSelector,
-
-    // data vacante/turnos
-    vacancyDetail,
-    availableShifts,
-    chosenShiftId, setChosenShiftId,
-
-    // busy (debug)
-    busy,
-
-    // form
-    expirationDate, setExpirationDate,
-    expirationTime, setExpirationTime,
-    comments, setComments,
-
-    // actions
-    submitOffer,
-
-    // helper para actualizar vacantes al cambiar evento con la respuesta cruda
-    onChangeEvent,
-    ddmmyyyyToLong, money,
+    // persona
+    employeeName, employeeImage,
+    // vacante/turnos
+    vacancyDetail, selectedShiftIds, setSelectedShiftIds, moneyARS, hhmmLabel,
+    // expiración/comentario
+    expDate, setExpDate, expTime, setExpTime, comment, setComment,
+    // modal búsqueda
+    modalVisible, setModalVisible, events, selectedEventId, vacancyOptions, selectedVacancyId,
+    onSelectEvent, onSelectVacancy,
+    // acciones
+    submitOffer, handleCancel, loading,
   };
-};
-function money(v: string) { return moneyARS(v as any); }
-
-// utils
-function toDDMMYYYY(d: Date) {
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yy = d.getFullYear();
-  return `${dd}/${mm}/${yy}`;
-}
-
-function ddmmyyyyToLong(dmy: string) {
-  const [d, m, y] = dmy.split('/').map(Number);
-  const dt = new Date(y, m - 1, d);
-  return new Intl.DateTimeFormat('es-AR', { weekday:'long', day:'numeric', month:'long' })
-    .format(dt).replace(/^./, m => m.toUpperCase());
 }

@@ -1,32 +1,65 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, Animated, LayoutChangeEvent } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
-import { PanGestureHandler, PanGestureHandlerStateChangeEvent } from 'react-native-gesture-handler';
 import { headerNavStyles as s } from '@/styles/constants/headerNavStyles';
 
 type Page = { label: string; route: string };
 
 type Props = {
   pages: Page[];
-  /** Si la ruta no matchea, índice inicial */
   fallbackIndex?: number;
-  /** Callback opcional al cambiar de índice */
   onIndexChange?: (index: number) => void;
-  /** Título opcional (dentro del componente) */
   title?: string;
+  activeRoute?: string;       // controla la ruta activa (opcional)
+  bgColor?: string;           // fondo para evitar “gris”
+  underlineColor?: string;    // color de línea inferior (opcional)
+  aliases?: Record<string, Array<string | RegExp>>; // rutas extra que activan un tab
 };
 
-export default function HeaderNav({ pages, fallbackIndex = 0, onIndexChange, title }: Props) {
+export default function HeaderNav({
+  pages,
+  fallbackIndex = 0,
+  onIndexChange,
+  title,
+  activeRoute,
+  bgColor,
+  underlineColor,
+  aliases,
+}: Props) {
   const router = useRouter();
   const pathname = usePathname();
+  const currentPath = activeRoute ?? pathname ?? '';
 
-  // Índice activo por ruta
+  // Índice activo con soporte de aliases y “match más específico”
   const routeIndex = useMemo(() => {
-    const i = pages.findIndex(p => pathname?.startsWith(p.route));
-    return i >= 0 ? i : fallbackIndex;
-  }, [pathname, pages, fallbackIndex]);
+    let bestIdx = -1, bestScore = -1;
 
+    const score = (matcher: string | RegExp, path: string): number => {
+      if (typeof matcher === 'string') {
+        const exact = path === matcher;
+        const base = matcher.endsWith('/') ? matcher : matcher + '/';
+        const nested = path.startsWith(base);
+        if (exact) return matcher.length + 2; // exacto > nested
+        if (nested) return matcher.length;    // por longitud
+        return -1;
+      }
+      return matcher.test(path) ? 1 : -1;
+    };
+
+    pages.forEach((p, idx) => {
+      const cands = [p.route, ...(aliases?.[p.route] ?? [])];
+      const pageBest = cands.reduce((acc, m) => Math.max(acc, score(m, currentPath)), -1);
+      if (pageBest > bestScore) { bestScore = pageBest; bestIdx = idx; }
+    });
+
+    return bestIdx >= 0 ? bestIdx : fallbackIndex;
+  }, [currentPath, pages, fallbackIndex, aliases]);
+
+  // Animación del indicador
   const [activeIndex, setActiveIndex] = useState(routeIndex);
+  const tabLayouts = useRef<{ x: number; w: number }[]>([]);
+  const indicatorX = useRef(new Animated.Value(0)).current;
+  const indicatorW = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (routeIndex !== activeIndex) {
@@ -37,15 +70,10 @@ export default function HeaderNav({ pages, fallbackIndex = 0, onIndexChange, tit
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [routeIndex]);
 
-  // Medición de tabs para indicador
-  const tabLayouts = useRef<{ x: number; w: number }[]>([]);
-  const indicatorX = useRef(new Animated.Value(0)).current;
-  const indicatorW = useRef(new Animated.Value(0)).current;
-
   const onTabLayout = (i: number) => (e: LayoutChangeEvent) => {
     const { x, width } = e.nativeEvent.layout;
     tabLayouts.current[i] = { x, w: width };
-    if (i === activeIndex) {
+    if (i === routeIndex) {
       indicatorX.setValue(x + width * 0.2);
       indicatorW.setValue(width * 0.6);
     }
@@ -62,56 +90,41 @@ export default function HeaderNav({ pages, fallbackIndex = 0, onIndexChange, tit
 
   const goToIndex = (next: number) => {
     if (next < 0 || next >= pages.length) return;
-    setActiveIndex(next);
+    setActiveIndex(next); // optimista para animación
     onIndexChange?.(next);
     animateTo(next);
     router.replace(pages[next].route as any);
   };
 
   const onPressTab = (i: number) => {
-    if (i === activeIndex) return;
+    if (i === routeIndex) return;
     goToIndex(i);
   };
 
-  // (Swipe de barra lo dejamos; el swipe de PANTALLA lo vemos después)
-  const SWIPE_THRESHOLD = 30;
-  const onGestureEvent = (e: PanGestureHandlerStateChangeEvent) => {
-    const { oldState, translationX } = e.nativeEvent as any;
-    if (oldState === 4 || oldState === 5 || oldState === 2) {
-      if (translationX <= -SWIPE_THRESHOLD) goToIndex(activeIndex + 1);
-      else if (translationX >= SWIPE_THRESHOLD) goToIndex(activeIndex - 1);
-    }
-  };
-
   return (
-    <PanGestureHandler onHandlerStateChange={onGestureEvent}>
-      <View>
-        {title ? <Text style={s.title}>{title}</Text> : null}
+    <View style={{ backgroundColor: bgColor }}>
+      {title ? <Text style={s.title}>{title}</Text> : null}
 
-        <View style={s.bar}>
-          {pages.map((p, i) => (
+      <View style={[s.bar, { backgroundColor: bgColor }]}>
+        {pages.map((p, i) => {
+          const isActive = i === routeIndex;
+          return (
             <Pressable
               key={p.route}
-              style={s.tab}               // <- ocupa ancho igual (flex:1 en estilos)
+              style={s.tab}
               onPress={() => onPressTab(i)}
               onLayout={onTabLayout(i)}
             >
-              <Text style={[s.tabText, i === activeIndex ? s.tabTextActive : null]}>
+              <Text style={[s.tabText, isActive ? s.tabTextActive : null]}>
                 {p.label}
               </Text>
             </Pressable>
-          ))}
-        </View>
-
-        <View style={s.baseLine} />
-
-        <Animated.View
-          style={[
-            s.indicator,
-            { left: indicatorX, width: indicatorW },
-          ]}
-        />
+          );
+        })}
       </View>
-    </PanGestureHandler>
+
+      <View style={s.baseLine} />
+      <Animated.View style={[s.indicator, { left: indicatorX, width: indicatorW }]} />
+    </View>
   );
 }

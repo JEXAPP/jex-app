@@ -29,6 +29,13 @@ export const useHomeOffers = () => {
     return isNaN(n) ? String(v) : new Intl.NumberFormat('es-AR').format(n);
   };
 
+  const formatDate = (date: Date) => {
+  const d = date.getDate().toString().padStart(2, "0");
+  const m = (date.getMonth() + 1).toString().padStart(2, "0");
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
+};
+
   const sortOffers = (key: OrderKey, dir: OrderDir) => {
     setOffers(prev => {
       const sorted = [...prev];
@@ -64,22 +71,34 @@ export const useHomeOffers = () => {
         const normalized: Offer[] = (data ?? []).map((item: any) => {
           const shift = item?.application?.shift;
           const vacancy = shift?.vacancy;
+
+          // 👇 calcular vencimiento a partir de fecha de inicio
+          let expirationDate = "";
+          if (shift?.start_date) {
+            const [d, m, y] = shift.start_date.split("/").map(Number);
+            const start = new Date(y, m - 1, d);
+            start.setDate(start.getDate() - 3); // restar 3 días
+            expirationDate = formatDate(start);
+          }
+
           return {
-            id: item?.id ?? 0,
+            id:
+              item?.id ??
+              `${vacancy?.event?.id ?? "noevent"}-${shift?.job_type ?? "norole"}-${shift?.start_time ?? "notime"}`,
             salary: formatNumberAR(shift?.payment ?? 0),
-            role: vacancy?.job_type?.name ?? 'Sin rol',
-            date: shift?.start_date ?? '',
-            startTime: shift?.start_time ?? '',
-            endTime: shift?.end_time ?? '',
-            company: vacancy?.event?.name ?? 'Evento sin nombre',
+            role: vacancy?.job_type ?? "Sin rol",
+            date: shift?.start_date ?? "",
+            startTime: shift?.start_time ?? "",
+            endTime: shift?.end_time ?? "",
+            company: vacancy?.event?.name ?? "Evento sin nombre",
             eventImage: vacancy?.event?.image
               ? { uri: vacancy.event.image }
-              : require('@/assets/images/jex/Jex-Evento-Default.png'),
-            expirationDate: item?.expiration_date ?? '',
-            expirationTime: item?.expiration_time ?? '',
-            location: vacancy?.event?.location ?? '',
+              : require("@/assets/images/jex/Jex-Evento-Default.png"),
+            expirationDate, // 👈 usamos la calculada
+            expirationTime: "00:00", // opcional fijo
+            location: vacancy?.event?.location ?? "",
             requirements: item?.requirements ?? vacancy?.requirements ?? [],
-            comments: item?.comments ?? '',
+            comments: item?.comments ?? "",
           };
         });
 

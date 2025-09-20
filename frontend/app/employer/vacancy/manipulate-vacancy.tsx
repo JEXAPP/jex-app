@@ -17,6 +17,7 @@ import { Button } from '@/components/button/Button';
 import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
 import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonStyles4';
 import { Card } from '@/components/others/Card';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 export default function ManipulateVacancyScreen() {
   const {

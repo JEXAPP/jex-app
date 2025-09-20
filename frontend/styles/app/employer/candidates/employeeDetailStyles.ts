@@ -168,7 +168,7 @@ export const employeeDetailStyles = StyleSheet.create({
     alignItems: 'center',
   },
   shiftTime: {
-    fontFamily: 'interBold',
+    fontFamily: 'interSemiBold',
     fontSize: 18,
     color: Colors.black,
   },
@@ -181,7 +181,7 @@ export const employeeDetailStyles = StyleSheet.create({
   shiftDateLine: {
     marginTop: 4,
     color: Colors.black,
-    opacity: 0.7,
+    fontFamily: 'interRegular'
   },
 
   actionsRow: {

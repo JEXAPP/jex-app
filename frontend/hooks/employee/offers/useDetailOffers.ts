@@ -46,7 +46,15 @@ export const useDetailOffers = () => {
     const num = Number(value);
     if (isNaN(num)) return String(value);
     return new Intl.NumberFormat("es-AR").format(num);
+    
   };
+
+  const formatDate = (date: Date) => {
+  const d = date.getDate().toString().padStart(2, "0");
+  const m = (date.getMonth() + 1).toString().padStart(2, "0");
+  const y = date.getFullYear();
+  return `${d}/${m}/${y}`;
+};
 
   useEffect(() => {
     let mounted = true;
@@ -59,23 +67,32 @@ export const useDetailOffers = () => {
         if (!mounted) return;
 
         const shift = data?.application?.shift;
-        const vacancy = shift?.vacancy;
+          const vacancy = shift?.vacancy;
 
-        const mapped: Offer = {
-          id: data?.id ?? 0,
-          salary: formatNumber(shift?.payment ?? 0),
-          role: vacancy?.job_type?.name ?? "Sin rol",
-          date: shift?.start_date ?? "",
-          startTime: shift?.start_time ?? "",
-          endTime: shift?.end_time ?? "",
-          company: vacancy?.event?.name ?? "Evento sin nombre",
-          eventImage: require("@/assets/images/jex/Jex-Evento-Default.png"),
-          expirationDate: data?.expiration_date ?? "",
-          expirationTime: data?.expiration_time ?? "",
-          location: vacancy?.event?.location ?? "Ubicación no definida",
-          requirements: vacancy?.requirements?.map((r: any) => r.description) ?? [],
-          comments: vacancy?.description ?? data?.additional_comments ?? "",
-        };
+          // 👇 calcular vencimiento desde start_date
+          let expirationDate = "";
+          if (shift?.start_date) {
+            const [d, m, y] = shift.start_date.split("/").map(Number);
+            const start = new Date(y, m - 1, d);
+            start.setDate(start.getDate() - 3);
+            expirationDate = formatDate(start);
+          }
+
+          const mapped: Offer = {
+            id: data?.id ?? 0,
+            salary: formatNumber(shift?.payment ?? 0),
+            role: vacancy?.job_type ?? "Sin rol",
+            date: shift?.start_date ?? "",
+            startTime: shift?.start_time ?? "",
+            endTime: shift?.end_time ?? "",
+            company: vacancy?.event?.name ?? "Evento sin nombre",
+            eventImage: require("@/assets/images/jex/Jex-Evento-Default.png"),
+            expirationDate, // 👈 fecha recalculada
+            expirationTime: "00:00", // opcional fijo
+            location: vacancy?.event?.location ?? "Ubicación no definida",
+            requirements: vacancy?.requirements?.map((r: any) => r.description) ?? [],
+            comments: vacancy?.description ?? data?.additional_comments ?? "",
+          };
 
         setOffer(mapped);
       } catch (e) {

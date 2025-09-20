@@ -1,10 +1,9 @@
-// hooks/employer/candidates/useEmployeeDetail.ts
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 
 type Source = 'application' | 'search';
-type Params = { source: Source; id: string };
+type Params = { source: Source; id: string; vacancyId?: string };
 
 type ShiftAPI = {
   id?: number | string;
@@ -92,7 +91,7 @@ export const useEmployeeDetail = (p: Params) => {
   const [error, setError]     = useState<string | null>(null);
   const [data, setData]       = useState<NormalizedDetail | null>(null);
 
-  // 👇 estado del ClickWindow (confirmación)
+  // estado del ClickWindow (confirmación)
   const [confirmRejectVisible, setConfirmRejectVisible] = useState(false);
 
   useEffect(() => {
@@ -183,23 +182,16 @@ export const useEmployeeDetail = (p: Params) => {
   const goBack = () => router.back();
 
   const onGenerateOffer = () => {
-    // quién es el “target” de la oferta
     const userId  = (data?.employee_id ?? p.id) as string | number;
-    // si viene de Postulación, mandamos también los shift ids postulados
-    const shiftIds = p.source === 'application' ? (data?.applied_shift_ids ?? []) : [];
 
-    // navegamos a la pantalla que ya armamos
     router.push({
-      pathname: '/employer/candidates/offer',
+      pathname: '/employer/candidates/offer', 
       params: {
-        source: p.source,                 // 'search' | 'application'
-        id: String(userId),               // employeeId (search) o applicationId (application)
-        // opcional: le paso info para el header violeta de esa pantalla
-        name: data?.name ?? '',
-        avatar: data?.profile_image ?? '',
-        // si querés que esa pantalla preseleccione esos turnos (solo a modo display),
-        // no hace falta pasarlos porque en “application” ya se trae el detalle.
-        // En “search” no aplica (se eligen turnos de una vacante).
+        source: p.source,
+        id: String(userId),
+        ...(p.source === 'search' && p.vacancyId ? { vacancyId: String(p.vacancyId) } : {}),
+        personName: data?.name ?? '',
+        photoUrl: data?.profile_image ?? '',
       },
     });
   };
@@ -215,9 +207,7 @@ export const useEmployeeDetail = (p: Params) => {
 
   const confirmReject = async () => {
     try {
-      // cierro el modal por UX
       setConfirmRejectVisible(false);
-      // request
       await requestBackend(`/api/applications/rejected/${p.id}`, null, 'PUT');
       router.replace('/employer/candidates');
     } catch (e: any) {

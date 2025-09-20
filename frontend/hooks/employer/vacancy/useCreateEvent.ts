@@ -1,8 +1,15 @@
 import useGooglePlaces from '@/services/external/useGooglePlaces';
+import { useUploadImageServ } from '@/services/external/useUploadImage';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Keyboard } from 'react-native';
+
+type UploadableImage = {
+  uri: string;
+  name: string;
+  type: string;
+};
 
 export const useCreateEvent = () => {
   const router = useRouter();
@@ -22,6 +29,11 @@ export const useCreateEvent = () => {
   const { requestBackend} = useBackendConection();
   const [loading, setLoading] = useState(false);
   const [continuarHabilitado, setContinuarHabilitado] = useState(false);
+
+  const [imagenPerfil, setImagenPerfil] = useState<string | null>(null);
+  const [imagenFile, setImagenFile] = useState<UploadableImage | null>(null);
+  const { uploadImage } = useUploadImageServ();
+  
 
   // Rubros
   const [rubros, setRubros] = useState<{ id: number; name: string }[]>([]);
@@ -55,6 +67,21 @@ export const useCreateEvent = () => {
     setSugerencias([]);
     Keyboard.dismiss();
   };
+
+  // 🔧 función helper para limitar la longitud total de dígitos
+const limitarDecimales = (num: number, maxDigits = 15): number => {
+  // Convertimos a string
+  const str = num.toString();
+
+  if (str.length <= maxDigits) return num;
+
+  // Si es muy largo, redondeamos a menos decimales
+  const [intPart, decPart = ""] = str.split(".");
+
+  // calculamos cuántos decimales podemos dejar
+  const maxDec = Math.max(0, maxDigits - intPart.length - 1); 
+  return parseFloat(num.toFixed(maxDec));
+};
 
   //#region Validación de campos
   const validarCampos = () => {
@@ -114,22 +141,48 @@ export const useCreateEvent = () => {
       // Obtenemos las coordenadas a partir del placeId
       const coords = await obtenerCoordenadas(ubicacionId);
 
+// Redondeamos para no superar 15 dígitos
+      const lat = limitarDecimales(coords.lat);
+      const lng = limitarDecimales(coords.lng);
+
       const fechaInicioFormateada = fechaInicioEvento ? `${fechaInicioEvento.getDate().toString().padStart(2, '0')}/${(fechaInicioEvento.getMonth() + 1).toString().padStart(2, '0')}/${fechaInicioEvento.getFullYear()}`: ''
       const fechaFinFormateada = fechaFinEvento ? `${fechaFinEvento.getDate().toString().padStart(2, '0')}/${(fechaFinEvento.getMonth() + 1).toString().padStart(2, '0')}/${fechaFinEvento.getFullYear()}`: ''
 
       // Preparamos el payload con todos los datos del evento
-      const payload = {
-        name: nombreEvento,
-        description: descripcionEvento,
-        location: ubicacionEvento,
-        latitude: coords.lat,
-        longitude: coords.lng,
-        start_date: fechaInicioFormateada,
-        end_date: fechaFinFormateada,
-        start_time: horaInicio,
-        end_time: horaFin,
-        category_id: selectedRubro?.id,
-      };
+    const payload: {
+      name: string;
+      description: string;
+      location: string;
+      latitude: number;
+      longitude: number;
+      start_date: string;
+      end_date: string;
+      start_time: string | null;
+      end_time: string | null;
+      category_id: number | string | undefined;
+      profile_image_id: string | null;
+      profile_image_url: string | null;
+    } = {
+      name: nombreEvento,
+      description: descripcionEvento,
+      location: ubicacionEvento,
+      latitude: lat,
+      longitude: lng,
+      start_date: fechaInicioFormateada,
+      end_date: fechaFinFormateada,
+      start_time: horaInicio,
+      end_time: horaFin,
+      category_id: selectedRubro?.id,
+      profile_image_id: null,
+      profile_image_url: null,
+    };
+
+
+     if (imagenFile) {
+        const upload = await uploadImage(imagenFile.uri);
+        payload.profile_image_url = upload.image_url;
+        payload.profile_image_id = upload.image_id;
+      }
 
       // Enviamos al backend
       const data = await requestBackend('/api/events/create/', payload, 'POST');
@@ -138,7 +191,7 @@ export const useCreateEvent = () => {
 
       setShowSuccess(true);
       // Si fue exitoso, mostramos mensaje de éxito
-      router.push(`./create-vacancy?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`)
+      router.replace(`./create-vacancy?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`)
       
     } catch (error: any) {
       // Manejo de errores
@@ -179,6 +232,9 @@ export const useCreateEvent = () => {
     setSelectedRubro,
     loadingRubros,
     errorRubros,
-    continuarHabilitado
+    continuarHabilitado,
+    setImagenFile,
+    imagenPerfil,
+    setImagenPerfil
   };
 };

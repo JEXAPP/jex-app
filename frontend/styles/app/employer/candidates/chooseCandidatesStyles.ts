@@ -19,7 +19,8 @@ export const chooseCandidatesStyles = StyleSheet.create({
   eventRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',   
+    width: 350,
+    marginTop: 20,   
     marginBottom: 20,
   },
   sideSlot: {
@@ -104,10 +105,66 @@ export const chooseCandidatesStyles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 6,
   },
-
-  emptyBox: { paddingVertical: 24, alignItems: 'center' },
-  emptyTitle: { fontSize: 16, fontWeight: '800', color: Colors.gray3 },
-  emptySubtitle: { fontSize: 13, color: Colors.gray3, marginTop: 4 },
+  emptyBox: { 
+    height: 500,
+    width: 350,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    marginTop: 60, 
+  },
+  emptyBox2: { 
+    height: 500,
+    width: 350,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    marginTop: 20, 
+  },
+  emptyBox3: { 
+    height: 300,
+    width: 350,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    marginTop: 20, 
+  },
+  emptyImage: {
+    width: 250,
+    height: 250,
+    marginBottom: 55,
+    marginTop: 65,
+    alignSelf: 'center',
+  },
+  emptyImage2: {
+    width: 200,
+    height: 200,
+    marginBottom: 10,
+    marginTop: 10,
+    alignSelf: 'center',
+  },
+  emptyImage3: {
+    width: 180,
+    height: 180,
+    marginBottom: 10,
+    marginTop: 20,
+    alignSelf: 'center',
+  },
+  emptyTitle: { 
+    fontSize: 20,
+    fontFamily: 'interBold',
+    color: Colors.violet4,
+    textAlign: 'center',
+  },
+  emptySubtitle: { 
+    fontSize: 14,
+    fontFamily: 'interItalic',
+    color: Colors.gray3,
+    textAlign: 'center',
+  },
     // --- rating ---
   ratingRow: {
     flexDirection: 'row',
@@ -180,12 +237,11 @@ scheduleDash: {
   fontSize: 14,
   color: Colors.gray3,
 },
-
 offersCard: {
   width: 140,
-  backgroundColor: Colors.gray3, // tu gris oscuro del mock
+  backgroundColor: Colors.violet2, // tu gris oscuro del mock
   borderRadius: 16,
-  paddingVertical: 12,
+  paddingVertical: 10,
   paddingHorizontal: 16,
   alignItems: 'center',
   justifyContent: 'center',
