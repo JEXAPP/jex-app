@@ -9,6 +9,7 @@
     "newArchEnabled": true,
     "owner": "jex-app",
     "icon": "./assets/images/jex/Jex-Logo.png",
+    "jsEngine": "jsc",
     "splash": {
       "image": "./assets/images/jex/Jex-Logo.png",
       "resizeMode": "contain",

@@ -60,7 +60,7 @@ export default function HomeOffersScreen() {
               ) : (
                 offers.map((offer) => (
                   <TouchableOpacity
-                    key={offer.id ?? Math.random()} // evita duplicados si faltara id
+                    key={offer.id} // evita duplicados si faltara id
                     style={styles.offerCard}
                     activeOpacity={0.8}
                     onPress={() => goToOfferDetail(offer)}

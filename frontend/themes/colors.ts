@@ -14,7 +14,8 @@ export const Colors = {
 
   // Otros
   red: '#ad1b1bff',
-  green: '#407521ff',
+  darkgreen: '#2a4d16ff',
+  softgreen: '#E6F5EA',
   white: '#ffffff',
   black: '#000000',
   yellow: '#f1b81bff'

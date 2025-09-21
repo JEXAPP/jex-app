@@ -1,16 +1,16 @@
 import { ButtonWithIcon } from '@/components/button/ButtonWithIcon';
 import { Carousel } from '@/components/others/Carousel';
+import { ShowVacancy } from '@/components/specifics/ShowVacancy';
+import { iconos } from '@/constants/iconos';
+import { Vacancy } from '@/constants/interfaces';
 import HomeSkeleton from '@/constants/skeletons/employee/homeSkeleton';
 import { useHomeEmployee } from '@/hooks/employee/useHomeEmployee';
 import { homeScreenEmployeeStyles as styles } from '@/styles/app/employee/homeScreenStyles';
 import { buttonWithIconStyles2 } from '@/styles/components/button/buttonWithIconStyles/buttonWithIconStyles2';
-import React from 'react';
-import { Image, ScrollView, Text, View, FlatList, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/themes/colors';
-import { iconos } from '@/constants/iconos';
-import { ShowVacancy } from '@/components/specifics/ShowVacancy';
-import { Vacancy } from '@/constants/interfaces';
+import React from 'react';
+import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeEmployeeScreen () {
   const {
@@ -42,11 +42,13 @@ export default function HomeEmployeeScreen () {
             </View>
 
             <View style={styles.adsWrapper}>
+
               <Image
                 source={require('@/assets/images/jex/Jex-Publicidad.png')}
                 style={styles.jexBanner}
                 resizeMode="cover"
               />
+              
               <Carousel
                 images={[
                   require('@/assets/images/Publicidad1.png'),

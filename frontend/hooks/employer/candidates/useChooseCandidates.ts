@@ -1,24 +1,26 @@
+// hooks/employer/candidates/useChooseCandidates.ts
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import useBackendConection from '@/services/internal/useBackendConection';
+import { useRouter } from 'expo-router';
 
-// ===== API =====
-export type VacancyAPI = {
+// ===== API types =====
+type VacancyAPI = {
   vacancy_id: number;
   job_type_name: string;
   specific_job_type: string | null;
   quantity_shifts: number;
   shift_ids: number[];
+  quantity?: number;
+  quantity_offers?: number;
 };
 
-export type EventWithVacanciesAPI = {
+type EventWithVacanciesAPI = {
   event_name: string;
   vacancies: VacancyAPI[];
 };
 
-export type EventsVacanciesAPI = EventWithVacanciesAPI[];
-
-export type ApplicantAPI = {
+type ApplicantAPI = {
   application_id: number;
   created_at: string;
   employee_id: number;
@@ -26,64 +28,75 @@ export type ApplicantAPI = {
   profile_image: string | null;
 };
 
-export type ApplicationsByShiftAPI = {
+// Datos por turno
+type ApplicationsByShiftAPI = {
   shift_id: number;
   start_time: string;
   end_time: string;
   start_date: string;
   end_date: string;
   applications: ApplicantAPI[];
+  quantity?: number;
+  quantity_offers?: number;
 };
 
 // ===== UI domain =====
-export type Vacancy = {
+type VacancySummary = {
   id: number;
-  roleName: string;      // job_type_name (+ specific)
+  roleName: string;
   shiftIds: number[];
+  quantity?: number;
+  quantityOffers?: number;
 };
 
-export type EventItem = {
-  id: string;            // generado por índice
-  name: string;
-  vacancies: Vacancy[];
-};
-
-export type Candidate = {
-  id: number;            // application_id
+type Candidate = {
+  id: number;
   employeeId: number;
   fullName: string;
   avatarUrl?: string | null;
   createdAt: string;
-  shiftId: number;       // turno al que corresponde
+  shiftId: number;
 };
 
 type ShiftInfo = {
   shiftId: number;
-  startDate: string; // "DD/MM/YYYY"
-  endDate: string;   // "
-  startTime: string; // "HH:mm"
-  endTime: string;   // "
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
 };
 
 const ENDPOINTS = {
-  eventsVacancies: '/api/events/vacancies',
+  eventsVacancies: '/api/events/vacancies/',
   applicationsByVacancyShift: (vacancyId: number, shiftId: number) =>
-    `/api/applications/by-vacancy/${vacancyId}/shift/${shiftId}`,
+    `/api/applications/by-vacancy/${vacancyId}/shift/${shiftId}/`,
+};
+
+// ===== Helpers =====
+const mapVacancy = (v: VacancyAPI): VacancySummary => ({
+  id: v.vacancy_id,
+  roleName: v.specific_job_type ? `${v.job_type_name} · ${v.specific_job_type}` : v.job_type_name,
+  shiftIds: v.shift_ids ?? [],
+  quantity: v.quantity,
+  quantityOffers: v.quantity_offers,
+});
+
+const splitFirstSpace = (s: string) => {
+  const i = s.indexOf(' ');
+  return i >= 0 ? [s.slice(0, i), s.slice(i + 1)] : [s, ''];
 };
 
 export const useChooseCandidates = () => {
   const { requestBackend } = useBackendConection();
+  const router = useRouter();
 
-  // --- UI refs ---
+  // Refs de UI
   const roleAnchorRef = useRef<View | null>(null);
 
-  // --- Estado principal ---
-  const [events, setEvents] = useState<EventItem[]>([]);
+  // Estado principal
+  const [events, setEvents] = useState<{ id: string; name: string; vacancies: VacancySummary[] }[]>([]);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
-  const currentEvent: EventItem | null = useMemo(
-    () => (events.length ? events[Math.min(currentEventIndex, events.length - 1)] : null),
-    [events, currentEventIndex]
-  );
+  const currentEvent = events.length ? events[Math.min(currentEventIndex, events.length - 1)] : null;
 
   const [selectedVacancyId, setSelectedVacancyId] = useState<number | null>(null);
   const currentVacancy = useMemo(
@@ -91,71 +104,63 @@ export const useChooseCandidates = () => {
     [currentEvent, selectedVacancyId]
   );
 
-  // IMPORTANTE: ya no existe “Todos”. Siempre hay turno seleccionado.
   const [selectedShiftId, setSelectedShiftId] = useState<number | null>(null);
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [shiftInfo, setShiftInfo] = useState<ShiftInfo | null>(null);
 
-  // estados UI
+  // Ofertas por turno (hechas/máximas)
+  const [offers, setOffers] = useState<{ made: number; max: number } | null>(null);
+
+  // UI states
+  const [rolePickerVisible, setRolePickerVisible] = useState(false);
   const [loadingEventVacancies, setLoadingEventVacancies] = useState(false);
   const [loadingApplications, setLoadingApplications] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [rolePickerVisible, setRolePickerVisible] = useState(false);
-  const [shiftInfo, setShiftInfo] = useState<ShiftInfo | null>(null);
 
-  // Derivados
+  // Derivados para render
   const eventName = currentEvent?.name ?? '';
   const roleOptions = useMemo(
-    () =>
-      (currentEvent?.vacancies ?? []).map(v => ({
-        label: v.roleName,
-        value: v.id,
-      })),
+    () => (currentEvent?.vacancies ?? []).map(v => ({ label: v.roleName, value: v.id })),
     [currentEvent]
   );
+  const selectedRoleLabel = useMemo(
+    () => roleOptions.find(o => o.value === selectedVacancyId)?.label ?? 'Seleccionar rol',
+    [roleOptions, selectedVacancyId]
+  );
+  const shiftTags = useMemo(
+    () => (currentVacancy?.shiftIds ?? []).map((id, idx) => ({ id, name: `Turno ${idx + 1}` })),
+    [currentVacancy?.shiftIds]
+  );
 
-
-  const selectedRoleLabel = useMemo(() => {
-    const opt = roleOptions.find(o => o.value === selectedVacancyId);
-    return opt?.label ?? 'Seleccionar rol';
-  }, [roleOptions, selectedVacancyId]);
-
-  const shiftTags = useMemo(() => {
-    const ids = currentVacancy?.shiftIds ?? [];
-    return ids.map((id, idx) => ({ id, name: `Turno ${idx + 1}` }));
-  }, [currentVacancy?.shiftIds]);
+  const offersMade = offers?.made ?? null; // null mientras carga
+  const offersMax = offers?.max ?? null;
+  const isFull = offers ? offers.max > 0 && offers.made >= offers.max : false;
 
   // ===== Requests =====
+
+  // Carga eventos y vacantes, y setea selecciones iniciales
   const fetchAllEventsVacancies = async () => {
     setLoadingEventVacancies(true);
     setError(null);
     try {
-      const data: EventsVacanciesAPI = await requestBackend(ENDPOINTS.eventsVacancies, 'GET');
-      
-      const mapped: EventItem[] = data.map((e, idx) => ({
+      const data: EventWithVacanciesAPI[] = await requestBackend(ENDPOINTS.eventsVacancies, null, 'GET');
+
+      const mapped = data.map((e, idx) => ({
         id: `evt_${idx}`,
         name: e.event_name,
-        vacancies: (e.vacancies || []).map(v => ({
-          id: v.vacancy_id,
-          roleName: v.specific_job_type
-            ? `${v.job_type_name} · ${v.specific_job_type}`
-            : v.job_type_name,
-          shiftIds: v.shift_ids || [],
-        })),
+        vacancies: (e.vacancies || []).map(mapVacancy),
       }));
 
       setEvents(mapped);
 
-      // Default: primer evento con vacantes y su primera vacante + primer turno
       const firstEventWithVac = mapped.findIndex(ev => (ev.vacancies?.length ?? 0) > 0);
       if (firstEventWithVac >= 0) {
         setCurrentEventIndex(firstEventWithVac);
-        const firstVacId = mapped[firstEventWithVac].vacancies[0].id;
-        setSelectedVacancyId(firstVacId);
-        const firstShift = mapped[firstEventWithVac].vacancies[0].shiftIds[0] ?? null;
-        setSelectedShiftId(firstShift);
+        const firstVac = mapped[firstEventWithVac].vacancies[0];
+        setSelectedVacancyId(firstVac?.id ?? null);
+        setSelectedShiftId(firstVac?.shiftIds[0] ?? null);
       } else {
-        // No hay vacantes en ningún evento
         setCurrentEventIndex(0);
         setSelectedVacancyId(null);
         setSelectedShiftId(null);
@@ -170,23 +175,24 @@ export const useChooseCandidates = () => {
     }
   };
 
+  // Trae postulaciones + horario + cupos/ofertas del turno seleccionado
   const fetchApplications = async (vacancyId: number | null, shiftId: number | null) => {
-    // Siempre requiere turno; si cambia, vaciamos vista ANTES
     if (!vacancyId || !shiftId) {
       setCandidates([]);
       setShiftInfo(null);
+      setOffers(null);
       return;
     }
     setLoadingApplications(true);
     setError(null);
     try {
-      // OJO: tu requestBackend devuelve { data }, no el body directo, ajusto:
       const data: ApplicationsByShiftAPI = await requestBackend(
         ENDPOINTS.applicationsByVacancyShift(vacancyId, shiftId),
+        null,
         'GET'
       );
 
-      // Guardamos horario del turno
+      // Horario por turno
       setShiftInfo({
         shiftId: data.shift_id,
         startDate: data.start_date,
@@ -195,96 +201,121 @@ export const useChooseCandidates = () => {
         endTime: data.end_time,
       });
 
-      const items: Candidate[] = (data.applications || []).map(a => ({
-        id: a.application_id,
-        employeeId: a.employee_id,
-        fullName: a.full_name,
-        avatarUrl: a.profile_image,
-        createdAt: a.created_at,
-        shiftId: data.shift_id,
-      })).sort((a, b) => a.fullName.localeCompare(b.fullName));
+      // Ofertas por turno (prefiere valores del turno, con fallback de la vacante)
+      const madeFromShift = typeof data.quantity_offers === 'number' ? data.quantity_offers : undefined;
+      const maxFromShift = typeof data.quantity === 'number' ? data.quantity : undefined;
+
+      const madeFallback = typeof currentVacancy?.quantityOffers === 'number' ? currentVacancy?.quantityOffers : 0;
+      const maxFallback = typeof currentVacancy?.quantity === 'number' ? currentVacancy?.quantity : 0;
+
+      setOffers({
+        made: madeFromShift ?? madeFallback,
+        max: maxFromShift ?? maxFallback,
+      });
+
+      // Postulantes
+      const items: Candidate[] = (data.applications || [])
+        .map(a => ({
+          id: a.application_id,
+          employeeId: a.employee_id,
+          fullName: a.full_name,
+          avatarUrl: a.profile_image,
+          createdAt: a.created_at,
+          shiftId: data.shift_id,
+        }))
+        .sort((a, b) => a.fullName.localeCompare(b.fullName));
 
       setCandidates(items);
     } catch (e: any) {
-      setError(e?.message ?? 'Error al cargar postulaciones');
+      setError(e?.message ?? 'Error al cargar candidatos');
       setCandidates([]);
       setShiftInfo(null);
+      setOffers(null);
     } finally {
       setLoadingApplications(false);
     }
   };
 
   // ===== Efectos =====
+
+  // Carga inicial de eventos/vacantes
   useEffect(() => { fetchAllEventsVacancies(); }, []);
 
-  // Al cambiar de evento: setear primera vacante y su primer turno
+  // Al cambiar de evento, seleccionar primera vacante y su primer turno
   useEffect(() => {
     if (!currentEvent) return;
     if ((currentEvent.vacancies?.length ?? 0) === 0) {
       setSelectedVacancyId(null);
       setSelectedShiftId(null);
+      setCandidates([]);
+      setShiftInfo(null);
+      setOffers(null);
       return;
     }
-    const firstVacId = currentEvent.vacancies[0].id;
-    const firstShiftId = currentEvent.vacancies[0].shiftIds[0] ?? null;
-    setSelectedVacancyId(firstVacId);
-    setSelectedShiftId(firstShiftId);
+    const v = currentEvent.vacancies[0];
+    setSelectedVacancyId(v.id);
+    setSelectedShiftId(v.shiftIds[0] ?? null);
+    setCandidates([]);
+    setShiftInfo(null);
+    setOffers(null);
   }, [currentEventIndex, currentEvent?.id]);
 
-  // Al cambiar vacante: setear su primer turno
+  // Al cambiar vacante, seleccionar primer turno
   useEffect(() => {
     if (!currentVacancy) {
       setSelectedShiftId(null);
-      setCandidates([]);   // limpia grilla
-      setShiftInfo(null);  // limpia horario
+      setCandidates([]); setShiftInfo(null); setOffers(null);
       return;
     }
-    const firstShiftId = currentVacancy.shiftIds[0] ?? null;
-    setSelectedShiftId(firstShiftId);
-    setCandidates([]);     // limpia mientras cambia
-    setShiftInfo(null);
+    setSelectedShiftId(currentVacancy.shiftIds[0] ?? null);
+    setCandidates([]); setShiftInfo(null); setOffers(null);
   }, [selectedVacancyId]);
 
-  // Traer postulaciones cuando hay vacante y turno seleccionados
+  // Traer postulaciones cuando el turno pertenece a la vacante
   useEffect(() => {
+    if (!selectedVacancyId || !selectedShiftId) return;
+    const belongs = currentVacancy?.shiftIds?.includes(selectedShiftId) ?? false;
+    if (!belongs) return;
     fetchApplications(selectedVacancyId, selectedShiftId);
-  }, [selectedVacancyId, selectedShiftId]);
+  }, [selectedVacancyId, selectedShiftId, currentVacancy?.id]);
 
   // ===== Handlers =====
-  const handlePrevEvent = () => {
-    if (currentEventIndex > 0) setCurrentEventIndex(i => i - 1);
-  };
-  const handleNextEvent = () => {
-    if (currentEventIndex < events.length - 1) setCurrentEventIndex(i => i + 1);
-  };
+  const handlePrevEvent = () => { if (currentEventIndex > 0) setCurrentEventIndex(i => i - 1); };
+  const handleNextEvent = () => { if (currentEventIndex < events.length - 1) setCurrentEventIndex(i => i + 1); };
+
   const handleSelectVacancy = (vacancyId: number) => {
     setSelectedVacancyId(vacancyId);
-    // el efecto de arriba setea automáticamente el primer turno
-  };
-  const handleSelectShift = (shiftId: number) => {
-    setSelectedShiftId(shiftId);
-    setCandidates([]);     // limpia inmediatamente al tocar otro turno
+    setSelectedShiftId(null);
+    setCandidates([]);
     setShiftInfo(null);
+    setOffers(null);
+  };
+
+  const handleSelectShift = (shiftId: number) => {
+    if (shiftId === selectedShiftId) return;
+    setSelectedShiftId(shiftId);
+    setCandidates([]);
+    setShiftInfo(null);
+    setOffers(null);
   };
 
   // Empty states
   const hasNoEvents = !loadingEventVacancies && events.length === 0;
   const hasEventsButNoVacanciesGlobal =
     !loadingEventVacancies && events.length > 0 && events.every(ev => (ev.vacancies?.length ?? 0) === 0);
-  const currentEventHasNoVacancies =
-    !!currentEvent && (currentEvent.vacancies?.length ?? 0) === 0;
+  const currentEventHasNoVacancies = !!currentEvent && (currentEvent.vacancies?.length ?? 0) === 0;
   const hasVacanciesButNoCandidates =
     !loadingApplications && !loadingEventVacancies && !!currentVacancy && candidates.length === 0;
 
-  const goToCandidateDetail = (candidateId: number) => {
-    // Ajustá la ruta a tu estructura
-    //router.push(`/employer/candidate/${candidateId}`);
+  // Navegación a detalle de candidato
+  const openCandidateDetail = (applicationId: number | string) => {
+    router.push({
+      pathname: '/employer/candidates/detail',
+      params: { source: 'application', id: String(applicationId) },
+    });
   };
 
-  const splitFirstSpace = (s: string) => {
-    const i = s.indexOf(' ');
-    return i >= 0 ? [s.slice(0, i), s.slice(i + 1)] : [s, ''];
-  };
+  const showShiftTags = (currentVacancy?.shiftIds?.length ?? 0) > 1;
 
   return {
     // data
@@ -292,24 +323,29 @@ export const useChooseCandidates = () => {
     currentEventIndex,
     vacancies: currentEvent?.vacancies ?? [],
     roleOptions,
-    shiftInfo,
     roleAnchorRef,
+    selectedRoleLabel,
     selectedVacancyId,
     currentVacancy,
+    shiftTags,
     selectedShiftId,
     candidates,
-    selectedRoleLabel,
-    shiftTags,
+    shiftInfo,
+    showShiftTags,
+
+    // ofertas
+    offersMade,
+    offersMax,
+    isFull,
+
+    // ui
     rolePickerVisible,
     setRolePickerVisible,
-    splitFirstSpace,
-
-    // states
     loadingEventVacancies,
     loadingApplications,
     error,
 
-    // empty flags
+    // empties
     hasNoEvents,
     hasEventsButNoVacanciesGlobal,
     currentEventHasNoVacancies,
@@ -320,7 +356,9 @@ export const useChooseCandidates = () => {
     handleNextEvent,
     handleSelectVacancy,
     handleSelectShift,
+    openCandidateDetail,
 
-    goToCandidateDetail
+    // utils
+    splitFirstSpace,
   };
 };

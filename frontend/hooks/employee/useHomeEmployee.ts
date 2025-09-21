@@ -23,9 +23,11 @@ export const useHomeEmployee = () => {
       ]);
 
       setSoonVacancies(soon?.results);
+      console.log(soon.results)
       setInterestVacancies(interests?.results);
       setNearVacancies(near?.results);
       setLoadingComienzo(false)
+
     } catch (err) {
       console.log('Error al obtener vacantes:', err);
       setErrorVacancies('No se pudieron cargar las vacantes');
