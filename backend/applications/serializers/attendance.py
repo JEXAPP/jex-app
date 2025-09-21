@@ -112,6 +112,7 @@ class OfferByEventSerializer(serializers.ModelSerializer):
     employee_name = serializers.CharField(source="employee.user.get_full_name", read_only=True)
     job_type = serializers.SerializerMethodField()
     has_attendance = serializers.SerializerMethodField()
+    shift_id = serializers.IntegerField(source="selected_shift.id", read_only=True)
 
     class Meta:
         model = Offer
@@ -120,6 +121,7 @@ class OfferByEventSerializer(serializers.ModelSerializer):
             "employee_name",
             "job_type",
             "has_attendance",
+            "shift_id",
         ]
 
 
