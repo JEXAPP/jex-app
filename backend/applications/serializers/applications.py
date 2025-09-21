@@ -4,7 +4,7 @@ from applications.models.applications_states import ApplicationState
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from user_auth.utils import get_city_locality, calculate_age
 from vacancies.constants import VacancyStates
-from applications.errors.application_messages import EMPLOYEE_PROFILE_NOT_FOUND, NOT_PERMISSION_APPLICATION, NOT_PERMISSION_APPLICATION
+from applications.errors.application_messages import ALREADY_APPLIED_SHIFTS, EMPLOYEE_PROFILE_NOT_FOUND, NOT_PERMISSION_APPLICATION, NOT_PERMISSION_APPLICATION
 from vacancies.errors.vacancies_messages import SHIFTS_IDS_MUST_BE_INTEGERES, SHIFTS_NOT_BELONG_VACANCY, VACANCY_NOT_ACTIVE, VACANCY_NOT_FOUND
 from vacancies.models import Vacancy, Shift
 from applications.models.applications import Application
@@ -41,45 +41,52 @@ class ApplicationCreateSerializer(serializers.Serializer):
     def validate(self, data):
         vacancy_id = data['vacancy_id']
         shifts = data['shifts']
+        user = self.context['user']
 
         # Validar que la vacante esté activa
         self.validate_vacancy_active(vacancy_id)
 
+        # Validar que los turnos pertenezcan a la vacante
         valid_shift_ids = set(
             Shift.objects.filter(id__in=shifts, vacancy_id=vacancy_id)
             .values_list('id', flat=True)
         )
         if valid_shift_ids != set(shifts):
             raise serializers.ValidationError(SHIFTS_NOT_BELONG_VACANCY)
-        return data
 
-    def save(self, **kwargs):
-        user = self.context['user']
+        # Validar que el empleado no se haya postulado ya a esos turnos
         try:
             employee = EmployeeProfile.objects.get(user=user)
         except EmployeeProfile.DoesNotExist:
             raise serializers.ValidationError(EMPLOYEE_PROFILE_NOT_FOUND)
 
+        already_applied_shifts = set(
+            Application.objects.filter(employee=employee, shift_id__in=shifts)
+            .values_list('shift_id', flat=True)
+        )
+
+        if already_applied_shifts:
+            raise serializers.ValidationError(
+                ALREADY_APPLIED_SHIFTS.format(shifts=", ".join(map(str, already_applied_shifts)))
+            )
+
+        return data
+
+    def save(self, **kwargs):
+        user = self.context['user']
+        employee = EmployeeProfile.objects.get(user=user)
         shifts_ids = self.validated_data['shifts']
 
+        pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
+
         with transaction.atomic():
-            existing_shift_ids = set(
-                Application.objects.filter(employee=employee, shift_id__in=shifts_ids)
-                .values_list('shift_id', flat=True)
-            )
-            new_shift_ids = set(shifts_ids) - existing_shift_ids
-
-            if not new_shift_ids:
-                return False  # No se crean nuevas postulaciones
-            
-            pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
-
             Application.objects.bulk_create([
                 Application(employee=employee, shift_id=shift_id, state=pending_state)
-                for shift_id in new_shift_ids
+                for shift_id in shifts_ids
             ])
 
         return True
+
 
 
 class ApplicationDetailSerializer(serializers.ModelSerializer):

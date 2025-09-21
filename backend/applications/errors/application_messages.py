@@ -9,3 +9,5 @@ NOT_PERMISSION_APPLICATION = "No tenés permiso para ver esta postulación."
 
 NOT_VALID_APPLICATION_STATE = "La postulación no está en estado pendiente."
 INVALID_APPLICATION_RELATIONSHIPS = "Relaciones de postulación no válidas."
+
+ALREADY_APPLIED_SHIFTS = "Ya te postulaste a los turnos: {shifts}"
