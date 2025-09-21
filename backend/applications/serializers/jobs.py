@@ -10,10 +10,16 @@ from vacancies.models.shifts import Shift
 class EventForEmployeeJobsSerializer(serializers.ModelSerializer):
     state = serializers.CharField(source="state.name")
     category = serializers.CharField(source="category.name")
+    event_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
-        fields = ["id", "name", "state", "category"]
+        fields = ["id", "name", "state", "category", "event_image_url"]
+
+    def get_event_image_url(self, obj):
+        if obj.event_image:
+            return obj.event_image.url
+        return None
 
 
 class ShiftForEmployeeJobsSerializer(serializers.ModelSerializer):
@@ -37,7 +43,7 @@ class EmployeeForSearchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Offer
-        fields = ["event", "shift"]
+        fields = ["id", "event", "shift"]
 
     def get_event(self, obj):
         event = obj.selected_shift.vacancy.event
