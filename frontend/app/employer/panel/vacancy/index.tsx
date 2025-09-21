@@ -1,24 +1,24 @@
+import { IconButton } from "@/components/button/IconButton";
+import { SelectableTag } from "@/components/button/SelectableTags";
+import { Input } from "@/components/input/Input";
+import { DotsLoader } from "@/components/others/DotsLoader";
+import { iconos } from "@/constants/iconos";
+import { useVacancies } from "@/hooks/employer/panel/vacancy/useVacancies";
+import { vacanciesStyles as styles } from "@/styles/app/employer/panel/vacancy/vacanciesStyles";
+import { iconButtonStyles1 } from "@/styles/components/button/iconButtonStyles1";
+import { selectableTagStyles2 } from "@/styles/components/button/selectableTagsStyles/selectableTagsStyles2";
+import { inputStyles1 } from "@/styles/components/input/inputStyles/inputStyles1";
+import { Colors } from "@/themes/colors";
 import React from "react";
 import {
-  View,
+  Keyboard,
+  ScrollView,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  Keyboard,
-  ScrollView,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Input } from "@/components/input/Input";
-import { IconButton } from "@/components/button/IconButton";
-import { iconButtonStyles1 } from "@/styles/components/button/iconButtonStyles1";
-import { selectableTagStyles2 } from "@/styles/components/button/selectableTagsStyles/selectableTagsStyles2";
-import { SelectableTag } from "@/components/button/SelectableTags";
-import { iconos } from "@/constants/iconos";
-import { Colors } from "@/themes/colors";
-import { inputStyles1 } from "@/styles/components/input/inputStyles/inputStyles1";
-import { useVacancies } from "@/hooks/employer/vacancy/useVacancies";
-import { vacanciesStyles as styles } from "@/styles/app/employer/vacancy/vacanciesStyles";
-import { DotsLoader } from "@/components/others/DotsLoader";
 
 export default function VacanciesScreen() {
   const {
@@ -37,11 +37,10 @@ export default function VacanciesScreen() {
   if (loading) {
       return (
         <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text>Cargando datos...</Text>
-                <View style={{ marginTop: -140 }}>
-                  <DotsLoader />
-                </View>
-              </SafeAreaView>
+          <View style={{ marginTop: -140 }}>
+            <DotsLoader />
+          </View>
+        </SafeAreaView>
       );
     }
 
@@ -59,7 +58,6 @@ export default function VacanciesScreen() {
         <ScrollView contentContainerStyle={styles.scrollContent}>
           {/* Titulo */}
           <Text style={styles.title}>Vacantes</Text>
-          <Text style={styles.eventName}>{currentEvent.nombre}</Text>
 
           {/* Search + Crear Vacante */}
           <View style={styles.searchRow}>

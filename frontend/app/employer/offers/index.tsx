@@ -1,11 +1,18 @@
 import StateOffersSkeleton from "@/constants/skeletons/employer/offers/stateOffersSkeleton";
-import { FilterStatus, useStateOffers } from "@/hooks/employer/offers/useStateOffers";
+import { useStateOffers, FilterSimple } from "@/hooks/employer/offers/useStateOffers";
 import { stateOffersStyles as styles } from "@/styles/app/employer/offers/stateOffersStyles";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { DotsLoader } from "@/components/others/DotsLoader";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from "@/themes/colors";
+import { iconos } from "@/constants/iconos";
+import ImageOnline from "@/components/others/ImageOnline";
 
+// ⬇️ SelectableTag
+import { SelectableTag } from "@/components/button/SelectableTags";
+import { selectableTagStyles2 } from "@/styles/components/button/selectableTagsStyles/selectableTagsStyles2";
 
 export default function StateOffersScreen() {
   const {
@@ -14,7 +21,7 @@ export default function StateOffersScreen() {
     goPrevEvent,
     canGoNext,
     canGoPrev,
-    filter,
+    filter,            // "Pendiente" | "Aceptadas" | "Otro"
     setFilter,
     filteredOffers,
     offers,
@@ -23,9 +30,7 @@ export default function StateOffersScreen() {
     loadingEvents
   } = useStateOffers();
 
-  if (loadingEvents) {
-  return <StateOffersSkeleton />;
-}
+  if (loadingEvents) return <StateOffersSkeleton />;
 
   if (events.length === 0) {
     return (
@@ -43,119 +48,129 @@ export default function StateOffersScreen() {
     );
   }
 
-  const hasOffersForEvent = offers.some((o) => o.eventId === currentEvent.id);
+  const hasOffersForEvent = offers.some((o) => o.eventId === currentEvent!.id);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Ofertas</Text>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <View>
+        <Text style={styles.title}>Ofertas</Text>
 
-      {/* Evento actual con navegación */}
-      <View style={styles.eventHeader}>
-        {canGoPrev && (
-          <TouchableOpacity style={styles.eventNavButton} onPress={goPrevEvent}>
-            <Ionicons name="chevron-back" size={20} color= {"#4B0082"} />
-          </TouchableOpacity>
-        )}
+        <View style={styles.eventRow}>
+          <View style={styles.sideSlot}>
+            {canGoPrev && (
+              <TouchableOpacity onPress={goPrevEvent}>
+                {iconos.flechaIzquierda(24, Colors.violet4)}
+              </TouchableOpacity>
+            )}
+          </View>
 
-        <View style={styles.eventNameContainer}>
-  <Text style={styles.eventName}>{currentEvent.name}</Text>
+          <View style={styles.centerSlot}>
+            <Text style={styles.eventName}>{currentEvent!.name}</Text>
+          </View>
 
-  {/* Estado del evento */}
-  <View style={styles.eventStateBadge}>
-    <Text style={styles.eventStateText}>{currentEvent.state?.name}</Text>
-  </View>
-</View>
+          <View style={styles.sideSlot}>
+            {canGoNext && (
+              <TouchableOpacity onPress={goNextEvent}>
+                {iconos.flechaDerecha(24, Colors.violet4)}
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
 
-
-        {canGoNext && (
-          <TouchableOpacity style={styles.eventNavButton} onPress={goNextEvent}>
-            <Ionicons name="chevron-forward" size={20} color={"#4B0082"} />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Filtros */}
-      <View style={styles.filterContainer}>
-        {(["Pendientes", "Aceptadas", "Rechazadas", "Vencidas"] as FilterStatus[]).map((f) => (
-          <TouchableOpacity
-            key={f}
-            style={[styles.filterButton, filter === f && styles.filterButtonActive]}
-            onPress={() => setFilter(f)}
-          >
-            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>{f}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {loading ? (
-        <DotsLoader />   
-      ) : !hasOffersForEvent ? (
-        <View style={styles.generalEmptyContainer}>
-          <Text style={styles.generalEmptyTitle}>Sin Ofertas</Text>
-          <Image
-            source={require("@/assets/images/jex/Jex-Sin-Eventos.png")}
-            style={styles.generalEmptyImage}
-            resizeMode="contain"
+        {/* 🔹 Filtros con SelectableTag */}
+        <View style={styles.tagsRow}>
+          <SelectableTag
+            title="Pendiente"
+            selected={filter === "Pendiente"}
+            onPress={() => setFilter("Pendiente")}
+            styles={selectableTagStyles2}
+          />
+          <SelectableTag
+            title="Aceptadas"
+            selected={filter === "Aceptadas"}
+            onPress={() => setFilter("Aceptadas")}
+            styles={selectableTagStyles2}
+          />
+          <SelectableTag
+            title="Otro"
+            selected={filter === "Otro"}
+            onPress={() => setFilter("Otro")}
+            styles={selectableTagStyles2}
           />
         </View>
-      ) : filteredOffers.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>Sin Ofertas de este tipo</Text>
-          <Image
-            source={require("@/assets/images/jex/Jex-Sin-Eventos.png")}
-            style={styles.emptyImage}
-            resizeMode="contain"
-          />
-        </View>
-      ) : (
-        <FlatList
-          data={filteredOffers}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.offerCard}>
-              <View style={styles.statusBadge}>
-                <Text
-                  style={[
-                    styles.statusText,
-                    filter === "Vencidas"
-                      ? styles.statusRechazada
-                      : item.status === "Pendiente"
-                      ? styles.statusPendiente
-                      : item.status === "Aceptada"
-                      ? styles.statusAceptada
-                      : styles.statusRechazada,
-                  ]}
-                >
-                  {filter === "Vencidas" ? "Vencida" : item.status}
-                </Text>
-              </View>
 
-              <View style={styles.offerHeader}>
-                <Image source={item.employeeImage} style={styles.employeeImage} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.employeeName}>{item.employeeName}</Text>
+        {loading ? (
+          <DotsLoader />
+        ) : !hasOffersForEvent ? (
+          <View style={styles.generalEmptyContainer}>
+            <Text style={styles.generalEmptyTitle}>Sin Ofertas</Text>
+            <Image
+              source={require("@/assets/images/jex/Jex-Sin-Eventos.png")}
+              style={styles.generalEmptyImage}
+              resizeMode="contain"
+            />
+          </View>
+        ) : filteredOffers.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>Sin Ofertas de este tipo</Text>
+            <Image
+              source={require("@/assets/images/jex/Jex-Sin-Eventos.png")}
+              style={styles.emptyImage}
+              resizeMode="contain"
+            />
+          </View>
+        ) : (
+          <FlatList
+            data={filteredOffers}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => {
+              const badgeStyle =
+                item.status === "Pendiente"
+                  ? styles.statusPendiente
+                  : item.status === "Aceptada"
+                  ? styles.statusAceptada
+                  : styles.statusRechazada; // Rechazada/Vencida
 
-                  <View style={styles.rowPills}>
-                    <View style={styles.rolePill}>
-                      <Text style={styles.roleText}>{item.role}</Text>
-                    </View>
-                    <View style={styles.salaryPill}>
-                      <Text style={styles.salaryText}>{item.salary} ARS</Text>
+              const badgeText =
+                item.status === "Vencida" ? "Vencida" : item.status;
+
+              return (
+                <View style={styles.offerCard}>
+                  <View style={styles.statusBadge}>
+                    <Text style={[styles.statusText, badgeStyle]}>{badgeText}</Text>
+                  </View>
+
+                  <View style={styles.offerHeader}>
+                    <ImageOnline
+                      imageUrl={item.imageUrl}
+                      imageId={item.imageId}
+                      size={70}
+                      shape="circle"
+                      style={{ marginRight: 10 }}
+                      fallback={require('@/assets/images/jex/Jex-Postulantes-Default.png')}
+                    />
+                    <View style={styles.column}>
+                      <Text style={styles.employeeName}>{item.employeeName}</Text>
+                      <View style={styles.salaryPill}>
+                        <Text style={styles.salaryText}>{item.salary} ARS</Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-              </View>
 
-              <View style={styles.datePill}>
-                <Ionicons name="calendar" size={14} color="#6B6B6B" />
-                <Text style={styles.date}>
-                  {`${item.fechaInicio} ${item.horaInicio} - ${item.horaFin}`}
-                </Text>
-              </View>
-            </View>
-          )}
-        />
-      )}
-    </View>
+                  <Text style={styles.roleText}>{item.role}</Text>
+
+                  <View style={styles.datePill}>
+                    <Ionicons name="calendar" size={14} color={Colors.gray3} />
+                    <Text style={styles.date}>
+                      {`${item.fechaInicio}      ${item.horaInicio} - ${item.horaFin}`}
+                    </Text>
+                  </View>
+                </View>
+              );
+            }}
+          />
+        )}
+      </View>
+    </SafeAreaView>
   );
 }

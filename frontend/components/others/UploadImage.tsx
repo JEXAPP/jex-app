@@ -29,16 +29,16 @@ type Props = {
   containerStyle?: StyleProp<ViewStyle>;
   defaultImage?: ImageSourcePropType;
 
-  /** 🔹 Modo de uso: "create" (default) o "edit" */
+  /** Modo de uso: "create" (default) o "edit" */
   mode?: 'create' | 'edit';
 
-  /** 🔹 Imagen precargada (opcional): URL completa de Cloudinary */
+  /** Imagen precargada (opcional): URL completa de Cloudinary */
   initialImageUrl?: string | null;
 
-  /** 🔹 Imagen precargada (opcional): public_id de Cloudinary */
+  /** Imagen precargada (opcional): public_id de Cloudinary */
   initialImageId?: string | null;
 
-  /** 🔹 Tamaño de vista previa (px) */
+  /** Tamaño de vista previa (px) */
   size?: number; // default 120
 };
 
@@ -53,18 +53,21 @@ export const UploadImage = ({
   initialImageId = null,
   size = 120,
 }: Props) => {
-  const { getImageUrl } = useGetImage()
+  const { getImageUrl } = useGetImage();
 
+  // uri REAL (elegida por el usuario o existente en Cloudinary). Nunca guardamos acá la default.
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [defaultImageUri, setDefaultImageUri] = useState<string | null>(null);
-  const [hadInitial, setHadInitial] = useState<boolean>(false); // hubo imagen previa real
+  const [hadInitial, setHadInitial] = useState<boolean>(false);
   const [isLoadingInitial, setIsLoadingInitial] = useState<boolean>(false);
 
   // Resolver defaultImage (asset local)
   useEffect(() => {
     if (defaultImage) {
       const resolved = RNImage.resolveAssetSource(defaultImage);
-      setDefaultImageUri(resolved.uri);
+      setDefaultImageUri(resolved?.uri ?? null);
+    } else {
+      setDefaultImageUri(null);
     }
   }, [defaultImage]);
 
@@ -79,13 +82,20 @@ export const UploadImage = ({
         try {
           const url = await getImageUrl(
             { image_id: initialImageId ?? undefined, image_url: initialImageUrl ?? undefined },
-            {} // sin transformaciones extra
+            {}
           );
-          if (alive) {
-            setImageUri(url ?? null);
-            setHadInitial(!!url);
-            // En edición puede servir notificar el valor actual (file null, uri la existente)
-            onChange(null, url ?? null);
+          if (!alive) return;
+
+          if (url) {
+            setImageUri(url);
+            setHadInitial(true);
+            // Hay imagen REAL existente
+            onChange(null, url);
+          } else {
+            // No se pudo resolver -> no hay imagen real
+            setImageUri(null);
+            setHadInitial(false);
+            onChange(null, null);
           }
         } finally {
           if (alive) setIsLoadingInitial(false);
@@ -93,16 +103,10 @@ export const UploadImage = ({
         return;
       }
 
-      // Si no hay initial y hay default, la uso solo en modo create
-      if (!initialImageUrl && !initialImageId) {
-        if (defaultImageUri && mode === 'create') {
-          setImageUri(defaultImageUri);
-          onChange(null, defaultImageUri);
-        } else {
-          setImageUri(null);
-          onChange(null, null);
-        }
-      }
+      // Sin initial -> no hay imagen real
+      setImageUri(null);
+      setHadInitial(false);
+      onChange(null, null);
     };
 
     loadInitial();
@@ -110,12 +114,11 @@ export const UploadImage = ({
       alive = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialImageUrl, initialImageId, defaultImageUri, mode]);
+  }, [initialImageUrl, initialImageId, mode]);
 
-  const isDefaultImage = useMemo(
-    () => !!imageUri && !!defaultImageUri && imageUri === defaultImageUri,
-    [imageUri, defaultImageUri]
-  );
+  // URI a mostrar: si no hay real, mostramos default (si existe)
+  const displayUri = useMemo(() => imageUri ?? defaultImageUri ?? null, [imageUri, defaultImageUri]);
+  const isShowingDefault = useMemo(() => !imageUri && !!defaultImageUri && displayUri === defaultImageUri, [imageUri, defaultImageUri, displayUri]);
 
   const seleccionarImagen = async () => {
     try {
@@ -136,7 +139,6 @@ export const UploadImage = ({
 
         const file: UploadableImage = { uri, name, type };
         setImageUri(uri);
-        // en edición, al seleccionar “modificar” se reemplaza la previa
         onChange(file, uri);
       }
     } catch (error) {
@@ -145,67 +147,71 @@ export const UploadImage = ({
   };
 
   const eliminarImagen = () => {
-    // En “eliminar”, dejamos la imagen en null
+    // Eliminar deja SIN imagen real; si hay default se mostrará pero no se envía nada
     setImageUri(null);
     onChange(null, null);
-    // Si se elimina la existente en edit, ya no hay “hadInitial”
     setHadInitial(false);
   };
 
   // --- Render helpers según modo y estado ---
   const renderButtons = () => {
-    // MODO EDIT: si había imagen previa real (o ya hay una no default)
-    const hasCurrent =
-      !!imageUri && (!defaultImageUri || imageUri !== defaultImageUri);
+    // MODO EDIT: si había imagen previa real (o ya hay una no-default)
+    const hasCurrent = !!imageUri;
 
     if (mode === 'edit') {
       if (hasCurrent || hadInitial) {
-        // Dos botones: Modificar / Eliminar
+        // Dos botones: Modificar / Eliminar (centrados)
         return (
-          <View style={styles.row}>
-            <TouchableOpacity style={styles.secondaryButton} onPress={seleccionarImagen}>
-              <Ionicons name="camera" size={20} style={styles.icon} color={Colors.violet4} />
-              <Text style={styles.addText}>Modificar</Text>
-            </TouchableOpacity>
+          <View style={styles.buttonsContainer}>
+            <View style={styles.row}>
+              <TouchableOpacity style={styles.secondaryButton} onPress={seleccionarImagen}>
+                <Ionicons name="camera" size={18} style={styles.icon} color={Colors.gray3} />
+                <Text style={styles.addText}>Modificar</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity style={styles.dangerButton} onPress={eliminarImagen}>
-              <Ionicons name="trash" size={20} style={styles.icon} color={Colors.violet4} />
-              <Text style={styles.addText}>Eliminar</Text>
-            </TouchableOpacity>
+              <TouchableOpacity style={styles.dangerButton} onPress={eliminarImagen}>
+                <Ionicons name="trash" size={18} style={styles.icon} color={Colors.gray3} />
+                <Text style={styles.addText}>Eliminar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         );
       }
-      // No hay imagen previa → botón único “Agregar”
+      // No hay imagen previa → botón único “Agregar” (centrado)
       return (
-        <TouchableOpacity style={styles.addButton} onPress={seleccionarImagen}>
-          <Ionicons name="camera" size={20} style={styles.icon} color={Colors.violet4} />
-          <Text style={styles.addText}>Agregar</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity style={styles.addButton} onPress={seleccionarImagen}>
+            <Ionicons name="camera" size={18} style={styles.icon} color={Colors.gray3} />
+            <Text style={styles.addText}>Agregar</Text>
+          </TouchableOpacity>
+        </View>
       );
     }
 
-    // MODO CREATE (comportamiento previo: alterna entre Agregar/Eliminar si hay imagen)
-    const showAdd = !imageUri || isDefaultImage;
+    // MODO CREATE: si está mostrando default o no hay imagen real -> "Agregar"; si hay real -> "Eliminar"
+    const showAdd = !imageUri || isShowingDefault;
     return (
-      <TouchableOpacity style={styles.addButton} onPress={showAdd ? seleccionarImagen : eliminarImagen}>
-        <Ionicons
-          name={showAdd ? 'camera' : 'trash'}
-          size={20}
-          style={styles.icon}
-          color={Colors.violet4}
-        />
-        <Text style={styles.addText}>{showAdd ? 'Agregar' : 'Eliminar'}</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity style={styles.addButton} onPress={showAdd ? seleccionarImagen : eliminarImagen}>
+          <Ionicons
+            name={showAdd ? 'camera' : 'trash'}
+            size={18}
+            style={styles.icon}
+            color={Colors.gray3}
+          />
+          <Text style={styles.addText}>{showAdd ? 'Agregar' : 'Eliminar'}</Text>
+        </TouchableOpacity>
+      </View>
     );
   };
 
   return (
     <View style={containerStyle}>
-      {!!imageUri && (
+      {!!displayUri && (
         <Image
-          source={{ uri: imageUri }}
+          source={{ uri: displayUri }}
           style={[
-            { width: size, height: size, marginBottom: 10 },
+            { width: size, height: size, marginBottom: 10, alignSelf: 'center' },
             shape === 'circle' ? { borderRadius: size } : { borderRadius: 8 },
             imageStyle,
           ]}
@@ -213,10 +219,11 @@ export const UploadImage = ({
         />
       )}
 
-      {/* si no hay imagen y estamos cargando initial (por public_id) no mostramos botón bloqueado; mantenemos UX simple */}
       {isLoadingInitial ? (
-        <View style={styles.loadingPill}>
-          <Text style={styles.loadingText}>Cargando imagen…</Text>
+        <View style={styles.buttonsContainer}>
+          <View style={styles.loadingPill}>
+            <Text style={styles.loadingText}>Cargando imagen…</Text>
+          </View>
         </View>
       ) : (
         renderButtons()

@@ -1,23 +1,22 @@
-import React from 'react';
+import { Button } from '@/components/button/Button';
 import { SelectableTag } from '@/components/button/SelectableTags';
+import { Card } from '@/components/others/Card';
 import { ClickWindow } from '@/components/window/ClickWindow';
+import { iconos } from '@/constants/iconos';
+import ManipulateVacancySkeleton from '@/constants/skeletons/employer/manipulateVacancySkeleton';
 import { useApplyVacancy } from '@/hooks/employee/vacancy/useApplyVacancy';
-import { useManipulateVacancy } from '@/hooks/employer/vacancy/useManipulateVacancy';
-import { manipulateVacancyStyles as styles } from '@/styles/app/employer/vacancy/manipulateVacancyStyles';
-import { selectableTagStyles2 } from '@/styles/components/button/selectableTagsStyles/selectableTagsStyles2';
+import { useManipulateVacancy } from '@/hooks/employer/panel/vacancy/useManipulateVacancy';
+import { manipulateVacancyStyles as styles } from '@/styles/app/employer/panel/vacancy/manipulateVacancyStyles';
+import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
+import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonStyles4';
 import { selectableTagStyles1 } from '@/styles/components/button/selectableTagsStyles/selectableTagsStyles1';
+import { selectableTagStyles2 } from '@/styles/components/button/selectableTagsStyles/selectableTagsStyles2';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { Colors } from '@/themes/colors';
 import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
 import { Image, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { iconos } from '@/constants/iconos';
-import ManipulateVacancySkeleton from '@/constants/skeletons/employer/manipulateVacancySkeleton'; 
-import { Button } from '@/components/button/Button';
-import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
-import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonStyles4';
-import { Card } from '@/components/others/Card';
-import { DotsLoader } from '@/components/others/DotsLoader';
 
 export default function ManipulateVacancyScreen() {
   const {
@@ -148,6 +147,7 @@ export default function ManipulateVacancyScreen() {
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
           <View style={styles.headerTop}>
+            
             <Image
               source={require('@/assets/images/jex/Jex-FotoPerfil.png')}
               style={styles.logoWrapper}

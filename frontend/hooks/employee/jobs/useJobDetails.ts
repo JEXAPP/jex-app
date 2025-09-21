@@ -50,7 +50,7 @@ function buildWeekFromDate(dateStr?: string | null): WeekDay[] {
 
 export function useJobDetails() {
   const params = useLocalSearchParams<{ offer_id?: string }>();
-  const offerId = Number(params.offer_id) || 0;
+  const offerId = Number(params.offer_id) || 4;
 
   const { requestBackend } = useBackendConection();
 
@@ -73,6 +73,7 @@ export function useJobDetails() {
     setLoading(true);
     try {
       const back = await requestBackend(`/api/applications/offer-detail/${offerId}/accepted/`, null, 'GET');
+      console.log(back)
       const shift = back?.shift;
 
       const requirements: string[] = Array.isArray(shift?.requirements)

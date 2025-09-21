@@ -2,38 +2,33 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import useBackendConection from "@/services/internal/useBackendConection";
+import { useDataTransformation } from "@/services/internal/useDataTransformation";
 
 export type Job = {
   id: number;
   eventName: string;
-  category: string;   // 👈 nuevo
+  category: string;   
   date: string;
   role: string;
   salary: string;
   startDate: string;
-  image: any;
+  event_image_url: string;
+  event_image_public_id: string;
   daysRemaining: number;
+  jobId: number;
 };
 
 
 export const useActiveJobs = () => {
   const router = useRouter();
   const { requestBackend } = useBackendConection();
+  const {formatFechaLarga} = useDataTransformation()
   const [jobs, setJobs] = useState<Job[]>([]);
 
   const parseDate = (dateStr: string) => {
   const [day, month, year] = dateStr.split("/").map(Number);
   return new Date(year, month - 1, day);
 };
-
-  const formatDate = (d: Date) => {
-  const months = [
-    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-  ];
-  return `${d.getDate()} de ${months[d.getMonth()]} del ${d.getFullYear()}`;
-};
-
 
   const formatNumberAR = (v: string | number) => {
     const n = Number(v);
@@ -45,9 +40,10 @@ export const useActiveJobs = () => {
     const fetchJobs = async () => {
   try {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // 👈 reseteamos hora para comparar solo días
+    today.setHours(0, 0, 0, 0); 
 
     const data = await requestBackend("/api/applications/employee-jobs/", null, "GET");
+    console.log(data)
     if (!mounted) return;
 
     const normalized: Job[] = (data ?? [])
@@ -65,15 +61,16 @@ export const useActiveJobs = () => {
           id: `${item.event?.id ?? "noevent"}-${item.shift?.job_type ?? "norole"}-${item.shift?.start_date ?? "nodate"}-${item.shift?.start_time ?? "nostart"}-${item.shift?.end_time ?? "noend"}`,
           eventName: item.event?.name ?? "Evento sin nombre",
           category: item.event?.category ?? "",
-          date: start ? formatDate(start) : "Sin fecha",
+          date: formatFechaLarga(item.shift?.start_date) ?? "Sin fecha",
           role: item.shift?.job_type ?? "Sin rol",
           salary: formatNumberAR(item.shift?.payment ?? 0),
           startDate: startDateStr,
-          image: require("@/assets/images/Publicidad1.png"),
+          event_image_url: item.event?.event_image_url,
+          event_image_public_id: item.event?.event_image_public_id,
           daysRemaining: diffDays,
+          jodId: item.job_id ?? 0
         };
       })
-      // 👇 filtro: solo mostrar trabajos que faltan hoy o más adelante
       .filter((job: Job) => job.daysRemaining >= 0);
 
     setJobs(normalized);
@@ -81,7 +78,6 @@ export const useActiveJobs = () => {
     console.log("Error cargando trabajos activos:", e);
   }
 };
-
 
     fetchJobs();
     return () => {
@@ -91,8 +87,8 @@ export const useActiveJobs = () => {
 
   const goToJobDetail = (job: Job) => {
     router.push({
-      pathname: "/employee/job/job-details",
-      params: { offer_id: job.id },
+      pathname: "/employee/jobs/job-details",
+      params: { offer_id: job.jobId },
     });
   };
 

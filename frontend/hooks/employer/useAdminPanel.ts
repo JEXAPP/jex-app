@@ -125,9 +125,9 @@ useEffect(() => {
     }
   };
 
-  const goToCreateEvent = () => router.push("/employer/vacancy/create-event");
+  const goToCreateEvent = () => router.push("/employer/panel/create-event");
   const goToEditEvent = (id: number) =>
-    router.push(`/employer/vacancy/edit-event?id=${id}`);
+    router.push(`/employer/panel/edit-event?id=${id}`);
 
   const goToVacancies = (eventId: number) => {
     const idx = orderedEvents.findIndex((e) => e.id === eventId);
@@ -135,10 +135,13 @@ useEffect(() => {
       setCurrentEventIndex(idx);
     }
     router.push({
-      pathname: "/employer/vacancy",
+      pathname: "/employer/panel/vacancy",
       params: { id: String(eventId) },
     });
   };
+
+  const goToAttendance = (id: number) =>
+    router.push(`/employer/panel/attendance?id=${id}`);
 
   return {
     // Eventos
@@ -155,6 +158,7 @@ useEffect(() => {
 
     // Navegación
     goToVacancies,
+    goToAttendance
   };
 };
 export default useAdminPanel;

@@ -55,6 +55,8 @@ export interface Job {
   deadline: string;
   mapImage: string;
   rating: number;
+  event_image_url: string;
+  event_image_public_id: string;
 }
 
 export interface Organizer {

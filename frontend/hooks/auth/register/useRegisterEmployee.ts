@@ -105,7 +105,7 @@ export const useRegisterEmployee = () => {
           const telefonoParseado = JSON.parse(telefono); 
           setRegistroPrevio({
             ...JSON.parse(datosGuardados),
-            phone: telefonoParseado.phone // 👈 solo el string limpio
+            phone: telefonoParseado.phone 
           });
         }
 

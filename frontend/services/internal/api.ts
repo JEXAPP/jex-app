@@ -99,7 +99,6 @@ export function getApi(): AxiosInstance {
   api.interceptors.request.use(async (cfg) => {
   const token = await getAccess();
   if (token) {
-    console.log('[API] Using access token:', token.slice(0, 20) + '...');
 
     if ((cfg.headers as any)?.set) {
       (cfg.headers as any).set('Authorization', `Bearer ${token}`);

@@ -1,20 +1,19 @@
-// styles/app/employee/jobs/activeJobsStyles.ts
 import { StyleSheet } from "react-native";
 import { Colors } from "@/themes/colors";
 
 export const activeJobsStyles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: Colors.gray1,
-    paddingTop: 40,
+    flexGrow: 1,
     paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 70,
+    backgroundColor: Colors.gray1,
   },
   title: {
-    fontSize: 48,
-    fontFamily: "titulos",
+    fontSize: 50,
+    fontFamily: 'titulos',
     color: Colors.violet4,
-    marginBottom: 20,
-    marginTop: 60,
+    marginBottom: 10
   },
   scroll: {
     paddingBottom: 40,
@@ -24,11 +23,6 @@ export const activeJobsStyles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 15,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   cardHeader: {
     flexDirection: "row",
@@ -55,7 +49,7 @@ export const activeJobsStyles = StyleSheet.create({
     color: Colors.gray3,
   },
   daysPill: {
-    backgroundColor: Colors.gray12,
+    backgroundColor: Colors.gray1,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -64,8 +58,8 @@ export const activeJobsStyles = StyleSheet.create({
   },
   daysPillText: {
     fontSize: 12,
-    fontFamily: "interMedium",
-    color: Colors.black,
+    fontFamily: "interSemiBold",
+    color: Colors.violet5,
   },
   dateRoleRow: {
     flexDirection: "row",
@@ -83,7 +77,7 @@ export const activeJobsStyles = StyleSheet.create({
   verticalDivider: {
     width: 1,
     height: "100%",
-    backgroundColor: Colors.gray2,
+    backgroundColor: Colors.gray12,
     marginHorizontal: 12,
   },
   roleSalaryBox: {
@@ -108,15 +102,14 @@ export const activeJobsStyles = StyleSheet.create({
     color: Colors.white,
   },
   headerRow: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginTop: 30,
-  marginBottom: 20,
-},
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
   horizontalDivider: {
-    height: 1,
-    backgroundColor: Colors.gray2,
+    height: 0.6,
+    backgroundColor: Colors.gray12,
     marginVertical: 10,
   },
   footerRow: {
@@ -127,39 +120,42 @@ export const activeJobsStyles = StyleSheet.create({
   footerText: {
     flex: 1,
     fontSize: 14,
-    fontFamily: "interRegular",
+    fontFamily: "interLightItalic",
     color: Colors.gray3,
-    marginRight: 10,
+    marginRight: 15,
   },
   footerArrow: {
     fontSize: 20,
     color: Colors.black,
     fontFamily: "interBold",
+    marginRight: 5
   },
   noJobsCard: {
-  backgroundColor: Colors.white,
-  borderRadius: 15,
-  padding: 20,
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginTop: -30
-},
-noJobsTitle: {
-  fontSize: 22,
-  fontFamily: "interBold",
-  color: Colors.violet4,
-  marginBottom: 10,
-},
-noJobsImage: {
-  width: 220,
-  height: 220,
-  marginBottom: 15,
-},
-noJobsSubtitle: {
-  fontSize: 16,
-  fontFamily: "interRegular",
-  color: Colors.gray3,
-  textAlign: "center",
-},
+    backgroundColor: Colors.white,
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 50,
+    height: 500
+  },
+  noJobsTitle: {
+    fontFamily: 'interBold',
+    fontSize: 22,
+    color: Colors.violet4,
+    marginBottom: 80,
+    textAlign: 'center'
+  },
+  noJobsImage: {
+   width: 200,
+    height: 200,
+    marginBottom: 70
+  },
+  noJobsSubtitle: {
+   fontFamily: 'interMediumItalic',
+    fontSize: 15,
+    color: Colors.gray3,
+    textAlign: 'center'
+  },
 
 });

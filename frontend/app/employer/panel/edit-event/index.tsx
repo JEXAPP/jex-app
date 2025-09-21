@@ -11,8 +11,8 @@ import { ClickWindow } from '@/components/window/ClickWindow';
 import { TempWindow } from '@/components/window/TempWindow';
 import { iconos } from '@/constants/iconos';
 import EditEventSkeleton from '@/constants/skeletons/employer/editEventSkeleton';
-import { useEditEvent } from '@/hooks/employer/vacancy/useEditEvent';
-import { editEventStyles as styles } from '@/styles/app/employer/vacancy/editEventStyles';
+import { useEditEvent } from '@/hooks/employer/panel/edit-event/useEditEvent';
+import { editEventStyles as styles } from '@/styles/app/employer/panel/edit-event/editEventStyles';
 import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
 import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonStyles4';
 import { buttonWithIconStyles1 } from '@/styles/components/button/buttonWithIconStyles/buttonWithIconStyles1';
@@ -26,7 +26,7 @@ import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
 import { Colors } from '@/themes/colors';
 import React from 'react';
-import { Image, Keyboard, ScrollView, Text, TouchableWithoutFeedback, View, } from 'react-native';
+import { Keyboard, ScrollView, Text, TouchableWithoutFeedback, View } from 'react-native';
 
 export default function EditEventScreen() {
   const {
@@ -78,23 +78,23 @@ export default function EditEventScreen() {
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
           <View style={styles.header}>
-            <Text style={styles.title}>Editar Evento</Text>
-            <Image
-              source={require('@/assets/images/jex/Jex-Diseñando.png')}
-              style={styles.image}
-            />
-          </View>
 
-          <UploadImage
+            <Text style={styles.title}>Editar Evento</Text>
+            
+            <UploadImage
             mode="edit"
             initialImageUrl={imageURL} 
             shape="square"
-            size={140}
-            defaultImage={require('@/assets/images/jex/Jex-Publicidad.png')}
+            size={100}
+            defaultImage={require('@/assets/images/jex/Jex-Evento-Default.png')}
             onChange={(file, uri) => {
               setImagenFile(file)
             }}
           />
+
+          </View>
+
+          
 
             <Input
               placeholder="Nombre del evento"

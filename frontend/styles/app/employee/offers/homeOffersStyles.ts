@@ -41,33 +41,34 @@ export const homeOffersStyles = StyleSheet.create({
     marginRight: 10
   },
   offerInfo: {
-  marginTop: 5,
-  flexDirection: "column",
-  justifyContent: "flex-start",
-  flex: 1 // 👈 le da espacio flexible para que el texto pueda ocupar varias líneas
-},
+    marginTop: 5,
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    flex: 1 
+  },
   noOffersCard: {
     backgroundColor: Colors.white,
     borderRadius: 15,
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 50
+    marginTop: 50,
+    height: 500
   },
   noOffersTitle: {
     fontFamily: 'interBold',
-    fontSize: 20,
+    fontSize: 22,
     color: Colors.violet4,
-    marginBottom: 10,
+    marginBottom: 80,
     textAlign: 'center'
   },
   noOffersImage: {
-    width: 180,
-    height: 180,
-    marginBottom: 10
+    width: 200,
+    height: 200,
+    marginBottom: 70
   },
   noOffersSubtitle: {
-    fontFamily: 'interMedium',
+    fontFamily: 'interMediumItalic',
     fontSize: 15,
     color: Colors.gray3,
     textAlign: 'center'
@@ -78,12 +79,12 @@ export const homeOffersStyles = StyleSheet.create({
     color: Colors.gray3
   },
   role: {
-  fontFamily: "interBold",
-  fontSize: 22,
-  marginBottom: 5,
-  color: Colors.black,
-  flexWrap: "wrap" // 👈 permite que el texto baje de línea
-},
+    fontFamily: "interBold",
+    fontSize: 22,
+    marginBottom: 5,
+    color: Colors.black,
+    flexWrap: "wrap" 
+  },
   salary: {
     fontFamily: 'interBold',
     fontSize: 18,
@@ -105,5 +106,5 @@ export const homeOffersStyles = StyleSheet.create({
     fontFamily: 'interLightItalic',
     fontSize: 14,
     color: Colors.gray3
-  }
+  },
 });

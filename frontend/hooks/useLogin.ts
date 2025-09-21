@@ -138,9 +138,9 @@ export const useLogin = () => {
       const role = decoded.role;
 
       if (role === 'employee') {
-        router.push('/employee/job/job-details');
+        router.push('/employee');
       } else if (role === 'employer') {
-        router.push('/employer/event/attendance');
+        router.push('/employer');
       } else {
         router.replace('/auth/register/type-user');
       }

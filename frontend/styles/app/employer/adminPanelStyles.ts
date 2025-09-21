@@ -8,13 +8,11 @@ export const adminPanelStyles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 20,
   },
   headerRow: {
     flexDirection: "row",
-
     alignItems: "center",
-    marginBottom: 16,
   },
   title: {
     fontSize: 50,
@@ -39,7 +37,7 @@ export const adminPanelStyles = StyleSheet.create({
   eventRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   sideSlot: {
     flex: 1,
@@ -80,13 +78,12 @@ export const adminPanelStyles = StyleSheet.create({
     alignSelf: "center",
   },
   eventEstadoBadge: {
-    position: "absolute",
-    top: -25, 
-    right: 70, 
     backgroundColor: Colors.gray12,
     borderRadius: 14,
     paddingHorizontal: 10,
     paddingVertical: 4,
+    alignSelf: 'center',
+    marginBottom: 10
   },
   eventEstadoText: {
     color: Colors.gray3,

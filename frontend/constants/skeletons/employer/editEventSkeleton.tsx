@@ -1,10 +1,10 @@
 // constants/skeletons/employer/editEventSkeleton.tsx
-import React from 'react';
-import { View, ScrollView } from 'react-native';
-import { MotiView } from 'moti';
-import { Colors } from '@/themes/colors';
+import { editEventStyles as styles } from '@/styles/app/employer/panel/edit-event/editEventStyles';
 import { Borders } from '@/themes/borders';
-import { editEventStyles as styles } from '@/styles/app/employer/vacancy/editEventStyles';
+import { Colors } from '@/themes/colors';
+import { MotiView } from 'moti';
+import React from 'react';
+import { ScrollView, View } from 'react-native';
 
 type BoxProps = {
   w?: number;   // ancho numérico; si falta y stretch=false, queda en 0 (no ocupa)

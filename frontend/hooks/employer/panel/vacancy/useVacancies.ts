@@ -1,4 +1,3 @@
-// hooks/employer/vacancy/useVacancies.ts
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useState, useMemo, useEffect } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
@@ -55,6 +54,9 @@ export const useVacancies = () => {
         "GET"
       );
 
+      console.log('#####################################################')
+      console.log(data.vacancies)
+
       if (data && Array.isArray(data.vacancies)) {
         const normalized: VacancyItem[] = data.vacancies.map((v: any) => ({
           id: v.id,
@@ -103,8 +105,7 @@ export const useVacancies = () => {
       setHoraInicioEvento(null);
       setHoraFinEvento(null);
     }
-}, [id]); // 👈 solo depende de id
-
+}, [id]); 
 
   const goToCreateVacancy = (
     eventId: number,
@@ -114,13 +115,12 @@ export const useVacancies = () => {
     horaFin: string
   ) =>
     router.push(
-      `/employer/vacancy/create-vacancy?id=${eventId}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&horaInicio=${horaInicio}&horaFin=${horaFin}`
+      `/employer/panel/vacancy/create-vacancy?id=${eventId}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&horaInicio=${horaInicio}&horaFin=${horaFin}`
     );
 
   const goToVacancyDetail = (vacancyId: number) =>
-    router.push(`/employer/vacancy/manipulate-vacancy?id=${vacancyId}`);
+    router.push(`/employer/panel/vacancy/manipulate-vacancy?id=${vacancyId}`);
 
-  // 🚀 Filtro de búsqueda + estado
   const filteredVacantes = useMemo(() => {
     return vacancies
       .filter((v) => v.nombre.toLowerCase().includes(search.toLowerCase()))

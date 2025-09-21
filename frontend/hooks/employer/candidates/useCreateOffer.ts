@@ -194,6 +194,8 @@ export function useCreateOffer(params: RouteParams) {
     try {
       setLoading(true);
       const body = buildBody();
+      console.log("============================================================================")
+      console.log(body)
       const res = await requestBackend('/api/applications/offers/', body, 'POST');
       return res;
     } catch (e) {

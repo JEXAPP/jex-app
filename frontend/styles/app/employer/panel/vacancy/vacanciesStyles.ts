@@ -17,14 +17,7 @@ export const vacanciesStyles = StyleSheet.create({
     fontFamily: 'titulos',
     color: Colors.violet4,
     marginRight: 10,
-    marginTop: 20
-  },
-  eventName: {
-    fontSize: 22,
-    fontFamily: 'interBold',
-    textAlign: 'center',
-    color: Colors.violet4,
-    marginVertical: 10
+    marginTop: 40
   },
   noEventsText: {
     marginTop: 40,
@@ -42,11 +35,11 @@ export const vacanciesStyles = StyleSheet.create({
   filtersTags: {
     flexDirection: "row",
     marginBottom: 16,
-    marginTop: 15,
     gap: 8,
   },
   vacancyCard: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
     backgroundColor: Colors.white,
     borderRadius: Borders.soft,
     marginBottom: 8,
@@ -55,9 +48,9 @@ export const vacanciesStyles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   vacancyInfo: {
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
-    gap: 12,
+    gap: 5,
   },
   vacancyEstadoBadge: {
     backgroundColor: Colors.gray12,

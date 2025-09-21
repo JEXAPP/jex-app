@@ -21,7 +21,7 @@ export default function EmployerCandidatesLayout() {
       <StatusBar translucent={false} backgroundColor={bg}
         barStyle={isDetail ? 'light-content' : 'dark-content'} />
 
-      <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={['top','bottom']}>
+      <SafeAreaView style={{ flex: 1}} edges={['top','bottom']}>
         {!isDetail && (
           <HeaderNav
             title="Empleados"
@@ -32,7 +32,7 @@ export default function EmployerCandidatesLayout() {
             activeRoute={pathname}
             aliases={{
               '/employer/candidates/search': [
-                '/employer/candidates/search/results', // tu ruta de resultados
+              '/employer/candidates/results',
               ],
             }}
             bgColor={bg}
@@ -46,7 +46,7 @@ export default function EmployerCandidatesLayout() {
           <Stack
             screenOptions={{
               headerShown: false,
-              contentStyle: { backgroundColor: bg }, // 👈 mismo fondo en el stack
+              contentStyle: { backgroundColor: bg }, 
             }}
           />
         </View>

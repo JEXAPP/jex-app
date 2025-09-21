@@ -8,7 +8,7 @@ export const useDetailOffers = () => {
   const { id } = useLocalSearchParams();
   const { requestBackend } = useBackendConection();
   const router = useRouter();
-
+  const [confirmRejectVisible, setConfirmRejectVisible] = useState(false);
   const [offer, setOffer] = useState<Offer | null>(null);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
@@ -132,6 +132,16 @@ export const useDetailOffers = () => {
     router.replace("/employee/offers");
   };
 
+  // Abrir/cerrar confirmación
+  const openConfirmReject = () => setConfirmRejectVisible(true);
+  const closeConfirmReject = () => setConfirmRejectVisible(false);
+
+  // Confirmar rechazo (llama a tu rechazo real)
+  const confirmReject = async () => {
+    setConfirmRejectVisible(false);
+    await handleReject(); // tu implementación actual ya maneja showRejected/closeRejected
+  };
+
   return {
     offer,
     loading,
@@ -144,5 +154,9 @@ export const useDetailOffers = () => {
     fadeAnim,
     scaleAnim,
     setShowMatch,
+    confirmRejectVisible,
+    openConfirmReject,
+    closeConfirmReject,
+    confirmReject,
   };
 };

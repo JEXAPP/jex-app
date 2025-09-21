@@ -121,6 +121,8 @@ export const useManipulateVacancy = () => {
         if (!mounted) return;
         setEstadosVacante(ests);
         await fetchEstadoActual(vacanteId, ests);
+        console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
+        console.log(estadosVacante)
       } catch (err) {
         if (mounted) setEstadosVacante([]);
         console.log('Error inicial useManipulateVacancy:', err);
@@ -175,7 +177,7 @@ export const useManipulateVacancy = () => {
       console.log('No hay vacanteId válido para editar');
       return;
     }
-    router.push(`/employer/vacancy/edit-vacancy?id=${vacanteId}`);
+    router.push(`/employer/panel/edit-vacancy?id=${vacanteId}`);
   }, [router, vacanteId]);
 
   return {

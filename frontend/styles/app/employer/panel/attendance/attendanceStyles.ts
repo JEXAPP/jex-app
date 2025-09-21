@@ -11,14 +11,17 @@ export const attendanceStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    marginTop: 100,
+    marginTop: 40,
     marginBottom: 10,
     marginLeft: 15
-
   },
   image: {
     width: 80,
     height: 80,
+  },
+  image2: {
+    width: 180,
+    height: 180,
   },
   title: {
     fontSize: 40,
@@ -28,7 +31,7 @@ export const attendanceStyles = StyleSheet.create({
     marginRight: 20,
   },
   scroll: {
-    paddingHorizontal: 26,
+    paddingHorizontal: 16,
     gap: 10,
   },
   card: {
@@ -36,11 +39,6 @@ export const attendanceStyles = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
     alignItems: 'center',
     marginLeft: 15,
     marginRight: 15
@@ -90,16 +88,21 @@ export const attendanceStyles = StyleSheet.create({
     marginTop: 12,
     paddingHorizontal: 16,
     paddingVertical: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
   },
   row: {
     paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  emptyRow :{
+    paddingVertical: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  emptyTitle: {
+    fontFamily: 'interBold',
+    fontSize: 20,
+    color: Colors.violet4
   },
   name: {
     flex: 1,

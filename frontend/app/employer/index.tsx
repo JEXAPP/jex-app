@@ -20,6 +20,7 @@ export default function AdminPanelScreen() {
     goToCreateEvent,
     goToEditEvent,
     goToVacancies,
+    goToAttendance
   } = useAdminPanel();
 
   if (loading) {
@@ -60,9 +61,6 @@ if (events.length === 0) {
   );
 }
 
-
- 
-
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -82,6 +80,7 @@ if (events.length === 0) {
 
         {/* Event navigation */}
         <View style={styles.eventRow}>
+          
           <View style={styles.sideSlot}>
             {currentEventIndex > 0 && (
               <TouchableOpacity onPress={handlePrevEvent}>
@@ -89,15 +88,12 @@ if (events.length === 0) {
               </TouchableOpacity>
             )}
           </View>
-<View style={styles.centerSlot}>
-  <Text style={styles.eventName}>{currentEvent?.nombre}</Text>
 
-  {currentEvent?.estado?.name && (
-    <View style={styles.eventEstadoBadge}>
-      <Text style={styles.eventEstadoText}>{currentEvent.estado.name}</Text>
-    </View>
-  )}
-</View>
+          <View style={styles.centerSlot}>
+            <Text style={styles.eventName}>{currentEvent?.nombre}</Text>
+
+            
+          </View>
 
 
           <View style={styles.sideSlot}>
@@ -108,6 +104,12 @@ if (events.length === 0) {
             )}
           </View>
         </View>
+
+        {currentEvent?.estado?.name && (
+          <View style={styles.eventEstadoBadge}>
+            <Text style={styles.eventEstadoText}>{currentEvent.estado.name}</Text>
+          </View>
+        )}
 
         {/* Cards */}
         <View style={styles.cardsContainer}>
@@ -135,7 +137,9 @@ if (events.length === 0) {
             {iconos.flechaDerecha(22, Colors.violet4)}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.card}>
+          <TouchableOpacity 
+            style={styles.card}
+            onPress={() => goToAttendance(currentEvent.id)}>
             <View style={styles.cardContent}>
               {iconos.asistencia(22, Colors.violet4)}
               <Text style={styles.cardText}>Asistencia</Text>

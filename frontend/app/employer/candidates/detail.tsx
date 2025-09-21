@@ -48,7 +48,7 @@ export default function EmployeeDetailScreen() {
         </View>
 
         <View style={s.topHeroCenter}>
-          <ImageOnline imageUrl={data?.profile_image ?? null} size={100} shape="circle" />
+          <ImageOnline imageUrl={data?.profile_image ?? null} size={100} shape="circle" fallback={require('@/assets/images/jex/Jex-Postulantes-Default.png')}/>
 
           <View style={s.linkedRowCenter}>
             {iconos.usuario_validado(16, Colors.white)}
@@ -150,7 +150,7 @@ export default function EmployeeDetailScreen() {
         visible={confirmRejectVisible}
         title="¿Estás seguro?"
         message="Vas a rechazar esta postulación. Esta acción no puede deshacerse."
-        buttonText="Sí, rechazar"
+        buttonText="Rechazar"
         cancelButtonText="Cancelar"
         icono={<Ionicons name="alert-circle" size={28} color={Colors.violet4} />}
         onClose={confirmReject}

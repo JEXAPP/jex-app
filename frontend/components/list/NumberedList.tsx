@@ -1,11 +1,10 @@
-// components/others/NumberedList.tsx
 import React from 'react';
 import { FlatList, Text, View, TextStyle } from 'react-native';
 import { Colors } from '@/themes/colors';
 
 type Props = {
   items: string[];
-  textStyle?: TextStyle; // 👈 nuevo
+  textStyle?: TextStyle; 
 };
 
 export function NumberedList({ items, textStyle }: Props) {
@@ -17,7 +16,7 @@ export function NumberedList({ items, textStyle }: Props) {
         <View
           style={{
             flexDirection: 'row',
-            alignItems: 'flex-start',
+            alignItems: 'center',
             marginBottom: 8,
           }}
         >
@@ -27,7 +26,7 @@ export function NumberedList({ items, textStyle }: Props) {
               fontSize: 16,
               textAlign: 'left',
               color: Colors.violet4,
-              fontFamily: 'titulos',
+              fontFamily: 'interBold',
             }}
           >
             {index + 1}.
@@ -36,10 +35,11 @@ export function NumberedList({ items, textStyle }: Props) {
             style={[
               {
                 flex: 1,
-                color: Colors.black,
+                color: Colors.gray3,
                 lineHeight: 20,
+                fontFamily: 'interRegular'
               },
-              textStyle, // 👈 mergea el estilo que le pases
+              textStyle, 
             ]}
           >
             {item}

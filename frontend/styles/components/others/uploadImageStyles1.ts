@@ -1,3 +1,4 @@
+// styles/components/others/uploadImageStyles1.ts
 import { Colors } from '@/themes/colors';
 import { StyleSheet } from 'react-native';
 
@@ -6,6 +7,14 @@ export const uploadImageStyles1 = StyleSheet.create({
     marginRight: 6,
     color: Colors.violet5,
   },
+
+  // contenedor para centrar SIEMPRE los botones bajo la imagen
+  buttonsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -13,7 +22,7 @@ export const uploadImageStyles1 = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
-    alignSelf: 'flex-start',
+    alignSelf: 'center', // centrado
   },
   addText: {
     fontSize: 16,
@@ -21,7 +30,6 @@ export const uploadImageStyles1 = StyleSheet.create({
     fontWeight: '600',
   },
 
-  // 🔹 NUEVOS ESTILOS
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -39,7 +47,7 @@ export const uploadImageStyles1 = StyleSheet.create({
   dangerButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffe5e5', // leve rojo de fondo
+    backgroundColor: Colors.gray12,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -51,7 +59,7 @@ export const uploadImageStyles1 = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'flex-start',
+    alignSelf: 'center', // centrado también
   },
   loadingText: {
     fontSize: 14,

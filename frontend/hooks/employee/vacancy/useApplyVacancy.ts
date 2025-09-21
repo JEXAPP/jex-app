@@ -71,9 +71,13 @@ export const useApplyVacancy = () => {
         requirements: (vacante.requirements as Requirement[]).map(r => `${r.description}`),
         salary: `${vacante.shifts[0]?.payment ?? ''} ARS`,
         deadline: formatFechaCorta(vacante.shifts[0]?.end_date),
+        event_image_url: vacante.event.vent_image_url,
+        event_image_public_id: vacante.event.event_image_public_id,
         mapImage: require('@/assets/images/maps.png'),
         rating: 4.0,
       });
+
+  
 
       setOrganizer({
         name: `${vacante.event.owner.first_name} ${vacante.event.owner.last_name}`,

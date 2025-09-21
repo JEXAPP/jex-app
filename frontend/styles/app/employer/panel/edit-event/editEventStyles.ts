@@ -1,31 +1,19 @@
 import { Colors } from '@/themes/colors';
 import { StyleSheet } from 'react-native';
 
-export const createEventStyles = StyleSheet.create({
+export const editEventStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.gray1,
+    paddingTop: 40
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'center',
-    marginTop: 70,
-    marginBottom: 20,
-    marginLeft: 50
-  },
-  profileImage: {
-    width: 130,
-    height: 130,
-    borderRadius: 60,
-    marginBottom: -10,
-},
-  image: {
-    width: 80,
-    height: 80,
+    marginTop: 30,
+    gap: 20,
+    marginBottom: 10,
   },
   title: {
-    fontSize: 34,
+    fontSize: 40,
     fontFamily: 'titulos',
     color: Colors.violet4,
     flexShrink: 1,
@@ -41,12 +29,17 @@ export const createEventStyles = StyleSheet.create({
     gap: 30,
     marginBottom: 10,
     marginTop: 15
-    
   },
   row2: { 
     flexDirection: 'row', 
     justifyContent: 'center', 
     gap: 30,
+  }, 
+  row3: { 
+    flexDirection: 'row', 
+    justifyContent: 'center', 
+    gap: 15,
+    marginTop: 10
   }, 
   description:{
     marginBottom: 5,

@@ -208,7 +208,7 @@ export const useEmployeeDetail = (p: Params) => {
   const confirmReject = async () => {
     try {
       setConfirmRejectVisible(false);
-      await requestBackend(`/api/applications/rejected/${p.id}`, null, 'PUT');
+      await requestBackend(`/api/applications/rejected/${p.id}/`, null, 'PUT');
       router.replace('/employer/candidates');
     } catch (e: any) {
       setError(e?.message || 'Error al rechazar la postulación');

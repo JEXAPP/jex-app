@@ -1,3 +1,4 @@
+import { Borders } from '@/themes/borders';
 import { Colors } from '@/themes/colors';
 import { StyleSheet } from 'react-native';
 
@@ -53,7 +54,7 @@ export const applyVacancyStyles = StyleSheet.create({
   },
   map: {
     width: '100%',
-    height: 80,
+    height: 60,
     borderRadius: 16,
     marginTop: 4,
     resizeMode: 'cover',
@@ -132,7 +133,7 @@ export const applyVacancyStyles = StyleSheet.create({
   },
   salary: {
     fontSize: 20,
-    color: Colors.violet5,
+    color: Colors.violet4,
     fontFamily: 'interBold', 
   },
   deadline: {
@@ -165,7 +166,7 @@ export const applyVacancyStyles = StyleSheet.create({
   organizerNameText: {
     fontWeight: '600',
     fontSize: 14,
-    color: Colors.violet5,
+    color: Colors.violet4,
   },
   organizerInfo: {
     flex: 1,
@@ -181,7 +182,7 @@ export const applyVacancyStyles = StyleSheet.create({
   organizerInfoValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: Colors.violet5,
+    color: Colors.violet4,
   },
   organizerInfoLabel: {
     fontSize: 12,
@@ -189,5 +190,11 @@ export const applyVacancyStyles = StyleSheet.create({
   },
   multiple: {
     gap: 5
-  }
+  },
+  image: {
+    borderRadius: Borders.soft,
+    marginTop: 3,
+    marginBottom: 4,
+    alignSelf: 'center'
+  },
 })

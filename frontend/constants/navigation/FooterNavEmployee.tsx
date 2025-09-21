@@ -21,7 +21,7 @@ const FooterNavEmployee: React.FC<Props> = ({ basePath }) => {
   const isActive = (slot: number) => {
     if (slot === 0) return pathname === basePath || pathname.startsWith(`${basePath}/vacancy`);
     if (slot === 1) return pathname.startsWith(`${basePath}/offers`);
-    if (slot === 2) return pathname.startsWith(`${basePath}/jobs/activeJobs`);
+    if (slot === 2) return pathname.startsWith(`${basePath}/jobs`);
     return false;
   };
 
@@ -29,7 +29,7 @@ const FooterNavEmployee: React.FC<Props> = ({ basePath }) => {
   const onPress = (slot: number) => {
     if (slot === 0) router.replace(basePath);
     if (slot === 1) router.push(`${basePath}/offers`);
-    if (slot === 2) router.push(`${basePath}/jobs/activeJobs`);
+    if (slot === 2) router.push(`${basePath}/jobs`);
   };
 
   // Deshabilitar

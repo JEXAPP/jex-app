@@ -1,10 +1,12 @@
-// app/employee/active-jobs/index.tsx
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View, Image } from "react-native";
 import { useActiveJobs, Job } from "@/hooks/employee/jobs/useActiveJobs";
 import { activeJobsStyles as styles } from "@/styles/app/employee/jobs/activeJobsStyles";
 import { OrderButton } from "@/components/button/OrderButton";
 import { Colors } from "@/themes/colors";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import ImageOnline from "@/components/others/ImageOnline";
+import { iconos } from "@/constants/iconos";
 
 export default function ActiveJobsScreen() {
   const { jobs, goToJobDetail } = useActiveJobs();
@@ -66,7 +68,7 @@ export default function ActiveJobsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header con título y botón */}
       <View style={styles.headerRow}>
         <Text style={styles.title}>Trabajos</Text>
@@ -100,11 +102,15 @@ export default function ActiveJobsScreen() {
             <View key={job.id} style={styles.card}>
               {/* Header con imagen + info */}
               <View style={styles.cardHeader}>
-                <Image
-                  source={job.image}
+
+                <ImageOnline
+                  imageUrl={job.event_image_url}
+                  imageId={job.event_image_public_id}
+                  size={60}
+                  shape="square"
                   style={styles.eventImage}
-                  resizeMode="contain"
                 />
+
                 <View style={styles.eventInfo}>
                   <Text style={styles.eventName}>{job.eventName}</Text>
                   {job.category ? (
@@ -114,11 +120,11 @@ export default function ActiveJobsScreen() {
 
                 <View style={[
                   styles.daysPill,
-                  job.daysRemaining === 0 && { backgroundColor: Colors.violet4 } // 👈 pill violeta si es HOY
+                  job.daysRemaining === 0 && { backgroundColor: Colors.violet4 } 
                 ]}>
                   <Text style={[
                     styles.daysPillText,
-                    job.daysRemaining === 0 && { color: Colors.white } // 👈 texto blanco si es HOY
+                    job.daysRemaining === 0 && { color: Colors.white } 
                   ]}>
                     {job.daysRemaining === 0
                       ? "Hoy"
@@ -155,12 +161,12 @@ export default function ActiveJobsScreen() {
                   Recuerda cómo llegar al evento, reglas, horarios y otra
                   información relevante
                 </Text>
-                <Text style={styles.footerArrow}>{">"}</Text>
+                {iconos.flechaDerecha(20, Colors.gray3)}
               </TouchableOpacity>
             </View>
           ))
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }

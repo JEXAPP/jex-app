@@ -134,4 +134,30 @@ export const detailOffersStyles = StyleSheet.create({
     marginTop: 16,
     gap: 30
   },
+  
+  matchOverlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: Colors.violet4, 
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    zIndex: 999,
+  },
+  matchImage: {
+    width: 260,
+    height: 260,
+    resizeMode: 'contain',
+    marginBottom: 16,
+  },
+  matchText: {
+    fontFamily: 'interBlack',
+    fontSize: 42,
+    lineHeight: 48,
+    color: Colors.white,
+    letterSpacing: 0.5,
+  },
 });

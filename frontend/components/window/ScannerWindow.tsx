@@ -148,9 +148,6 @@ const styles = StyleSheet.create({
     height: CARD_HEIGHT,
     backgroundColor: Colors.white,
     borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.1)',
   },
   header: {
     paddingHorizontal: 14,
@@ -159,10 +156,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  headerRight: { flexDirection: 'row', alignItems: 'center' },
-  title: { color: Colors.violet2, fontSize: 16, fontFamily: 'titulos' },
+  headerRight: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
+  },
+  title: { 
+    color: Colors.violet4, 
+    fontSize: 24, 
+    fontFamily: 'titulos',
+    marginLeft: 10 
+  },
   iconBtn: {
-    backgroundColor: Colors.violet2,
+    backgroundColor: Colors.violet4,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 8,
@@ -176,31 +181,74 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     position: 'relative',
   },
-  camera: { position: 'absolute', inset: 0 },
-  frame: { position: 'absolute', inset: 0 },
+  camera: { 
+    position: 'absolute', 
+    inset: 0 
+  },
+  frame: { 
+    position: 'absolute', 
+    inset: 0 
+  },
   cornerTL: {
-    position: 'absolute', top: 12, left: 12, width: 28, height: 28,
-    borderTopWidth: 3, borderLeftWidth: 3, borderColor: '#fff',
+    position: 'absolute', 
+    top: 12, 
+    left: 12, 
+    width: 28, 
+    height: 28,
+    borderTopWidth: 3, 
+    borderLeftWidth: 3, 
+    borderColor: Colors.white,
+    borderTopLeftRadius: 8
   },
   cornerTR: {
-    position: 'absolute', top: 12, right: 12, width: 28, height: 28,
-    borderTopWidth: 3, borderRightWidth: 3, borderColor: '#fff',
+    position: 'absolute', 
+    top: 12, 
+    right: 12, 
+    width: 28, 
+    height: 28,
+    borderTopWidth: 3, 
+    borderRightWidth: 3, 
+    borderColor: Colors.white,
+    borderTopEndRadius: 8
   },
   cornerBL: {
-    position: 'absolute', bottom: 12, left: 12, width: 28, height: 28,
-    borderBottomWidth: 3, borderLeftWidth: 3, borderColor: '#fff',
+    position: 'absolute', 
+    bottom: 12, 
+    left: 12, 
+    width: 28, 
+    height: 28,
+    borderBottomWidth: 3, 
+    borderLeftWidth: 3, 
+    borderColor: Colors.white,
+    borderBottomLeftRadius: 8
   },
   cornerBR: {
-    position: 'absolute', bottom: 12, right: 12, width: 28, height: 28,
-    borderBottomWidth: 3, borderRightWidth: 3, borderColor: '#fff',
+    position: 'absolute', 
+    bottom: 12, 
+    right: 12, 
+    width: 28, 
+    height: 28,
+    borderBottomWidth: 3, 
+    borderRightWidth: 3, 
+    borderColor: Colors.white,
+    borderBottomEndRadius: 8
   },
   helper: {
-    color: Colors.black,
+    color: Colors.gray3,
     textAlign: 'center',
-    fontSize: 14,
-    paddingVertical: 10,
-    fontFamily: 'inter',
+    fontSize: 15,
+    paddingTop: 25,
+    fontFamily: 'interMediumItalic',
   },
-  permFallback: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  permText: { color: Colors.violet3, opacity: 0.9, padding: 16, textAlign: 'center' },
+  permFallback: { 
+    flex: 1, 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  permText: { 
+    color: Colors.violet3, 
+    opacity: 0.9, 
+    padding: 16, 
+    textAlign: 'center' 
+  },
 });
