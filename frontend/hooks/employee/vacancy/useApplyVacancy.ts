@@ -60,7 +60,6 @@ export const useApplyVacancy = () => {
     try {
       
       const vacante = await requestBackend(`/api/vacancies/${idVancancy}/details`, null, 'GET');
-      console.log(vacante)
       
       setJob({
         title: vacante.event.name,

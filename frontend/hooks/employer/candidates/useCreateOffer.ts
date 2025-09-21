@@ -47,28 +47,26 @@ export function useCreateOffer(params: RouteParams) {
   const { requestBackend } = useBackendConection();
   const router = useRouter();
 
-  // refs para evitar re-renders
+  // Refs para usar parámetros iniciales sin re-render
   const sourceRef = useRef(params.source);
   const idRef = useRef(params.id);
   const vacancyIdRef = useRef(params.vacancyId);
 
-  // header (persona)
+  // Header (persona)
   const [employeeName, setEmployeeName] = useState<string>(params.personName ?? '—');
   const [employeeImage, setEmployeeImage] = useState<string | null>(params.photoUrl ?? null);
 
-  // detalle de vacante y shifts
+  // Detalle de vacante y selección de turnos
   const [vacancyDetail, setVacancyDetail] = useState<VacancyDetail | null>(null);
   const [selectedShiftIds, setSelectedShiftIds] = useState<number[]>([]);
 
-  // expiración + comentario
+  // Expiración + comentario
   const [expDate, setExpDate] = useState<Date | null>(null);
   const [expTime, setExpTime] = useState<string | null>(null);
   const [comment, setComment] = useState('');
 
-  // modal (solo búsqueda sin vacancyId)
-  const [modalVisible, setModalVisible] = useState(
-    sourceRef.current === 'search' && !vacancyIdRef.current
-  );
+  // Modal de selección (solo búsqueda sin vacancyId)
+  const [modalVisible, setModalVisible] = useState(sourceRef.current === 'search' && !vacancyIdRef.current);
   const [events, setEvents] = useState<EventWithVacancies[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<number | null>(null);
   const [vacancyOptions, setVacancyOptions] = useState<{ id: number; name: string }[]>([]);
@@ -76,127 +74,92 @@ export function useCreateOffer(params: RouteParams) {
 
   const [loading, setLoading] = useState<boolean>(false);
 
-  // ========= CARGAS INICIALES =========
-  // Postulación (application): GET /api/applications/:id/detail/
-  useEffect(() => {
-    if (sourceRef.current !== 'application') return;
+  // Helpers
+  const setShiftsFromDetail = (detail: VacancyDetail) =>
+    setSelectedShiftIds(detail?.shifts?.length === 1 ? [detail.shifts[0].id] : []);
 
+  const loadVacancyDetail = async (vacancyId: number) => {
+    const detail: VacancyDetail = await requestBackend(`/api/vacancies/${vacancyId}/shifts/`, null, 'GET');
+    setVacancyDetail(detail);
+    setSelectedVacancyId(vacancyId);
+    setShiftsFromDetail(detail);
+    setModalVisible(false);
+  };
+
+  const formatDDMMYYYY = (d: Date) =>
+    `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+
+  // Carga inicial según source/params
+  useEffect(() => {
     (async () => {
       try {
-        const appId = idRef.current;
-        const res: ApplicationDetail = await requestBackend(`/api/applications/${appId}/detail/`, null, 'GET');
+        if (sourceRef.current === 'application') {
+          const res: ApplicationDetail = await requestBackend(`/api/applications/${idRef.current}/detail/`, null, 'GET');
+          setEmployeeName(res?.employee?.name ?? params.personName ?? '—');
+          setEmployeeImage(res?.employee?.profile_image ?? params.photoUrl ?? null);
 
-        setEmployeeName(res?.employee?.name ?? params.personName ?? '—');
-        setEmployeeImage(res?.employee?.profile_image ?? params.photoUrl ?? null);
-
-        const vac: VacancyDetail = {
-          id: -1,
-          job_type_name: res.shift?.vacancy?.job_type ?? '—',
-          description: res.shift?.vacancy?.description ?? '',
-          requirements: (res.shift?.vacancy?.requirements ?? []),
-          shifts: [
-            {
+          const vac: VacancyDetail = {
+            id: -1,
+            job_type_name: res.shift?.vacancy?.job_type ?? '—',
+            description: res.shift?.vacancy?.description ?? '',
+            requirements: res.shift?.vacancy?.requirements ?? [],
+            shifts: [{
               id: 0,
               start_date: res.shift.start_date,
               end_date: res.shift.end_date,
               start_time: res.shift.start_time,
               end_time: res.shift.end_time,
               payment: res.shift.payment,
-            },
-          ],
-        };
-        setVacancyDetail(vac);
-        setSelectedShiftIds([0]); // único turno seleccionado
+            }],
+          };
+          setVacancyDetail(vac);
+          setSelectedShiftIds([0]);
+          return;
+        }
+
+        // search
+        if (vacancyIdRef.current) {
+          await loadVacancyDetail(Number(vacancyIdRef.current));
+        } else {
+          const evs: EventWithVacancies[] = await requestBackend('/api/events/with-vacancies-availables/', null, 'GET');
+          setEvents(evs || []);
+        }
       } catch (e) {
-        console.log('Error GET /api/applications/:id/detail', e);
+        console.log('Error carga inicial de oferta', e);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Búsqueda (search): si NO viene vacancyId -> abrir modal y cargar eventos
-  useEffect(() => {
-    if (sourceRef.current !== 'search' || vacancyIdRef.current) return;
-
-    (async () => {
-      try {
-        const evs: EventWithVacancies[] = await requestBackend('/api/events/with-vacancies-availables/', null, 'GET');
-        setEvents(evs || []);
-      } catch (e) {
-        console.log('Error GET events availables', e);
-      }
-    })();
-  }, []);
-
-  // Búsqueda (search): si viene vacancyId por params -> cargar detalle directo
-  useEffect(() => {
-    if (sourceRef.current !== 'search' || !vacancyIdRef.current) return;
-
-    (async () => {
-      try {
-        const vacancyIdNum = Number(vacancyIdRef.current);
-        const detail: VacancyDetail = await requestBackend(`/api/vacancies/${vacancyIdNum}/shifts/`, null, 'GET');
-        setVacancyDetail(detail);
-        setSelectedVacancyId(vacancyIdNum);
-        if (detail?.shifts?.length === 1) setSelectedShiftIds([detail.shifts[0].id]);
-        else setSelectedShiftIds([]);
-        setModalVisible(false);
-      } catch (e) {
-        console.log('Error GET vacancy detail (by param)', e);
-      }
-    })();
-  }, []);
-
-  // ========= HANDLERS MODAL (BÚSQUEDA) =========
+  // Handlers modal (búsqueda)
   const onSelectEvent = (eventId: number) => {
     setSelectedEventId(eventId);
     const ev = events.find(e => e.event_id === eventId);
-    const opts = (ev?.vacancies ?? []).map(v => ({ id: v.vacancy_id, name: v.job_type_name }));
-    setVacancyOptions(opts);
+    setVacancyOptions((ev?.vacancies ?? []).map(v => ({ id: v.vacancy_id, name: v.job_type_name })));
     setSelectedVacancyId(null);
   };
 
   const onSelectVacancy = async (vacancyId: number) => {
-    try {
-      const detail: VacancyDetail = await requestBackend(`/api/vacancies/${vacancyId}/shifts/`, null, 'GET');
-      setVacancyDetail(detail);
-      setSelectedVacancyId(vacancyId);
-      if (detail?.shifts?.length === 1) setSelectedShiftIds([detail.shifts[0].id]);
-      else setSelectedShiftIds([]);
-      setModalVisible(false);
-    } catch (e) {
-      console.log('Error GET vacancy detail', e);
-    }
+    try { await loadVacancyDetail(vacancyId); }
+    catch (e) { console.log('Error GET vacancy detail', e); }
   };
 
-  const formatDDMMYYYY = (d: Date) => {
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const yyyy = d.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-  };
-
-  // ========= SUBMIT =========
+  // Submit
   const buildBody = () => {
     const base = {
       additional_comments: comment,
-      expiration_date: expDate ? formatDDMMYYYY(expDate) : null, // dd/mm/yyyy
+      expiration_date: expDate ? formatDDMMYYYY(expDate) : null,
       expiration_time: expTime ?? null,
     };
-
-    if (sourceRef.current === 'application') {
-      return { ...base, application_id: Number(idRef.current) };
-    }
-    // search: id = employee_id
-    return { ...base, employee_id: Number(idRef.current), shift_ids: selectedShiftIds };
+    return sourceRef.current === 'application'
+      ? { ...base, application_id: Number(idRef.current) }
+      : { ...base, employee_id: Number(idRef.current), shift_ids: selectedShiftIds };
   };
 
   const submitOffer = async () => {
     try {
       setLoading(true);
-      const body = buildBody();
-      console.log("============================================================================")
-      console.log(body)
-      const res = await requestBackend('/api/applications/offers/', body, 'POST');
+      const res = await requestBackend('/api/applications/offers/', buildBody(), 'POST');
       return res;
     } catch (e) {
       console.log('Error POST /api/applications/offers/', e);
@@ -206,7 +169,7 @@ export function useCreateOffer(params: RouteParams) {
     }
   };
 
-  // ========= HELPERS =========
+  // Utils
   function moneyARS(v: string | number | null | undefined) {
     if (v == null) return '—';
     const n = typeof v === 'string' ? Number(v) : v;

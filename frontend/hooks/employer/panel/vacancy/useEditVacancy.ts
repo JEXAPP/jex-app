@@ -267,7 +267,6 @@ export const useEditVacancy = () => {
       }
       const payload = buildPayload(vacante);
       await requestBackend(`/api/vacancies/${idVacancy}/`, payload, 'PUT');
-      console.log(payload);
       setShowSuccess(true);
     } catch {
       setErrorMessage('No se pudo guardar la vacante.');

@@ -7,11 +7,11 @@ type Params = { source: Source; id: string; vacancyId?: string };
 
 type ShiftAPI = {
   id?: number | string;
-  start_date: string;  // dd/mm/yyyy
-  start_time: string;  // HH:MM
-  end_date: string;    // dd/mm/yyyy
-  end_time: string;    // HH:MM
-  payment: string;     // "12000.00"
+  start_date: string;
+  start_time: string;
+  end_date: string;
+  end_time: string;
+  payment: string;
 };
 
 type ApplicationAPI = {
@@ -58,29 +58,19 @@ export type NormalizedDetail = {
 function formatearFecha(fecha: string) {
   if (!fecha) return '';
   if (fecha.includes('/')) return fecha;
-  if (fecha.includes('-')) {
-    const [y, m, d] = fecha.split('-');
-    return `${d}/${m}/${y}`;
-  }
+  if (fecha.includes('-')) { const [y, m, d] = fecha.split('-'); return `${d}/${m}/${y}`; }
   return '';
 }
-function formatearHora(hora?: string) {
-  if (!hora) return '';
-  const [hh = '00', mm = '00'] = hora.split(':');
-  return `${hh.padStart(2, '0')}:${mm.padStart(2, '0')}hs`;
-}
+function formatearHora(hora?: string) { if (!hora) return ''; const [hh='00', mm='00'] = hora.split(':'); return `${hh.padStart(2,'0')}:${mm.padStart(2,'0')}hs`; }
 function dateLabelFromDDMMYYYY(ddmmyyyy: string) {
-  const [d, m, y] = ddmmyyyy.split('/').map(Number);
-  const dt = new Date(y, m - 1, d);
-  const fmt = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
-  const s = fmt.format(dt);
-  return s.charAt(0).toUpperCase() + s.slice(1);
+  const [d,m,y] = ddmmyyyy.split('/').map(Number);
+  const s = new Intl.DateTimeFormat('es-AR',{weekday:'long',day:'numeric',month:'long'}).format(new Date(y,m-1,d));
+  return s.charAt(0).toUpperCase()+s.slice(1);
 }
 function moneyARS(v: string | number | null | undefined) {
   if (v == null) return '—';
   const n = typeof v === 'string' ? Number(v) : v;
-  if (Number.isNaN(n)) return String(v);
-  return `${Math.round(n).toLocaleString('es-AR')} ARS`;
+  return Number.isNaN(n) ? String(v) : `${Math.round(n).toLocaleString('es-AR')} ARS`;
 }
 
 export const useEmployeeDetail = (p: Params) => {
@@ -94,47 +84,31 @@ export const useEmployeeDetail = (p: Params) => {
   // estado del ClickWindow (confirmación)
   const [confirmRejectVisible, setConfirmRejectVisible] = useState(false);
 
+  // Carga detalle según source
   useEffect(() => {
     let mounted = true;
-
     const fetchDetail = async () => {
-      setLoading(true);
-      setError(null);
+      setLoading(true); setError(null);
       try {
         if (p.source === 'application') {
-          const res: ApplicationAPI = await requestBackend(
-            `/api/applications/apply/${p.id}/detail/`,
-            null,
-            'GET',
-          );
+          const res: ApplicationAPI = await requestBackend(`/api/applications/apply/${p.id}/detail/`, null, 'GET');
 
-          const buildCard = (sh?: ShiftAPI | null, isCurrent?: boolean) => {
-            if (!sh) return null;
-            const start = formatearFecha(sh.start_date);
-            const end   = formatearFecha(sh.end_date);
+          const buildCard = (sh?: ShiftAPI | null, isCurrent?: boolean) => sh && (() => {
+            const start = formatearFecha(sh.start_date), end = formatearFecha(sh.end_date);
             return {
               id: sh.id,
               start_date_label: dateLabelFromDDMMYYYY(start),
               time_range_label: `${formatearHora(sh.start_time)} - ${formatearHora(sh.end_time)}`,
-              payment_label:    moneyARS(sh.payment),
-              start_date: start,
-              start_time: sh.start_time,
-              end_date: end,
-              end_time: sh.end_time,
-              payment: sh.payment,
+              payment_label: moneyARS(sh.payment),
+              start_date: start, start_time: sh.start_time, end_date: end, end_time: sh.end_time, payment: sh.payment,
               isCurrent: !!isCurrent,
             };
-          };
+          })();
 
-          const cards: NormalizedDetail['shiftCards'] = [];
-          const current = buildCard(res.current_shift, true);
-          if (current) cards.push(current);
-          (res.shifts ?? []).forEach(sh => {
-            const c = buildCard(sh, false);
-            if (c) cards.push(c);
-          });
-
-          const appliedIds = cards?.map(c => c?.id).filter(Boolean) as Array<number | string>;
+          const cards = [
+            buildCard(res.current_shift, true),
+            ...(res.shifts ?? []).map(s => buildCard(s, false))
+          ].filter(Boolean) as NonNullable<NormalizedDetail['shiftCards']>;
 
           const normalized: NormalizedDetail = {
             employee_id: null,
@@ -143,18 +117,13 @@ export const useEmployeeDetail = (p: Params) => {
             description: res.description ?? null,
             age: res.age ?? null,
             approximate_location: res.approximate_location ?? null,
-            shiftCards: cards ?? [],
-            applied_shift_ids: appliedIds ?? [],
+            shiftCards: cards,
+            applied_shift_ids: cards.map(c => c.id!).filter(Boolean),
           };
 
           if (mounted) setData(normalized);
         } else {
-          const res: SearchAPI = await requestBackend(
-            `/api/applications/employees/search/${p.id}`,
-            null,
-            'GET',
-          );
-
+          const res: SearchAPI = await requestBackend(`/api/applications/employees/search/${p.id}`, null, 'GET');
           const normalized: NormalizedDetail = {
             employee_id: p.id,
             profile_image: res.profile_image || null,
@@ -165,7 +134,6 @@ export const useEmployeeDetail = (p: Params) => {
             shiftCards: [],
             applied_shift_ids: [],
           };
-
           if (mounted) setData(normalized);
         }
       } catch (e: any) {
@@ -174,18 +142,16 @@ export const useEmployeeDetail = (p: Params) => {
         if (mounted) setLoading(false);
       }
     };
-
     fetchDetail();
     return () => { mounted = false; };
-  }, [p.source, p.id]);
+  }, []);
 
   const goBack = () => router.back();
 
   const onGenerateOffer = () => {
-    const userId  = (data?.employee_id ?? p.id) as string | number;
-
+    const userId = (data?.employee_id ?? p.id) as string | number;
     router.push({
-      pathname: '/employer/candidates/offer', 
+      pathname: '/employer/candidates/offer',
       params: {
         source: p.source,
         id: String(userId),
@@ -196,15 +162,11 @@ export const useEmployeeDetail = (p: Params) => {
     });
   };
 
-  const shiftSummary = useMemo(() => {
-    const first = data?.shiftCards?.[0];
-    return first ? first.time_range_label : '';
-  }, [data?.shiftCards]);
+  const shiftSummary = useMemo(() => data?.shiftCards?.[0]?.time_range_label ?? '', [data?.shiftCards]);
 
-  // ===== Rechazo (confirmación en el render, request aquí) =====
+  // Rechazo (confirmación en render, request acá)
   const openConfirmReject  = () => setConfirmRejectVisible(true);
   const closeConfirmReject = () => setConfirmRejectVisible(false);
-
   const confirmReject = async () => {
     try {
       setConfirmRejectVisible(false);

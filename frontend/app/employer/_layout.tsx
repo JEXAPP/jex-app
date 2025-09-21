@@ -22,7 +22,6 @@ export default function EmployerLayoutRoot() {
         )}}>
         {/* Rutas RELATIVAS a /employer */}
         <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
-        <Stack.Screen name="vacancy/manipulate-vacancy" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="candidates" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
       </Stack>

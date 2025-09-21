@@ -1,14 +1,9 @@
+// hooks/employer/useVacancies.ts
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useState, useMemo, useEffect } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
 
-type VacancyState =
-  | "Activa"
-  | "En Borrador"
-  | "Oculta"
-  | "Llena"
-  | "Vencida"
-  | "Eliminada";
+type VacancyState = "Activa" | "En Borrador" | "Oculta" | "Llena" | "Vencida" | "Eliminada";
 
 type VacancyItem = {
   id: number;
@@ -17,13 +12,7 @@ type VacancyItem = {
   eventId: number;
 };
 
-const SELECTABLE_STATES: VacancyState[] = [
-  "Activa",
-  "En Borrador",
-  "Oculta",
-  "Llena",
-  "Vencida",
-];
+const SELECTABLE_STATES: VacancyState[] = ["Activa", "En Borrador", "Oculta", "Llena", "Vencida"];
 
 export const useVacancies = () => {
   const router = useRouter();
@@ -40,36 +29,25 @@ export const useVacancies = () => {
   const [horaInicioEvento, setHoraInicioEvento] = useState<string | null>(null);
   const [horaFinEvento, setHoraFinEvento] = useState<string | null>(null);
 
-  // 🚀 Traer vacantes del evento
+  // Cargar vacantes del evento
   useEffect(() => {
-  const fetchVacanciesByEvent = async (eventIdStr: string) => {
-    const eventId = Number(eventIdStr);
-    if (!eventId) return;
+    const fetchVacanciesByEvent = async (eventIdStr: string) => {
+      const eventId = Number(eventIdStr);
+      if (!eventId) return;
+      setLoadingVacancies(true);
+      try {
+        const data = await requestBackend(`/api/vacancies/by-employer/${eventId}/`, null, "GET");
 
-    setLoadingVacancies(true);
-    try {
-      const data = await requestBackend(
-        `/api/vacancies/by-employer/${eventId}/`,
-        null,
-        "GET"
-      );
+        if (data && Array.isArray(data.vacancies)) {
+          const normalized: VacancyItem[] = data.vacancies.map((v: any) => ({
+            id: v.id,
+            nombre: v.job_type?.name === "Otro" && v.specific_job_type ? v.specific_job_type : v.job_type?.name ?? v.name,
+            estado: v.state?.name ?? "Sin Estado",
+            eventId: data.id ?? eventId,
+          }));
 
-      console.log('#####################################################')
-      console.log(data.vacancies)
-
-      if (data && Array.isArray(data.vacancies)) {
-        const normalized: VacancyItem[] = data.vacancies.map((v: any) => ({
-          id: v.id,
-          nombre:
-            v.job_type?.name === "Otro" && v.specific_job_type
-              ? v.specific_job_type
-              : v.job_type?.name ?? v.name,
-          estado: v.state?.name ?? "Sin Estado",
-          eventId: data.id ?? eventId,
-        }));
-
-        setVacancies(normalized);
-        setCurrentEvent({
+          setVacancies(normalized);
+          setCurrentEvent({
             id: data.id,
             nombre: data.name,
             estado: data.state,
@@ -79,41 +57,32 @@ export const useVacancies = () => {
             horaFin: data.end_time,
             ubicacion: data.location,
           });
-
-          // 👇 Guardamos los horarios en las constantes
           setHoraInicioEvento(data.start_time ?? null);
           setHoraFinEvento(data.end_time ?? null);
-
         } else {
           setVacancies([]);
           setCurrentEvent(null);
           setHoraInicioEvento(null);
           setHoraFinEvento(null);
         }
-    } catch (err) {
-      console.log("Error cargando vacantes por evento:", err);
-    } finally {
-      setLoadingVacancies(false);
-    }
-  };
+      } catch (err) {
+        console.log("Error cargando vacantes por evento:", err);
+      } finally {
+        setLoadingVacancies(false);
+      }
+    };
 
-  if (id) {
-    fetchVacanciesByEvent(id);
-  } else {
+    if (id) {
+      fetchVacanciesByEvent(id);
+    } else {
       setVacancies([]);
       setCurrentEvent(null);
       setHoraInicioEvento(null);
       setHoraFinEvento(null);
     }
-}, [id]); 
+  }, []);
 
-  const goToCreateVacancy = (
-    eventId: number,
-    fechaInicio: string,
-    fechaFin: string,
-    horaInicio: string,
-    horaFin: string
-  ) =>
+  const goToCreateVacancy = (eventId: number, fechaInicio: string, fechaFin: string, horaInicio: string, horaFin: string) =>
     router.push(
       `/employer/panel/vacancy/create-vacancy?id=${eventId}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&horaInicio=${horaInicio}&horaFin=${horaFin}`
     );
@@ -122,16 +91,15 @@ export const useVacancies = () => {
     router.push(`/employer/panel/vacancy/manipulate-vacancy?id=${vacancyId}`);
 
   const filteredVacantes = useMemo(() => {
+    const q = search.toLowerCase();
     return vacancies
-      .filter((v) => v.nombre.toLowerCase().includes(search.toLowerCase()))
-      .filter((v) => {
-        if (!selectedState) return true;
-        return v.estado === selectedState;
-      })
+      .filter(v => v.nombre.toLowerCase().includes(q))
+      .filter(v => (selectedState ? v.estado === selectedState : true))
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
   }, [vacancies, search, selectedState]);
 
   return {
+    // estado
     loading: loadingVacancies,
     filteredVacantes,
     search,
@@ -139,10 +107,12 @@ export const useVacancies = () => {
     selectableStates: SELECTABLE_STATES,
     selectedState,
     setSelectedState,
+    // navegación
     goToCreateVacancy,
     goToVacancyDetail,
+    // evento actual + horarios
     currentEvent,
-    horaInicioEvento, // 👈 exportamos horarios
+    horaInicioEvento,
     horaFinEvento,
   };
 };

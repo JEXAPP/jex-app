@@ -43,8 +43,6 @@ export function useAttendance() {
       const url = `/api/applications/attendance/details/${eventId}/`;
       const res = await requestBackend(url, null, 'GET');
 
-      console.log(res)
-
       const arr = Array.isArray(res) ? res : [];
 
       const normalized: EmployeeAttendance[] = arr.map((r: any) => ({

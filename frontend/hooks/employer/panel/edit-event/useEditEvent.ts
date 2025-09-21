@@ -118,7 +118,6 @@ export const useEditEvent = () => {
     }
     try {
       const data = await requestBackend(`/api/events/detail/${eventIdNum}/`, null, 'GET');
-      console.log(data)
 
       setNombreEvento(data?.name ?? '');
       setDescripcionEvento(data?.description ?? '');
@@ -235,7 +234,6 @@ export const useEditEvent = () => {
       if (typeof coords.lng === 'number' && Number.isFinite(coords.lng)) {
         payload.longitude = coords.lng;
       }
-      console.log(payload)
       await requestBackend(`/api/events/update/${eventIdNum}/`, payload, 'PUT');
       setShowSuccess(true);
       router.replace('/employer')

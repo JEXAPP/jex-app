@@ -6,10 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 type EventItem = {
   id: number;
   nombre: string;
-  estado: {
-    id: number;
-    name: string;
-  };
+  estado: { id: number; name: string };
   fechaInicio: string;
   fechaFin: string;
   fechaISO: string;
@@ -17,7 +14,6 @@ type EventItem = {
   horaFin: string;
   ubicacion: string;
 };
-
 
 export const useAdminPanel = () => {
   const router = useRouter();
@@ -27,121 +23,64 @@ export const useAdminPanel = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
 
-  // 🚀 Cargar eventos — SOLO al montar (no depende de events.length)
-  // hooks/employer/useAdminPanel.ts
-useEffect(() => {
-  let mounted = true;
+  const mapEvent = (e: any): EventItem => ({
+    id: e.id,
+    nombre: e.name,
+    estado: { id: e.state?.id ?? 0, name: e.state?.name ?? "Sin Estado" },
+    fechaInicio: e.start_date ?? "",
+    fechaFin: e.end_date ?? "",
+    fechaISO: e.start_date ?? "",
+    horaInicio: e.start_time ?? "",
+    horaFin: e.end_time ?? "",
+    ubicacion: e.location ?? "",
+  });
 
   const fetchEvents = async () => {
     setLoading(true);
     try {
       const data = await requestBackend("/api/events/by-employer/", null, "GET");
-      if (!mounted) return;
-
-      if (Array.isArray(data)) {
-        setEvents(
-          data.map((e: any) => ({
-            id: e.id,
-            nombre: e.name,
-            estado: {
-              id: e.state?.id ?? 0,
-              name: e.state?.name ?? "Sin Estado",
-            },
-            fechaInicio: e.start_date ?? "",
-            fechaFin: e.end_date ?? "",
-            fechaISO: e.start_date ?? "",
-            horaInicio: e.start_time ?? "",
-            horaFin: e.end_time ?? "",
-            ubicacion: e.location ?? "",
-          }))
-        );
-
-      }
+      if (Array.isArray(data)) setEvents(data.map(mapEvent));
     } catch (err) {
       console.log("Error cargando eventos:", err);
     } finally {
-      if (mounted) setLoading(false);
+      setLoading(false);
     }
   };
 
-  fetchEvents();
+  useEffect(() => { fetchEvents(); }, []); // solo en mount
 
-  return () => {
-    mounted = false;
-  };
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, []); // 👈 corre solo en mount
+  const refreshEvents = () =>
+    requestBackend("/api/events/by-employer/", null, "GET")
+      .then((data) => { if (Array.isArray(data)) setEvents(data.map(mapEvent)); })
+      .catch((err) => console.log("Error refrescando eventos:", err));
 
-
-  const refreshEvents = () => {
-  // fuerza el fetch otra vez
-  return requestBackend("/api/events/by-employer/", null, "GET")
-    .then((data) => {
-      if (Array.isArray(data)) {
-        setEvents(
-          data.map((e: any) => ({
-            id: e.id,
-            nombre: e.name,
-            estado: {
-              id: e.state?.id ?? 0,
-              name: e.state?.name ?? "Sin Estado",
-            },
-            fechaInicio: e.start_date ?? "",
-            fechaFin: e.end_date ?? "",
-            fechaISO: e.start_date ?? "",
-            horaInicio: e.start_time ?? "",
-            horaFin: e.end_time ?? "",
-            ubicacion: e.location ?? "",
-          }))
-        );
-
-      }
-    })
-    .catch((err) => console.log("Error refrescando eventos:", err));
-};
-
-  // 🚀 Eventos ordenados
   const orderedEvents = useMemo(() => {
     return [...events].sort((a, b) => {
-      const fechaA = a.fechaISO ? new Date(a.fechaISO).getTime() : 0;
-      const fechaB = b.fechaISO ? new Date(b.fechaISO).getTime() : 0;
-      return fechaA - fechaB;
+      const aT = a.fechaISO ? new Date(a.fechaISO).getTime() : 0;
+      const bT = b.fechaISO ? new Date(b.fechaISO).getTime() : 0;
+      return aT - bT;
     });
   }, [events]);
 
-  // Evento actual
   const currentEvent = orderedEvents[currentEventIndex];
 
-  // Navegaciones
   const handleNextEvent = () => {
-    if (currentEventIndex < orderedEvents.length - 1) {
-      setCurrentEventIndex((i) => i + 1);
-    }
+    if (currentEventIndex < orderedEvents.length - 1) setCurrentEventIndex(i => i + 1);
   };
-
   const handlePrevEvent = () => {
-    if (currentEventIndex > 0) {
-      setCurrentEventIndex((i) => i - 1);
-    }
+    if (currentEventIndex > 0) setCurrentEventIndex(i => i - 1);
   };
 
   const goToCreateEvent = () => router.push("/employer/panel/create-event");
-  const goToEditEvent = (id: number) =>
-    router.push(`/employer/panel/edit-event?id=${id}`);
+  const goToEditEvent = (id: number) => router.push(`/employer/panel/edit-event?id=${id}`);
 
   const goToVacancies = (eventId: number) => {
-    const idx = orderedEvents.findIndex((e) => e.id === eventId);
-    if (idx >= 0) {
-      setCurrentEventIndex(idx);
-    }
-    router.push({
-      pathname: "/employer/panel/vacancy",
-      params: { id: String(eventId) },
-    });
+    const idx = orderedEvents.findIndex(e => e.id === eventId);
+    if (idx >= 0) setCurrentEventIndex(idx);
+    router.push({ pathname: "/employer/panel/vacancy", params: { id: String(eventId) } });
   };
 
-  const goToAttendance = (id: number) =>
-    router.push(`/employer/panel/attendance?id=${id}`);
+  const goToAttendance = (id: number) => router.push(`/employer/panel/attendance?id=${id}`);
 
   return {
     // Eventos
@@ -158,7 +97,7 @@ useEffect(() => {
 
     // Navegación
     goToVacancies,
-    goToAttendance
+    goToAttendance,
   };
 };
 export default useAdminPanel;

@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import useBackendConection from '@/services/internal/useBackendConection';
 
-
 type EstadoNombre = 'Oculta' | 'Activa' | 'En Borrador' | 'Llena' | 'Vencida' | 'Eliminada';
 type EstadoDTO = { id: number; name: EstadoNombre };
+
+let estadosCache: EstadoDTO[] | null = null;
+let inflightEstadosPromise: Promise<EstadoDTO[]> | null = null;
 
 export const useManipulateVacancy = () => {
   const router = useRouter();
@@ -32,22 +34,33 @@ export const useManipulateVacancy = () => {
     return map;
   }, [estadosVacante]);
 
-  // Trae estados con cache + dedupe
-  const fetchEstados = useCallback(async () => {
-    if (estadosCache) { setEstadosVacante(estadosCache); return; }
+  // Trae estados con cache + dedupe y SIEMPRE devuelve el array
+  const fetchEstados = useCallback(async (): Promise<EstadoDTO[]> => {
+    if (estadosCache) return estadosCache;
     if (!inflightEstadosPromise) {
       inflightEstadosPromise = (async () => {
-        const result = await requestRef.current('/api/vacancies/vacancy-states/', null, 'GET');
-        return Array.isArray(result) ? (result as EstadoDTO[]) : [];
+        try {
+          const result = await requestRef.current('/api/vacancies/vacancy-states/', null, 'GET');
+          estadosCache = Array.isArray(result) ? (result as EstadoDTO[]) : [];
+          return estadosCache;
+        } catch (e) {
+          console.log('[useManipulateVacancy] Error cargando estados:', e);
+          estadosCache = [];
+          return estadosCache;
+        } finally {
+          // liberamos la promesa en un microtask para que otros awaits terminen bien
+          Promise.resolve().then(() => { inflightEstadosPromise = null; });
+        }
       })();
     }
+    return inflightEstadosPromise;
   }, []);
 
   const fetchEstadoActual = useCallback(async (vacId: number, estados: EstadoDTO[]) => {
     if (!Number.isFinite(vacId)) return;
-
     try {
       const data = await requestRef.current(`/api/vacancies/${vacId}/details`, null, 'GET');
+
       const rawName: string | undefined =
         data?.state?.name ??
         data?.state ??
@@ -61,9 +74,7 @@ export const useManipulateVacancy = () => {
         const found = estados.find(e => e.name.toLowerCase() === rawName.toLowerCase());
         if (found) nombre = found.name;
       } else {
-        // Si viene por id numérico
-        const rawId: number | undefined =
-          data?.state?.id ?? data?.state_id ?? data?.vacancy_state_id;
+        const rawId: number | undefined = data?.state?.id ?? data?.state_id ?? data?.vacancy_state_id;
         if (typeof rawId === 'number') {
           const found = estados.find(e => e.id === rawId);
           if (found) nombre = found.name;
@@ -72,9 +83,9 @@ export const useManipulateVacancy = () => {
 
       if (nombre) {
         setEstadoActual(nombre);
-        setVacanteOculta(nombre === 'Oculta'); // (solo "Oculta" es oculta para la UI)
+        setVacanteOculta(nombre === 'Oculta');
       } else {
-        console.log('[useManipulateVacancy] Estado no reconocido en /vacancies/{id}/');
+        console.log('[useManipulateVacancy] Estado no reconocido en /vacancies/{id}/details');
       }
     } catch (err) {
       console.log('[useManipulateVacancy] Error cargando detalle de vacante:', err);
@@ -82,47 +93,36 @@ export const useManipulateVacancy = () => {
   }, []);
 
   const handlePublicar = () => {
-    setPublicarDisabled(true); // se deshabilita inmediatamente              // dispara el cambio de estado a "Activa"
+    setPublicarDisabled(true); // se deshabilita inmediatamente
   };
 
   const permisos = useMemo(() => {
     const st = estadoActual;
-
-    const base = {
-      canEditar: false,
-      canEliminar: true,  // por defecto se puede eliminar salvo que la app decida lo contrario
-      canOcultar: false,
-      canMostrar: false,
-      canPublicar: false
-    };
+    const base = { canEditar: false, canEliminar: true, canOcultar: false, canMostrar: false, canPublicar: false };
 
     if (st === 'En Borrador') {
-      return { ...base, canEditar: true, canEliminar: true, canOcultar: false, canMostrar: false, canPublicar: true };
+      return { ...base, canEditar: true,  canEliminar: true, canOcultar: false, canMostrar: false, canPublicar: true  };
     }
     if (st === 'Activa') {
       return { ...base, canEditar: false, canEliminar: true, canOcultar: true,  canMostrar: false, canPublicar: false };
     }
     if (st === 'Oculta') {
-      return { ...base, canEditar: false, canEliminar: true, canOcultar: false, canMostrar: true, canPublicar: false  };
+      return { ...base, canEditar: false, canEliminar: true, canOcultar: false, canMostrar: true,  canPublicar: false };
     }
-    // Llena / Vencida / Eliminada → "no se puede editar" es la única condición
+    // Llena / Vencida / Eliminada → no se puede editar
     return { ...base, canEditar: false, canEliminar: true, canOcultar: true, canMostrar: false, canPublicar: false };
   }, [estadoActual]);
 
-  // === Effects ===============================================================
-
-  // Efecto inicial: carga estados + estado actual una vez
+  // Carga inicial: estados + estado actual
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         setLoadingEstados(true);
-        const ests = await fetchEstados();
+        const ests = await fetchEstados();     // <-- ahora devuelve siempre
         if (!mounted) return;
         setEstadosVacante(ests);
         await fetchEstadoActual(vacanteId, ests);
-        console.log('&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&')
-        console.log(estadosVacante)
       } catch (err) {
         if (mounted) setEstadosVacante([]);
         console.log('Error inicial useManipulateVacancy:', err);
@@ -131,7 +131,7 @@ export const useManipulateVacancy = () => {
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [fetchEstados, fetchEstadoActual, vacanteId]);
 
   const cambiarEstadoVacante = useCallback(
     async (vacId: number, nombreEstado: EstadoNombre) => {
@@ -153,9 +153,7 @@ export const useManipulateVacancy = () => {
     [estadosMap]
   );
 
-  const onConfirmOcultar = useCallback(async () => {
-    await cambiarEstadoVacante(vacanteId, 'Oculta');
-  }, [cambiarEstadoVacante, vacanteId]);
+  const onConfirmOcultar = useCallback(async () => { await cambiarEstadoVacante(vacanteId, 'Oculta'); }, [cambiarEstadoVacante, vacanteId]);
 
   const onConfirmActivar = useCallback(async () => {
     await cambiarEstadoVacante(vacanteId, 'Activa');
@@ -163,9 +161,7 @@ export const useManipulateVacancy = () => {
     setPublicarDisabled(false);
   }, [cambiarEstadoVacante, vacanteId]);
 
-  const onConfirmMostrar = useCallback(async () => {
-    await cambiarEstadoVacante(vacanteId, 'Activa');
-  }, [cambiarEstadoVacante, vacanteId]);
+  const onConfirmMostrar = useCallback(async () => { await cambiarEstadoVacante(vacanteId, 'Activa'); }, [cambiarEstadoVacante, vacanteId]);
 
   const onConfirmEliminar = useCallback(async () => {
     const result = await cambiarEstadoVacante(vacanteId, 'Eliminada');
@@ -177,7 +173,7 @@ export const useManipulateVacancy = () => {
       console.log('No hay vacanteId válido para editar');
       return;
     }
-    router.push(`/employer/panel/edit-vacancy?id=${vacanteId}`);
+    router.push(`/employer/panel/vacancy/edit-vacancy?id=${vacanteId}`);
   }, [router, vacanteId]);
 
   return {
@@ -186,7 +182,7 @@ export const useManipulateVacancy = () => {
     estadoActual,
     vacanteOculta,
     alerta, setAlerta,
-    ...permisos, // canEditar, canEliminar, canOcultar, canMostrar
+    ...permisos, // canEditar, canEliminar, canOcultar, canMostrar, canPublicar
     onConfirmOcultar,
     onConfirmMostrar,
     onConfirmEliminar,
