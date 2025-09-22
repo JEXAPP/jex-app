@@ -2,6 +2,8 @@ from rest_framework import serializers
 from applications.constants import ApplicationStates
 from applications.models.applications_states import ApplicationState
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
+from notifications.constants import NotificationTypes
+from notifications.services.send_notification import send_notification
 from user_auth.utils import get_city_locality, calculate_age
 from vacancies.constants import VacancyStates
 from applications.errors.application_messages import ALREADY_APPLIED_SHIFTS, EMPLOYEE_PROFILE_NOT_FOUND, NOT_PERMISSION_APPLICATION, NOT_PERMISSION_APPLICATION
@@ -75,8 +77,12 @@ class ApplicationCreateSerializer(serializers.Serializer):
     def save(self, **kwargs):
         user = self.context['user']
         employee = EmployeeProfile.objects.get(user=user)
+        vacancy_id = self.validated_data['vacancy_id']
+
         shifts_ids = self.validated_data['shifts']
 
+        vacancy = Vacancy.objects.select_related("event__owner").get(id=vacancy_id)
+        employer = vacancy.event.owner
         pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
 
         with transaction.atomic():
@@ -84,6 +90,13 @@ class ApplicationCreateSerializer(serializers.Serializer):
                 Application(employee=employee, shift_id=shift_id, state=pending_state)
                 for shift_id in shifts_ids
             ])
+
+        send_notification(
+            user=employer,
+            title="Nueva postulación",
+            message="POSTULADO nomas",
+            notification_type_name=NotificationTypes.APPLICATION.value
+        )
 
         return True
 
