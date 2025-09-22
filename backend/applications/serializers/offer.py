@@ -12,11 +12,14 @@ from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
 from rest_framework import serializers
 from django.utils import timezone
+from vacancies.constants import VacancyStates
 from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
 from eventos.models.event import Event
 from applications.models.offers import OfferState
 from vacancies.models.requirements import Requirements
+from vacancies.models.vacancy_state import VacancyState
+from django.db.models import Sum
 
 
 class OfferCreateSerializer(serializers.ModelSerializer):
@@ -245,7 +248,6 @@ class OfferDecisionSerializer(serializers.Serializer):
         offer = self.context['offer']
         user = self.context['request'].user
 
-        # 🔹 Validar que la oferta esté en estado PENDING
         if offer.state.name != OfferStates.PENDING.value:
             raise serializers.ValidationError(OFFER_NOT_PENDING)
 
@@ -268,6 +270,21 @@ class OfferDecisionSerializer(serializers.Serializer):
                 confirmed_state = ApplicationState.objects.get(name=ApplicationStates.CONFIRMED.value)
                 offer.application.state = confirmed_state
                 offer.application.save(update_fields=['state'])
+
+            vacancy = offer.selected_shift.vacancy
+
+            total_quantity = vacancy.shifts.aggregate(total=Sum('quantity'))['total'] or 0
+
+            accepted_state = OfferState.objects.get(name=OfferStates.ACCEPTED.value)
+            total_accepted = Offer.objects.filter(
+                selected_shift__vacancy=vacancy,
+                state=accepted_state
+            ).count()
+
+            if total_quantity > 0 and total_quantity == total_accepted:
+                filled_state = VacancyState.objects.get(name=VacancyStates.FILLED.value)
+                vacancy.state = filled_state
+                vacancy.save(update_fields=['state'])
 
         offer.save()
         return offer
@@ -364,6 +381,7 @@ class ShiftDetailForOfferByStateSerializer(serializers.ModelSerializer):
 class OfferEventByStateSerializer(serializers.ModelSerializer):
     employee_name = serializers.CharField(source="employee.user.first_name", read_only=True)
     employee_lastname = serializers.CharField(source="employee.user.last_name", read_only=True)
+    profile_image = serializers.SerializerMethodField()
     job_type = serializers.SerializerMethodField()
     shift = ShiftDetailForOfferByStateSerializer(source="selected_shift", read_only=True)
     offer_state = OfferStateSerializer(source="state", read_only=True)
@@ -377,6 +395,7 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
             "id",
             "employee_name",
             "employee_lastname",
+            "profile_image",
             "job_type",
             "shift",
             "offer_state",
@@ -384,6 +403,9 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
             "expiration_time",
         ]
 
+    def get_profile_image(self, obj):
+        return obj.employee.user.profile_image.url if obj.employee.user.profile_image else None
+    
     def get_job_type(self, obj):
         return get_job_type_display(obj.selected_shift.vacancy)
 
