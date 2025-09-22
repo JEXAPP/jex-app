@@ -40,10 +40,11 @@ class ShiftForEmployeeJobsSerializer(serializers.ModelSerializer):
 class EmployeeForSearchSerializer(serializers.ModelSerializer):
     event = serializers.SerializerMethodField()
     shift = serializers.SerializerMethodField()
+    job_id = serializers.IntegerField(source='id')
 
     class Meta:
         model = Offer
-        fields = ["id", "event", "shift"]
+        fields = ["event", "shift", "job_id"]
 
     def get_event(self, obj):
         event = obj.selected_shift.vacancy.event
