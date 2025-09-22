@@ -1,6 +1,7 @@
 from django.forms import ValidationError
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from config.pagination import CustomPagination
+from vacancies.constants import VacancyStates
 from vacancies.errors.vacancies_messages import VACANCY_NOT_FOUND
 from vacancies.models.requirements import Requirements
 from vacancies.models.shifts import Shift
@@ -174,7 +175,12 @@ class EmployerEventsWithVacanciesByIdView(RetrieveAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return Event.objects.filter(owner=user)
+        return Event.objects.filter(owner=user).prefetch_related(
+            Prefetch(
+                "vacancies",
+                queryset=Vacancy.objects.exclude(state__name=VacancyStates.DELETED.value)
+            )
+        )
 
     def get_object(self):
         queryset = self.get_queryset()
