@@ -226,12 +226,13 @@ class OfferConsultSerializer(serializers.ModelSerializer):
         ]
 
     def get_shift(self, obj):
-        # Si application existe y tiene shift, usar ese
-        if obj.application and getattr(obj.application, "shift", None):
-            return ShiftSerializer(obj.application.shift).data
-        # Si application es None o su id es nulo/vacío, usar selected_shift
-        elif getattr(obj, "selected_shift", None):
-            return ShiftSerializer(obj.selected_shift).data
+        # Si application_id es null, mostrar selected_shift
+        if obj.application_id is None:
+            # Si existe selected_shift, devuélvelo serializado
+            shift = getattr(obj, "selected_shift", None)
+            if shift:
+                return ShiftSerializer(shift).data
+        # Si application_id NO es null, no mostrar shift (devolver None)
         return None
     
     def get_event_image_url(self, obj):
