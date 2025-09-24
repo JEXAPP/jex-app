@@ -39,26 +39,18 @@ def send_notification(user, title, message, notification_type_name):
     )
 
     # Enviar push a todos los dispositivos del usuario
-    # tokens = list(user.devices.values_list('expo_push_token', flat=True))
-    # for token in tokens:
-    payload = {
-        "to": "ExponentPushToken[xWQq0cL6DMc8SYTT-FeuM8]",
-        "sound": "default",
-        "title": title,
-        "body": message,
-        "data": {"type": notification_type_name}
-    }
-    try:
-        resp = requests.post(settings.EXPO_PUSH_API_URL, json=payload, timeout=5)
-        if resp.status_code == 200:
-            logger.info(
-                "Push enviado a token %s | HTTP %s | Response: %s",
-                payload["to"], resp.status_code, resp.text
-            )
-        else:
-            logger.warning(
-                "Error al enviar push a token %s | HTTP %s | Response: %s",
-                payload["to"], resp.status_code, resp.text
-            )
-    except requests.RequestException as e:
-        logger.error("Error de red al enviar push a token %s: %s", payload["to"], e)
+    tokens = list(user.devices.values_list('expo_push_token', flat=True))
+    for token in tokens:
+        payload = {
+            "to": token,
+            "sound": "default",
+            "title": title,
+            "body": message,
+            "channelId": "default",
+            "data": {"type": notification_type_name}
+        }
+        try:
+            resp = requests.post(settings.EXPO_PUSH_API_URL, json=payload, timeout=5)
+            logger.info("Push enviado a %s | %s", token, resp.status_code)
+        except requests.RequestException as e:
+            logger.error("Error enviando push a %s: %s", token, e)
