@@ -1,11 +1,13 @@
-// hooks/useQuali.ts
+// hooks/employer/panel/qualification/useQuali.ts
 import { useState, useMemo } from "react";
+import { useRouter } from "expo-router";
 
 type Worker = {
   id: string;
   name: string;
   role: string;
   image: string;
+  linked: boolean;
 };
 
 type RatingData = {
@@ -14,7 +16,8 @@ type RatingData = {
 };
 
 export const useQuali = () => {
-  // Hardcodeo de roles y trabajadores
+  const router = useRouter();
+
   const roles = ["Fotógrafo", "Cantante", "DJ", "Catering"];
 
   const allWorkers: Worker[] = [
@@ -23,39 +26,45 @@ export const useQuali = () => {
       name: "Martina Salvo",
       role: "Fotógrafo",
       image: "https://randomuser.me/api/portraits/women/44.jpg",
+      linked: true,
     },
     {
       id: "2",
       name: "Juan García",
       role: "Fotógrafo",
       image: "https://randomuser.me/api/portraits/men/46.jpg",
+      linked: false,
     },
     {
       id: "3",
       name: "Luna Costas",
       role: "Fotógrafo",
       image: "https://randomuser.me/api/portraits/women/68.jpg",
+      linked: false,
     },
     {
       id: "4",
       name: "Diego López",
       role: "Cantante",
       image: "https://randomuser.me/api/portraits/men/12.jpg",
+      linked: true,
     },
     {
       id: "5",
       name: "Paula Méndez",
       role: "DJ",
       image: "https://randomuser.me/api/portraits/women/22.jpg",
+      linked: false,
     },
   ];
 
   const [selectedRole, setSelectedRole] = useState<string>(roles[0]);
   const [ratings, setRatings] = useState<Record<string, RatingData>>({});
+  const [workersState, setWorkersState] = useState<Worker[]>(allWorkers);
 
   const workers = useMemo(
-    () => allWorkers.filter((w) => w.role === selectedRole),
-    [selectedRole]
+    () => workersState.filter((w) => w.role === selectedRole),
+    [selectedRole, workersState]
   );
 
   const handleRating = (workerId: string, rating: number) => {
@@ -70,6 +79,14 @@ export const useQuali = () => {
       ...prev,
       [workerId]: { ...(prev[workerId] || {}), comment },
     }));
+  };
+
+  const handleToggleLinked = (workerId: string) => {
+    setWorkersState((prev) =>
+      prev.map((w) =>
+        w.id === workerId ? { ...w, linked: !w.linked } : w
+      )
+    );
   };
 
   const ratedCount = useMemo(
@@ -89,7 +106,14 @@ export const useQuali = () => {
       .filter((entry) => entry.rating !== null);
 
     console.log("📤 Enviando calificaciones:", dataToSend);
-    // acá luego iría el requestBackend()
+  };
+
+  // 👉 Navegar a la pantalla de sanción
+  const handleSanction = (workerId: string) => {
+    router.push({
+      pathname: "/employer/panel/qualification/sanction",
+      params: { workerId },
+    });
   };
 
   return {
@@ -101,6 +125,8 @@ export const useQuali = () => {
     handleRating,
     handleComment,
     handleSubmit,
+    handleToggleLinked,
+    handleSanction, // 👈 nuevo
     ratedCount,
     totalCount,
   };

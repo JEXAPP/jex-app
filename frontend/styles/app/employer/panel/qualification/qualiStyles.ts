@@ -1,4 +1,4 @@
-// styles/app/qualiStyles.ts
+// styles/app/employer/panel/qualification/qualiStyles.ts
 import { StyleSheet } from "react-native";
 import { Colors } from "@/themes/colors";
 
@@ -10,24 +10,25 @@ export const qualiStyles = StyleSheet.create({
     paddingTop: 60,
   },
   title: {
-    fontSize: 36,
+    fontSize: 40,
     fontFamily: "titulos",
     color: Colors.violet4,
-    marginBottom: 16,
+    marginBottom: 20,
   },
+
+  // Tabs de roles
   filterContainer: {
     flexDirection: "row",
     justifyContent: "center",
     flexWrap: "wrap",
     gap: 8,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   filterButton: {
-    backgroundColor: "#E5E5E5",
+    backgroundColor: Colors.gray12,
     paddingVertical: 6,
     paddingHorizontal: 14,
     borderRadius: 16,
-    marginBottom: 6,
   },
   filterButtonActive: {
     backgroundColor: Colors.violet4,
@@ -40,77 +41,147 @@ export const qualiStyles = StyleSheet.create({
   filterTextActive: {
     color: "#fff",
   },
+
+  // Card trabajador
   workerCard: {
     backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 20,
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 5,
+    elevation: 3,
   },
   workerRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 14,
   },
   workerImage: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    marginRight: 12,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginRight: 14,
   },
   workerName: {
-    fontSize: 20,
-    fontFamily: "interSemiBold",
+    fontSize: 18,
+    fontFamily: "interBold",
     color: Colors.violet4,
   },
+  workerRole: {
+    fontSize: 14,
+    color: Colors.gray3,
+    marginTop: 2,
+    fontFamily: "interMedium",
+  },
+
+  // Chips
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    marginBottom: 6,
+  },
+  chipActive: {
+    backgroundColor: Colors.violet4,
+  },
+  chipDisabled: {
+    backgroundColor: Colors.gray1,
+    borderWidth: 1,
+    borderColor: Colors.gray3,
+  },
+  chipOutline: {
+    borderWidth: 1,
+    borderColor: Colors.violet4,
+    backgroundColor: "#fff",
+  },
+  chipText: {
+    fontSize: 13,
+    fontFamily: "interSemiBold",
+  },
+  chipTextActive: {
+    color: "#fff",
+  },
+  chipTextDisabled: {
+    color: Colors.gray3,
+  },
+
+  // Rating
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   ratingValue: {
-    marginLeft: 8,
-    fontSize: 16,
-    color: Colors.violet4,
+    marginLeft: 6,
+    fontSize: 13,
+    color: Colors.gray3,
     fontFamily: "interMedium",
+  },
+
+  // Comentarios
+  commentBox: {
+    marginTop: 8,
   },
   commentInput: {
     borderWidth: 1,
-    borderColor: Colors.gray3,
-    borderRadius: 12,
-    padding: 10,
+    borderColor: Colors.gray2,
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     fontSize: 14,
     minHeight: 40,
+    maxHeight: 120,
     textAlignVertical: "top",
-    backgroundColor: "#FAFAFA",
+    backgroundColor: Colors.gray1,
   },
+  commentCounter: {
+    fontSize: 11,
+    color: Colors.gray3,
+    textAlign: "right",
+    marginTop: 4,
+  },
+
+  // Footer
   footer: {
-  position: "absolute",
-  bottom: 0,
-  left: 0,
-  borderRadius: 16,
-  right: 0,
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-  paddingVertical: 14,
-  paddingHorizontal: 20,
-  backgroundColor: "#fff",
-  shadowColor: Colors.black,
-  shadowOffset: { width: 0, height: -1 },
-  shadowOpacity: 0.05,
-  shadowRadius: 3,
-  elevation: 8,
-},
-scrollContent: {
-    flexGrow: 1,
-    justifyContent: "center",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    flexDirection: "row",
     alignItems: "center",
-    padding: 16,
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: "#fff",
+    shadowColor: Colors.black,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 8,
+  },
+  progressBarBackground: {
+    height: 6,
+    borderRadius: 4,
+    backgroundColor: Colors.gray2,
+    overflow: "hidden",
+    marginBottom: 6,
+  },
+  progressBarFill: {
+    height: 6,
+    borderRadius: 4,
+    backgroundColor: Colors.violet4,
   },
   footerText: {
-    fontSize: 16,
-    fontFamily: "interBold",
-    color: Colors.violet4,
+    fontSize: 13,
+    fontFamily: "interMedium",
+    color: Colors.gray3,
   },
   registerButton: {
     backgroundColor: Colors.violet4,
