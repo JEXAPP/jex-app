@@ -1,8 +1,21 @@
 import requests
+import logging
 from config import settings
 from notifications.models.notification import Notification
 from notifications.models.notification_type import NotificationType
 
+# Configuramos el logger (una sola vez en tu módulo)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)  # Nivel mínimo de log
+
+# Opcional: agregar handler si no hay uno configurado (para desarrollo local)
+if not logger.hasHandlers():
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        '[%(asctime)s] %(levelname)s %(name)s: %(message)s'
+    )
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
 
 def send_notification(user, title, message, notification_type_name):
     """
@@ -26,17 +39,26 @@ def send_notification(user, title, message, notification_type_name):
     )
 
     # Enviar push a todos los dispositivos del usuario
-    tokens = list(user.devices.values_list('expo_push_token', flat=True))
-    for token in tokens:
-        payload = {
-            "to": token,
-            "sound": "default",
-            "title": title,
-            "body": message,
-            "data": {"type": notification_type_name}
-        }
-        try:
-            requests.post(settings.EXPO_PUSH_API_URL, json=payload, timeout=5)
-        except requests.RequestException:
-            pass
-            
+    # tokens = list(user.devices.values_list('expo_push_token', flat=True))
+    # for token in tokens:
+    payload = {
+        "to": "ExponentPushToken[xWQq0cL6DMc8SYTT-FeuM8]",
+        "sound": "default",
+        "title": title,
+        "body": message,
+        "data": {"type": notification_type_name}
+    }
+    try:
+        resp = requests.post(settings.EXPO_PUSH_API_URL, json=payload, timeout=5)
+        if resp.status_code == 200:
+            logger.info(
+                "Push enviado a token %s | HTTP %s | Response: %s",
+                payload["to"], resp.status_code, resp.text
+            )
+        else:
+            logger.warning(
+                "Error al enviar push a token %s | HTTP %s | Response: %s",
+                payload["to"], resp.status_code, resp.text
+            )
+    except requests.RequestException as e:
+        logger.error("Error de red al enviar push a token %s: %s", payload["to"], e)
