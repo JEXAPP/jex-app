@@ -216,12 +216,24 @@ class OfferConsultSerializer(serializers.ModelSerializer):
     expiration_time = CustomTimeField()
     event_image_url = serializers.SerializerMethodField()
     event_image_public_id = serializers.SerializerMethodField()
+    shift = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
-        fields = ["id", "expiration_date", "expiration_time", 'application', "event_image_url",
-            "event_image_public_id"]
+        fields = ["id", "expiration_date", "expiration_time", 'application',  "shift",
+            "event_image_url",
+            "event_image_public_id"
+        ]
 
+    def get_shift(self, obj):
+        # Si application existe y tiene shift, usar ese
+        if obj.application and getattr(obj.application, "shift", None):
+            return ShiftSerializer(obj.application.shift).data
+        # Si application es None o su id es nulo/vacío, usar selected_shift
+        elif getattr(obj, "selected_shift", None):
+            return ShiftSerializer(obj.selected_shift).data
+        return None
+    
     def get_event_image_url(self, obj):
         shift = obj.selected_shift or getattr(obj.application, 'shift', None)
         if shift and shift.vacancy and shift.vacancy.event and shift.vacancy.event.event_image:
