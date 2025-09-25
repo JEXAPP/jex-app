@@ -53,3 +53,9 @@ class EmployeeForSearchSerializer(serializers.ModelSerializer):
     def get_shift(self, obj):
         shift = obj.selected_shift
         return ShiftForEmployeeJobsSerializer(shift).data
+    
+
+class EmployeeAcceptedEventsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Event
+        fields = ["id", "name"]

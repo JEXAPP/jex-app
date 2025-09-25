@@ -26,4 +26,5 @@ urlpatterns = [
     path('rejected/<int:application_id>/', ApplicationStatusRejectedUpdateView.as_view(), name='application-status-update'),
     path('attendance/<offer_id>/generate-qr/', GenerateQRTokenView.as_view(), name='generate-qr-token'),
     path('attendance/details/<int:event_id>/', AttendanceDetailByEvent.as_view(), name='attendance-detail-by-event'),
+    path('events/accepted/by-employee/', ListAcceptedEventsByEmployeeView.as_view(), name='list-accepted-events-by-employee'),
 ]
