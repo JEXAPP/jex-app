@@ -370,7 +370,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             # Si existe selected_shift, devuélvelo serializado
             shift = getattr(obj, "selected_shift", None)
             if shift:
-                return ShiftSerializer(shift).data
+                return ShiftDetailSerializer(shift).data
         # Si application_id NO es null, no mostrar shift (devolver None)
         return None
 
