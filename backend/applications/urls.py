@@ -1,7 +1,7 @@
 from django.urls import path
 from applications.views.applications import ApplicationCreateView, ApplicationDetailForOffer, ApplicationStatusRejectedUpdateView, ListApplicationsByShiftView, ApplicationDetailView
 from applications.views.attendance import AttendanceConfirmationView, AttendanceDetailByEvent, GenerateQRTokenView
-from applications.views.jobs import EmployeeJobsView
+from applications.views.jobs import EmployeeJobsView, ListAcceptedEventsByEmployeeView
 from applications.views.jobs import EmployeeJobsView
 from applications.views.offer import  EmployeeSearchDetailView, EmployeeSearchView, ListOfferEmployeeShiftsView, ListOfferEventByState, OfferAcceptedDetailView, OfferCreateView, OfferConsultView, DecideOfferView, OfferDetailView
 
