@@ -1,5 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {Animated,FlatList,Modal,Pressable,Text,TouchableOpacity,useWindowDimensions,View,} from 'react-native';
+import {
+  Animated,
+  FlatList,
+  Modal,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { dropdownStyles1 as s } from '@/styles/components/picker/dropdownStyles1';
 
 export type DropdownOption<T = any> = { label: string; value: T };
@@ -15,8 +24,8 @@ type DropdownProps<T = any> = {
   anchorRef: React.RefObject<View | null>;
   onOpened?: () => void;
 
-  width?: WidthMode;           
-  maxWidth?: number;           
+  width?: WidthMode;
+  maxWidth?: number;
   itemHeight?: number;
   maxHeight?: number;
   visibleCount?: number;
@@ -33,7 +42,7 @@ export function Dropdown<T = any>({
   onSelect,
   anchorRef,
   width = 'anchor',
-  maxWidth = 350,               
+  maxWidth = 350,
   itemHeight = 44,
   maxHeight,
   visibleCount,
@@ -41,9 +50,11 @@ export function Dropdown<T = any>({
   offset = 8,
   backdropColor = 'rgba(0,0,0,0.1)',
 }: DropdownProps<T>) {
-  const [anchorBox, setAnchorBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [anchorBox, setAnchorBox] = useState<{ x: number; y: number; w: number; h: number } | null>(
+    null
+  );
   const [anchorW, setAnchorW] = useState(0);
-  const [maxLabelW, setMaxLabelW] = useState(0); 
+  const [maxLabelW, setMaxLabelW] = useState(0);
   const { height: screenH, width: screenW } = useWindowDimensions();
 
   const scale = useRef(new Animated.Value(0.95)).current;
@@ -76,7 +87,7 @@ export function Dropdown<T = any>({
     return typeof maxHeight === 'number' ? Math.min(withCount, maxHeight) : withCount;
   }, [visibleCount, itemHeight, maxHeight, options.length]);
 
-  const H_PADDING = 24; 
+  const H_PADDING = 24;
   const desiredWidth = useMemo(() => {
     if (typeof width === 'number') return Math.min(width, maxWidth);
     if (width === 'anchor') return Math.min(anchorW, maxWidth);
@@ -105,12 +116,14 @@ export function Dropdown<T = any>({
     return { top, left, w: desiredW, h: desiredH };
   }, [anchorBox, desiredWidth, desiredHeight, placement, offset, itemHeight, options.length, screenH, screenW]);
 
-
   const renderItem = ({ item, index }: { item: DropdownOption<T>; index: number }) => {
     const selected = selectedValue !== undefined && item.value === selectedValue;
     return (
       <TouchableOpacity
-        onPress={() => { onSelect(item, index); onClose(); }}
+        onPress={() => {
+          onSelect(item, index);
+          onClose();
+        }}
         style={[s.item, selected && s.itemSelected, { height: itemHeight }]}
       >
         <Text
@@ -139,7 +152,7 @@ export function Dropdown<T = any>({
               top: layout.top,
               left: layout.left,
               width: layout.w,
-              maxWidth,                 
+              maxWidth,
               maxHeight: layout.h,
               transform: [{ scale }],
               opacity: fade,

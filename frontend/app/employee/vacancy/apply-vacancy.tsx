@@ -10,11 +10,13 @@ import { Colors } from '@/themes/colors';
 import { Ionicons } from '@expo/vector-icons';
 import { Image, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { buttonStyles1 } from '../../../styles/components/button/buttonStyles/buttonStyles1';
+import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
 import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonStyles4';
 import { iconos } from '@/constants/iconos';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { ClickWindow } from '@/components/window/ClickWindow';
+import { DotsLoader } from '@/components/others/DotsLoader';
+import ImageOnline from '@/components/others/ImageOnline';
 
 
 export default function ApplyVacancyScreen() {
@@ -40,7 +42,9 @@ export default function ApplyVacancyScreen() {
   if (!job || !organizer) {
     return (
       <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Cargando datos...</Text>
+        <View style={{ marginTop: -140 }}>
+          <DotsLoader />
+        </View>
       </SafeAreaView>
     );
   }
@@ -55,27 +59,17 @@ export default function ApplyVacancyScreen() {
 
           <View style={styles.headerTop}>
 
-            <Image
-              source={require('@/assets/images/jex/Jex-FotoPerfil.png')}
-              style={styles.logoWrapper}
+            <ImageOnline
+              imageUrl={job.event_image_url}
+              imageId={job.event_image_public_id}
+              size={80}
+              shape="square"
+              style={styles.image}
             />
 
             <View style={styles.headerText}>
 
               <Text style={styles.eventTitle}>{job.title}</Text>
-
-              <View style={styles.ratingWrapper}>
-
-                {Array.from({ length: stars }).map((_, index) => (
-                  <Ionicons
-                    key={index}
-                    name="star"
-                    size={16}
-                    style={styles.starsIcon}
-                  />
-                ))}
-
-              </View>
 
             </View>
 

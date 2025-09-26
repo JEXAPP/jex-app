@@ -1,9 +1,9 @@
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from eventos.constants import EventStates
-from eventos.errors.events_messages import EVENT_NOT_FOUND, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
+from eventos.errors.events_messages import ESTADO_DELETED_NO_CONFIGURADO, EVENT_NOT_FOUND, NO_EDITAR_EVENTO_PUBLICADO, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
-from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, UpdateEventStateSerializer
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
@@ -81,6 +81,13 @@ class UpdateEventView(UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object() 
+
+        published_state = EventStates.objects.get(name=EventStates.PUBLISHED.value)
+        if instance.state == published_state:
+            return Response(
+                NO_EDITAR_EVENTO_PUBLICADO,
+                status=400
+            )
         serializer = self.get_serializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
@@ -105,7 +112,8 @@ class ListEventVacanciesView(ListAPIView):
         ).prefetch_related(
             Prefetch("vacancies", queryset=vacancies_qs)
         )
-    
+
+
 class UpdateEventStateView(APIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
@@ -129,3 +137,82 @@ class UpdateEventStateView(APIView):
         event.save()
 
         return Response({"detail": STATE_UPDATED_SUCCESS}, status=status.HTTP_200_OK)
+
+    
+class DeleteEventView(APIView):
+    """
+    Elimina lógicamente un evento cambiando su estado a 'DELETED'.
+    """
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def delete(self, request, pk):
+        try:
+            event = Event.objects.select_related('state', 'owner').get(id=pk)
+        except Event.DoesNotExist:
+            return Response(EVENT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        if event.owner != request.user:
+            return Response(NO_PERMISSION_EVENT, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            deleted_state = EventState.objects.get(name=EventStates.DELETED.value)
+        except EventState.DoesNotExist:
+            return Response(ESTADO_DELETED_NO_CONFIGURADO, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        event.state = deleted_state
+        event.save()
+
+        return Response({"detail": "Evento eliminado correctamente."}, status=status.HTTP_200_OK)
+
+
+
+
+class ListEventsByEmployerView(ListAPIView):
+    """
+    Lista los eventos activos del empleador autenticado.
+    """
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ListEventsByEmployerSerializer
+    active_states = [
+        EventStates.PUBLISHED.value,
+        EventStates.IN_PROGRESS.value,
+        EventStates.FINALIZED.value,
+    ]
+
+    def get_queryset(self):
+        user = self.request.user
+        return (
+            Event.objects
+            .filter(
+                owner=user,
+                state__name__in=self.active_states
+            )
+            .only("id", "name", "state")
+        )
+
+class ListEventsWithVacanciesView(ListAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ListEventsWithVacanciesSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+
+        active_vacancies_qs = Vacancy.objects.filter(
+            state__name=VacancyStates.ACTIVE.value
+        )
+
+        return (
+            Event.objects
+            .filter(
+                owner=user,
+                state__name=EventStates.PUBLISHED.value,
+                vacancies__in=active_vacancies_qs
+            )
+            .distinct()
+            .prefetch_related(
+                Prefetch("vacancies", queryset=active_vacancies_qs)
+            )
+        )

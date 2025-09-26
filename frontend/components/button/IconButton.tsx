@@ -1,14 +1,21 @@
 import React from 'react';
-import { Pressable, StyleProp, Text, TextStyle, ViewStyle } from 'react-native';
+import {
+  Pressable,
+  StyleProp,
+  Text,
+  TextStyle,
+  ViewStyle,
+  StyleSheet,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
-  onPress: any;
-  content: string;                  
-  sizeContent: number;            
-  sizeButton?: number;             
-  backgroundColor?: string;       
-  contentColor: string;            
+  onPress: () => void;
+  content: string;                  // nombre de Ionicon o texto
+  sizeContent: number;              // tamaño del ícono o texto
+  sizeButton?: number;              // diámetro del círculo
+  backgroundColor?: string;
+  contentColor: string;
   styles: {
     button: StyleProp<ViewStyle>;
     text: StyleProp<TextStyle>;
@@ -28,12 +35,9 @@ export const IconButton: React.FC<Props> = ({
   accessibilityLabel,
   hitSlop = 6,
 }) => {
-  const isIcon = content.length > 1;
-  const renderAsCircle = typeof sizeButton === 'number' || !!backgroundColor;
+  const isIcon = content.length > 1; 
 
-  const diameter = renderAsCircle
-    ? sizeButton ?? sizeContent + 16
-    : undefined;
+  const diameter = sizeButton ?? sizeContent + 16;
 
   return (
     <Pressable
@@ -43,14 +47,13 @@ export const IconButton: React.FC<Props> = ({
       hitSlop={hitSlop}
       style={[
         styles.button,
-        renderAsCircle && {
+        {
           width: diameter,
           height: diameter,
-          borderRadius: diameter ? diameter / 2 : undefined,
+          borderRadius: diameter / 2,
           backgroundColor: backgroundColor ?? 'transparent',
-        },
-        !renderAsCircle && {
-          backgroundColor: 'transparent',
+          alignItems: 'center',
+          justifyContent: 'center',
         },
       ]}
     >
@@ -59,6 +62,10 @@ export const IconButton: React.FC<Props> = ({
           name={content as any}
           size={sizeContent}
           color={contentColor}
+          style={StyleSheet.compose(null, {
+            includeFontPadding: false,
+            textAlignVertical: 'center',
+          })}
         />
       ) : (
         <Text

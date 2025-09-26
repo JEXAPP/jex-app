@@ -1,5 +1,9 @@
 import { Colors } from '@/themes/colors';
-import { StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet } from 'react-native';
+
+
+const { height, width } = Dimensions.get("window");
+
 
 export const detailOffersStyles = StyleSheet.create({
   screen: { 
@@ -21,20 +25,21 @@ export const detailOffersStyles = StyleSheet.create({
     borderRadius: 16, 
     padding: 20 
   },
-  card2: { 
+   card2: { 
     backgroundColor: Colors.white, 
     borderRadius: 16, 
     padding: 16, 
-    width: '100%', 
-    height: '90%' 
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: height * 0.7,   // la card ocupa 70% de la pantalla
+    width: '100%',
   },
-  matchFill: { 
-    width: '100%', 
-    height: '90%', 
-    resizeMode: 'cover', 
-    borderRadius: 16, 
-    marginTop: 26 
+  matchFill: {
+    width: width * 0.9,        // 80% del ancho de la pantalla
+    height: height * 0.7,      // 50% de la altura de la pantalla
+    resizeMode: 'contain',
   },
+
   eventImage: { 
     width: '50%', 
     height: 120, 
@@ -128,5 +133,31 @@ export const detailOffersStyles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 16,
     gap: 30
+  },
+  
+  matchOverlay: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: Colors.violet4, 
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    zIndex: 999,
+  },
+  matchImage: {
+    width: 260,
+    height: 260,
+    resizeMode: 'contain',
+    marginBottom: 16,
+  },
+  matchText: {
+    fontFamily: 'interBlack',
+    fontSize: 42,
+    lineHeight: 48,
+    color: Colors.white,
+    letterSpacing: 0.5,
   },
 });

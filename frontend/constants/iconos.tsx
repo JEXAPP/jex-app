@@ -27,6 +27,20 @@ export const iconos = {
   flechaIzquierda: (size: number, color: string) => (
     <Ionicons name="chevron-back" size={size} color={color}/>
   ),
+  flechaIzquierdaVolver: (size:number, color:string) => (
+    <Ionicons name="arrow-back-outline" size={size} color={color} />),
+  vacantes: (size: number, color: string) => (
+    <MaterialCommunityIcons name="briefcase-outline" size={size} color={color} />
+  ),
+  asistencia: (size: number, color: string) => (
+    <MaterialIcons name="how-to-reg" size={size} color={color} />
+  ),
+  estrella: (size: number, color: string) => (
+    <FontAwesome name="star" size={size} color={color} />
+  ),
+  reportes: (size: number, color: string) => (
+    <MaterialIcons name="insert-chart-outlined" size={size} color={color} />
+  ),
   flechaDerecha: (size: number, color: string) => (
     <Ionicons name="chevron-forward" size={size} color={color} />
   ),
@@ -48,7 +62,9 @@ export const iconos = {
   cuidado: (size: number, color: string) => (
     <Ionicons name="alert-circle" size={size} color={color} />
   ),
-
+  usuario_validado: (size: number, color: string) => (
+    <MaterialCommunityIcons name="account-multiple-check" size={size} color={color} />
+  ),
   exitoSinCirculo: (size: number, color: string) => (
     <Octicons name="check" size={size} color={color} />
   ),
@@ -67,14 +83,17 @@ export const iconos = {
   trash: (size:number, color:string) => (
     <Ionicons name="trash" size={size} color={color} />
   ),
-  full_star: (size:number, color:string) => (
-    <FontAwesome name="star" size={size} color={color} />
+  full_star: (size: number, color: string, key?: React.Key) => (
+    <MaterialIcons key={key} name="star" size={size} color={color} />
   ),
-  half_star: (size:number, color:string) => (
-    <FontAwesome name="star-half-full" size={size} color={color} />
+  half_star: (size: number, color: string, key?: React.Key) => (
+    <MaterialIcons key={key} name="star-half" size={size} color={color} />
   ),
-  empty_star: (size:number, color:string) => (
-    <FontAwesome name="star-o" size={size} color={color} />
+  empty_star: (size: number, color: string, key?: React.Key) => (
+    <MaterialIcons key={key} name="star-border" size={size} color={color} />
+  ),
+  location: (size:number, color:string) => (
+    <MaterialIcons name="location-pin" size={size} color={color} />
   ),
   // ==== Footer Nav Icons ====
   footer_home: (active: boolean, size: number, color: string) =>

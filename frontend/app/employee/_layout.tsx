@@ -1,4 +1,4 @@
-import FooterNavEmployee from '@/constants/footers/FooterNavEmployee';
+import FooterNavEmployee from '@/constants/navigation/FooterNavEmployee';
 import { transitionFade } from '@/constants/transitions';
 import { Colors } from '@/themes/colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,6 +30,7 @@ export default function EmployeeLayout() {
         <Stack.Screen name="profile/aditional-info" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="vacancy/search-vacancy" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="jobs/index" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 
       {/* Footer fijo, por fuera del Stack */}

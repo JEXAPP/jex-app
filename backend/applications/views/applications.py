@@ -1,13 +1,16 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import RetrieveAPIView, UpdateAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from applications.constants import OfferStates
-from applications.errors.application_messages import ALREADY_APPLIED_ALL_SHIFTS, APPLICATIONS_CREATED_SUCCESS
+from applications.constants import ApplicationStates, OfferStates
+from applications.errors.application_messages import ALREADY_APPLIED_ALL_SHIFTS, APPLICATIONS_CREATED_SUCCESS, INVALID_APPLICATION_RELATIONSHIPS, NOT_FOUND_SHIFT, NOT_PERMISSION_APPLICATION, NOT_VALID_APPLICATION_STATE
 from applications.models.applications import Application
+from applications.models.applications_states import ApplicationState
 from applications.serializers.applications import (
     ApplicationCreateSerializer,
+    ApplicationDetailForOfferSerializer,
     ApplicationDetailSerializer,
     ShiftWithApplicationsSerializer,
 )
@@ -15,14 +18,9 @@ from user_auth.permissions import IsInGroup
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from rest_framework.generics import RetrieveAPIView
 from django.db.models import Prefetch
-
-from vacancies.models.vacancy import Vacancy
 from applications.models.applications import Application
 from vacancies.models.shifts import Shift
-from rest_framework.exceptions import NotFound
-
-from django.db.models import Count, Q
-
+from django.db.models import Q, Count, Prefetch, F
 
 
 class ApplicationCreateView(APIView):
@@ -41,8 +39,31 @@ class ApplicationCreateView(APIView):
 
 
 class ApplicationDetailView(RetrieveAPIView):
-    queryset = Application.objects.select_related('employee__user', 'shift')
-    serializer_class = ApplicationDetailSerializer 
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ApplicationDetailSerializer
+    lookup_url_kwarg = "application_id"
+
+    def get_object(self):
+        application_id = self.kwargs.get(self.lookup_url_kwarg)
+        return get_object_or_404(
+            Application.objects.select_related(
+                "employee__user",
+                "shift__vacancy__event",
+                "shift__vacancy__job_type"
+            ).prefetch_related(
+                "shift__vacancy__shifts",
+                "employee__job_types",
+                "shift__vacancy__requirements"
+            ),
+            id=application_id
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['user'] = self.request.user
+        return context
+    
     
 class ListApplicationsByShiftView(RetrieveAPIView):
     serializer_class = ShiftWithApplicationsSerializer
@@ -53,35 +74,66 @@ class ListApplicationsByShiftView(RetrieveAPIView):
         vacancy_id = self.kwargs["vacancy_pk"]
         shift_id = self.kwargs["shift_pk"]
 
-        try:
-            vacancy = Vacancy.objects.get(pk=vacancy_id)
-        except Vacancy.DoesNotExist:
-            raise NotFound("Vacante no encontrada")
-
         applications_qs = Application.objects.select_related(
             "employee__user", "employee__user__profile_image"
-        ).filter(shift_id=shift_id).order_by("-created_at")
+        ).filter(
+            shift_id=shift_id,
+            state__name=ApplicationStates.PENDING.value
+        ).order_by("-created_at")
 
-        try:
-            shift = (
-                Shift.objects.prefetch_related(
-                    Prefetch("applications", queryset=applications_qs)
+        # El shift siempre se devuelve, aunque esté completo
+        shift = get_object_or_404(
+            Shift.objects.prefetch_related(
+                Prefetch("applications", queryset=applications_qs)
+            ).annotate(
+                quantity_offers=Count(
+                    "selected_offers",
+                    filter=Q(
+                        selected_offers__state__name__in=[
+                            OfferStates.PENDING.value,
+                            OfferStates.ACCEPTED.value,
+                        ]
+                    ),
+                    distinct=True,
                 )
-                .annotate(
-                    quantity_offers=Count(
-                        "selected_offers",
-                        filter=Q(
-                            selected_offers__state__name__in=[
-                                OfferStates.PENDING.value,
-                                OfferStates.ACCEPTED.value,
-                            ]
-                        ),
-                        distinct=True,
-                    )
-                )
-                .get(pk=shift_id, vacancy_id=vacancy_id)
-            )
-        except Shift.DoesNotExist:
-            raise NotFound("Turno no encontrado para esta vacante")
+            ),
+            pk=shift_id,
+            vacancy_id=vacancy_id,
+        )
 
         return shift
+    
+
+class ApplicationStatusRejectedUpdateView(UpdateAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def put(self, request, application_id, *args, **kwargs):
+        application = get_object_or_404(Application, pk=application_id)
+        # Validar que el employer sea el owner del evento de la vacante de ese turno
+        employer = request.user
+        try:
+            event_owner = application.shift.vacancy.event.owner
+        except AttributeError:
+            return Response(INVALID_APPLICATION_RELATIONSHIPS, status=status.HTTP_400_BAD_REQUEST)
+        if employer != event_owner:
+            return Response(NOT_PERMISSION_APPLICATION, status=status.HTTP_403_FORBIDDEN)
+
+        # Validar que la postulación esté en estado PENDING
+        if application.state.name != ApplicationStates.PENDING.value:
+            return Response(NOT_VALID_APPLICATION_STATE, status=status.HTTP_400_BAD_REQUEST)
+
+        application.state = ApplicationState.objects.get(name=ApplicationStates.REJECTED.value)
+        application.save()
+        return Response({"message": "Application status updated successfully"}, status=status.HTTP_200_OK)
+    
+class ApplicationDetailForOffer(RetrieveAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ApplicationDetailForOfferSerializer
+    lookup_url_kwarg = "application_id"
+
+    queryset = Application.objects.select_related(
+        "employee__user__profile_image",
+        "shift__vacancy__job_type"
+    ).prefetch_related("shift__vacancy__requirements")

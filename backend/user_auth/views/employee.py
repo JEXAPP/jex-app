@@ -50,3 +50,4 @@ class EmployeeAdditionalInfoView(APIView):
 
         except Exception as e:
             return Response({"detail": f"Unexpected error: {str(e)}"}, status=500)
+        

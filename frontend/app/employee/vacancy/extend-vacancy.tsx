@@ -34,7 +34,7 @@ export default function ListVacancyByCategoryScreen() {
                         onPress={(item) => goToVacancyDetails(item)}
                     />
                     )}
-                    contentContainerStyle={{ paddingBottom: 20 }}
+                    contentContainerStyle={{ width: 393, alignItems: 'center' }}
                     onEndReached={handleLoadMore}
                     onEndReachedThreshold={0.5}
                 />

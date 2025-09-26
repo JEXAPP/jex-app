@@ -19,6 +19,7 @@ interface SelectableTagProps {
     tagSubtitle: StyleProp<TextStyle>;
     tagSubtitleSelected?: StyleProp<TextStyle>;
   };
+  disabled?: boolean;
 }
 
 export const SelectableTag = ({
@@ -27,8 +28,11 @@ export const SelectableTag = ({
   iconName,
   selected,
   onPress,
-  styles
+  styles,
+  disabled = false
 }: SelectableTagProps) => {
+
+  if (disabled) return null;
   return (
     <TouchableOpacity
       onPress={onPress}

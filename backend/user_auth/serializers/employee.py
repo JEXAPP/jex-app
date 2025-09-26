@@ -1,8 +1,12 @@
+from datetime import date
 from rest_framework import serializers
+from applications.errors.offer_messages import INVALID_RANGE_DATE, INVALID_RANGE_TIME, MISSING_PROVINCE
+from eventos.formatters.date_time import CustomDateField
+from vacancies.formatters.date_time import CustomTimeField
 from vacancies.models.job_types import JobType
 from vacancies.serializers.job_types import ListJobTypesSerializer
 from media_utils.models import Image, ImageType
-from user_auth.utils import get_username_from_email
+from user_auth.utils import calculate_age, get_city_locality, get_username_from_email
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.models.user import CustomUser
 from user_auth.models.employee import EmployeeProfile
@@ -20,6 +24,9 @@ class EmployeeRegisterSerializer(serializers.Serializer):
     birth_date = serializers.DateField(input_formats=["%d/%m/%Y"], required=False)
     latitude = serializers.FloatField(required=False)
     longitude = serializers.FloatField(required=False)
+
+    first_name = serializers.CharField(max_length=50)
+    last_name = serializers.CharField(max_length=50)
 
     def validate_email(self, value):
         if CustomUser.objects.filter(email=value).exists():
@@ -45,6 +52,8 @@ class EmployeeRegisterSerializer(serializers.Serializer):
         birth_date = validated_data.get('birth_date', None)
         latitude = validated_data.get('latitude')
         longitude = validated_data.get('longitude')
+        first_name = validated_data['first_name']
+        last_name = validated_data['last_name']
 
         username = get_username_from_email(email)
 
@@ -52,6 +61,8 @@ class EmployeeRegisterSerializer(serializers.Serializer):
             username=username,
             email=email,
             phone=phone,
+            first_name=first_name,
+            last_name=last_name,
             role='employee',
             password=make_password(password)
         )
@@ -185,3 +196,71 @@ class EmployeeAdditionalInfoSerializer(serializers.ModelSerializer):
             rep['profile_image_id'] = None
 
         return rep
+
+
+class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
+    profile_image = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    age = serializers.SerializerMethodField()
+    approximate_location = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EmployeeProfile
+        fields = ["profile_image", "name", "description", "age", "approximate_location"]
+
+    def get_profile_image(self, obj):
+        return obj.user.profile_image.url if obj.user.profile_image else None
+
+    def get_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
+    def get_age(self, obj):
+        return calculate_age(obj.birth_date)
+
+    def get_approximate_location(self, obj):
+        return get_city_locality(obj.address)
+    
+class EmployeeProfileSearchSerializer(serializers.ModelSerializer):
+    employee_id = serializers.IntegerField(source="id")
+    profile_image = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    approximate_location = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EmployeeProfile
+        fields = ["employee_id", "profile_image", "name", "approximate_location"]
+
+    def get_profile_image(self, obj):
+        return obj.user.profile_image.url if obj.user.profile_image else None
+
+    def get_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
+    def get_approximate_location(self, obj):
+        return get_city_locality(obj.address)
+
+class EmployeeSearchFilterSerializer(serializers.Serializer):
+    province = serializers.CharField(required=False, allow_blank=True)
+    locality = serializers.CharField(required=False, allow_blank=True)
+
+    start_date = CustomDateField(required=False)
+    end_date = CustomDateField(required=False)
+    start_time = CustomTimeField(required=False)
+    end_time = CustomTimeField(required=False)
+
+    min_stars = serializers.IntegerField(required=False, min_value=1)
+    min_jobs = serializers.IntegerField(required=False, min_value=0)
+
+    def validate(self, data):
+        if data.get("locality") and not data.get("province"):
+            raise serializers.ValidationError(MISSING_PROVINCE)
+
+        if data.get("start_date") and data.get("end_date"):
+            if data["start_date"] > data["end_date"]:
+                raise serializers.ValidationError(INVALID_RANGE_DATE)
+
+        if data.get("start_time") and data.get("end_time"):
+            if data["start_time"] > data["end_time"]:
+                raise serializers.ValidationError(INVALID_RANGE_TIME)
+
+        return data

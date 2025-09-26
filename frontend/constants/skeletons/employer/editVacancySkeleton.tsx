@@ -1,10 +1,9 @@
-// constants/skeletons/employer/editVacancySkeleton.tsx
-import React from 'react';
-import { View, ScrollView } from 'react-native';
-import { MotiView } from 'moti';
-import { Colors } from '@/themes/colors';
+import { editVacancyStyles as styles } from '@/styles/app/employer/panel/vacancy/editVacancyStyles';
 import { Borders } from '@/themes/borders';
-import { editVacancyStyles as styles } from '@/styles/app/employer/vacancy/editVacancyStyles';
+import { Colors } from '@/themes/colors';
+import { MotiView } from 'moti';
+import React from 'react';
+import { ScrollView, View } from 'react-native';
 
 type BoxProps = {
   w?: number;

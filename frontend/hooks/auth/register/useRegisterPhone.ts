@@ -65,8 +65,10 @@ export const useRegisterPhone = (desdeGoogle = false) => {
 
       await requestBackend('/api/auth/verify/send-code/', { phone: telefonoCompleto }, 'POST');
 
-      const datosParciales = { phone: telefonoLimpio };
+      const datosParciales = { phone: telefonoCompleto }; // 👈 ahora guarda +54...
+      console.log('Datos parciales a guardar:', datosParciales);
       await SecureStore.setItemAsync('registro-telefono', JSON.stringify(datosParciales));
+
 
       router.push('/auth/register/code-validation');
     } catch (error: any) {
