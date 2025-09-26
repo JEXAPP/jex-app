@@ -262,3 +262,9 @@ EXPO_PUSH_API_URL = os.getenv("EXPO_PUSH_API_URL")
 QR_JWT_SECRET = os.getenv("QR_JWT_SECRET")
 QR_JWT_ALGORITHM = os.getenv("QR_JWT_ALGORITHM", default="HS256")
 QR_JWT_EXP_MINUTES = int(os.getenv("QR_JWT_EXP_MINUTES", default=2))
+
+
+MP_CLIENT_ID = os.getenv("MP_CLIENT_ID")
+MP_CLIENT_SECRET = os.getenv("MP_CLIENT_SECRET")
+MP_REDIRECT_URI = os.getenv("MP_REDIRECT_URI")
+MP_TOKEN_URL = os.getenv("MP_TOKEN_URL", default="https://api.mercadopago.com/oauth/token")

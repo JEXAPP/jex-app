@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from user_auth.views.employee import CompleteEmployeeSocialView, EmployeeAdditionalInfoView, EmployeeRegisterView
 from user_auth.views.employer import CompleteEmployerSocialView, EmployerRegisterView
+from user_auth.views.mercado_pago import MercadoPagoOAuthCallbackView
 from user_auth.views.password_reset import PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
 from user_auth.views.phone_verification import SendPhoneVerificationCodeView, VerifyPhoneCodeView
     
@@ -22,4 +23,6 @@ urlpatterns = [
     path('verify/send-code/', SendPhoneVerificationCodeView.as_view(), name='send-phone-code'),
     path('verify/check-code/', VerifyPhoneCodeView.as_view(), name='verify-phone-code'),
     path('employee/additional-info/', EmployeeAdditionalInfoView.as_view(), name='employee-additional-info'),
+    path("mercadopago/callback/", MercadoPagoOAuthCallbackView.as_view(), name="mercadopago-callback"),
+
 ]
