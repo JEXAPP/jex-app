@@ -7,6 +7,8 @@ import axios, {
 import * as SecureStore from 'expo-secure-store';
 import { config } from '@/config';
 import { router } from 'expo-router';
+export { clearTokens };
+
 
 let api: AxiosInstance | null = null;
 let refreshPromise: Promise<string | null> | null = null;
@@ -139,6 +141,8 @@ export function getApi(): AxiosInstance {
 
   // 👇 Usamos el helper para que SIEMPRE se setee el header bien
   original.headers = withAuthHeader(original.headers, newAccess);
+
+  
 
   console.log('[RETRYING WITH TOKEN]', newAccess.slice(0, 20) + '...');
   console.log('[HEADERS]', original.headers);

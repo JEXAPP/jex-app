@@ -179,19 +179,26 @@ export default function QualiScreen() {
 
               {/* Estrellas */}
               <View style={styles.ratingRow}>
-                <StarRating
-                  rating={userRating}
-                  onChange={(val) => handleRating(worker.id, Math.round(val))}
-                  starSize={30}
-                  color={Colors.yellow}
-                  enableHalfStar={false}
-                  enableSwiping={false}
-                  animationConfig={{ scale: 1 }}
-                />
-                <Text style={styles.ratingValue}>
-                  {userRating > 0 ? userRating.toFixed(1) : ""}
+              <StarRating
+                rating={userRating}
+                onChange={(val) => handleRating(worker.id, Math.round(val))}
+                starSize={32}
+                color={Colors.yellow}
+                enableHalfStar={false}
+                enableSwiping={false}
+                animationConfig={{ scale: 1 }}
+              />
+              
+              {/* Texto de rating presionable */}
+              <TouchableOpacity
+                disabled={userRating === 0}
+                onPress={() => handleRating(worker.id, 0)}
+              >
+                <Text style={styles.ratingValue}>({userRating.toFixed(1)})
+                  
                 </Text>
-              </View>
+              </TouchableOpacity>
+            </View>
 
               {/* Comentario */}
               {userRating > 0 && (
@@ -262,7 +269,8 @@ export default function QualiScreen() {
       <ImageWindow
         visible={showSanction}
         title="Aviso:"
-        subtitle="Recordá que sancionar a un empleado puede afectar negativamente su reputación."
+        subtitle="Recordá que sancionar a un empleado puede afectar significativamente
+         su reputación."
         buttonText="Entendido"
         onClose={() => {
           setShowSanction(false);

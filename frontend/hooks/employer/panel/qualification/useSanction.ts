@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const sanctionTree = [
   {
-    label: "Faltas leves",
+    label: "Compromiso y puntualidad",
     value: "leves",
     icon: "walk-outline",
     children: [
@@ -13,7 +13,7 @@ const sanctionTree = [
     ],
   },
   {
-    label: "Faltas moderadas",
+    label: "Responsabilidad laboral",
     value: "moderadas",
     icon: "alert-circle-outline",
     children: [
@@ -23,7 +23,7 @@ const sanctionTree = [
     ],
   },
   {
-    label: "Faltas graves",
+    label: "Conducta inadecuada",
     value: "graves",
     icon: "flame-outline",
     children: [
@@ -45,6 +45,27 @@ export const useSanction = (workerId: string) => {
       id: "2",
       name: "Juan García",
       image: "https://randomuser.me/api/portraits/men/46.jpg",
+    },
+    {
+      id: "3",
+      name: "Luna Costas",
+      role: "Fotógrafo",
+      image: "https://randomuser.me/api/portraits/women/68.jpg",
+      linked: false,
+    },
+    {
+      id: "4",
+      name: "Diego López",
+      role: "Cantante",
+      image: "https://randomuser.me/api/portraits/men/12.jpg",
+      linked: true,
+    },
+    {
+      id: "5",
+      name: "Paula Méndez",
+      role: "DJ",
+      image: "https://randomuser.me/api/portraits/women/22.jpg",
+      linked: false,
     },
   ];
 

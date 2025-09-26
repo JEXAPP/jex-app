@@ -118,8 +118,8 @@ export const qualiStyles = StyleSheet.create({
   },
   ratingValue: {
     marginLeft: 6,
-    fontSize: 13,
-    color: Colors.gray3,
+    fontSize: 16,
+    color: Colors.violet4,
     fontFamily: "interMedium",
   },
 
