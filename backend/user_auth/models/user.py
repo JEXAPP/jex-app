@@ -79,3 +79,17 @@ class CustomUser(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [] 
     objects = CustomUserManager() 
+
+
+class MercadoPagoAccount(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="mercado_pago_account")
+    mp_user_id = models.CharField(max_length=100, unique=True)
+    access_token = models.TextField()
+    refresh_token = models.TextField()
+    public_key = models.CharField(max_length=200, blank=True, null=True)
+    live_mode = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"MercadoPagoAccount({self.user.email})"
