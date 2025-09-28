@@ -1,0 +1,1 @@
+MISSING_MP_CODE = "Missing 'code' parameter in request."
