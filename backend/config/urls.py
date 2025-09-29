@@ -26,4 +26,5 @@ urlpatterns = [
     path('api/notifications/', include('notifications.urls')),
     path('accounts/', include('allauth.urls')),
     path('media/', include('media_utils.urls')),
+    path('api/rating/', include('rating.urls')),
 ]

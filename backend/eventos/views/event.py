@@ -3,13 +3,15 @@ from eventos.constants import EventStates
 from eventos.errors.events_messages import ESTADO_DELETED_NO_CONFIGURADO, EVENT_NOT_FOUND, NO_EDITAR_EVENTO_PUBLICADO, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
-from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer,EventWorkerSerializer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from applications.models import Offer
+
 
 
 from vacancies.constants import VacancyStates
@@ -216,3 +218,14 @@ class ListEventsWithVacanciesView(ListAPIView):
                 Prefetch("vacancies", queryset=active_vacancies_qs)
             )
         )
+class ListEventsWorkersView(ListAPIView):
+    serializer_class = EventWorkerSerializer
+
+    def get_queryset(self):
+        event_id = self.kwargs.get('eventId')  # Asegúrate que tu url use <int:eventId>
+        # Filtra las ofertas aceptadas relacionadas al evento
+        return Offer.objects.filter(
+            selected_shift__vacancy__event_id=event_id,
+            status='accepted'  # Ajusta 'accepted' si tu modelo usa otro nombre para el estado aceptado
+        )
+    
