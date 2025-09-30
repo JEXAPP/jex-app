@@ -211,7 +211,7 @@ class ApplicationSerializer(serializers.ModelSerializer):
 
 
 class OfferConsultSerializer(serializers.ModelSerializer):
-    application = serializers.PrimaryKeyRelatedField(read_only=True)
+    application = ApplicationSerializer()
     expiration_date = CustomDateField()
     expiration_time = CustomTimeField()
     event_image_url = serializers.SerializerMethodField()
@@ -226,10 +226,13 @@ class OfferConsultSerializer(serializers.ModelSerializer):
         ]
 
     def get_shift(self, obj):
-        # Siempre mostrar el shift serializado, si existe
-        shift = getattr(obj, "selected_shift", None)
-        if shift:
-            return ShiftDetailSerializer(shift).data
+        # Si application_id es null, mostrar selected_shift
+        if obj.application_id is None:
+            # Si existe selected_shift, devuélvelo serializado
+            shift = getattr(obj, "selected_shift", None)
+            if shift:
+                return ShiftSerializer(shift).data
+        # Si application_id NO es null, no mostrar shift (devolver None)
         return None
     
     def get_event_image_url(self, obj):
@@ -346,7 +349,7 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
         fields = ["id", "shift"]
 
 class OfferDetailSerializer(serializers.ModelSerializer):
-    application = serializers.PrimaryKeyRelatedField(read_only=True)
+    application = ApplicationDetailSerializer()
     additional_comments = serializers.CharField()
     expiration_date = CustomDateField()
     expiration_time = CustomTimeField()
@@ -362,10 +365,13 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
 
     def get_shift(self, obj):
-        # Siempre mostrar el shift serializado, si existe
-        shift = getattr(obj, "selected_shift", None)
-        if shift:
-            return ShiftDetailSerializer(shift).data
+        # Si application_id es null, mostrar selected_shift
+        if obj.application_id is None:
+            # Si existe selected_shift, devuélvelo serializado
+            shift = getattr(obj, "selected_shift", None)
+            if shift:
+                return ShiftDetailSerializer(shift).data
+        # Si application_id NO es null, no mostrar shift (devolver None)
         return None
 
     def get_event_image_url(self, obj):
