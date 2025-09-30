@@ -10,8 +10,6 @@ class MercadoPagoOAuthCallbackView(views.APIView):
     """
     Endpoint que recibe el `code` de Mercado Pago y guarda los tokens.
     """
-    permission_classes = [permissions.IsAuthenticated]
-
     def get(self, request, *args, **kwargs):
         code = request.query_params.get("code")
         if not code:
