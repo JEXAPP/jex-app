@@ -28,7 +28,6 @@ export default function EmployeeLayout() {
         {/* Rutas RELATIVAS a /employee */}
         <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="profile/aditional-info" options={{ ...transitionFade, headerShown: false }} />
-        <Stack.Screen name="vacancy/search-vacancy" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="jobs/index" options={{ ...transitionFade, headerShown: false }} />
       </Stack>

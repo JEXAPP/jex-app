@@ -1,4 +1,3 @@
-// hooks/employer/useAdminPanel.ts
 import useBackendConection from "@/services/internal/useBackendConection";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -80,6 +79,8 @@ export const useAdminPanel = () => {
     router.push({ pathname: "/employer/panel/vacancy", params: { id: String(eventId) } });
   };
 
+  const goToNotifications = () => router.push('/employer/panel/notifications')
+
   const goToAttendance = (id: number) => router.push(`/employer/panel/attendance?id=${id}`);
 
   return {
@@ -98,6 +99,7 @@ export const useAdminPanel = () => {
     // Navegación
     goToVacancies,
     goToAttendance,
+    goToNotifications
   };
 };
 export default useAdminPanel;

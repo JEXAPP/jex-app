@@ -1,4 +1,5 @@
 import { ButtonWithIcon } from '@/components/button/ButtonWithIcon';
+import { IconButton } from '@/components/button/IconButton';
 import { Carousel } from '@/components/others/Carousel';
 import { ShowVacancy } from '@/components/specifics/ShowVacancy';
 import { iconos } from '@/constants/iconos';
@@ -7,6 +8,7 @@ import HomeSkeleton from '@/constants/skeletons/employee/homeSkeleton';
 import { useHomeEmployee } from '@/hooks/employee/useHomeEmployee';
 import { homeScreenEmployeeStyles as styles } from '@/styles/app/employee/homeScreenStyles';
 import { buttonWithIconStyles2 } from '@/styles/components/button/buttonWithIconStyles/buttonWithIconStyles2';
+import { iconButtonStyles1 } from '@/styles/components/button/iconButtonStyles1';
 import { Colors } from '@/themes/colors';
 import React from 'react';
 import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
@@ -19,6 +21,7 @@ export default function HomeEmployeeScreen () {
     errorVacancies,
     goToSearchVacancy,
     goToVacancyDetails,
+    goToNotifications
   } = useHomeEmployee();
 
     const handleVacancyPress = (vacancy: Vacancy) => {
@@ -28,13 +31,27 @@ export default function HomeEmployeeScreen () {
   return (
     <ScrollView>
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+        <View style={styles.headerRow}>
+
+          <Text style={styles.title}>Vacantes</Text>
+          
+          <IconButton
+            sizeContent={40}
+            styles={iconButtonStyles1}
+            onPress={goToNotifications}
+            content="notifications-circle-sharp"
+            contentColor={Colors.violet4}
+          />
+          
+        </View>
+        
         {loadingComienzo ? (
           <HomeSkeleton />
         ) : (
           <>
             <View>
               <ButtonWithIcon
-                texto="Buscar vacantes"
+                texto="Buscar"
                 icono={iconos.search(24, Colors.gray3)}
                 onPress={goToSearchVacancy}
                 styles={{ ...buttonWithIconStyles2, texto: { ...buttonWithIconStyles2.texto, marginLeft: 10 } }}

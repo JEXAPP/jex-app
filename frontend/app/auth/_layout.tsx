@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { Pressable } from 'react-native';
 import { Colors } from '@/themes/colors';
+import React from 'react';
 
 export default function AuthLayout() {
   return (

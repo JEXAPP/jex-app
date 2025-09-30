@@ -1,4 +1,3 @@
-// app/employee/offers/index.tsx (o el archivo de tu screen)
 import { iconos } from '@/constants/iconos';
 import { useHomeOffers } from '@/hooks/employee/offers/useHomeOffers';
 import { homeOffersStyles as styles } from '@/styles/app/employee/offers/homeOffersStyles';

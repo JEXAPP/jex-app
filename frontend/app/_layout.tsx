@@ -11,17 +11,18 @@ WebBrowser.maybeCompleteAuthSession();
 export default function RootLayout() {
   const [fontsLoaded] = useFonts(fontMap);
 
+
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync();
-  }, [fontsLoaded]);
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, ]);
 
   if (!fontsLoaded) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>  
-      <Stack screenOptions={{ ...transitionFade, headerShown: false }}>
-      </Stack>
+      <Stack screenOptions={{ ...transitionFade, headerShown: false }} />
     </GestureHandlerRootView>
-
   );
 }

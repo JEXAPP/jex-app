@@ -2,11 +2,19 @@ import { StyleSheet } from 'react-native';
 import { Colors } from '@/themes/colors';
 
 export const searchVacancyStyles = StyleSheet.create({
-    container: {
+  container: {
     flex: 1,
     backgroundColor: Colors.gray1,
     alignItems: 'center',
-    marginTop: 12
+  },
+  title: {
+    fontSize: 40,
+    fontFamily: 'titulos',
+    color: Colors.violet4,
+    alignSelf: 'center',
+    marginLeft: 20,
+    marginTop: 10,
+    marginBottom: 20
   },
   tagsRow: {
     flexDirection: 'row',
@@ -30,7 +38,7 @@ export const searchVacancyStyles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 30,
+    marginTop: 10,
   },
   noVancancyTitle: {
     fontSize: 20,

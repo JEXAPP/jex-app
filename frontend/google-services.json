@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "739125330305",
+    "project_id": "jexappnotificationspush",
+    "storage_bucket": "jexappnotificationspush.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:739125330305:android:78d6161766ba5c0ca72880",
+        "android_client_info": {
+          "package_name": "com.jexapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2wSSeU-TjubfC1YYv1QJXTATU1oSREKI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

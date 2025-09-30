@@ -8,5 +8,9 @@ export const config = {
     apiKey: process.env.EXPO_PUBLIC_GOOGLE_API_KEY,
     placesAutocomplete: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_AUTOCOMPLETE,
     placesDetail: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_DETAIL
+  },
+  mercadoPago: {
+    clientId: process.env.EXPO_PUBLIC_MP_CLIENT_ID,
+    redirectUri: process.env.EXPO_PUBLIC_MP_REDIRECT_URI
   }
 };

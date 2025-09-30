@@ -20,7 +20,8 @@ export default function AdminPanelScreen() {
     goToCreateEvent,
     goToEditEvent,
     goToVacancies,
-    goToAttendance
+    goToAttendance,
+    goToNotifications
   } = useAdminPanel();
 
   if (loading) {
@@ -37,10 +38,19 @@ if (events.length === 0) {
           sizeContent={22}
           styles={iconButtonStyles1}
           onPress={goToCreateEvent}
-          content="+"
+          content="add"
           backgroundColor={Colors.gray2} 
           contentColor={Colors.white}
         />
+        <View style={{marginLeft: 100}}>
+          <IconButton
+            sizeContent={40}
+            styles={iconButtonStyles1}
+            onPress={goToNotifications}
+            content="notifications-circle-sharp"
+            contentColor={Colors.violet4}
+          />
+        </View>
       </View>
 
       {/* Card de no hay eventos */}
@@ -76,6 +86,15 @@ if (events.length === 0) {
             backgroundColor={Colors.gray2}
             contentColor={Colors.white}
           />
+          <View style={{marginLeft: 100}}>
+            <IconButton
+              sizeContent={40}
+              styles={iconButtonStyles1}
+              onPress={goToNotifications}
+              content="notifications-circle-sharp"
+              contentColor={Colors.violet4}
+            />
+          </View>
         </View>
 
         {/* Event navigation */}

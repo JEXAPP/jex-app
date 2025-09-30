@@ -20,6 +20,12 @@
       "android": {
         "buildType": "apk"
       }
+    },
+    "android": {
+      "env": {
+        "ORG_GRADLE_PROJECT_hermesEnabled": "true",
+        "ORG_GRADLE_PROJECT_newArchEnabled": "true"
+      }
     }
   },
   "submit": {

@@ -95,6 +95,9 @@ export const iconos = {
   location: (size:number, color:string) => (
     <MaterialIcons name="location-pin" size={size} color={color} />
   ),
+  notification: (size: number, color:string) => (
+    <Ionicons name="notifications" size={size} color={color} />
+  ),
   // ==== Footer Nav Icons ====
   footer_home: (active: boolean, size: number, color: string) =>
     active ? (

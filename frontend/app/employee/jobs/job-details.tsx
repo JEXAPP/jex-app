@@ -114,7 +114,7 @@ export default function JobDetailScreen() {
         <View style={{ flex: 1}}>
         <Button
           texto={generating ? 'Generando...' : 'Generar QR'}
-          styles={attendanceEnabled ? buttonStyles6 : buttonStyles6}
+          styles={attendanceEnabled ? buttonStyles6 : {...buttonStyles6, boton: {...buttonStyles6.boton, backgroundColor: Colors.gray2}}}
           onPress={() => {
             setShowQR(true);   
             generateQR();}}

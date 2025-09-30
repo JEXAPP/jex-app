@@ -49,8 +49,8 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
         style={s.item}
       >
         {isActive(0) 
-          ? iconos.footer_home(true, ICON_SIZE, Colors.white)
-          : iconos.footer_home(false, ICON_SIZE, Colors.white)
+          ? iconos.footer_home(true, ICON_SIZE, Colors.violet4)
+          : iconos.footer_home(false, ICON_SIZE, Colors.gray3)
         }
         
       </Pressable>
@@ -63,8 +63,8 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
         style={s.item}
       >
         {isActive(1)
-          ? iconos.footer_inbox(true, ICON_SIZE, Colors.white)
-          : iconos.footer_inbox(false, ICON_SIZE, Colors.white)
+          ? iconos.footer_inbox(true, ICON_SIZE, Colors.violet4)
+          : iconos.footer_inbox(false, ICON_SIZE, Colors.gray3)
         }
       </Pressable>
 
@@ -77,8 +77,8 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
         style={s.item}
       >
         {isActive(2) 
-          ? iconos.footer_briefcase(true, ICON_SIZE, Colors.white)
-          : iconos.footer_briefcase(false, ICON_SIZE, Colors.white)
+          ? iconos.footer_briefcase(true, ICON_SIZE, Colors.violet4)
+          : iconos.footer_briefcase(false, ICON_SIZE, Colors.gray3)
         }
       </Pressable>
 
@@ -90,7 +90,7 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
         disabled={isDisabled(3)}
         style={s.item}
       >
-        {iconos.footer_chat(false, ICON_SIZE, Colors.white)}
+        {iconos.footer_chat(false, ICON_SIZE, Colors.gray3)}
       </Pressable>
 
       {/* 5) Person (Octicons) */}
@@ -101,7 +101,7 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
         disabled={isDisabled(4)}
         style={s.item}
       >
-        {iconos.footer_person(false, ICON_SIZE, Colors.white)}
+        {iconos.footer_person(false, ICON_SIZE, Colors.gray3)}
       </Pressable>
     </View>
   );
