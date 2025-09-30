@@ -6,6 +6,7 @@ from applications.models.applications import Application
 from applications.models.applications_states import ApplicationState
 from applications.models.offers import Offer
 from applications.utils import get_job_type_display
+from chats.services.stream_chat_service import sync_offer_chat
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from eventos.serializers.event import EventSerializer
 from user_auth.models.employee import EmployeeProfile
@@ -298,6 +299,9 @@ class OfferDecisionSerializer(serializers.Serializer):
                 filled_state = VacancyState.objects.get(name=VacancyStates.FILLED.value)
                 vacancy.state = filled_state
                 vacancy.save(update_fields=['state'])
+            
+            sync_offer_chat(offer)
+
 
         offer.save()
         return offer
