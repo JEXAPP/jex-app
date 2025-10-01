@@ -230,7 +230,7 @@ class ListEventsEmployeeView(ListAPIView):
 
         offer_completed_status = OfferState.objects.get(name=OfferStates.COMPLETED.value)
         return Offer.objects.filter(
-            selected_shift_vacancy_event_id=event_id,
+            selected_shift__vacancy__event_id=event_id,
             status=offer_completed_status
-            )
-    
+        )
+        
