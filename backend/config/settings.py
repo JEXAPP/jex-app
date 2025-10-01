@@ -121,8 +121,7 @@ SOCIALACCOUNT_PROVIDERS = {
             'client_id': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_CLIENT_ID'),
             'secret': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET'),
             'key': ''
-        },
-        'VERIFIED_EMAIL': True,
+        }
     }
 }
 
