@@ -6,12 +6,12 @@ from rest_framework.permissions import IsAuthenticated
 from user_auth.permissions import IsInGroup
 
 class CreateRatingView(CreateAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
     serializer_class = RatingSerializer
 
     def get_serializer_context(self):
-        permission_classes = [IsAuthenticated, IsInGroup]
-        required_groups = [EMPLOYER_ROLE]
-
+        
         context = super().get_serializer_context()
         context['worker_id'] = self.kwargs['worker_id']
         return context
