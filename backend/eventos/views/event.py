@@ -1,9 +1,11 @@
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from applications.constants import OfferStates
+from applications.models.offer_state import OfferState
 from eventos.constants import EventStates
 from eventos.errors.events_messages import ESTADO_DELETED_NO_CONFIGURADO, EVENT_NOT_FOUND, NO_EDITAR_EVENTO_PUBLICADO, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
-from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer,EventWorkerSerializer
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsEmployeeSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer,EventWorkerSerializer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
@@ -221,13 +223,14 @@ class ListEventsWithVacanciesView(ListAPIView):
 class ListEventsEmployeesView(ListAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
-    serializer_class = EventWorkerSerializer
+    serializer_class = ListEventsEmployeeSerializer
 
     def get_queryset(self):
-        event_id = self.kwargs.get('eventId')  # Asegúrate que tu url use <int:eventId>
-        # Filtra las ofertas aceptadas relacionadas al evento
+        event_id = self.kwargs.get('eventId')  
+
+        offer_completed_status = OfferState.objects.get(name=OfferStates.COMPLETED.value)
         return Offer.objects.filter(
             selected_shift_vacancy_event_id=event_id,
-            status='Completed'  # Ajusta 'Completed' si tu modelo usa otro nombre para el estado completado
-        )
+            status=offer_completed_status
+            )
     

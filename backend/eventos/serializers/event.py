@@ -270,10 +270,10 @@ class ListEventsWithVacanciesSerializer(serializers.ModelSerializer):
 
 
 
-class ListEventsEmployeesView(serializers.ModelSerializer):
+class ListEventsEmployeeSerializer(serializers.ModelSerializer):
     employee_id = serializers.IntegerField(source="employee.user.id")
     name = serializers.SerializerMethodField()
-    role = serializers.CharField(source="selected_shift.vacancy.job_type.name")
+    job_type = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
 
@@ -282,7 +282,7 @@ class ListEventsEmployeesView(serializers.ModelSerializer):
         fields = [
             "employee_id",
             "name",
-            "role",
+            "job_type",
             "image",
             "rating"
         ]
@@ -290,6 +290,9 @@ class ListEventsEmployeesView(serializers.ModelSerializer):
     def get_name(self, obj):
         user = obj.employee.user
         return f"{user.first_name} {user.last_name}"
+
+    def get_job_type(self, obj):
+        return get_job_type_display(obj.selected_shift.vacancy)
 
     def get_image(self, obj):
         user = obj.employee.user
