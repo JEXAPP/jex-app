@@ -13,7 +13,6 @@ class Rating(models.Model):
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "user_ratings"
         ordering = ['-date']
 
     def __str__(self):

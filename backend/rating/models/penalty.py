@@ -13,7 +13,6 @@ class Penalty(models.Model):
     penalty_date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "user_penalties"
         ordering = ['-penalty_date']
 
     def __str__(self):

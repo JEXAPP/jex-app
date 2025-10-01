@@ -8,7 +8,6 @@ class Behavior(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = "user_behaviors"
         ordering = ['-created_at']
 
     def __str__(self):

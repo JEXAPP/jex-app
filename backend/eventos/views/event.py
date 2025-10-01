@@ -5,7 +5,7 @@ from eventos.constants import EventStates
 from eventos.errors.events_messages import ESTADO_DELETED_NO_CONFIGURADO, EVENT_NOT_FOUND, NO_EDITAR_EVENTO_PUBLICADO, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
-from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsEmployeeSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer,EventWorkerSerializer
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsEmployeeSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer,ListEventsEmployeeSerializer
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
@@ -220,7 +220,7 @@ class ListEventsWithVacanciesView(ListAPIView):
                 Prefetch("vacancies", queryset=active_vacancies_qs)
             )
         )
-class ListEventsEmployeesView(ListAPIView):
+class ListEventsEmployeeView(ListAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
     serializer_class = ListEventsEmployeeSerializer
