@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'chats',
     'allauth',
     'allauth.account',
+    
 
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
@@ -74,6 +75,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'media_utils',
+    'rating',
 
 ]
 

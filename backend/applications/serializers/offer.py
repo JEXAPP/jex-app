@@ -227,7 +227,7 @@ class OfferConsultSerializer(serializers.ModelSerializer):
         ]
 
     def get_shift(self, obj):
-        # Si application_id es null, mostrar selected_shift
+       # Si application_id es null, mostrar selected_shift
         if obj.application_id is None:
             # Si existe selected_shift, devuélvelo serializado
             shift = getattr(obj, "selected_shift", None)
@@ -372,7 +372,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
 
 
     def get_shift(self, obj):
-        # Si application_id es null, mostrar selected_shift
+         # Si application_id es null, mostrar selected_shift
         if obj.application_id is None:
             # Si existe selected_shift, devuélvelo serializado
             shift = getattr(obj, "selected_shift", None)

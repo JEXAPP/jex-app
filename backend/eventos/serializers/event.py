@@ -13,7 +13,9 @@ from media_utils.serializers import ImageSerializer
 from user_auth.models.user import CustomUser
 from datetime import date
 from vacancies.models.vacancy import Vacancy
-
+from rating.models import Behavior
+from applications.models import Offer
+from user_auth.models.employee import EmployeeProfile
     
 class CreateEventSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(
@@ -266,3 +268,37 @@ class ListEventsWithVacanciesSerializer(serializers.ModelSerializer):
         model = Event
         fields = ['event_id', 'event_name', 'vacancies']
 
+
+
+class ListEventsEmployeeSerializer(serializers.ModelSerializer):
+    employee_id = serializers.IntegerField(source="employee.user.id")
+    name = serializers.SerializerMethodField()
+    job_type = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Offer
+        fields = [
+            "employee_id",
+            "name",
+            "job_type",
+            "image",
+            "rating"
+        ]
+
+    def get_name(self, obj):
+        user = obj.employee.user
+        return f"{user.first_name} {user.last_name}"
+
+    def get_job_type(self, obj):
+        return get_job_type_display(obj.selected_shift.vacancy)
+
+    def get_image(self, obj):
+        user = obj.employee.user
+        return user.profile_image.url if user.profile_image else None
+
+    def get_rating(self, obj):
+        user = obj.employee.user
+        behavior = Behavior.objects.filter(user=user).order_by('-created_at').first()
+        return behavior.average_rating if behavior else None
