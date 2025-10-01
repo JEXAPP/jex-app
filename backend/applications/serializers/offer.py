@@ -275,6 +275,8 @@ class OfferDecisionSerializer(serializers.Serializer):
                 pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
                 offer.application.state = pending_state
                 offer.application.save(update_fields=['state'])
+            
+            offer.save(update_fields=['state', 'rejection_reason'])
 
         else:
             offer.state = OfferState.objects.get(name=OfferStates.ACCEPTED.value)
@@ -284,6 +286,8 @@ class OfferDecisionSerializer(serializers.Serializer):
                 confirmed_state = ApplicationState.objects.get(name=ApplicationStates.CONFIRMED.value)
                 offer.application.state = confirmed_state
                 offer.application.save(update_fields=['state'])
+            
+            offer.save(update_fields=['state', 'rejection_reason'])
 
             vacancy = offer.selected_shift.vacancy
 
@@ -303,7 +307,6 @@ class OfferDecisionSerializer(serializers.Serializer):
             sync_offer_chat(offer)
 
 
-        offer.save()
         return offer
 
 class RequirementSerializer(serializers.ModelSerializer):
