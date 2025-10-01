@@ -11,7 +11,7 @@ class MercadoPagoOAuthCallbackView(views.APIView):
     Endpoint que recibe el `code` y el `state` de Mercado Pago y guarda los tokens
     asociados al usuario correspondiente.
     """
-    permission_classes = []  # No requiere autenticación, Mercado Pago no envía cookies
+    permission_classes = []
 
     def get(self, request, *args, **kwargs):
         code = request.query_params.get("code")
