@@ -1,6 +1,7 @@
 from django.urls import path
+from rating.views.rating import CreateRatingView
 
 urlpatterns = [
-    # Tus rutas aquí, por ejemplo:
-    # path('some-view/', SomeView.as_view(), name='some-view'),
+    path('rating/<worker_id>/', CreateRatingView.as_view(), name='realize-rating'),
+
 ]

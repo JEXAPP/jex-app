@@ -270,17 +270,17 @@ class ListEventsWithVacanciesSerializer(serializers.ModelSerializer):
 
 
 
-class EventWorkerSerializer(serializers.ModelSerializer):
-    worker_id = serializers.IntegerField(source="employee.id")  # Offer → EmployeeProfile
+class ListEventsEmployeesView(serializers.ModelSerializer):
+    employee_id = serializers.IntegerField(source="employee.user.id")
     name = serializers.SerializerMethodField()
     role = serializers.CharField(source="selected_shift.vacancy.job_type.name")
     image = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
 
     class Meta:
-        model = Offer  # Partimos desde la Offer aceptada
+        model = Offer
         fields = [
-            "worker_id",
+            "employee_id",
             "name",
             "role",
             "image",

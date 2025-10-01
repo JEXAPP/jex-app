@@ -218,14 +218,16 @@ class ListEventsWithVacanciesView(ListAPIView):
                 Prefetch("vacancies", queryset=active_vacancies_qs)
             )
         )
-class ListEventsWorkersView(ListAPIView):
+class ListEventsEmployeesView(ListAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
     serializer_class = EventWorkerSerializer
 
     def get_queryset(self):
         event_id = self.kwargs.get('eventId')  # Asegúrate que tu url use <int:eventId>
         # Filtra las ofertas aceptadas relacionadas al evento
         return Offer.objects.filter(
-            selected_shift__vacancy__event_id=event_id,
-            status='accepted'  # Ajusta 'accepted' si tu modelo usa otro nombre para el estado aceptado
+            selected_shift_vacancy_event_id=event_id,
+            status='Completed'  # Ajusta 'Completed' si tu modelo usa otro nombre para el estado completado
         )
     
