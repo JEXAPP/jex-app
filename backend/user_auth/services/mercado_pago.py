@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.conf import settings
 import jwt
 import requests
@@ -31,7 +31,7 @@ class MercadoPagoService:
         """
         payload = {
             "sub": user_id,
-            "exp": datetime.datetime.utcnow() + datetime.timedelta(minutes=expires_minutes),
+            "exp": datetime.utcnow() + timedelta(minutes=expires_minutes),
             "type": "mp_oauth"
         }
         token = jwt.encode(payload, settings.JWT_MP_SECRET, algorithm="HS256")
