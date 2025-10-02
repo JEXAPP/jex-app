@@ -18,7 +18,7 @@ def create_behavior_for_users(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('rating', '0002_populate_penalty_states'),
+        ('rating', '0003_alter_behavior_average_rating'),
 ]
 
     operations = [
