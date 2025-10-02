@@ -117,7 +117,6 @@ DJRESTAUTH_TOKEN_SERIALIZER = "dj_rest_auth.serializers.JWTSerializer"
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-
         'APP': {
             'client_id': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_CLIENT_ID'),
             'secret': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET'),
@@ -272,6 +271,7 @@ MP_CLIENT_ID = os.getenv("MP_CLIENT_ID")
 MP_CLIENT_SECRET = os.getenv("MP_CLIENT_SECRET")
 MP_REDIRECT_URI = os.getenv("MP_REDIRECT_URI")
 MP_TOKEN_URL = os.getenv("MP_TOKEN_URL", default="https://api.mercadopago.com/oauth/token")
+JWT_MP_SECRET = os.getenv("JWT_MP_SECRET")
 
 # Stream CHAT
 
