@@ -4,7 +4,7 @@ from user_auth.models import CustomUser  # Importa tu modelo de usuario
 
 class Behavior(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="behaviors")
-    average_rating = models.FloatField(default=0.0)
+    average_rating = models.FloatField(default=None, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

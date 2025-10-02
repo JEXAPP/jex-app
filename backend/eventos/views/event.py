@@ -228,9 +228,9 @@ class ListEventsEmployeeView(ListAPIView):
     def get_queryset(self):
         event_id = self.kwargs.get('eventId')  
 
-        offer_completed_status = OfferState.objects.get(name=OfferStates.COMPLETED.value)
+        offer_completed_state = OfferState.objects.get(name=OfferStates.COMPLETED.value)
         return Offer.objects.filter(
             selected_shift__vacancy__event_id=event_id,
-            status=offer_completed_status
+            state=offer_completed_state
         )
         
