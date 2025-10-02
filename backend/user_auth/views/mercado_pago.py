@@ -56,7 +56,7 @@ class GenerateMPStateView(views.APIView):
     """
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         user_id = request.user.id
 
         # Generar JWT temporal para Mercado Pago (state)
