@@ -130,6 +130,9 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 #LOGOUT_REDIRECT_URL = ''
 ROOT_URLCONF = 'config.urls'
 
+SOCIALACCOUNT_ADAPTER = "user_auth.adapters.CustomSocialAccountAdapter"
+
+
 # Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
