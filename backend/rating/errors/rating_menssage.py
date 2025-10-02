@@ -1,0 +1,8 @@
+BODY_MUST_BE_ARRAY = "El body debe ser un array de objetos."
+RATINGS_SAVED = "Se guardaron las calificaciones correctamente."
+SOME_RATINGS_NOT_SAVED = "Algunas calificaciones no se guardaron."
+EMPLOYEE_NOT_FOUND = "Empleado no encontrado."
+EVENT_NOT_FOUND = "Evento no encontrado."
+INVALID_RATING = "Calificación inválida."
+PERMISSION_DENIED = "No tienes permiso para realizar esta acción."
+RATING_ALREADY_EXISTS = "Ya existe una calificación para este usuario en este evento."

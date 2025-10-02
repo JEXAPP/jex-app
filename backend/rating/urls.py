@@ -3,6 +3,6 @@ from rating.views.rating import BulkCreateRatingView, ViewRatings
 
 urlpatterns = [
     path('rate/', BulkCreateRatingView.as_view(), name='bulk-realize-rating'),
-    #path('employers/torating/' , listEmployerToRatingView.as_view(), name='list-employers-to-rating')
+
     path('viewratings/<int:user_id>/', ViewRatings.as_view(), name='list-participation-employee')
 ]
