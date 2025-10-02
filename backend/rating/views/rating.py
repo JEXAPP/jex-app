@@ -11,7 +11,6 @@ class CreateRatingView(CreateAPIView):
     serializer_class = RatingSerializer
 
     def get_serializer_context(self):
-        
         context = super().get_serializer_context()
-        context['worker_id'] = self.kwargs['worker_id']
+        context['employee_id'] = self.kwargs['employee_id']
         return context
