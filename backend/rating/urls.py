@@ -1,7 +1,6 @@
 from django.urls import path
-from rating.views.rating import CreateRatingView
+from rating.views.rating import BulkCreateRatingView
 
 urlpatterns = [
-    path('<employee_id>/', CreateRatingView.as_view(), name='realize-rating')
-
+    path('rate/', BulkCreateRatingView.as_view(), name='bulk-realize-rating')
 ]

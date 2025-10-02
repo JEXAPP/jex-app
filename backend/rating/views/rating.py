@@ -1,16 +1,29 @@
-from rest_framework.generics import CreateAPIView
-from rating.models import Rating
-from rating.serializers.rating import RatingSerializer
-from user_auth.constants import EMPLOYER_ROLE
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from user_auth.permissions import IsInGroup
+from user_auth.constants import EMPLOYER_ROLE
+from rating.serializers.rating import SingleRatingSerializer
 
-class CreateRatingView(CreateAPIView):
+class BulkCreateRatingView(APIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
-    serializer_class = RatingSerializer
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['employee_id'] = self.kwargs['employee_id']
-        return context
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        if not isinstance(data, list):
+            return Response({"message": "El body debe ser un array de objetos."}, status=400)
+
+        errors = []
+        for item in data:
+            serializer = SingleRatingSerializer(data=item, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                errors.append(serializer.errors)
+
+        if errors:
+            return Response({"message": "Algunas calificaciones no se guardaron.", "errors": errors},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Se guardaron las calificaciones correctamente."}, status=status.HTTP_201_CREATED)
