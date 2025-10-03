@@ -9,6 +9,7 @@ from applications.models import Offer
 from rating.models import Rating
 from applications.utils import get_job_type_display
 from rating.utils import has_already_rated
+from rating.errors.rating_menssage import RATING_ALREADY_EXISTS
 #from applications.models import Offer
 
 class SingleRatingSerializer(serializers.Serializer):
@@ -125,3 +126,54 @@ class ListEmployerEventsSerializer(serializers.ModelSerializer):
             return "not exist"
         event_id = obj.selected_shift.vacancy.event.id
         return has_already_rated(request.user, event_id, rater_type="employee")
+    
+class SingleEmployerRatingSerializer(serializers.Serializer):
+    employer = serializers.IntegerField(required=True)
+    rating = serializers.FloatField(required=True)
+    comments = serializers.CharField(required=False, allow_blank=True)
+    event = serializers.IntegerField(required=True)
+
+    def validate(self, data):
+        employer_id = data['employer']
+        event_id = data['event']
+
+        try:
+            employer_user = CustomUser.objects.get(pk=employer_id)
+        except CustomUser.DoesNotExist:
+            raise serializers.ValidationError(f"Empleador {employer_id} no encontrado")
+
+        # Chequea si ya existe un rating de este empleado a este empleador para este evento
+        if Rating.objects.filter(
+            behavior__user=employer_user,
+            rater=self.context['request'].user,
+            event_id=event_id
+        ).exists():
+            raise serializers.ValidationError(RATING_ALREADY_EXISTS)
+
+        return data
+
+
+    def create(self, validated_data):
+        request = self.context['request']
+        rater = request.user
+        employer_id = validated_data['employer']
+        event_id = validated_data['event']
+
+        # Busca el empleador y el evento
+        employer_user = CustomUser.objects.get(pk=employer_id)
+        event = Event.objects.get(pk=event_id)
+
+        # Busca o crea el Behavior
+        behavior, _ = Behavior.objects.get_or_create(user=employer_user)
+
+        # Crea el rating
+        rating = Rating.objects.create(
+            behavior=behavior,
+            rater=rater,
+            event=event,
+            rating=validated_data['rating'],
+            comments=validated_data.get('comments', "")
+        )
+        behavior.update_average_rating()
+
+        return rating

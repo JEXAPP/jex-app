@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveAPIView , ListAPIView
 from user_auth.permissions import IsInGroup
 from user_auth.constants import EMPLOYER_ROLE, EMPLOYEE_ROLE
-from rating.serializers.rating import SingleRatingSerializer, ViewRatingsSerializer, ListEmployerEventsSerializer
+from rating.serializers.rating import SingleRatingSerializer, ViewRatingsSerializer, ListEmployerEventsSerializer, SingleEmployerRatingSerializer
 from rating.models import Behavior
 from rating.errors.rating_menssage import BODY_MUST_BE_ARRAY, RATINGS_SAVED, SOME_RATINGS_NOT_SAVED
 from user_auth.permissions import IsInGroup
@@ -68,6 +68,32 @@ class ListEmployerEventsView(ListAPIView):
             "selected_shift__vacancy__event__owner",  # NO agregues __user aquí
         )
 
+class BulkCreateEmployerRatingView(APIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]  # <-- sólo empleados pueden acceder
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        if not isinstance(data, list):
+            return Response({"message": BODY_MUST_BE_ARRAY}, status=400)
+
+        errors = []
+        for item in data:
+            serializer = SingleEmployerRatingSerializer(data=item, context={'request': request})
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                errors.append(serializer.errors)
+
+        if errors:
+            return Response(
+                {"message": SOME_RATINGS_NOT_SAVED, "errors": errors},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return Response(
+            {"message": RATINGS_SAVED},
+            status=status.HTTP_201_CREATED
+        )
 
 
 
