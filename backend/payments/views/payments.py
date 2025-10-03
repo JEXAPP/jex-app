@@ -15,6 +15,7 @@ from decimal import Decimal
 import hmac
 import hashlib
 import requests
+import mercadopago
 from django.conf import settings
 from rest_framework import status, views
 from rest_framework.response import Response
@@ -104,21 +105,42 @@ class GeneratePaymentLinkView(views.APIView):
         pending_state = PaymentState.objects.get(name=PaymentStates.PENDING.value)
 
         try:
-            # Crear el link de pago
-            payment_url = MercadoPagoService.create_payment_link(
-                employee_account, amount, commission, concept
-            )
-
-            # Crear el objeto Payment en DB
-            payment = Payment.objects.create(
+            # Buscar si ya existe un Payment pendiente para la misma oferta y empleado
+            payment = Payment.objects.filter(
                 offer=offer,
                 employee=offer.employee.user,
-                amount=amount,
-                commission=commission,
-                concept=concept,
-                mp_payment_id=None,
                 state=pending_state
-            )
+            ).first()
+
+            if payment:
+                # Si ya existe, reutilizar el link si lo tenemos
+                payment_url = None
+                if payment.mp_payment_id:
+                    # Buscar el link en Mercado Pago usando el mp_payment_id
+                    sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
+                    mp_resp = sdk.payment().get(payment.mp_payment_id)
+                    if mp_resp["status"] == 200:
+                        mp_data = mp_resp["response"]
+                        payment_url = mp_data.get("transaction_details", {}).get("external_resource_url")
+                if not payment_url:
+                    # Si no tenemos el link, crear uno nuevo
+                    payment_url = MercadoPagoService.create_payment_link(
+                        employee_account, amount, commission, concept, external_reference=str(payment.id)
+                    )
+            else:
+                # Si no existe, crear uno nuevo
+                payment = Payment.objects.create(
+                    offer=offer,
+                    employee=offer.employee.user,
+                    amount=amount,
+                    commission=commission,
+                    concept=concept,
+                    mp_payment_id=None,
+                    state=pending_state
+                )
+                payment_url = MercadoPagoService.create_payment_link(
+                    employee_account, amount, commission, concept, external_reference=str(payment.id)
+                )
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -133,30 +155,27 @@ class PaymentCallbackView(views.APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
-        serializer = PaymentCallbackSerializer(data=request.query_params)
-        serializer.is_valid(raise_exception=True)
+        # Mercado Pago redirige con preference_id y external_reference como query params
+        preference_id = request.query_params.get("preference_id")
+        external_reference = request.query_params.get("external_reference")
 
-        mp_payment_id = serializer.validated_data.get("payment_id") or serializer.validated_data.get("preference_id")
-
-        # Intentamos obtener el pago, pero no necesariamente lo marcamos como completado
-        payment = Payment.objects.filter(mp_payment_id=mp_payment_id).first()
+        # Buscar el Payment por external_reference
+        payment = None
+        if external_reference:
+            payment = Payment.objects.filter(id=external_reference).first()
+        elif preference_id:
+            payment = Payment.objects.filter(mp_payment_id=preference_id).first()
 
         if not payment:
-            # Podés mostrar mensaje de error en frontend
             return Response(PAYMENT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
 
-        # Opcional: consultar estado para mostrar al usuario
-        try:
-            mp_resp = requests.get(
-                f"{settings.MP_API_URL}/v1/payments/{mp_payment_id}",
-                headers={"Authorization": f"Bearer {settings.MP_ACCESS_TOKEN}"}
-            )
-            mp_data = mp_resp.json() if mp_resp.status_code == 200 else {}
-            status_name = mp_data.get("status", "PENDING")
-        except:
-            status_name = "PENDING"
+        # Mostrar el estado actual del pago desde la base de datos
+        return Response({
+            "payment_id": payment.id,
+            "payment_state": payment.state.name,
+            "payment_state_message": payment.state.get_display_name() if hasattr(payment.state, "get_display_name") else payment.state.name
+        }, status=status.HTTP_200_OK)
 
-        return Response({"payment_status": status_name}, status=status.HTTP_200_OK)
 
 
 class MercadoPagoWebhookView(views.APIView):
@@ -166,12 +185,12 @@ class MercadoPagoWebhookView(views.APIView):
         serializer = PaymentCallbackSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        mp_payment_id = serializer.validated_data.get("payment_id") or serializer.validated_data.get("preference_id")
+        # Extraer el payment_id desde data['id']
+        mp_payment_id = request.data.get("data", {}).get("id")
         if not mp_payment_id:
             return Response(MISSING_MP_CODE, status=status.HTTP_400_BAD_REQUEST)
-
         # --- 1. Validar la firma ---
-        signature_received = request.headers.get("X-MercadoPago-Signature")  # depende de cómo lo envíe MP
+        signature_received = request.headers.get("X-MercadoPago-Signature")
         body_bytes = request.body
         secret = settings.MP_WEBHOOK_SECRET.encode("utf-8")
 
@@ -186,18 +205,42 @@ class MercadoPagoWebhookView(views.APIView):
             return Response(PAYMENT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
 
         # --- 3. Consultar estado real en Mercado Pago ---
-        mp_resp = requests.get(
-            f"{settings.MP_API_URL}/v1/payments/{mp_payment_id}",
-            headers={"Authorization": f"Bearer {settings.MP_ACCESS_TOKEN}"}
-        )
-        if mp_resp.status_code != 200:
+        sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
+        mp_resp = sdk.payment().get(mp_payment_id)
+        if mp_resp["status"] != 200:
             return Response(NO_VALID_PAYMENT, status=status.HTTP_502_BAD_GATEWAY)
 
-        mp_data = mp_resp.json()
-        status_name = mp_data.get("status", "PENDING")
+        mp_data = mp_resp["response"]
+        status_name = mp_data.get("status", "pending")
+        external_reference = mp_data.get("external_reference")
+
+        # Buscar el Payment por external_reference
+        try:
+            payment = Payment.objects.get(id=external_reference)
+        except Payment.DoesNotExist:
+            return Response(PAYMENT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        # Si no tiene mp_payment_id, lo actualizamos
+        if not payment.mp_payment_id:
+            payment.mp_payment_id = mp_payment_id
+
+        # Mapear a PaymentStates
+        if status_name == "approved":
+            payment_state = PaymentStates.APPROVED.value
+            friendly_status = "Aprobado"
+        elif status_name == "pending" or status_name == "in_process":
+            payment_state = PaymentStates.PENDING.value
+            friendly_status = "Pendiente"
+        else:
+            payment_state = PaymentStates.FAILURE.value
+            friendly_status = "Fallido"
 
         # --- 4. Actualizar estado en DB ---
-        payment.state = PaymentState.objects.get(name=status_name)
+        payment.state = PaymentState.objects.get(name=payment_state)
         payment.save()
 
-        return Response({"message": f"Pago {payment.state.name} actualizado vía webhook"}, status=status.HTTP_200_OK)
+        return Response({
+            "message": "Pago actualizado vía webhook",
+            "payment_status": payment_state,
+            "payment_status_message": friendly_status
+        }, status=status.HTTP_200_OK)

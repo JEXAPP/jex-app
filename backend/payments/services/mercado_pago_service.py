@@ -74,7 +74,8 @@ class MercadoPagoService:
         employee_account,
         amount: float,
         commission: float,
-        concept: Optional[str] = None
+        concept: Optional[str] = None,
+        external_reference: Optional[str] = None
     ) -> str:
         token = MercadoPagoService.get_access_token()
         url = f"{settings.MP_API_URL}/checkout/preferences"
@@ -106,6 +107,8 @@ class MercadoPagoService:
             "collector_id": employee_account.mp_user_id,
             "application_fee": float(commission),  # tu comisión
         }
+        if external_reference:
+            preference_data["external_reference"] = external_reference
 
         resp = requests.post(url, headers=headers, json=preference_data)
         if resp.status_code != 201:
