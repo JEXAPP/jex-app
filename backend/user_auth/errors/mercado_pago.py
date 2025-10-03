@@ -1,7 +1,0 @@
-MISSING_MP_CODE = "Missing 'code' parameter in request."
-
-OFFER_NOT_EXIST = "La oferta no existe"
-OFFER_NO_SHIFT = "La oferta no tiene un turno asociado"
-SHIFT_NO_VACANCY = "El turno no tiene una vacante asociada"
-NO_PERMISSION_FOR_PAYMENT = "No tiene permisos para generar un pago sobre esta oferta"
-EMPLOYEE_NO_MP_ACCOUNT = "El empleado no tiene una cuenta de Mercado Pago asociada"

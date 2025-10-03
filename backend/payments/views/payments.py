@@ -11,7 +11,7 @@ from payments.models.payments import Payment
 from payments.serializers.payments import GeneratePaymentLinkSerializer, PaymentCallbackSerializer
 from payments.services.mercado_pago_service import MercadoPagoService
 from user_auth.constants import EMPLOYER_ROLE
-from user_auth.errors.mercado_pago import MISSING_MP_CODE
+from decimal import Decimal
 import hmac
 import hashlib
 import requests
@@ -81,6 +81,7 @@ class GenerateMPStateView(views.APIView):
     
 
 
+
 class GeneratePaymentLinkView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     required_groups = [EMPLOYER_ROLE]
@@ -93,15 +94,17 @@ class GeneratePaymentLinkView(views.APIView):
         serializer.is_valid(raise_exception=True)
 
         employee_account = serializer.validated_data["employee_account"]
-        amount = serializer.validated_data["amount"]
-        commission = serializer.validated_data["commission"]
+        amount = Decimal(serializer.validated_data["amount"])
         concept = serializer.validated_data["concept"]
         offer = serializer.validated_data["offer"]
+
+        # Calculamos la comisión automáticamente (10% del monto)
+        commission = (amount * Decimal("0.10")).quantize(Decimal("0.01"))
 
         pending_state = PaymentState.objects.get(name=PaymentStates.PENDING.value)
 
         try:
-            # Crear el link de pago siempre
+            # Crear el link de pago
             payment_url = MercadoPagoService.create_payment_link(
                 employee_account, amount, commission, concept
             )

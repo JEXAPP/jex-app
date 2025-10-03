@@ -3,8 +3,8 @@ from rest_framework import serializers
 
 from applications.models.offers import Offer
 from applications.utils import get_job_type_display
+from payments.errors.mercado_pago import EMPLOYEE_NO_MP_ACCOUNT, NO_PERMISSION_FOR_PAYMENT, OFFER_NO_SHIFT, OFFER_NOT_EXIST, SHIFT_NO_VACANCY
 from payments.models.mercado_pago import MercadoPagoAccount
-from user_auth.errors.mercado_pago import EMPLOYEE_NO_MP_ACCOUNT, NO_PERMISSION_FOR_PAYMENT, OFFER_NO_SHIFT, OFFER_NOT_EXIST, SHIFT_NO_VACANCY
 
 
 class GeneratePaymentLinkSerializer(serializers.Serializer):

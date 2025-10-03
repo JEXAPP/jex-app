@@ -3,7 +3,6 @@ from django.conf import settings
 import jwt
 import requests
 from typing import Optional
-
 from user_auth.models.user import CustomUser
 
 
@@ -77,10 +76,6 @@ class MercadoPagoService:
         commission: float,
         concept: Optional[str] = None
     ) -> str:
-        """
-        Crea un link de pago con split: el dinero va a la cuenta del empleado (collector_id)
-        y se descuenta la comisión (application_fee).
-        """
         token = MercadoPagoService.get_access_token()
         url = f"{settings.MP_API_URL}/checkout/preferences"
 
@@ -89,13 +84,16 @@ class MercadoPagoService:
             "Content-Type": "application/json",
         }
 
+        # Aumentamos el precio total para que el cliente pague el extra
+        total_price = amount + commission
+
         preference_data = {
             "items": [
                 {
-                    "title": concept if concept else "Pago de turno trabajado",
+                    "title": concept or "Pago de turno trabajado",
                     "quantity": 1,
                     "currency_id": "ARS",
-                    "unit_price": float(amount),
+                    "unit_price": float(total_price),
                 }
             ],
             "payment_methods": {"installments": 1},
@@ -106,11 +104,10 @@ class MercadoPagoService:
             },
             "auto_return": "approved",
             "collector_id": employee_account.mp_user_id,
-            "application_fee": float(commission),
+            "application_fee": float(commission),  # tu comisión
         }
 
         resp = requests.post(url, headers=headers, json=preference_data)
-
         if resp.status_code != 201:
             raise Exception(f"Error creando preferencia MP: {resp.json()}")
 
