@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'media_utils',
     'rating',
+    "payments",
 
 ]
 
@@ -275,6 +276,11 @@ MP_CLIENT_SECRET = os.getenv("MP_CLIENT_SECRET")
 MP_REDIRECT_URI = os.getenv("MP_REDIRECT_URI")
 MP_TOKEN_URL = os.getenv("MP_TOKEN_URL", default="https://api.mercadopago.com/oauth/token")
 JWT_MP_SECRET = os.getenv("JWT_MP_SECRET")
+MP_ACCESS_TOKEN = os.getenv('MP_ACCESS_TOKEN')
+MP_SUCCESS_URL = os.getenv('MP_SUCCESS_URL')
+MP_FAILURE_URL = os.getenv('MP_FAILURE_URL')
+MP_PENDING_URL = os.getenv('MP_PENDING_URL')
+MP_WEBHOOK_SECRET = os.getenv('MP_WEBHOOK_SECRET')
 
 # Stream CHAT
 

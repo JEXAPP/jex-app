@@ -1,0 +1,12 @@
+NO_VALID_PAYMENT="No se pudo validar el pago"
+PAYMENT_NOT_FOUND="Pago no encontrado"
+PAYMENT_STATE_ERROR="Error con el estado del pago"
+MISSING_MP_CODE="Falta el código de Mercado Pago"
+NO_VALID_PAYMENT="No se pudo validar el pago"
+INVALID_SIGNATURE="Firma inválida"
+
+OFFER_NOT_EXIST = "La oferta no existe"
+OFFER_NO_SHIFT = "La oferta no tiene un turno asociado"
+SHIFT_NO_VACANCY = "El turno no tiene una vacante asociada"
+NO_PERMISSION_FOR_PAYMENT = "No tiene permisos para generar un pago sobre esta oferta"
+EMPLOYEE_NO_MP_ACCOUNT = "El empleado no tiene una cuenta de Mercado Pago asociada"

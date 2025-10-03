@@ -28,4 +28,5 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('media/', include('media_utils.urls')),
     path('api/rating/', include('rating.urls')),
+    path('api/payments/', include('payments.urls')),
 ]
