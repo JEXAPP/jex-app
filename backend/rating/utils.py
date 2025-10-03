@@ -1,30 +1,30 @@
 from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
 from rating.models import Rating
+from rating.errors.rating_menssage import RATER_PROFILE_NOT_FOUND
 
 def has_already_rated(user, event_id, rater_type="employee"):
     """
     Retorna True si el usuario ya calificó el evento como employee o employer.
-    Retorna "not exist" si el usuario no está autenticado o no tiene el perfil correspondiente.
+    Retorna RATER_PROFILE_NOT_FOUND si el usuario no está autenticado o no tiene el perfil correspondiente.
     """
 
-
     if not user or not user.is_authenticated:
-        return "not exist"
+        return RATER_PROFILE_NOT_FOUND
 
     if rater_type == "employee":
         try:
             profile = EmployeeProfile.objects.get(user=user)
         except EmployeeProfile.DoesNotExist:
-            return "not exist"
+            return RATER_PROFILE_NOT_FOUND
         rater = profile.user  # CustomUser
     elif rater_type == "employer":
         try:
             profile = EmployerProfile.objects.get(user=user)
         except EmployerProfile.DoesNotExist:
-            return "not exist"
+            return RATER_PROFILE_NOT_FOUND
         rater = profile.user  # CustomUser
     else:
-        return "not exist"
+        return RATER_PROFILE_NOT_FOUND
 
     return Rating.objects.filter(rater=rater, event_id=event_id).exists()
