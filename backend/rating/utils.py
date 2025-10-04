@@ -1,24 +1,21 @@
-from user_auth.models.employee import EmployeeProfile
-from user_auth.models.employer import EmployerProfile
+from typing import Union
+
 from rating.models import Rating
 
-def has_already_rated(user, event_id, rater_type="employee"):
-    if not user or not user.is_authenticated:
-        return None
 
-    if rater_type == "employee":
-        try:
-            profile = EmployeeProfile.objects.get(user=user)
-        except EmployeeProfile.DoesNotExist:
-            return None
-        rater = profile.user  # CustomUser
-    elif rater_type == "employer":
-        try:
-            profile = EmployerProfile.objects.get(user=user)
-        except EmployerProfile.DoesNotExist:
-            return None
-        rater = profile.user  # CustomUser
-    else:
-        return None
+def has_already_rated(event: Union[int, object], rater, rated_user) -> bool:
+    if not rater or not rated_user:
+        return False
 
-    return Rating.objects.filter(rater=rater, event_id=event_id).exists()
+    # Accept either event instance or event id
+    event_id = getattr(event, "id", event)
+
+    try:
+        return Rating.objects.filter(
+            behavior__user=rated_user,
+            rater=rater,
+            event_id=event_id,
+        ).exists()
+    except Exception:
+        # On unexpected error, behave as if not rated to avoid blocking reads
+        return False
