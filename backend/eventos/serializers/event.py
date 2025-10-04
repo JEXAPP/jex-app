@@ -308,9 +308,16 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
     
     def get_already_rated(self, obj):
         request = self.context.get('request')
-        if not request or not request.user.is_authenticated:
-            return "not exist"
-        # El evento podría ser obj.selected_shift.vacancy.event, revisa si existe el campo
-        event_id = obj.selected_shift.vacancy.event.id
-        return has_already_rated(request.user, event_id, rater_type="employer")
+        # owner is the employer user for the event
+        owner_user = obj.selected_shift.vacancy.event.owner
+        # current user (the rater) may be anonymous in some contexts
+        rater = getattr(request, 'user', None) if request is not None else None
+
+        # event instance
+        event = obj.selected_shift.vacancy.event
+
+        return has_already_rated(
+            event=event, rater=rater, rated_user=owner_user
+        )
+
         
