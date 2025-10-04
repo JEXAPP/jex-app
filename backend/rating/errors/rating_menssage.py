@@ -6,3 +6,6 @@ EVENT_NOT_FOUND = "Evento no encontrado."
 INVALID_RATING = "Calificación inválida."
 PERMISSION_DENIED = "No tienes permiso para realizar esta acción."
 RATING_ALREADY_EXISTS = "Ya existe una calificación para este usuario en este evento."
+RATER_PROFILE_NOT_FOUND = "No se encontró el perfil correspondiente para el usuario autenticado."
+
+EMPLOYER_NOT_FOUND= "Empleador {employer_id} no encontrado"

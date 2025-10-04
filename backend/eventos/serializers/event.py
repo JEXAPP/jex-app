@@ -16,6 +16,7 @@ from vacancies.models.vacancy import Vacancy
 from rating.models import Behavior
 from applications.models import Offer
 from user_auth.models.employee import EmployeeProfile
+from rating.utils import has_already_rated
     
 class CreateEventSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(
@@ -276,6 +277,7 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
     job_type = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
+    already_rated = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -284,7 +286,8 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
             "name",
             "job_type",
             "image",
-            "rating"
+            "rating",
+            "already_rated"
         ]
 
     def get_name(self, obj):
@@ -302,3 +305,19 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
         user = obj.employee.user
         behavior = Behavior.objects.filter(user=user).order_by('-created_at').first()
         return behavior.average_rating if behavior else None
+    
+    def get_already_rated(self, obj):
+        request = self.context.get('request')
+        # owner is the employer user for the event
+        owner_user = obj.selected_shift.vacancy.event.owner
+        # current user (the rater) may be anonymous in some contexts
+        rater = getattr(request, 'user', None) if request is not None else None
+
+        # event instance
+        event = obj.selected_shift.vacancy.event
+
+        return has_already_rated(
+            event=event, rater=rater, rated_user=owner_user
+        )
+
+        
