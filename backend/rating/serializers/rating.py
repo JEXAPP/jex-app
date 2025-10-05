@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rating.models import Rating, Behavior
+from rating.models.users_connections import UserConnection
 from user_auth.models import CustomUser
 from user_auth.models.employer import EmployerProfile
 from eventos.models.event import Event
@@ -20,6 +21,7 @@ class SingleRatingSerializer(serializers.Serializer):
     rating = serializers.FloatField(required=True)
     comments = serializers.CharField(required=False, allow_blank=True)
     event = serializers.IntegerField(required=True)
+    link = serializers.BooleanField(required=False, default=None)
 
     def create(self, validated_data):
         request = self.context['request']
