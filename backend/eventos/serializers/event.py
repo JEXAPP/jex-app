@@ -10,6 +10,7 @@ from eventos.serializers.state_events import EventStateSerializer
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from media_utils.models import Image, ImageType
 from media_utils.serializers import ImageSerializer
+from rating.models.users_connections import UserConnection
 from user_auth.models.user import CustomUser
 from datetime import date
 from vacancies.models.vacancy import Vacancy
@@ -278,6 +279,7 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
     already_rated = serializers.SerializerMethodField()
+    is_linked = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -287,7 +289,8 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
             "job_type",
             "image",
             "rating",
-            "already_rated"
+            "already_rated",
+            "is_linked",
         ]
 
     def get_name(self, obj):
@@ -319,5 +322,22 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
         return has_already_rated(
             event=event, rater=rater, rated_user=owner_user
         )
+    
+    def get_is_linked(self, obj):
+        """
+        Devuelve True si el empleado está vinculado con el empleador actual
+        """
+        request = self.context.get('request')
+        employer_user = getattr(request, 'user', None)
+        employee_user = obj.employee.user
+
+        if not employer_user:
+            return False
+
+        return UserConnection.objects.filter(
+            employee=employee_user,
+            employer=employer_user
+        ).exists()
+
 
         

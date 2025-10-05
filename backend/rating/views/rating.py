@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 
+from rating.models.users_connections import UserConnection
 from user_auth.permissions import IsInGroup
 from user_auth.constants import EMPLOYER_ROLE, EMPLOYEE_ROLE
 
@@ -88,9 +89,26 @@ class BulkCreateRatingView(APIView):
         for v in validated_items:
             employee_user = v.get('employee_user')
             event_obj = v.get('event_obj')
+            link = v.get('link', False)  # valor booleano del frontend
+
             if not employee_user or not event_obj:
                 continue
 
+            # --- manejar vinculación ---
+            if link:
+                # crear la relación si no existe
+                UserConnection.objects.get_or_create(
+                    employee=employee_user,
+                    employer=rater
+                )
+            else:
+                # eliminar la relación si existe
+                UserConnection.objects.filter(
+                    employee=employee_user,
+                    employer=rater
+                ).delete()
+
+            # --- crear rating ---
             behavior, _ = Behavior.objects.get_or_create(user=employee_user)
             affected_behaviors.add(behavior)
             rating_objs.append(Rating(
