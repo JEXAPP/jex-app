@@ -150,7 +150,10 @@ class ListEmployersEventsView(ListAPIView):
     def get_queryset(self):
         offer_completed_state = OfferState.objects.get(name=OfferStates.COMPLETED.value)
         employee_profile = self.request.user.employee_profile
-        return Offer.objects.filter(
+        employee_user = self.request.user
+
+        # Todos los Offers completados
+        qs = Offer.objects.filter(
             employee=employee_profile,
             state=offer_completed_state
         ).select_related(
@@ -159,6 +162,17 @@ class ListEmployersEventsView(ListAPIView):
             "selected_shift__vacancy__event",
             "selected_shift__vacancy__event__owner",
         )
+
+        # IDs de eventos ya calificados por este empleado al empleador de ese evento
+        rated_event_ids = Rating.objects.filter(
+            rater=employee_user
+        ).values_list('event_id', flat=True)
+
+        # Excluir Offers de eventos ya calificados
+        qs = qs.exclude(selected_shift__vacancy__event_id__in=rated_event_ids)
+
+        return qs
+
 
 class BulkCreateEmployerRatingView(APIView):
     permission_classes = [IsAuthenticated, IsInGroup]
