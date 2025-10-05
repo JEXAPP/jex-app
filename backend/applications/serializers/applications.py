@@ -184,7 +184,7 @@ class ApplicationByShiftSerializer(serializers.ModelSerializer):
     
     def get_average_rating(self, obj):
         return get_user_average_rating(obj.employee.user)
-    
+
     def get_rating_count(self, obj):
         return get_user_rating_count(obj.employee.user)
 
