@@ -2,6 +2,7 @@ from datetime import date
 from rest_framework import serializers
 from applications.errors.offer_messages import INVALID_RANGE_DATE, INVALID_RANGE_TIME, MISSING_PROVINCE
 from eventos.formatters.date_time import CustomDateField
+from rating.utils import get_user_average_rating, get_user_rating_count
 from vacancies.formatters.date_time import CustomTimeField
 from vacancies.models.job_types import JobType
 from vacancies.serializers.job_types import ListJobTypesSerializer
@@ -203,10 +204,12 @@ class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     age = serializers.SerializerMethodField()
     approximate_location = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
 
     class Meta:
         model = EmployeeProfile
-        fields = ["profile_image", "name", "description", "age", "approximate_location"]
+        fields = ["profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count"]
 
     def get_profile_image(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
@@ -220,15 +223,23 @@ class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
     def get_approximate_location(self, obj):
         return get_city_locality(obj.address)
     
+    def get_average_rating(self, obj):
+        return get_user_average_rating(obj.user)
+
+    def get_rating_count(self, obj):
+        return get_user_rating_count(obj.user)
+
 class EmployeeProfileSearchSerializer(serializers.ModelSerializer):
     employee_id = serializers.IntegerField(source="id")
     profile_image = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
     approximate_location = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
 
     class Meta:
         model = EmployeeProfile
-        fields = ["employee_id", "profile_image", "name", "approximate_location"]
+        fields = ["employee_id", "profile_image", "name", "approximate_location", "average_rating", "rating_count"]
 
     def get_profile_image(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
@@ -238,6 +249,14 @@ class EmployeeProfileSearchSerializer(serializers.ModelSerializer):
 
     def get_approximate_location(self, obj):
         return get_city_locality(obj.address)
+    
+    def get_average_rating(self, obj):
+        average = get_user_average_rating(obj.user)
+        return average
+
+    def get_rating_count(self, obj):
+        count = get_user_rating_count(obj.user)
+        return count
 
 class EmployeeSearchFilterSerializer(serializers.Serializer):
     province = serializers.CharField(required=False, allow_blank=True)
