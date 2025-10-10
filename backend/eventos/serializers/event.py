@@ -17,7 +17,7 @@ from vacancies.models.vacancy import Vacancy
 from rating.models import Behavior
 from applications.models import Offer
 from user_auth.models.employee import EmployeeProfile
-from rating.utils import has_already_rated
+from rating.utils import get_user_average_rating, get_user_rating_count, has_already_rated
     
 class CreateEventSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(
@@ -130,13 +130,21 @@ class CreateEventResponseSerializer(serializers.ModelSerializer):
 class EventOwnerSerializer(serializers.ModelSerializer):
     profile_image = ImageSerializer(allow_null=True)
     full_name = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'first_name', 'last_name', 'full_name', 'email', 'profile_image']
+        fields = ['id', 'first_name', 'last_name', 'full_name', 'email', 'profile_image', 'average_rating', 'rating_count']
 
     def get_full_name(self, obj):
         return f"{obj.first_name} {obj.last_name}".strip()
+    
+    def get_average_rating(self, obj):
+        return get_user_average_rating(obj)
+
+    def get_rating_count(self, obj):
+        return get_user_rating_count(obj)
 
 
 class EventSerializer(serializers.ModelSerializer):
