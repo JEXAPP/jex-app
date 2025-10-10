@@ -9,10 +9,12 @@ from applications.utils import get_job_type_display
 from chats.services.stream_chat_service import sync_offer_chat
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from eventos.serializers.event import EventSerializer
+from rating.utils import get_user_average_rating, get_user_rating_count
 from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
 from rest_framework import serializers
 from django.utils import timezone
+from user_auth.models.user import CustomUser
 from vacancies.constants import VacancyStates
 from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
@@ -314,12 +316,32 @@ class RequirementSerializer(serializers.ModelSerializer):
         model = Requirements
         fields = ["id", "description"]
 
+class EventOwnerAvgSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = ["id", "full_name", "average_rating", "rating_count"]
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
+    
+    def get_average_rating(self, obj):
+        return get_user_average_rating(obj)
+    
+    def get_rating_count(self, obj):
+        return get_user_rating_count(obj)
+    
+
+
 class EventDetailSerializer(serializers.ModelSerializer):
-    owner_username = serializers.CharField(source="owner.username", read_only=True)
+    owner = EventOwnerAvgSerializer()
 
     class Meta:
         model = Event
-        fields = ["id", "name", "location", "latitude", "longitude","owner_username"]
+        fields = ["id", "name", "location", "latitude", "longitude","owner"]
 
 class VacancyDetailSerializer(serializers.ModelSerializer):
     event = EventDetailSerializer()
