@@ -58,18 +58,28 @@ export default function EmployeeDetailScreen() {
           <Text style={s.nameCenter}>{data?.name || '—'}</Text>
           {data?.age != null && <Text style={s.ageCenter}>{data.age} Años</Text>}
 
-          {/* Pills hardcodeadas */}
+        
+          {/* Pills dinámicas con promedio real */}
           <View style={s.pillsRow}>
             <View style={s.pillOutline}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                {Array.from({ length: 5 }).map((_, i) => iconos.full_star(20, Colors.white, i))}
-                <Text style={s.pillText}>5.0</Text>
+                {Array.from({ length: 5 }).map((_, i) =>
+                  i < Math.round(data?.average_rating ?? 0)
+                    ? iconos.full_star(20, Colors.white, i)
+                    : iconos.empty_star(20, Colors.white, i)
+                )}
+                <Text style={s.pillText}>
+                  {data?.average_rating?.toFixed(1) ?? '—'}
+                </Text>
               </View>
             </View>
+
             <View style={s.pillOutline}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Ionicons name="time-outline" size={20} color={Colors.white} />
-                <Text style={s.pillText}>Historial</Text>
+                <Ionicons name="people-outline" size={20} color={Colors.white} />
+                <Text style={s.pillText}>
+                  {data?.rating_count ?? 0} valoración{(data?.rating_count ?? 0) === 1 ? '' : 'es'}
+                </Text>
               </View>
             </View>
           </View>

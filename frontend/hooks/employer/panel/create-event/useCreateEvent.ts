@@ -191,7 +191,8 @@ const limitarDecimales = (num: number, maxDigits = 15): number => {
 
       setShowSuccess(true);
       // Si fue exitoso, mostramos mensaje de éxito
-      router.replace(`./create-vacancy?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`)
+      router.replace(`/employer/panel/vacancy/create-vacancy?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`);
+      //router.replace(`./create-vacancy?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`)
       
     } catch (error: any) {
       // Manejo de errores

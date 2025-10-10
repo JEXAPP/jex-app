@@ -16,6 +16,13 @@ export const chooseCandidatesStyles = StyleSheet.create({
     marginRight: 10,
     marginBottom: 15,
   },
+    noRatingText: {
+    color: Colors.violet3,
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+
   eventRow: {
     flexDirection: 'row',
     alignItems: 'center',

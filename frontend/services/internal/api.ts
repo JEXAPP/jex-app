@@ -94,7 +94,7 @@ export function getApi(): AxiosInstance {
 
   api = axios.create({
     baseURL: config.apiBaseUrl,
-    timeout: 10000,
+    timeout: 100000,
   });
 
   // Inserta el access en cada request

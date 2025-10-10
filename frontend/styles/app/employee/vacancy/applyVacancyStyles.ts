@@ -156,7 +156,7 @@ export const applyVacancyStyles = StyleSheet.create({
     resizeMode: 'cover',
   },
   organizerNameTag: {
-    backgroundColor: Colors.gray2,
+    backgroundColor: Colors.gray12,
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 4,

@@ -1,12 +1,13 @@
 // hooks/employer/panel/qualification/useQuali.ts
-import { useState, useMemo } from "react";
-import { useRouter } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { Alert } from "react-native";
+import useBackendConection from "@/services/internal/useBackendConection";
 
 type Worker = {
   id: string;
   name: string;
   role: string;
-  image: string;
   linked: boolean;
 };
 
@@ -17,56 +18,69 @@ type RatingData = {
 
 export const useQuali = () => {
   const router = useRouter();
+  const { requestBackend } = useBackendConection();
+  const { eventId } = useLocalSearchParams<{ eventId: string }>();
 
-  const roles = ["Fotógrafo", "Cantante", "DJ", "Catering"];
-
-  const allWorkers: Worker[] = [
-    {
-      id: "1",
-      name: "Martina Salvo",
-      role: "Fotógrafo",
-      image: "https://randomuser.me/api/portraits/women/44.jpg",
-      linked: true,
-    },
-    {
-      id: "2",
-      name: "Juan García",
-      role: "Fotógrafo",
-      image: "https://randomuser.me/api/portraits/men/46.jpg",
-      linked: false,
-    },
-    {
-      id: "3",
-      name: "Luna Costas",
-      role: "Fotógrafo",
-      image: "https://randomuser.me/api/portraits/women/68.jpg",
-      linked: false,
-    },
-    {
-      id: "4",
-      name: "Diego López",
-      role: "Cantante",
-      image: "https://randomuser.me/api/portraits/men/12.jpg",
-      linked: true,
-    },
-    {
-      id: "5",
-      name: "Paula Méndez",
-      role: "DJ",
-      image: "https://randomuser.me/api/portraits/women/22.jpg",
-      linked: false,
-    },
-  ];
-
-  const [selectedRole, setSelectedRole] = useState<string>(roles[0]);
+  const [roles, setRoles] = useState<string[]>([]);
+  const [selectedRole, setSelectedRole] = useState<string>("");
   const [ratings, setRatings] = useState<Record<string, RatingData>>({});
-  const [workersState, setWorkersState] = useState<Worker[]>(allWorkers);
+  const [workersState, setWorkersState] = useState<Worker[]>([]);
+  const [loading, setLoading] = useState(false);
 
+  // 🟣 Traer vacantes del evento -> armar roles
+  const fetchRoles = async () => {
+    try {
+      const data = await requestBackend(`/api/vacancies/by-employer/${eventId}/`, null, "GET");
+      if (data && Array.isArray(data.vacancies)) {
+        const vacancyRoles = data.vacancies.map((v: any) =>
+          v.job_type?.name === "Otro" && v.specific_job_type
+            ? v.specific_job_type
+            : v.job_type?.name ?? v.name
+        );
+        setRoles(vacancyRoles);
+        if (vacancyRoles.length > 0) setSelectedRole(vacancyRoles[0]);
+      }
+    } catch (err) {
+      console.log("Error cargando roles:", err);
+    }
+  };
+
+  // 🟣 Traer empleados del evento
+  const fetchWorkers = async () => {
+    if (!eventId) return;
+    setLoading(true);
+    try {
+      const data = await requestBackend(`/api/events/${eventId}/employee/`, null, "GET");
+      if (Array.isArray(data)) {
+        const mapped: Worker[] = data.map((emp: any) => ({
+          id: String(emp.employee_id),
+          name: emp.name,
+          role: emp.job_type,
+          linked: emp.is_linked, // respetamos lo que venga del backend
+        }));
+        setWorkersState(mapped);
+      }
+    } catch (err) {
+      console.log("Error cargando empleados:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (eventId) {
+      fetchRoles();
+      fetchWorkers();
+    }
+  }, [eventId]);
+
+  // 🟣 Filtrar trabajadores según el rol seleccionado
   const workers = useMemo(
     () => workersState.filter((w) => w.role === selectedRole),
     [selectedRole, workersState]
   );
 
+  // 🟣 Manejo de ratings y comentarios
   const handleRating = (workerId: string, rating: number) => {
     setRatings((prev) => ({
       ...prev,
@@ -81,6 +95,7 @@ export const useQuali = () => {
     }));
   };
 
+  // 🟣 Toggle Vincular / Vinculado
   const handleToggleLinked = (workerId: string) => {
     setWorkersState((prev) =>
       prev.map((w) =>
@@ -89,6 +104,7 @@ export const useQuali = () => {
     );
   };
 
+  // 🟣 Contadores
   const ratedCount = useMemo(
     () => workers.filter((w) => ratings[w.id]?.rating > 0).length,
     [ratings, workers]
@@ -96,23 +112,43 @@ export const useQuali = () => {
 
   const totalCount = workers.length;
 
-  const handleSubmit = () => {
+  // 🟣 Enviar calificaciones + vinculación al backend
+  const handleSubmit = async () => {
+    if (!eventId) return;
+
     const dataToSend = workers
       .map((w) => ({
-        workerId: w.id,
+        employee: Number(w.id),
         rating: ratings[w.id]?.rating ?? null,
-        comment: ratings[w.id]?.comment ?? "",
+        comments: ratings[w.id]?.comment ?? "",
+        event: Number(eventId),
+        link: w.linked, // 🔥 se agrega acá
       }))
       .filter((entry) => entry.rating !== null);
 
-    console.log("📤 Enviando calificaciones:", dataToSend);
+    console.log("📤 Body enviado al backend:", JSON.stringify(dataToSend, null, 2));
+
+    if (dataToSend.length === 0) {
+      Alert.alert("Aviso", "No seleccionaste ninguna calificación.");
+      return;
+    }
+
+    try {
+      await requestBackend("/api/rating/rate/", dataToSend, "POST");
+      Alert.alert("Calificaciones Enviadas");
+      fetchWorkers();
+      fetchRoles();
+    } catch (err) {
+      console.log("❌ Error enviando calificaciones:", err);
+      Alert.alert("Error", "No se pudieron enviar las calificaciones.");
+    }
   };
 
-  // 👉 Navegar a la pantalla de sanción
+  // 🟣 Navegar a sanción
   const handleSanction = (workerId: string) => {
     router.push({
       pathname: "/employer/panel/qualification/sanction",
-      params: { workerId },
+      params: { workerId, eventId },
     });
   };
 
@@ -126,8 +162,9 @@ export const useQuali = () => {
     handleComment,
     handleSubmit,
     handleToggleLinked,
-    handleSanction, // 👈 nuevo
+    handleSanction,
     ratedCount,
     totalCount,
+    loading,
   };
 };

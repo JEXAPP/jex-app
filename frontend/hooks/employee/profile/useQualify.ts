@@ -1,54 +1,59 @@
-// hooks/employee/useQualify.ts
 import { useState } from "react";
-
-type Organizer = {
-  id: string;
-  name: string;
-  image: string;
-  event: string;
-  date: string;
-  time: string;
-};
+import useBackendConection from "@/services/internal/useBackendConection";
+import { router, useLocalSearchParams } from "expo-router";
 
 export const useQualify = () => {
-  // 🔹 Datos hardcodeados
-  const organizer: Organizer = {
-    id: "1",
-    name: "Juan Lopez",
-    image: "https://randomuser.me/api/portraits/men/45.jpg",
-    event: "Festival Primavera",
-    date: "14/09/2025",
-    time: "18:00 - 23:00",
-  };
+  const { requestBackend } = useBackendConection();
+  const params = useLocalSearchParams();
 
-  const role = "Fotógrafo"; // rol del empleado en ese evento
-
-  // Estado local
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
   const handleRating = (val: number) => {
     setRating(val);
-    if (val === 0) {
-      setComment(""); // reset comentario si se resetea la puntuación
+    if (val === 0) setComment("");
+  };
+
+  const handleSubmit = async () => {
+    if (!params.employerId || !params.eventId) return;
+
+    setLoading(true);
+    try {
+      const body = [
+        {
+          employer: Number(params.employerId),
+          event: Number(params.eventId),
+          rating,
+          comments: comment,
+        },
+      ];
+
+      await requestBackend("/api/rating/rate-employer/", body, "POST");
+
+      console.log("✅ Calificación enviada:", body);
+      router.back();
+    } catch (err) {
+      console.error("❌ Error al enviar calificación:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmit = () => {
-    console.log("📤 Enviando evaluación:", {
-      organizerId: organizer.id,
-      rating,
-      comment,
-    });
-  };
-
   return {
-    organizer,
-    role,
     rating,
     comment,
-    setComment,
+    loading,
     handleRating,
     handleSubmit,
+    setComment,
+    organizer: {
+      name: params.employerName,
+      event: params.eventName,
+      date: params.date,
+      time: params.time,
+      image: "https://randomuser.me/api/portraits/men/45.jpg",
+    },
+    role: params.jobType,
   };
 };

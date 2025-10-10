@@ -124,7 +124,11 @@ export default function QualiScreen() {
             <View key={worker.id} style={styles.workerCard}>
               {/* Datos principales */}
               <View style={styles.workerRow}>
-                <Image source={{ uri: worker.image }} style={styles.workerImage} />
+                {/* Imagen hardcodeada */}
+                <Image
+                  source={require("@/assets/images/jex/Jex-FotoPerfil.png")}
+                  style={styles.workerImage}
+                />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.workerName}>{worker.name}</Text>
                   <Text style={styles.workerRole}>{worker.role}</Text>
@@ -179,26 +183,26 @@ export default function QualiScreen() {
 
               {/* Estrellas */}
               <View style={styles.ratingRow}>
-              <StarRating
-                rating={userRating}
-                onChange={(val) => handleRating(worker.id, Math.round(val))}
-                starSize={32}
-                color={Colors.yellow}
-                enableHalfStar={false}
-                enableSwiping={false}
-                animationConfig={{ scale: 1 }}
-              />
-              
-              {/* Texto de rating presionable */}
-              <TouchableOpacity
-                disabled={userRating === 0}
-                onPress={() => handleRating(worker.id, 0)}
-              >
-                <Text style={styles.ratingValue}>({userRating.toFixed(1)})
-                  
-                </Text>
-              </TouchableOpacity>
-            </View>
+                <StarRating
+                  rating={userRating}
+                  onChange={(val) => handleRating(worker.id, Math.round(val))}
+                  starSize={32}
+                  color={Colors.yellow}
+                  enableHalfStar={false}
+                  enableSwiping={false}
+                  animationConfig={{ scale: 1 }}
+                />
+
+                {/* Texto de rating presionable */}
+                <TouchableOpacity
+                  disabled={userRating === 0}
+                  onPress={() => handleRating(worker.id, 0)}
+                >
+                  <Text style={styles.ratingValue}>
+                    ({userRating.toFixed(1)})
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
               {/* Comentario */}
               {userRating > 0 && (
