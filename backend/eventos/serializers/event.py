@@ -320,7 +320,7 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
     def get_already_rated(self, obj):
         request = self.context.get('request')
         # owner is the employer user for the event
-        owner_user = obj.selected_shift.vacancy.event.owner
+        rated_user = obj.employee.user
         # current user (the rater) may be anonymous in some contexts
         rater = getattr(request, 'user', None) if request is not None else None
 
@@ -328,7 +328,7 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
         event = obj.selected_shift.vacancy.event
 
         return has_already_rated(
-            event=event, rater=rater, rated_user=owner_user
+            event=event, rater=rater, rated_user=rated_user
         )
     
     def get_is_linked(self, obj):
