@@ -6,6 +6,7 @@ from eventos.errors.events_messages import ESTADO_DELETED_NO_CONFIGURADO, EVENT_
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
 from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsEmployeeSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer,ListEventsEmployeeSerializer
+from rating.models.rating import Rating
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
@@ -226,11 +227,35 @@ class ListEventsEmployeeView(ListAPIView):
     serializer_class = ListEventsEmployeeSerializer
 
     def get_queryset(self):
-        event_id = self.kwargs.get('eventId')  
+        request = self.request
+        rater = request.user  # el empleador actual
+        event_id = self.kwargs.get('eventId')
 
         offer_completed_state = OfferState.objects.get(name=OfferStates.COMPLETED.value)
-        return Offer.objects.filter(
+
+        # Todas las offers completadas del evento
+        qs = Offer.objects.filter(
             selected_shift__vacancy__event_id=event_id,
             state=offer_completed_state
+        ).select_related(
+            "employee",
+            "employee__user",
+            "selected_shift",
+            "selected_shift__vacancy",
+            "selected_shift__vacancy__event",
         )
+
+        # Empleados (usuarios) que ya fueron calificados por este empleador en este evento
+        rated_employee_ids = Rating.objects.filter(
+            rater=rater,
+            event_id=event_id
+        ).values_list("behavior__user_id", flat=True)
+
+        # Excluir empleados ya calificados
+        qs = qs.exclude(employee__user_id__in=rated_employee_ids)
+
+        return qs
+
+
+    
         
