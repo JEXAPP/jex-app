@@ -14,7 +14,7 @@ class MercadoPagoService:
             "client_id": settings.MP_CLIENT_ID,
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": settings.MP_REDIRECT_URI,
+            "redirect_uri": settings.MP_AUTH_REDIRECT_URI,
         }
 
         resp = requests.post(settings.MP_TOKEN_URL, data=data)
