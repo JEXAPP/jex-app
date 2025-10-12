@@ -45,7 +45,7 @@ class ListAcceptedEventsByEmployeeView(ListAPIView):
         ]
 
         return Event.objects.filter(
-            vacancies__shifts__offers__employee=employee,
-            vacancies__shifts__offers__state=accepted_state,
+            vacancies__shifts__selected_offers__employee=employee,
+            vacancies__shifts__selected_offers__state=accepted_state,
             state__name__in=event_states_accepted,
         ).distinct()
