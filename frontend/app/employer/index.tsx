@@ -8,6 +8,8 @@ import { iconos } from "@/constants/iconos";
 import { useAdminPanel } from "@/hooks/employer/useAdminPanel";
 import { adminPanelStyles as styles } from "@/styles/app/employer/adminPanelStyles";
 import HomeEventsSkeleton from "@/constants/skeletons/employer/homeEventsSkeleton";
+import { Card } from "@/components/cards/Card";
+
 
 
 export default function AdminPanelScreen() {
@@ -84,7 +86,7 @@ if (events.length === 0) {
             sizeContent={22}
             styles={iconButtonStyles1}
             onPress={goToCreateEvent}
-            content="+"
+            content="add"
             backgroundColor={Colors.gray2}
             contentColor={Colors.white}
           />
@@ -134,47 +136,28 @@ if (events.length === 0) {
 
         {/* Cards */}
         <View style={styles.cardsContainer}>
-          <TouchableOpacity
-          style={styles.card}
-          onPress={() => goToVacancies(currentEvent.id)}
-        >
-          <View style={styles.cardContent}>
-            {iconos.vacantes(22, Colors.violet4)}
-            <Text style={styles.cardText}>Vacantes</Text>
-          </View>
-          {iconos.flechaDerecha(22, Colors.violet4)}
-        </TouchableOpacity>
+          <Card
+            label="Vacantes"
+            leftIcon={iconos.vacantes(22, Colors.violet4)}
+            onPress={() => goToVacancies(currentEvent.id)}
+          />
 
-
-
-          <TouchableOpacity
-            style={styles.card}
+          <Card
+            label="Editar Evento"
+            leftIcon={iconos.editar(22, Colors.violet4)}
             onPress={() => goToEditEvent(currentEvent.id)}
-          >
-            <View style={styles.cardContent}>
-              {iconos.editar(22, Colors.violet4)}
-              <Text style={styles.cardText}>Editar Evento</Text>
-            </View>
-            {iconos.flechaDerecha(22, Colors.violet4)}
-          </TouchableOpacity>
+          />
 
-          <TouchableOpacity 
-            style={styles.card}
-            onPress={() => goToAttendance(currentEvent.id)}>
-            <View style={styles.cardContent}>
-              {iconos.asistencia(22, Colors.violet4)}
-              <Text style={styles.cardText}>Asistencia</Text>
-            </View>
-            {iconos.flechaDerecha(22, Colors.violet4)}
-          </TouchableOpacity>
+          <Card
+              label="Asistencia"
+              leftIcon={iconos.asistencia(22, Colors.violet4)}
+              onPress={() => goToAttendance(currentEvent.id)}
+          />
 
-          <TouchableOpacity style={styles.card}>
-            <View style={styles.cardContent}>
-              {iconos.reloj(22, Colors.violet4)}
-              <Text style={styles.cardText}>Contratación Tardía</Text>
-            </View>
-            {iconos.flechaDerecha(22, Colors.violet4)}
-          </TouchableOpacity>
+          <Card
+            label="Contratación Tardía"
+            leftIcon={iconos.reloj(22, Colors.violet4)}
+          />
 
           <TouchableOpacity
             style={styles.card}
@@ -188,14 +171,8 @@ if (events.length === 0) {
         </TouchableOpacity>
 
 
-          <TouchableOpacity style={styles.card}>
-            <View style={styles.cardContent}>
-              {iconos.reportes(22, Colors.violet4)}
-              <Text style={styles.cardText}>Reportes</Text>
-            </View>
-            {iconos.flechaDerecha(22, Colors.violet4)}
-          </TouchableOpacity>
         </View>
+
       </ScrollView>
     </SafeAreaView>
   );

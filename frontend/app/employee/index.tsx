@@ -14,6 +14,7 @@ import React from 'react';
 import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+
 export default function HomeEmployeeScreen () {
   const {
     sections,
@@ -73,6 +74,7 @@ export default function HomeEmployeeScreen () {
                   require('@/assets/images/Publicidad3.png'),
                 ]}
               />
+
             </View>
 
             {errorVacancies && <Text style={styles.errorText}>{errorVacancies}</Text>}
@@ -107,6 +109,7 @@ export default function HomeEmployeeScreen () {
                 />
               </View>
             ))}
+
           </>
         )}
       </SafeAreaView>

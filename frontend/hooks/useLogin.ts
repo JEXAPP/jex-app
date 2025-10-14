@@ -6,6 +6,8 @@ import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react';
 import { Platform } from 'react-native';
 import { setToken, getToken } from '@/services/internal/useTokenStorage';
+import { connectStream } from '@/services/stream/streamClient';
+
 
 type Role = 'employee' | 'employer';
 interface DecodedToken { role?: Role | null; [k: string]: any; }
@@ -91,6 +93,18 @@ export const useLogin = () => {
     }
   };
 
+  const ensureStreamConnected = async () => {
+    try {
+      await connectStream(); // usa internamente getStreamCredentials()
+      // opcional: console.log('✅ Conectada a Stream');
+    } catch (e) {
+      // Si falla la conexión a Stream, mantené el login igual,
+      // pero avisá en consola/estado para debug.
+      console.log('❌ No se pudo conectar a Stream:', e);
+    }
+  };
+
+
   const handleLogin = async () => {
     if (!email || !password) {
       setErrorMessage('Todos los campos son obligatorios');
@@ -128,6 +142,7 @@ export const useLogin = () => {
     try {
       const accessToken = await getToken('access');
       if (!accessToken) throw new Error('No access token');
+      await ensureStreamConnected();
       const decoded = jwtDecode<DecodedToken>(accessToken);
       const role = decoded.role;
       if (role === 'employee') router.push('/employee');

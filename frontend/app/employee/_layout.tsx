@@ -1,44 +1,51 @@
-import FooterNavEmployee from '@/constants/navigation/FooterNavEmployee';
-import { transitionFade } from '@/constants/transitions';
-import { Colors } from '@/themes/colors';
-import { Ionicons } from '@expo/vector-icons';
-import { router, Stack } from 'expo-router';
-import React from 'react';
-import { Pressable, View } from 'react-native';
+import { Stack, router, useSegments, usePathname } from 'expo-router';
+import React from "react";
+import { View, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import FooterNavEmployee from "@/constants/navigation/FooterNavEmployee";
+import { Colors } from "@/themes/colors";
+import { transitionFade } from "@/constants/transitions";
 
 const FOOTER_HEIGHT = 68;
 
 export default function EmployeeLayout() {
+  const pathname = usePathname(); // p.ej: ["(employee)","chats","threads","123"]
+
+  // quita grupos como "(employee)"
+  const hideFooter = pathname.startsWith('/employee/chats/threads');
+
+  console.log(hideFooter)
+  console.log(pathname)
+
   return (
     <View style={{ flex: 1 }}>
-      {/* Navigator (solo screens como hijos) */}
       <Stack
         screenOptions={{
           headerTransparent: true,
-          headerTitle: '',
+          headerTitle: "",
           headerLeft: () => (
             <Pressable onPress={() => router.back()} style={{ paddingHorizontal: 16 }}>
               <Ionicons name="arrow-back" size={28} color={Colors.violet4} />
             </Pressable>
           ),
-          // SUGERENCIA: añade paddingBottom por defecto a pantallas que scrollean
-          // pero si cada screen ya maneja su padding, podés omitirlo.
         }}
       >
-        {/* Rutas RELATIVAS a /employee */}
         <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="profile/aditional-info" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="jobs/index" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="chats/index" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="chats/threads" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 
-      {/* Footer fijo, por fuera del Stack */}
-      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
-        <FooterNavEmployee basePath="/employee" />
-      </View>
-
-      {/* Espacio para no tapar contenido (si alguna screen no lo agrega) */}
-      <View style={{ height: FOOTER_HEIGHT }} />
+      {!hideFooter && (
+        <>
+          <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>
+            <FooterNavEmployee basePath="/employee" />
+          </View>
+          <View style={{ height: FOOTER_HEIGHT }} />
+        </>
+      )}
     </View>
   );
 }
