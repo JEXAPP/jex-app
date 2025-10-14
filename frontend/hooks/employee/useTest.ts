@@ -1,6 +1,6 @@
+import { useMercadoPagoOAuth } from '@/services/external/mercado-pago/useMercadoPagoOAuth';
 import { useCallback, useEffect } from 'react';
 import { Alert } from 'react-native';
-import { useMercadoPagoOAuth } from '@/services/external/useMercadoPagoOAuth';
 
 export const useLinkMpScreen = () => {
   const {

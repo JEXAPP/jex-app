@@ -5,7 +5,7 @@ import { StyleSheet } from 'react-native';
 export const uploadImageStyles1 = StyleSheet.create({
   icon: {
     marginRight: 6,
-    color: Colors.violet5,
+    color: Colors.gray3,
   },
 
   // contenedor para centrar SIEMPRE los botones bajo la imagen
@@ -27,7 +27,7 @@ export const uploadImageStyles1 = StyleSheet.create({
   addText: {
     fontSize: 16,
     color: Colors.gray3,
-    fontWeight: '600',
+    fontFamily: 'interMedium'
   },
 
   row: {

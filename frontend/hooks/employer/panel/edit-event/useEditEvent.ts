@@ -1,7 +1,7 @@
-import useGooglePlaces from '@/services/external/useGooglePlaces';
-import { useUploadImageServ } from '@/services/external/useUploadImage';
+import { useUploadImageServ } from '@/services/external/cloudinary/useUploadImage';
+import useGooglePlaces from '@/services/external/google/useGooglePlaces';
 import useBackendConection, { getApiErrorMessage } from '@/services/internal/useBackendConection';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard } from 'react-native';
 

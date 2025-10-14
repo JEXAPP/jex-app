@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { useMercadoPagoOAuth } from '@/services/external/useMercadoPagoOAuth';
+import { useMercadoPagoOAuth } from '@/services/external/mercado-pago/useMercadoPagoOAuth';
 import { testStyles as styles } from '@/styles/app/employee/testStyles';
+import React from 'react';
+import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from 'react-native';
 
 export default function LinkMpScreen() {
   const {

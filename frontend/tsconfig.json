@@ -5,7 +5,9 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
     "skipLibCheck": true
   },
@@ -13,6 +15,7 @@
     "**/*.ts",
     "**/*.tsx",
     "expo-env.d.ts",
-    "env.d.ts"
+    "env.d.ts",
+    ".expo/types/**/*.ts"
   ]
 }

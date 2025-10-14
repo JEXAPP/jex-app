@@ -1,7 +1,7 @@
 import { Button } from '@/components/button/Button';
+import { UploadImage } from '@/components/image/UploadImage';
 import { Input } from '@/components/input/Input';
 import { CharCounter } from '@/components/others/CharCounter';
-import { UploadImage } from '@/components/others/UploadImage';
 import DatePicker from '@/components/picker/DatePicker';
 import { Picker } from '@/components/picker/Picker';
 import Suggestions from '@/components/picker/Suggestions';
@@ -18,11 +18,11 @@ import { charCounterStyles1 } from '@/styles/components/others/charCounterStyles
 import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
 import { pickerStyles1 } from '@/styles/components/picker/pickerStyles1';
 import { suggestionsStyles1 } from '@/styles/components/picker/suggestionsStyles/suggestionsStyles1';
+import { suggestionsStyles2 } from '@/styles/components/picker/suggestionsStyles/suggestionsStyles2';
 import { timePickerStyles1 } from '@/styles/components/picker/timePickerStyles1';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
 import { Colors } from '@/themes/colors';
-import React from 'react';
 import { Keyboard, ScrollView, Text, TouchableWithoutFeedback, View } from 'react-native';
 
 export default function CreateEventScreen() {
@@ -128,18 +128,20 @@ export default function CreateEventScreen() {
                 styles={pickerStyles1}
               />
 
-              <Suggestions
-                sugerencias={sugerencias}
-                onSeleccionar={seleccionarUbicacion}
-                styles={suggestionsStyles1}
-              />
+              <View style={styles.campoUbicacion}>
+                <Suggestions
+                  sugerencias={sugerencias}
+                  onSeleccionar={seleccionarUbicacion}
+                  styles={suggestionsStyles1}
+                />
 
-              <Input
-                placeholder="Ubicación"
-                value={ubicacionEvento}
-                onChangeText={handleUbicacion}
-                styles={inputStyles1}
-              />
+                <Input
+                  placeholder="Ubicación"
+                  value={ubicacionEvento}
+                  onChangeText={handleUbicacion}
+                  styles={inputStyles1}
+                />
+              </View>
 
               <View style={styles.row1}>
                   <DatePicker

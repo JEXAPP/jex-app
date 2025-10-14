@@ -20,6 +20,22 @@ export default function AuthLayout() {
       }}
     >
       <Stack.Screen
+        name="additional-info/step-one"
+        options={{ ...transitionFade, headerShown: false }}
+      />
+      <Stack.Screen
+        name="additional-info/step-two"
+        options={{ ...transitionFade, headerShown: false }}
+      />
+      <Stack.Screen
+        name="additional-info/step-three"
+        options={{ ...transitionFade, headerShown: false }}
+      />
+      <Stack.Screen
+        name="additional-info/step-four"
+        options={{ ...transitionFade, headerShown: false }}
+      />
+      <Stack.Screen
         name="reset-password/index"
         options={{ ...exitHeader('/'), ...transitionFade }}
       />

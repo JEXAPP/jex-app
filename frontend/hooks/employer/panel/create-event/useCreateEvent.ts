@@ -1,5 +1,5 @@
-import useGooglePlaces from '@/services/external/useGooglePlaces';
-import { useUploadImageServ } from '@/services/external/useUploadImage';
+import { useUploadImageServ } from '@/services/external/cloudinary/useUploadImage';
+import useGooglePlaces from '@/services/external/google/useGooglePlaces';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';

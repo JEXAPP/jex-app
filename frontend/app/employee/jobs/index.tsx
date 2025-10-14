@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TouchableOpacity, View, Image } from "react-native";
-import { useActiveJobs, Job } from "@/hooks/employee/jobs/useActiveJobs";
-import { activeJobsStyles as styles } from "@/styles/app/employee/jobs/activeJobsStyles";
 import { OrderButton } from "@/components/button/OrderButton";
-import { Colors } from "@/themes/colors";
-import { SafeAreaView } from 'react-native-safe-area-context';
-import ImageOnline from "@/components/others/ImageOnline";
+import ImageOnline from "@/components/image/ImageOnline";
 import { iconos } from "@/constants/iconos";
+import { Job, useActiveJobs } from "@/hooks/employee/jobs/useActiveJobs";
+import { activeJobsStyles as styles } from "@/styles/app/employee/jobs/activeJobsStyles";
+import { Colors } from "@/themes/colors";
+import { useEffect, useState } from "react";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ActiveJobsScreen() {
   const { jobs, goToJobDetail } = useActiveJobs();

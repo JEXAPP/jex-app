@@ -1,22 +1,20 @@
-import React from 'react';
 import { Button } from '@/components/button/Button';
 import { SelectableTag } from '@/components/button/SelectableTags';
+import ImageOnline from '@/components/image/ImageOnline';
+import { DotsLoader } from '@/components/others/DotsLoader';
+import { ClickWindow } from '@/components/window/ClickWindow';
 import { TempWindow } from '@/components/window/TempWindow';
+import { iconos } from '@/constants/iconos';
 import { useApplyVacancy } from '@/hooks/employee/vacancy/useApplyVacancy';
 import { applyVacancyStyles as styles } from '@/styles/app/employee/vacancy/applyVacancyStyles';
-import { selectableTagStyles1 } from '@/styles/components/button/selectableTagsStyles/selectableTagsStyles1';
-import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
-import { Colors } from '@/themes/colors';
-import { Ionicons } from '@expo/vector-icons';
-import { Image, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
 import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonStyles4';
-import { iconos } from '@/constants/iconos';
+import { selectableTagStyles1 } from '@/styles/components/button/selectableTagsStyles/selectableTagsStyles1';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
-import { ClickWindow } from '@/components/window/ClickWindow';
-import { DotsLoader } from '@/components/others/DotsLoader';
-import ImageOnline from '@/components/others/ImageOnline';
+import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
+import { Colors } from '@/themes/colors';
+import { Image, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 export default function ApplyVacancyScreen() {

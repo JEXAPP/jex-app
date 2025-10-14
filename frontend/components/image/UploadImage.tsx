@@ -1,20 +1,20 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import {
-  View,
-  Image,
-  TouchableOpacity,
-  Text,
-  StyleProp,
-  ImageStyle,
-  ViewStyle,
-  ImageSourcePropType,
-  Image as RNImage
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { uploadImageStyles1 as styles } from '@/styles/components/others/uploadImageStyles1';
-import { Ionicons } from '@expo/vector-icons';
+import useGetImage from '@/services/external/cloudinary/useGetImage';
+import { uploadImageStyles1 as styles } from '@/styles/components/image/uploadImageStyles1';
 import { Colors } from '@/themes/colors';
-import useGetImage from '@/services/external/useGetImage';
+import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Image,
+  ImageSourcePropType,
+  ImageStyle,
+  Image as RNImage,
+  StyleProp,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle
+} from 'react-native';
 
 type UploadableImage = {
   uri: string;
@@ -215,7 +215,7 @@ export const UploadImage = ({
             shape === 'circle' ? { borderRadius: size } : { borderRadius: 8 },
             imageStyle,
           ]}
-          resizeMode="cover"
+          resizeMode='cover'
         />
       )}
 

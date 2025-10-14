@@ -1,6 +1,6 @@
+import useGetImage from '@/services/external/cloudinary/useGetImage';
 import React, { useEffect, useState } from 'react';
 import { Image, ImageSourcePropType, ImageStyle } from 'react-native';
-import useGetImage from '@/services/external/useGetImage';
 
 type Props = {
   imageId?: string | null;        // public_id

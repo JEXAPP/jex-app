@@ -1,13 +1,13 @@
-import React from 'react';
-import { ActivityIndicator, FlatList, Text, View, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/themes/colors';
-import ImageOnline from '@/components/others/ImageOnline';
-import { notificationsStyles as s } from '@/styles/app/notificationsStyles';
-import { useNotifications, NotificationDTO } from '@/hooks/useNotifications';
-import { buttonStyles5 } from '@/styles/components/button/buttonStyles/buttonStyles5';
 import { Button } from '@/components/button/Button';
+import ImageOnline from '@/components/image/ImageOnline';
+import { NotificationDTO, useNotifications } from '@/hooks/useNotifications';
+import { notificationsStyles as s } from '@/styles/app/notificationsStyles';
+import { buttonStyles5 } from '@/styles/components/button/buttonStyles/buttonStyles5';
+import { Colors } from '@/themes/colors';
+import { Ionicons } from '@expo/vector-icons';
+import React from 'react';
+import { ActivityIndicator, FlatList, Image, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type NotifItemProps = { item: NotificationDTO; rightText: string; onPress: (n: NotificationDTO) => void };
 

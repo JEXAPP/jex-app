@@ -81,7 +81,7 @@ export const iconos = {
     <Ionicons name="search" size={size} color={color} />
   ),
   trash: (size:number, color:string) => (
-    <Ionicons name="trash" size={size} color={color} />
+    <Octicons name="trash" size={size} color={color} />
   ),
   full_star: (size: number, color: string, key?: React.Key) => (
     <MaterialIcons key={key} name="star" size={size} color={color} />
@@ -97,6 +97,12 @@ export const iconos = {
   ),
   notification: (size: number, color:string) => (
     <Ionicons name="notifications" size={size} color={color} />
+  ),
+  portfolio: (size: number, color: string) => (
+    <Octicons name="briefcase" size={size} color={color} />
+  ), 
+  libro_abierto: (size:number, color: string) => (
+    <MaterialCommunityIcons name="book-open-variant-outline" size={size} color={color} />
   ),
   // ==== Footer Nav Icons ====
   footer_home: (active: boolean, size: number, color: string) =>

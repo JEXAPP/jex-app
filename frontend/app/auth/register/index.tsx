@@ -47,7 +47,7 @@ export default function RegisterPhoneScreen() {
 
           <View style={styles.step}>
 
-            <Stepper activeIndex={0} totalSteps={5} />
+            <Stepper activeIndex={0} totalSteps={desdeGoogle ? 4 : 5} />
 
             <Text style={styles.texto}>Ingresá tu número de teléfono:</Text>
           

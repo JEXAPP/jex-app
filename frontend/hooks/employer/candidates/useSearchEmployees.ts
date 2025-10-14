@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState } from 'react';
-import useGooglePlaces from '@/services/external/useGooglePlaces';
+import useGooglePlaces from '@/services/external/google/useGooglePlaces';
 import { getProvincias } from '@/services/internal/useProvinceSelection';
 import { router } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 
 type Sug = { descripcion: string; placeId: string };
 

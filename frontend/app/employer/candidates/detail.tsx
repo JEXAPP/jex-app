@@ -1,17 +1,16 @@
+import { Button } from '@/components/button/Button';
+import ImageOnline from '@/components/image/ImageOnline';
+import { ClickWindow } from '@/components/window/ClickWindow';
+import { iconos } from '@/constants/iconos';
+import { useEmployeeDetail } from '@/hooks/employer/candidates/useEmployeeDetail';
+import { employeeDetailStyles as s } from '@/styles/app/employer/candidates/employeeDetailStyles';
+import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
+import { Colors } from '@/themes/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useMemo } from 'react';
 import { ImageBackground, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/themes/colors';
-import { iconos } from '@/constants/iconos';
-import { Button } from '@/components/button/Button';
-import { ButtonWithIcon } from '@/components/button/ButtonWithIcon';
-import { useEmployeeDetail } from '@/hooks/employer/candidates/useEmployeeDetail';
-import { employeeDetailStyles as s } from '@/styles/app/employer/candidates/employeeDetailStyles';
-import ImageOnline from '@/components/others/ImageOnline';
-import { ClickWindow } from '@/components/window/ClickWindow';
-import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 
 type RouteParams = { source: 'application' | 'search'; id: string; vacancyId?: string };
 

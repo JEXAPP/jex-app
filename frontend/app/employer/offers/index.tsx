@@ -1,14 +1,13 @@
-import StateOffersSkeleton from "@/constants/skeletons/employer/offers/stateOffersSkeleton";
-import { useStateOffers, FilterSimple } from "@/hooks/employer/offers/useStateOffers";
-import { stateOffersStyles as styles } from "@/styles/app/employer/offers/stateOffersStyles";
-import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import ImageOnline from "@/components/image/ImageOnline";
 import { DotsLoader } from "@/components/others/DotsLoader";
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors } from "@/themes/colors";
 import { iconos } from "@/constants/iconos";
-import ImageOnline from "@/components/others/ImageOnline";
+import StateOffersSkeleton from "@/constants/skeletons/employer/offers/stateOffersSkeleton";
+import { useStateOffers } from "@/hooks/employer/offers/useStateOffers";
+import { stateOffersStyles as styles } from "@/styles/app/employer/offers/stateOffersStyles";
+import { Colors } from "@/themes/colors";
+import { Ionicons } from "@expo/vector-icons";
+import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 // ⬇️ SelectableTag
 import { SelectableTag } from "@/components/button/SelectableTags";
