@@ -3,7 +3,7 @@ import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator } fr
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { profileStyles as styles } from "@/styles/app/employee/profile/profileStyles";
-import { useProfile } from "@/hooks/employee/profile/useProfile";
+import { useProfile } from "@/hooks/employer/profile/useProfileEmployer";
 
 export default function ProfileScreen() {
   const { user, options, handleLogout } = useProfile();

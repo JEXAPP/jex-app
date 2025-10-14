@@ -93,14 +93,6 @@ export const useProfile = () => {
   { label: "Consultá tu perfil", icon: "user" },
   { label: "Privacidad", icon: "lock" },
   { label: "Invitá a un trabajador", icon: "user-plus" },
-
-  // 🔥 Nuevo botón Calificar empleados
-  {
-    label: "Calificar organizadores",
-    icon: "star",
-    onPress: () => router.push("/employee/profile/qualify-list"),
-  },
-
   { label: "Legal", icon: "file-text", onPress: openLegalPdf },
 ];
 
