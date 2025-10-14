@@ -87,7 +87,7 @@ class UpdateEventView(UpdateAPIView):
     def update(self, request, *args, **kwargs):
         instance = self.get_object() 
 
-        published_state = EventStates.objects.get(name=EventStates.PUBLISHED.value)
+        published_state = EventState.objects.get(name=EventStates.PUBLISHED.value)
         if instance.state == published_state:
             return Response(
                 NO_EDITAR_EVENTO_PUBLICADO,
