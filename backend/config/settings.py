@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'applications',
     'notifications',
     'chats',
+    'django_celery_beat',
     'allauth',
     'allauth.account',
     
@@ -286,3 +287,30 @@ MP_WEBHOOK_SECRET = os.getenv('MP_WEBHOOK_SECRET')
 
 STREAM_API_KEY = os.getenv('STREAM_API_KEY') 
 STREAM_API_SECRET = os.getenv('STREAM_API_SECRET')
+
+
+# CELERY CONFIGURATION
+
+CELERY_BROKER_URL = (
+    f"sqla+postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:5432/{os.getenv('DB_NAME')}"
+)
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+
+CELERY_BEAT_SCHEDULE = {
+    'check_event_start': {
+        'task': 'eventos.tasks.check_event_start',
+        'schedule': timedelta(minutes=2),
+    },
+    'check_event_end': {
+        'task': 'eventos.tasks.check_event_end',
+        'schedule': timedelta(minutes=2),
+    },
+    'expire_offers': {
+        'task': 'eventos.tasks.expire_offers',
+        'schedule': timedelta(minutes=2),
+    },
+}
