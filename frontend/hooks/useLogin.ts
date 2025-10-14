@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react';
+import { connectStream } from '@/services/stream/streamClient';
+
 
 type Role = 'employee' | 'employer';
 
@@ -40,6 +42,18 @@ export const useLogin = () => {
       await SecureStore.setItemAsync('refresh', refresh);
     }
   };
+
+  const ensureStreamConnected = async () => {
+    try {
+      await connectStream(); // usa internamente getStreamCredentials()
+      // opcional: console.log('✅ Conectada a Stream');
+    } catch (e) {
+      // Si falla la conexión a Stream, mantené el login igual,
+      // pero avisá en consola/estado para debug.
+      console.log('❌ No se pudo conectar a Stream:', e);
+    }
+  };
+
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -134,6 +148,9 @@ export const useLogin = () => {
   const handleLoginToken = async () => {
     try {
       const accessToken = await SecureStore.getItemAsync('access');
+
+      await ensureStreamConnected();
+      
       const decoded = jwtDecode<DecodedToken>(accessToken!);
       const role = decoded.role;
 

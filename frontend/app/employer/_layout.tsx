@@ -1,7 +1,7 @@
 import FooterNavEmployer from '@/constants/navigation/FooterNavEmployer';
 import { transitionFade } from '@/constants/transitions';
 import { Pressable, View } from 'react-native';
-import { router, Stack } from 'expo-router';
+import { Stack, router, useSegments, usePathname } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
@@ -9,6 +9,11 @@ import { Colors } from '@/themes/colors';
 const FOOTER_HEIGHT = 68;
 
 export default function EmployerLayoutRoot() {
+
+  const pathname = usePathname(); 
+  
+  const hideFooter = pathname.startsWith('/employer/chats/thread');
+
   return (
     <View style={{ flex: 1 }}>
       <Stack
@@ -24,13 +29,16 @@ export default function EmployerLayoutRoot() {
         <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="candidates" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="chats/index" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="chats/thread" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 
       {/* Footer fijo */}
+      {!hideFooter && (
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
         <FooterNavEmployer basePath="/employer" />
       </View>
-
+)}
       {/* Espaciador para no tapar contenido */}
       <View style={{ height: FOOTER_HEIGHT }} />
     </View>
