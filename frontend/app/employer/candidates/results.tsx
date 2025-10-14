@@ -25,17 +25,30 @@ export default function SearchResultsScreen() {
 
             
             <View style={s.ratingRow}>
-              <View style={s.starsRow}>
-                {iconos.full_star(14, Colors.violet3)}
-                {iconos.full_star(14, Colors.violet3)}
-                {iconos.full_star(14, Colors.violet3)}
-                {iconos.full_star(14, Colors.violet3)}
-                {iconos.full_star(14, Colors.violet3)}
-              </View>
-              <View>
-                <Text style={s.ratingText}>5.0</Text>
-              </View>
-            </View>
+            {item.average_rating === null || item.rating_count === 0 ? (
+              <Text style={s.noRatingText}>Sin calificación</Text>
+            ) : (
+              <>
+                <View style={s.starsRow}>
+                  {Array.from({ length: (() => {
+                    const avg = item.average_rating ?? 0;
+                    const decimal = avg % 1;
+                    const base = Math.floor(avg);
+                    const rounded = decimal >= 0.8 ? base + 1 : base;
+                    return Math.min(rounded, 5);
+                  })() }).map((_, i) => (
+                    <React.Fragment key={i}>
+                      {iconos.full_star(14, Colors.violet3)}
+                    </React.Fragment>
+                  ))}
+                </View>
+                <View>
+                  <Text style={s.ratingText}>{item.average_rating?.toFixed(1)}</Text>
+                </View>
+              </>
+            )}
+          </View>
+
 
             {item.approximate_location ? (
               <View style={s.locationPill}>

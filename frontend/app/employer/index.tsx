@@ -9,6 +9,7 @@ import { useAdminPanel } from "@/hooks/employer/useAdminPanel";
 import { adminPanelStyles as styles } from "@/styles/app/employer/adminPanelStyles";
 import HomeEventsSkeleton from "@/constants/skeletons/employer/homeEventsSkeleton";
 
+
 export default function AdminPanelScreen() {
   const {
     loading,
@@ -21,7 +22,8 @@ export default function AdminPanelScreen() {
     goToEditEvent,
     goToVacancies,
     goToAttendance,
-    goToNotifications
+    goToNotifications,
+    goToQualifications
   } = useAdminPanel();
 
   if (loading) {
@@ -174,13 +176,17 @@ if (events.length === 0) {
             {iconos.flechaDerecha(22, Colors.violet4)}
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.card}>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => goToQualifications(currentEvent.id)}  // 👈 ahora pasa el id
+          >
             <View style={styles.cardContent}>
               {iconos.estrella(22, Colors.violet4)}
               <Text style={styles.cardText}>Calificaciones</Text>
             </View>
             {iconos.flechaDerecha(22, Colors.violet4)}
-          </TouchableOpacity>
+        </TouchableOpacity>
+
 
           <TouchableOpacity style={styles.card}>
             <View style={styles.cardContent}>

@@ -22,6 +22,7 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
     if (slot === 0) return pathname === basePath || pathname.startsWith(`${basePath}/vacancy`);;
     if (slot === 1) return pathname.startsWith(`${basePath}/candidates`);
     if (slot === 2) return pathname.startsWith(`${basePath}/offers`);
+    if (slot === 4) return pathname.startsWith(`${basePath}/profile/profile`)
     return false;
   };
 
@@ -30,12 +31,13 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
     if (slot === 0) router.replace(basePath);
     if (slot === 1) router.replace(`${basePath}/candidates`);
     if (slot === 2) router.replace(`${basePath}/offers`);
+    if (slot === 4) router.push(`${basePath}/profile/profile` as any);
   };
 
   // Deshabilitar
   const isDisabled = (slot: number) => {
     // ahora habilitamos 0 (home) y 1 (inbox/candidates)
-    return slot > 2;
+    return slot > 4;
   };
 
   return (
@@ -101,7 +103,10 @@ const FooterNavEmployer: React.FC<Props> = ({ basePath }) => {
         disabled={isDisabled(4)}
         style={s.item}
       >
-        {iconos.footer_person(false, ICON_SIZE, Colors.gray3)}
+        {isActive(4)
+                  ? iconos.footer_person(true, ICON_SIZE, Colors.white)
+                  : iconos.footer_person(false, ICON_SIZE, Colors.white)
+                }
       </Pressable>
     </View>
   );

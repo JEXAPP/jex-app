@@ -15,6 +15,8 @@ type ShiftAPI = {
 };
 
 type ApplicationAPI = {
+  rating_count: number;
+  average_rating: number;
   age: number | null;
   approximate_location: string | null;
   description: string | null;
@@ -30,6 +32,8 @@ type SearchAPI = {
   description: string | null;
   name: string;
   profile_image: string | null;
+  average_rating: number | null;
+  rating_count: number | null;
 };
 
 export type NormalizedDetail = {
@@ -39,6 +43,8 @@ export type NormalizedDetail = {
   description: string | null;
   age: number | null;
   approximate_location?: string | null;
+  average_rating?: number | null;
+  rating_count?: number | null;
   shiftCards?: Array<{
     id?: number | string;
     start_date_label: string;
@@ -91,39 +97,41 @@ export const useEmployeeDetail = (p: Params) => {
       setLoading(true); setError(null);
       try {
         if (p.source === 'application') {
-          const res: ApplicationAPI = await requestBackend(`/api/applications/apply/${p.id}/detail/`, null, 'GET');
+        const res: ApplicationAPI = await requestBackend(`/api/applications/apply/${p.id}/detail/`, null, 'GET');
 
-          const buildCard = (sh?: ShiftAPI | null, isCurrent?: boolean) => sh && (() => {
-            const start = formatearFecha(sh.start_date), end = formatearFecha(sh.end_date);
-            return {
-              id: sh.id,
-              start_date_label: dateLabelFromDDMMYYYY(start),
-              time_range_label: `${formatearHora(sh.start_time)} - ${formatearHora(sh.end_time)}`,
-              payment_label: moneyARS(sh.payment),
-              start_date: start, start_time: sh.start_time, end_date: end, end_time: sh.end_time, payment: sh.payment,
-              isCurrent: !!isCurrent,
-            };
-          })();
-
-          const cards = [
-            buildCard(res.current_shift, true),
-            ...(res.shifts ?? []).map(s => buildCard(s, false))
-          ].filter(Boolean) as NonNullable<NormalizedDetail['shiftCards']>;
-
-          const normalized: NormalizedDetail = {
-            employee_id: null,
-            profile_image: res.profile_image || null,
-            name: res.name,
-            description: res.description ?? null,
-            age: res.age ?? null,
-            approximate_location: res.approximate_location ?? null,
-            shiftCards: cards,
-            applied_shift_ids: cards.map(c => c.id!).filter(Boolean),
+        const buildCard = (sh?: ShiftAPI | null, isCurrent?: boolean) => sh && (() => {
+          const start = formatearFecha(sh.start_date), end = formatearFecha(sh.end_date);
+          return {
+            id: sh.id,
+            start_date_label: dateLabelFromDDMMYYYY(start),
+            time_range_label: `${formatearHora(sh.start_time)} - ${formatearHora(sh.end_time)}`,
+            payment_label: moneyARS(sh.payment),
+            start_date: start, start_time: sh.start_time, end_date: end, end_time: sh.end_time, payment: sh.payment,
+            isCurrent: !!isCurrent,
           };
+        })();
 
-          if (mounted) setData(normalized);
+        const cards = [
+          buildCard(res.current_shift, true),
+          ...(res.shifts ?? []).map(s => buildCard(s, false))
+        ].filter(Boolean) as NonNullable<NormalizedDetail['shiftCards']>;
+
+        const normalized: NormalizedDetail = {
+          employee_id: null,
+          profile_image: res.profile_image || null,
+          name: res.name,
+          description: res.description ?? null,
+          age: res.age ?? null,
+          approximate_location: res.approximate_location ?? null,
+          shiftCards: cards,
+          applied_shift_ids: cards.map(c => c.id!).filter(Boolean),
+          average_rating: res.average_rating ?? 0,   // 👈 AGREGADO
+          rating_count: res.rating_count ?? 0        // 👈 AGREGADO
+        };
+
+        if (mounted) setData(normalized);
         } else {
-          const res: SearchAPI = await requestBackend(`/api/applications/employees/search/${p.id}`, null, 'GET');
+          const res: SearchAPI = await requestBackend(`/api/applications/employees/search/${p.id}/`, null, 'GET');
           const normalized: NormalizedDetail = {
             employee_id: p.id,
             profile_image: res.profile_image || null,
@@ -131,6 +139,8 @@ export const useEmployeeDetail = (p: Params) => {
             description: res.description ?? null,
             age: res.age ?? null,
             approximate_location: res.approximate_location ?? null,
+            average_rating: res.average_rating ?? null,
+            rating_count: res.rating_count ?? null,
             shiftCards: [],
             applied_shift_ids: [],
           };

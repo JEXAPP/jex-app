@@ -2,6 +2,8 @@ import axios, {AxiosError,AxiosInstance,AxiosRequestConfig,AxiosRequestHeaders,}
 import { config } from '@/config';
 import { router } from 'expo-router';
 import {getToken as getStoredToken,setToken as setStoredToken,deleteToken as deleteStoredToken,} from '@/services/internal/useTokenStorage';
+export { clearTokens };
+
 
 let api: AxiosInstance | null = null;
 let refreshPromise: Promise<string | null> | null = null;
@@ -86,7 +88,7 @@ export function getApi(): AxiosInstance {
 
   api = axios.create({
     baseURL: config.apiBaseUrl,
-    timeout: 10000,
+    timeout: 100000,
   });
 
   // Inserta el access en cada request
@@ -125,9 +127,15 @@ export function getApi(): AxiosInstance {
           api!.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
           original.headers = withAuthHeader(original.headers, newAccess);
 
-          console.log('[RETRYING WITH TOKEN]', newAccess.slice(0, 20) + '...');
-          return api!.request(original);
-        }
+  // 👇 Usamos el helper para que SIEMPRE se setee el header bien
+  original.headers = withAuthHeader(original.headers, newAccess);
+
+  
+
+  console.log('[RETRYING WITH TOKEN]', newAccess.slice(0, 20) + '...');
+  console.log('[HEADERS]', original.headers);
+  return api!.request(original);
+}
       }
 
       throw error;

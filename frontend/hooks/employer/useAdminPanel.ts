@@ -82,6 +82,9 @@ export const useAdminPanel = () => {
   const goToNotifications = () => router.push('/employer/panel/notifications')
 
   const goToAttendance = (id: number) => router.push(`/employer/panel/attendance?id=${id}`);
+  const goToQualifications = (eventId: number) => {
+  router.push({ pathname: "/employer/panel/qualification", params: { eventId: String(eventId) } });
+};
 
   return {
     // Eventos
@@ -99,7 +102,8 @@ export const useAdminPanel = () => {
     // Navegación
     goToVacancies,
     goToAttendance,
-    goToNotifications
+    goToNotifications,
+    goToQualifications,
   };
 };
 export default useAdminPanel;
