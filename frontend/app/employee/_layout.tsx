@@ -6,7 +6,7 @@ import FooterNavEmployee from "@/constants/navigation/FooterNavEmployee";
 import { Colors } from "@/themes/colors";
 import { transitionFade } from "@/constants/transitions";
 
-const FOOTER_HEIGHT = 68;
+const FOOTER_HEIGHT = 65;
 
 export default function EmployeeLayout() {
   const pathname = usePathname(); // p.ej: ["(employee)","chats","threads","123"]

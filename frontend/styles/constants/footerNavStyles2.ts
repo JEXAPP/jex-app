@@ -19,11 +19,12 @@ export const footerNavStyles2 = StyleSheet.create({
     //borderColor: Colors.violet4,
 
     shadowColor: "#000",
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.2,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: -2 },
 
     elevation: 14,
+    height: 65
   },
 
   item: {
