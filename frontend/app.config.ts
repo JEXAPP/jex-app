@@ -8,7 +8,7 @@ export default (): ExpoConfig => ({
   orientation: "portrait",
   scheme: "jex",
   userInterfaceStyle: "automatic",
-  newArchEnabled: false,
+  newArchEnabled: true,
   owner: "jex-app",
   icon: "./assets/images/jex/Jex-Logo.png",
   jsEngine: "hermes",
