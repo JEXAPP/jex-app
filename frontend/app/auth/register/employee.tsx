@@ -3,7 +3,6 @@ import { Input } from '@/components/input/Input';
 import { Stepper } from '@/components/others/Stepper';
 import DatePicker from '@/components/picker/DatePicker';
 import LocationAddressPicker from '@/components/picker/LocationPicker';
-import Suggestions from '@/components/picker/Suggestions';
 import { ClickWindow } from '@/components/window/ClickWindow';
 import { TempWindow } from '@/components/window/TempWindow';
 import { iconos } from '@/constants/iconos';
@@ -13,7 +12,6 @@ import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonSty
 import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonStyles4';
 import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1';
 import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
-import { suggestionsStyles2 } from '@/styles/components/picker/suggestionsStyles/suggestionsStyles2';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
 import { Colors } from '@/themes/colors';

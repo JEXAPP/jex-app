@@ -12,7 +12,7 @@ export default function EmployeeLayout() {
   const pathname = usePathname(); // p.ej: ["(employee)","chats","threads","123"]
 
   // quita grupos como "(employee)"
-  const hideFooter = pathname.startsWith('/employee/chats/threads');
+  const hideFooter = pathname.startsWith('/employee/chats/thread');
 
   console.log(hideFooter)
   console.log(pathname)
@@ -35,7 +35,7 @@ export default function EmployeeLayout() {
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="jobs/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/index" options={{ ...transitionFade, headerShown: false }} />
-        <Stack.Screen name="chats/threads" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="chats/thread" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 
       {!hideFooter && (

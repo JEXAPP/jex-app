@@ -1,9 +1,7 @@
-import useGooglePlaces from '@/services/external/google/useGooglePlaces';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useDataValidation } from '@/services/internal/useDataValidation';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Keyboard } from 'react-native';
 
 export const useRegisterEmployee = () => {
   const router = useRouter();
@@ -22,7 +20,6 @@ export const useRegisterEmployee = () => {
   const [fechaNacimiento, setFechaNacimiento] = useState<Date | null>(null);
   const [ubicacion, setUbicacion] = useState('');
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
-  const [ubicacionId, setUbicacionId] = useState('');
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
@@ -57,7 +54,6 @@ export const useRegisterEmployee = () => {
     if (!dni || dni.replace(/\D/g, '').length < 7) { setErrorMessage('El DNI no es válido'); setShowError(true); return false; }
     if (!fechaNacimiento) { setErrorMessage('Debés seleccionar tu fecha de nacimiento'); setShowError(true); return false; }
     if (!validateAge(fechaNacimiento)) { setErrorMessage('Debés tener al menos 16 años para registrarte'); setShowError(true); return false; }
-    if (!ubicacionId) { setErrorMessage('Debés seleccionar una ubicación válida'); setShowError(true); return false; }
     if (!phone) { setErrorMessage('Falta el teléfono verificado'); setShowError(true); return false; }
     return true;
   };

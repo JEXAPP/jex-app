@@ -4,8 +4,8 @@ import { UploadImage } from '@/components/image/UploadImage';
 import { Input } from '@/components/input/Input';
 import { CharCounter } from '@/components/others/CharCounter';
 import DatePicker from '@/components/picker/DatePicker';
+import LocationAddressPicker from '@/components/picker/LocationPicker';
 import { Picker } from '@/components/picker/Picker';
-import Suggestions from '@/components/picker/Suggestions';
 import TimePicker from '@/components/picker/TimePicker';
 import { ClickWindow } from '@/components/window/ClickWindow';
 import { TempWindow } from '@/components/window/TempWindow';
@@ -20,8 +20,6 @@ import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1
 import { charCounterStyles1 } from '@/styles/components/others/charCounterStyles1';
 import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
 import { pickerStyles1 } from '@/styles/components/picker/pickerStyles1';
-import { suggestionsStyles1 } from '@/styles/components/picker/suggestionsStyles/suggestionsStyles1';
-import { suggestionsStyles2 } from '@/styles/components/picker/suggestionsStyles/suggestionsStyles2';
 import { timePickerStyles1 } from '@/styles/components/picker/timePickerStyles1';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
@@ -31,7 +29,6 @@ import { Keyboard, ScrollView, Text, TouchableWithoutFeedback, View } from 'reac
 export default function EditEventScreen() {
   const {
     nombreEvento,
-    sugerencias,
     descripcionEvento,
     fechaInicioEvento,
     fechaFinEvento,
@@ -44,7 +41,6 @@ export default function EditEventScreen() {
     imageID,
     imageURL,
     setSelectedRubro,
-    seleccionarUbicacion,
     setNombreEvento,
     setDescripcionEvento,
     setFechaInicioEvento,
@@ -135,18 +131,13 @@ export default function EditEventScreen() {
             />
 
             <View style={styles.campoUbicacion} pointerEvents="box-none">
-              <Suggestions
-                sugerencias={sugerencias}
-                onSeleccionar={seleccionarUbicacion}
-                styles={suggestionsStyles1}
-              />
-
-              <Input
-                placeholder="Ubicación"
-                value={ubicacionEvento}
-                onChangeText={handleUbicacion}
-                styles={inputStyles1}
-              />
+              <LocationAddressPicker
+              placeholder="Ubicación"
+              value={ubicacionEvento}
+              onChange={(canonical, c) => {
+                handleUbicacion(canonical, c!);
+              }}
+            />
             </View>
 
             <View style={styles.row1}>

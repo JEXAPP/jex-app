@@ -34,7 +34,7 @@ const cfgFromConfig = {
   redirectUri:
     (config as any)?.mercadoPago?.redirectUri ??
     (config as any)?.mercadopago?.redirectUri ??
-    'https://jexapp.ar/api/payments/mercadopago/callback/',
+    '',
 };
 
 const DEFAULTS = {

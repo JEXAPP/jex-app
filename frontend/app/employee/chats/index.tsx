@@ -83,7 +83,7 @@ const renderItem = ({ item }: { item: (typeof items)[number] }) => (
         subtitle={item.subtitle}               // último mensaje o copy auxiliar
         onPress={() => {
           router.push({
-            pathname: '/employee/chats/threads',
+            pathname: '/employee/chats/thread',
             params: { cid: item.id },
           });
         }}
