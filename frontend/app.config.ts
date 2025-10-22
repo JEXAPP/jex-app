@@ -47,6 +47,7 @@ export default (): ExpoConfig => ({
   },
   plugins: [
     "expo-router",
+    "expo-video",
     ["expo-splash-screen", {
       image: "./assets/images/jex/Jex-Logo.png",
       imageWidth: 200,
