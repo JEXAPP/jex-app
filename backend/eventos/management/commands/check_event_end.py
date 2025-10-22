@@ -13,6 +13,9 @@ from applications.models.attendance import Attendance
 from applications.models.offer_state import OfferState
 from applications.constants import OfferStates
 
+from stream_chat import StreamChat
+from django.conf import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -38,6 +41,11 @@ class Command(BaseCommand):
         now = timezone.now()
         logger.info("check_event_end running at %s", now)
 
+        client = StreamChat(
+            api_key=settings.STREAM_API_KEY,
+            api_secret=settings.STREAM_API_SECRET
+        )
+
         try:
             published = get_state_or_raise(EventState, EventStates.PUBLISHED.value)
             in_progress = get_state_or_raise(EventState, EventStates.IN_PROGRESS.value)
@@ -49,6 +57,7 @@ class Command(BaseCommand):
             offer_completed = get_state_or_raise(OfferState, OfferStates.COMPLETED.value)
             offer_not_shown = get_state_or_raise(OfferState, OfferStates.NOT_SHOWN.value)
             offer_expired = get_state_or_raise(OfferState, OfferStates.EXPIRED.value)
+
         except RuntimeError as e:
             logger.error("Estados faltantes: %s", e)
             return
@@ -64,8 +73,22 @@ class Command(BaseCommand):
             if end_dt <= now:
                 with transaction.atomic():
                     ev.state = finalized
+
+                    try:
+                        if ev.stream_announcements_channel_id:
+                            client.channel("announcements", ev.stream_announcements_channel_id).delete()
+                            logger.info(f"Canal de anuncios eliminado: {ev.stream_announcements_channel_id}")
+
+                        if ev.stream_workers_channel_id:
+                            client.channel("messaging", ev.stream_workers_channel_id).delete()
+                            logger.info(f"Canal de trabajadores eliminado: {ev.stream_workers_channel_id}")
+
+                    except Exception as e:
+                        logger.warning(f"Error al eliminar canales de StreamChat del evento {ev.pk}: {e}")
+
                     ev.stream_announcements_channel_id = None
                     ev.stream_workers_channel_id = None
+
                     ev.save(update_fields=[
                         "state",
                         "updated_at",
