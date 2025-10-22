@@ -1,8 +1,16 @@
-import useGooglePlaces from '@/services/external/google/useGooglePlaces';
-import { getProvincias } from '@/services/internal/useProvinceSelection';
+// /hooks/employer/useSearchEmployees.ts
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+// Nuevo servicio Open Source (GeoRef)
+import {
+  listarProvincias,
+  buscarLocalidades,
+  debounce as makeDebounce,
+  type Sugerencia,
+} from '@/services/external/sugerencias/useGeoRefAr';
+
+// ----------------- Utiles de fecha (igual que antes) -----------------
 type Sug = { descripcion: string; placeId: string };
 
 const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
@@ -16,8 +24,13 @@ const clampDate = (d: Date) => {
   return only < MIN_DATE ? MIN_DATE : only > MAX_DATE ? MAX_DATE : only;
 };
 
+// ----------------- Tipos internos -----------------
 export type BubbleKey = 'location' | 'availability' | 'history';
 
+// Para manejar provincia elegida con id (requerido por GeoRef)
+type ProvinciaSel = { id: string; nombre: string };
+
+// ----------------- Hook -----------------
 export function useSearchEmployees() {
   // UI
   const [activeBubble, setActiveBubble] = useState<BubbleKey>('location');
@@ -27,43 +40,106 @@ export function useSearchEmployees() {
   const closeError = useCallback(() => setShowError(false), []);
   const err = useCallback((msg: string) => { setErrorMessage(msg); setShowError(true); }, []);
 
-  // Ubicación
+  // ----------------- Ubicación -----------------
   const [provinciaInput, setProvinciaInput] = useState('');
   const [localidadInput, setLocalidadInput] = useState('');
-  const [selectedProvincia, setSelectedProvincia] = useState<Sug | null>(null);
-  const [selectedLocalidad, setSelectedLocalidad] = useState<Sug | null>(null);
-  const provinciaOptions = useMemo(() => getProvincias(), []);
-  const { obtenerLocalidadesDeProvincia } = useGooglePlaces();
-  const [localidadSug, setLocalidadSug] = useState<Sug[]>([]);
+
+  // Opciones de provincia (ahora vienen del GeoRef de forma asíncrona)
+  const [provinciaOptions, setProvinciaOptions] = useState<Sug[]>([]);
+  const [loadingProvincias, setLoadingProvincias] = useState(false);
+
+  // Provincia seleccionada (guardamos id+nombre porque GeoRef pide id para buscar localidades)
+  const [selectedProvincia, setSelectedProvincia] = useState<ProvinciaSel | null>(null);
+
+  // Localidad seleccionada y sugerencias
+  const [selectedLocalidad, setSelectedLocalidad] = useState<Sugerencia | null>(null);
+  const [localidadSug, setLocalidadSug] = useState<Sugerencia[]>([]);
   const canPickLocalidad = !!selectedProvincia;
 
+  // Cargar provincias al montar
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoadingProvincias(true);
+        const provs = await listarProvincias(); // [{id, nombre}]
+        // Adaptamos al mismo shape que tus pickers (descripcion/placeId)
+        const opts: Sug[] = provs
+          .sort((a, b) => a.nombre.localeCompare(b.nombre))
+          .map(p => ({
+            descripcion: p.nombre,
+            placeId: `prov:${p.id}|provName:${p.nombre}`,
+          }));
+        if (mounted) setProvinciaOptions(opts);
+      } catch (e) {
+        console.warn('Error listando provincias', e);
+      } finally {
+        if (mounted) setLoadingProvincias(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  const parseProvinciaIdFromPlaceId = (placeId: string) => {
+    // Formato: "prov:<id>|provName:<nombre>"
+    const parts = placeId.split('|');
+    const idPart = parts.find(p => p.startsWith('prov:'));
+    const namePart = parts.find(p => p.startsWith('provName:'));
+    const id = idPart ? idPart.replace('prov:', '') : '';
+    const nombre = namePart ? namePart.replace('provName:', '') : '';
+    return { id, nombre };
+  };
+
   const onProvinciaPick = useCallback((item: Sug) => {
-    setSelectedProvincia(item);
+    const { id, nombre } = parseProvinciaIdFromPlaceId(item.placeId);
+    setSelectedProvincia({ id, nombre: nombre || item.descripcion });
     setProvinciaInput(item.descripcion);
+    // reset localidad
     setSelectedLocalidad(null);
     setLocalidadInput('');
     setLocalidadSug([]);
   }, []);
 
+  // Debounce para cambios de localidad
+  const debouncedFetchLocalidadesRef = useRef<ReturnType<typeof makeDebounce> | null>(null);
+  if (!debouncedFetchLocalidadesRef.current) {
+    debouncedFetchLocalidadesRef.current = makeDebounce(async (provId: string, q: string) => {
+      try {
+        const res = await buscarLocalidades(provId, q);
+        setLocalidadSug(res);
+      } catch (e) {
+        console.warn('Error buscando localidades', e);
+        setLocalidadSug([]);
+      }
+    }, 300);
+  }
+
   const onLocalidadChange = useCallback(
     async (text: string) => {
       setLocalidadInput(text);
       setSelectedLocalidad(null);
+      setLocalidadSug([]);
       if (!selectedProvincia) return;
       const q = text.trim();
-      setLocalidadSug(q.length >= 3 ? await obtenerLocalidadesDeProvincia(selectedProvincia.descripcion, q) : []);
+      if (q.length < 2) return;
+      debouncedFetchLocalidadesRef.current!(selectedProvincia.id, q);
     },
-    [selectedProvincia, obtenerLocalidadesDeProvincia]
+    [selectedProvincia]
   );
 
-  const onLocalidadPick = useCallback((item: Sug) => {
+  const onLocalidadPick = useCallback((item: Sugerencia) => {
     setSelectedLocalidad(item);
     setLocalidadInput(item.descripcion);
     setLocalidadSug([]);
   }, []);
-  const onLocalidadClear = useCallback(() => { setSelectedLocalidad(null); setLocalidadInput(''); setLocalidadSug([]); }, []);
 
-  // Disponibilidad
+  const onLocalidadClear = useCallback(() => {
+    setSelectedLocalidad(null);
+    setLocalidadInput('');
+    setLocalidadSug([]);
+  }, []);
+
+  // ----------------- Disponibilidad -----------------
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [isRange, setIsRange] = useState(false);
@@ -94,13 +170,13 @@ export function useSearchEmployees() {
     if (hi * 60 + mi > hf * 60 + mf) setEndTime(startTime);
   }, [startTime, endTime]);
 
-  // Historial
+  // ----------------- Historial -----------------
   const [ratingMin, setRatingMin] = useState<number>(0);
   const [jobsMin, setJobsMin] = useState<number | null>(null);
   const decRating = useCallback(() => setRatingMin(p => Math.max(0, Math.round((p - 0.5) * 2) / 2)), []);
   const incRating = useCallback(() => setRatingMin(p => Math.min(5, Math.round((p + 0.5) * 2) / 2)), []);
 
-  // Acciones
+  // ----------------- Acciones -----------------
   const validarParaBuscar = useCallback(() => {
     if (localidadInput && !selectedProvincia) { err('Primero seleccioná una provincia.'); return false; }
     if (localidadInput && !selectedLocalidad) { err('Elegí una localidad de la lista de sugerencias.'); return false; }
@@ -115,14 +191,15 @@ export function useSearchEmployees() {
   }, [localidadInput, selectedProvincia, selectedLocalidad, startDate, endDate, isRange, startTime, endTime, err]);
 
   const limpiarTodo = useCallback(() => {
-    setProvinciaInput(''); setLocalidadInput(''); setSelectedProvincia(null); setSelectedLocalidad(null); setLocalidadSug([]);
+    setProvinciaInput(''); setLocalidadInput('');
+    setSelectedProvincia(null); setSelectedLocalidad(null); setLocalidadSug([]);
     setStartDate(null); setEndDate(null); setIsRange(false); setStartTime(null); setEndTime(null);
     setRatingMin(0); setJobsMin(null); setActiveBubble('location');
   }, []);
 
   const onBuscar = () => {
     const params = new URLSearchParams({
-      ...(selectedProvincia && { province: selectedProvincia.descripcion }),
+      ...(selectedProvincia && { province: selectedProvincia.nombre }),
       ...(selectedLocalidad && { locality: selectedLocalidad.descripcion }),
       ...(startDate && { start_date: ddmmyyyy(startDate) }),
       ...(endDate && { end_date: ddmmyyyy(endDate) }),
@@ -134,19 +211,27 @@ export function useSearchEmployees() {
     router.push(`/employer/candidates/results?${params.toString()}`);
   };
 
-  const labels = { minDate: ddmmyyyy(MIN_DATE), maxDate: ddmmyyyy(MAX_DATE) };
+  const labels = useMemo(() => ({ minDate: ddmmyyyy(MIN_DATE), maxDate: ddmmyyyy(MAX_DATE) }), []);
 
   return {
     // UI
     activeBubble, toggleBubble, showError, errorMessage, closeError,
+
     // Ubicación
-    provinciaOptions, localidadInput, localidadSug, selectedProvincia, selectedLocalidad,
+    provinciaInput,
+    provinciaOptions,           // ahora viene del GeoRef
+    loadingProvincias,
+    localidadInput, localidadSug,
+    selectedProvincia, selectedLocalidad,
     onProvinciaPick, onLocalidadChange, onLocalidadPick, onLocalidadClear, canPickLocalidad,
+
     // Disponibilidad
     startDate, endDate, isRange, setSingleDate, applyDateSelection,
     startTime, endTime, setStartTime, setEndTime, showTimePickers, normalizeSingleDayTimes, labels,
+
     // Historial
     ratingMin, setRatingMin, jobsMin, setJobsMin, decRating, incRating,
+
     // Acciones
     validarParaBuscar, limpiarTodo, onBuscar,
   };

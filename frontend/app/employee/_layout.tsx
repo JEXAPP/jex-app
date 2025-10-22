@@ -36,6 +36,7 @@ export default function EmployeeLayout() {
         <Stack.Screen name="jobs/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/thread" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="profile/index" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 
       {!hideFooter && (

@@ -31,6 +31,7 @@ export default function EmployerLayoutRoot() {
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/thread" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="profile/index" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 
       {/* Footer fijo */}

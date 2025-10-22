@@ -22,7 +22,7 @@ const FooterNavEmployee: React.FC<Props> = ({ basePath }) => {
     if (slot === 0) return pathname === basePath || pathname.startsWith(`${basePath}/vacancy`);
     if (slot === 1) return pathname.startsWith(`${basePath}/offers`);
     if (slot === 2) return pathname.startsWith(`${basePath}/jobs`);
-    if (slot === 4) return pathname.startsWith(`${basePath}/profile/profile`)
+    if (slot === 4) return pathname.startsWith(`${basePath}/profile`)
     if (slot === 3) return pathname.startsWith(`${basePath}/chats`);
     return false;
   };
@@ -32,7 +32,7 @@ const FooterNavEmployee: React.FC<Props> = ({ basePath }) => {
     if (slot === 0) router.replace(basePath);
     if (slot === 1) router.push(`${basePath}/offers`);
     if (slot === 2) router.push(`${basePath}/jobs`);
-    if (slot === 4) router.push(`${basePath}/profile/profile` as any);
+    if (slot === 4) router.push(`${basePath}/profile` as any);
     if (slot === 3) router.push(`${basePath}/chats`);
   };
 

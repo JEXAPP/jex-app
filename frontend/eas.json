@@ -29,6 +29,10 @@
         "ORG_GRADLE_PROJECT_hermesEnabled": "true",
         "ORG_GRADLE_PROJECT_newArchEnabled": "true"
       }
+    },
+    "development-simulator": {
+      "developmentClient": true,
+      "ios": { "simulator": true }
     }
   },
   "submit": {

@@ -44,94 +44,85 @@ export default function SearchVacancyScreen() {
   }, [selectedFilter]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <>
-          <Text style={styles.title}>Búsqueda</Text>
-          <View style={styles.container}>
-            {/* Input de búsqueda */}
-            <SearchInput
-              key={`search-${selectedFilter}`}
-              mode={inputMode}
-              suggestions={inputMode === 'text-suggestions' ? suggestions : []}
-              fetchSuggestions={inputMode === 'text-suggestions' ? fetchSuggestions : undefined}
-              onChange={handleSubmitSearch}
-              placeholder={placeholder}
-              stylesInput={searchInputStyles1}
-              datePickerStyles={datePickerStyles1}
-              allowRange={true}
-            />
+  <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.title}>Búsqueda</Text>
 
-            <View style={styles.secondRow}>
+        <View style={styles.container}>
+          {/* Input de búsqueda */}
+          <SearchInput
+            key={`search-${selectedFilter}`}
+            mode={inputMode}
+            suggestions={inputMode === 'text-suggestions' ? suggestions : []}
+            fetchSuggestions={inputMode === 'text-suggestions' ? fetchSuggestions : undefined}
+            onChange={handleSubmitSearch}
+            placeholder={placeholder}
+            stylesInput={searchInputStyles1}
+            datePickerStyles={datePickerStyles1}
+            allowRange={true}
+          />
 
-              {/* Filtros */}
-              <View style={styles.tagsRow}>
-                <SelectableTag
-                  styles={selectableTagStyles2}
-                  title="Rol"
-                  selected={selectedFilter === 'role'}
-                  onPress={() => handleChangeFilter('role')}
-                />
-                <SelectableTag
-                  styles={selectableTagStyles2}
-                  title="Fecha"
-                  selected={selectedFilter === 'date'}
-                  onPress={() => handleChangeFilter('date')}
-                />
-                <SelectableTag
-                  styles={selectableTagStyles2}
-                  title="Evento"
-                  selected={selectedFilter === 'event'}
-                  onPress={() => handleChangeFilter('event')}
-                />
-              </View>
-
-              {/* Orden */}
-              <OrderButton
-                options={opciones}
-                dropdownWidth={180}
-                defaultOption={selectedOrder}
-                onSelect={(orderIndex) => handleChangeOrder(opciones[orderIndex - 1])}
+          <View style={styles.secondRow}>
+            {/* Filtros */}
+            <View style={styles.tagsRow}>
+              <SelectableTag
+                styles={selectableTagStyles2}
+                title="Rol"
+                selected={selectedFilter === 'role'}
+                onPress={() => handleChangeFilter('role')}
               />
-
+              <SelectableTag
+                styles={selectableTagStyles2}
+                title="Fecha"
+                selected={selectedFilter === 'date'}
+                onPress={() => handleChangeFilter('date')}
+              />
+              <SelectableTag
+                styles={selectableTagStyles2}
+                title="Evento"
+                selected={selectedFilter === 'event'}
+                onPress={() => handleChangeFilter('event')}
+              />
             </View>
 
-            {isLoadingFirstPage && vacancies.length === 0 ? (
-              <SearchVacancySkeleton />
-            ) : (
+            {/* Orden */}
+            <OrderButton
+              options={opciones}
+              dropdownWidth={180}
+              defaultOption={selectedOrder}
+              onSelect={(orderIndex) => handleChangeOrder(opciones[orderIndex - 1])}
+            />
+          </View>
+
+          {isLoadingFirstPage && vacancies.length === 0 ? (
+            <SearchVacancySkeleton />
+          ) : (
             <View style={[styles.results, { flex: 1 }]}>
               {!isLoadingFirstPage && vacancies.length === 0 ? (
                 hasSearched ? (
                   <View style={styles.noVancancyCard}>
-    
                     <Text style={styles.noVancancyTitle}>No se encontraron vacantes</Text>
-                    
                     <Image
                       source={require('@/assets/images/jex/Jex-Sin-Trabajo.png')}
                       style={styles.noVancancyImage}
                       resizeMode="contain"
                     />
-                      
                     <Text style={styles.noVancancySubtitle}>
                       Seguí explorando para descubrir tu próximo trabajo
                     </Text>
-    
                   </View>
                 ) : (
                   <View style={styles.noVancancyCard}>
-    
                     <Text style={styles.noVancancyTitle}>Explorá las vacantes disponibles</Text>
-                    
                     <Image
                       source={require('@/assets/images/jex/Jex-Sin-Eventos.png')}
                       style={styles.noVancancyImage}
                       resizeMode="contain"
                     />
-                      
                     <Text style={styles.noVancancySubtitle}>
                       Empezá a buscar y conectá con tu próximo evento
                     </Text>
-    
                   </View>
                 )
               ) : (
@@ -153,9 +144,8 @@ export default function SearchVacancyScreen() {
               )}
             </View>
           )}
-          </View>
-        </>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
-  );
-}
+        </View>
+      </View>
+    </TouchableWithoutFeedback>
+  </SafeAreaView>
+);}

@@ -19,9 +19,7 @@ export const profileStyles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 50,
-    marginRight: 14,
-    borderWidth: 1,
-    borderColor: Colors.violet5,
+    marginRight: 14
   },
   name: {
     fontSize: 28,
@@ -37,11 +35,6 @@ export const profileStyles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 18,
     marginBottom: 30,
-    shadowColor: Colors.black,
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
   },
   ratingRow: {
     flexDirection: "row",

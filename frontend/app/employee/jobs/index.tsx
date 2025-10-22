@@ -1,20 +1,16 @@
-import { OrderButton } from "@/components/button/OrderButton";
-import ImageOnline from "@/components/image/ImageOnline";
-import { iconos } from "@/constants/iconos";
-import { Job, useActiveJobs } from "@/hooks/employee/jobs/useActiveJobs";
-import { activeJobsStyles as styles } from "@/styles/app/employee/jobs/activeJobsStyles";
-import { Colors } from "@/themes/colors";
-import { useEffect, useState } from "react";
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useMemo, useState } from "react";
+import { OrderButton } from "@/components/button/OrderButton"; 
+import ImageOnline from "@/components/image/ImageOnline"; 
+import { DotsLoader } from "@/components/others/DotsLoader"; 
+import { iconos } from "@/constants/iconos"; 
+import { Job, useActiveJobs } from "@/hooks/employee/jobs/useActiveJobs"; 
+import { activeJobsStyles as styles } from "@/styles/app/employee/jobs/activeJobsStyles"; 
+import { Colors } from "@/themes/colors"; 
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native"; 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ActiveJobsScreen() {
-  const { jobs, goToJobDetail } = useActiveJobs();
-  const [sortedJobs, setSortedJobs] = useState<Job[]>([]);
-
-  useEffect(() => {
-    setSortedJobs(jobs);
-  }, [jobs]);
+  const { jobs, goToJobDetail, loading } = useActiveJobs();
 
   const orderOptions = [
     "Días Faltantes ASC",
@@ -27,49 +23,47 @@ export default function ActiveJobsScreen() {
     "Evento DESC",
   ];
 
-  const handleSort = (order: number) => {
-    const opt = orderOptions[order - 1];
-    let ordered = [...jobs];
+  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
 
-    switch (opt) {
+  const sortedJobs = useMemo(() => {
+    const list = [...jobs];
+    switch (selectedOrder) {
       case "Días Faltantes ASC":
-        ordered.sort((a, b) => a.daysRemaining - b.daysRemaining);
-        break;
+        return list.sort((a, b) => a.daysRemaining - b.daysRemaining);
       case "Días Faltantes DESC":
-        ordered.sort((a, b) => b.daysRemaining - a.daysRemaining);
-        break;
+        return list.sort((a, b) => b.daysRemaining - a.daysRemaining);
       case "Fecha Inicio ASC":
-        ordered.sort(
-          (a, b) =>
-            new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-        );
-        break;
+        return list.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
       case "Fecha Inicio DESC":
-        ordered.sort(
-          (a, b) =>
-            new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
-        );
-        break;
+        return list.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
       case "Rol ASC":
-        ordered.sort((a, b) => a.role.localeCompare(b.role));
-        break;
+        return list.sort((a, b) => a.role.localeCompare(b.role));
       case "Rol DESC":
-        ordered.sort((a, b) => b.role.localeCompare(a.role));
-        break;
+        return list.sort((a, b) => b.role.localeCompare(a.role));
       case "Evento ASC":
-        ordered.sort((a, b) => a.eventName.localeCompare(b.eventName));
-        break;
+        return list.sort((a, b) => a.eventName.localeCompare(b.eventName));
       case "Evento DESC":
-        ordered.sort((a, b) => b.eventName.localeCompare(a.eventName));
-        break;
+        return list.sort((a, b) => b.eventName.localeCompare(a.eventName));
+      default:
+        return list; // sin orden seleccionado todavía
     }
+  }, [jobs, selectedOrder]);
 
-    setSortedJobs(ordered);
+  const handleSort = (orderIndex: number) => {
+    const opt = orderOptions[orderIndex - 1];
+    setSelectedOrder(opt);
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={{ justifyContent: 'center', alignItems: 'center', marginTop: 100 }}>
+        <DotsLoader />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      {/* Header con título y botón */}
       <View style={styles.headerRow}>
         <Text style={styles.title}>Trabajos</Text>
         {jobs.length > 0 && (
@@ -80,11 +74,11 @@ export default function ActiveJobsScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.scroll,
-          { flexGrow: 1, justifyContent: sortedJobs.length === 0 ? "center" : "flex-start" }
+          { flexGrow: 1, justifyContent: jobs.length === 0 ? "center" : "flex-start" }
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {sortedJobs.length === 0 ? (
+        {jobs.length === 0 ? (
           <View style={styles.noJobsCard}>
             <Text style={styles.noJobsTitle}>Aún no tienes trabajos</Text>
             <Image
@@ -97,7 +91,6 @@ export default function ActiveJobsScreen() {
             </Text>
           </View>
         ) : (
-          
           sortedJobs.map((job) => (
             <View key={job.id} style={styles.card}>
               {/* Header con imagen + info */}

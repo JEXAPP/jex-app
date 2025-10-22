@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import { Dropdown, DropdownOption } from '@/components/picker/DropDown';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 export default function ChatScreen() {
   const {
@@ -71,7 +72,10 @@ export default function ChatScreen() {
         </>
       )}
 
-      {isLoadingAny && <Text style={s.statusText}>Cargando chats…</Text>}
+      {isLoadingAny && 
+      <SafeAreaView style={{ justifyContent: 'center', alignItems: 'center', marginTop: 100 }}>
+        <DotsLoader />
+      </SafeAreaView>}
       {!isLoadingAny && error && <Text style={s.errorText}>Error: {error}</Text>}
     </View>
   );
