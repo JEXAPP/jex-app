@@ -2,7 +2,7 @@ from django.urls import path
 from user_auth.views.auth import EmailTokenObtainPairView, CustomGoogleLoginView, LogoutView
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from user_auth.views.employee import CompleteEmployeeSocialView, EmployeeAdditionalInfoView, EmployeeEducationView, EmployeeProfileDescriptionView, EmployeeRegisterView, EmployeeWorkExperienceView
+from user_auth.views.employee import CompleteEmployeeSocialView, EmployeeAdditionalInfoView, EmployeeEducationView, EmployeeInterestsView, EmployeeProfileDescriptionView, EmployeeRegisterView, EmployeeWorkExperienceView
 from user_auth.views.employer import CompleteEmployerSocialView, EmployerRegisterView
 from user_auth.views.password_reset import PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
 from user_auth.views.phone_verification import SendPhoneVerificationCodeView, VerifyPhoneCodeView
@@ -25,4 +25,5 @@ urlpatterns = [
     path('employee/profile-description/', EmployeeProfileDescriptionView.as_view(), name='employee-profile-description'),
     path('employee/work-experience/', EmployeeWorkExperienceView.as_view(), name='employee-work-experience'),
     path('employee/education/', EmployeeEducationView.as_view(), name='employee-education'),
+    path('employee/interests/', EmployeeInterestsView.as_view(), name='employee-interests'),
 ]

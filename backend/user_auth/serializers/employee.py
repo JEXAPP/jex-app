@@ -381,3 +381,25 @@ class EmployeeSearchFilterSerializer(serializers.Serializer):
                 raise serializers.ValidationError(INVALID_RANGE_TIME)
 
         return data
+
+class EmployeeInterestsSerializer(serializers.ModelSerializer):
+    job_types = serializers.PrimaryKeyRelatedField(
+        queryset=JobType.objects.all(),
+        many=True,
+        required=True
+    )
+
+    class Meta:
+        model = EmployeeProfile
+        fields = ['job_types']
+
+    def validate_job_types(self, value):
+        if len(value) > 3:
+            raise serializers.ValidationError("Solo se pueden seleccionar hasta 3 intereses.")
+        return value
+
+    def update(self, instance, validated_data):
+        if 'job_types' in validated_data:
+            instance.job_types.set(validated_data['job_types'])
+        instance.save()
+        return instance
