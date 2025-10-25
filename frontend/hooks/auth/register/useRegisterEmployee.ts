@@ -95,7 +95,7 @@ export const useRegisterEmployee = () => {
         if (refresh) await setToken('refresh', refresh);
       } else {
         // Registro por Google; enviamos el access de Google o el code si lo tuvimos
-        await requestBackend('/api/auth/register/employee/social/', {
+        await requestBackend('/api/auth/google/register', {
           google_access_token: gAt || undefined,
           google_code: gCode || undefined,
           datosAdicionales: payload,
