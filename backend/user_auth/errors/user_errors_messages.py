@@ -1,0 +1,1 @@
+EMAIL_REQUIRED = "El correo electrónico es obligatorio."

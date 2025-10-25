@@ -3,9 +3,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from user_auth.constants import EMPLOYEE_ROLE
+from user_auth.errors.user_errors_messages import EMAIL_REQUIRED
 from user_auth.models.employee import EmployeeProfile
 from user_auth.permissions import IsInGroup
 from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, EmployeeAdditionalInfoSerializer, EmployeeEducationSerializer, EmployeeInterestsSerializer, EmployeeProfileDescriptionSerializer, EmployeeRegisterSerializer, EmployeeWorkExperienceSerializer
+from user_auth.models.user import CustomUser
+from rest_framework import serializers
 
 class EmployeeRegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -116,3 +119,15 @@ class EmployeeInterestsView(APIView):
 
         except Exception as e:
             return Response({"detail": f"Unexpected error: {str(e)}"}, status=500)
+
+class EmployeeValidateMailView(APIView):
+
+    def post(self, request):
+        email = request.data.get("email")
+
+        if not email:
+            raise serializers.ValidationError(EMAIL_REQUIRED)
+
+        exists = CustomUser.objects.filter(email__iexact=email).exists()
+
+        return Response({"message": exists}, status=status.HTTP_200_OK)
