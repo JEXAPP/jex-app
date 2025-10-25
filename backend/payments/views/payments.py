@@ -85,7 +85,6 @@ class GenerateMPStateView(views.APIView):
     
 
 
-
 class GeneratePaymentLinkView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
     required_groups = [EMPLOYER_ROLE]
@@ -97,44 +96,53 @@ class GeneratePaymentLinkView(views.APIView):
         )
         serializer.is_valid(raise_exception=True)
 
-        employee_account = serializer.validated_data["employee_account"]
+        offer = serializer.validated_data["offer"]
         amount = Decimal(serializer.validated_data["amount"])
         concept = serializer.validated_data["concept"]
-        offer = serializer.validated_data["offer"]
+        employee_user = offer.employee.user
 
         # Calculamos la comisión automáticamente (10% del monto)
         commission = (amount * Decimal("0.10")).quantize(Decimal("0.01"))
 
         pending_state = PaymentState.objects.get(name=PaymentStates.PENDING.value)
 
+        # Traemos la cuenta de Mercado Pago del empleado
+        try:
+            mp_account = employee_user.mercado_pago_account
+        except MercadoPagoAccount.DoesNotExist:
+            return Response(
+                {"error": "El empleado no tiene cuenta de Mercado Pago"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         try:
             # Buscar si ya existe un Payment pendiente para la misma oferta y empleado
             payment = Payment.objects.filter(
                 offer=offer,
-                employee=offer.employee.user,
+                employee=employee_user,
                 state=pending_state
             ).first()
 
             if payment:
-                # Si ya existe, reutilizar el link si lo tenemos
+                # Reutilizar el link si ya tenemos mp_payment_id
                 payment_url = None
                 if payment.mp_payment_id:
-                    # Buscar el link en Mercado Pago usando el mp_payment_id
                     sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
                     mp_resp = sdk.payment().get(payment.mp_payment_id)
                     if mp_resp["status"] == 200:
                         mp_data = mp_resp["response"]
-                        payment_url = mp_data.get("transaction_details", {}).get("external_resource_url")
+                        payment_url = mp_data.get(
+                            "transaction_details", {}
+                        ).get("external_resource_url")
                 if not payment_url:
-                    # Si no tenemos el link, crear uno nuevo
                     payment_url = MercadoPagoService.create_payment_link(
-                        employee_account, amount, commission, concept, external_reference=str(payment.id)
+                        mp_account, amount, commission, concept, external_reference=str(payment.id)
                     )
             else:
-                # Si no existe, crear uno nuevo
+                # Crear nuevo Payment
                 payment = Payment.objects.create(
                     offer=offer,
-                    employee=offer.employee.user,
+                    employee=employee_user,
                     amount=amount,
                     commission=commission,
                     concept=concept,
@@ -142,7 +150,7 @@ class GeneratePaymentLinkView(views.APIView):
                     state=pending_state
                 )
                 payment_url = MercadoPagoService.create_payment_link(
-                    employee_account, amount, commission, concept, external_reference=str(payment.id)
+                    mp_account, amount, commission, concept, external_reference=str(payment.id)
                 )
 
         except Exception as e:
