@@ -3,6 +3,8 @@ from rest_framework import serializers
 from applications.errors.offer_messages import INVALID_RANGE_DATE, INVALID_RANGE_TIME, MISSING_PROVINCE
 from eventos.formatters.date_time import CustomDateField
 from rating.utils import get_user_average_rating, get_user_rating_count
+from user_auth.models.education_certification import EducationCertification
+from user_auth.models.work_experience import WorkExperience
 from vacancies.formatters.date_time import CustomTimeField
 from vacancies.models.job_types import JobType
 from vacancies.serializers.job_types import ListJobTypesSerializer
@@ -198,6 +200,102 @@ class EmployeeAdditionalInfoSerializer(serializers.ModelSerializer):
 
         return rep
 
+class EmployeeProfileDescriptionSerializer(serializers.ModelSerializer):
+    profile_image_url = serializers.URLField(required=False, allow_null=True)
+    profile_image_id = serializers.CharField(required=False, allow_null=True)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = EmployeeProfile
+        fields = ['description', 'profile_image_url', 'profile_image_id']
+
+    def validate(self, attrs):
+        url, img_id = attrs.get('profile_image_url'), attrs.get('profile_image_id')
+        if (url and not img_id) or (img_id and not url):
+            raise serializers.ValidationError(
+                "Both 'profile_image_url' and 'profile_image_id' must be provided together."
+            )
+        return attrs
+
+    def update(self, instance, validated_data):
+        user = instance.user
+
+        if 'description' in validated_data:
+            instance.description = validated_data['description']
+
+        url, img_id = validated_data.get('profile_image_url'), validated_data.get('profile_image_id')
+        if url and img_id:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=img_id,
+                defaults={'url': url, 'type': ImageType.PROFILE, 'uploaded_by': user}
+            )
+            user.profile_image = image_obj
+            user.save()
+
+        instance.save()
+        return instance
+
+
+class EmployeeWorkExperienceSerializer(serializers.ModelSerializer):
+    start_date = CustomDateField()
+    end_date = CustomDateField(required=False, allow_null=True)
+    image_url = serializers.URLField(required=False, allow_null=True)
+    image_id = serializers.CharField(required=False, allow_null=True)
+
+    class Meta:
+        model = WorkExperience
+        fields = ['title', 'work_type', 'company_or_event', 'start_date', 'end_date', 'description', 'image_url', 'image_id']
+
+    def validate(self, attrs):
+        url, img_id = attrs.get('image_url'), attrs.get('image_id')
+        if (url and not img_id) or (img_id and not url):
+            raise serializers.ValidationError("Both 'image_url' and 'image_id' must be provided together.")
+        return attrs
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        employee = user.employee_profile
+
+        url, img_id = validated_data.pop('image_url', None), validated_data.pop('image_id', None)
+        if url and img_id:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=img_id,
+                defaults={'url': url, 'type': ImageType.OTHER, 'uploaded_by': user}
+            )
+            validated_data['image'] = image_obj
+
+        return WorkExperience.objects.create(employee=employee, **validated_data)
+
+class EmployeeEducationSerializer(serializers.ModelSerializer):
+    start_date = CustomDateField()
+    end_date = CustomDateField(required=False, allow_null=True)
+    image_url = serializers.URLField(required=False, allow_null=True)
+    image_id = serializers.CharField(required=False, allow_null=True)
+
+    class Meta:
+        model = EducationCertification
+        fields = ['institution', 'title', 'discipline', 'start_date', 'end_date', 'description', 'image_url', 'image_id']
+
+    def validate(self, attrs):
+        url, img_id = attrs.get('image_url'), attrs.get('image_id')
+        if (url and not img_id) or (img_id and not url):
+            raise serializers.ValidationError("Both 'image_url' and 'image_id' must be provided together.")
+        return attrs
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        employee = user.employee_profile
+
+        url, img_id = validated_data.pop('image_url', None), validated_data.pop('image_id', None)
+        if url and img_id:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=img_id,
+                defaults={'url': url, 'type': ImageType.OTHER, 'uploaded_by': user}
+            )
+            validated_data['image'] = image_obj
+
+        return EducationCertification.objects.create(employee=employee, **validated_data)
+    
 
 class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
     profile_image = serializers.SerializerMethodField()
@@ -283,3 +381,25 @@ class EmployeeSearchFilterSerializer(serializers.Serializer):
                 raise serializers.ValidationError(INVALID_RANGE_TIME)
 
         return data
+
+class EmployeeInterestsSerializer(serializers.ModelSerializer):
+    job_types = serializers.PrimaryKeyRelatedField(
+        queryset=JobType.objects.all(),
+        many=True,
+        required=True
+    )
+
+    class Meta:
+        model = EmployeeProfile
+        fields = ['job_types']
+
+    def validate_job_types(self, value):
+        if len(value) > 3:
+            raise serializers.ValidationError("Solo se pueden seleccionar hasta 3 intereses.")
+        return value
+
+    def update(self, instance, validated_data):
+        if 'job_types' in validated_data:
+            instance.job_types.set(validated_data['job_types'])
+        instance.save()
+        return instance
