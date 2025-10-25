@@ -1,12 +1,12 @@
 import { useGoogleAuthRequest } from '@/services/external/google/useGoogleAuthRequest';
 import { usePushNotifications } from '@/services/internal/notifications/usePushNotifications';
 import useBackendConection from '@/services/internal/useBackendConection';
+import { getToken, setToken } from '@/services/internal/useTokenStorage';
+import { connectStream, getStreamClient } from '@/services/stream/streamClient';
 import { useRouter } from 'expo-router';
 import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react';
 import { Platform } from 'react-native';
-import { setToken, getToken } from '@/services/internal/useTokenStorage';
-import { connectStream, getStreamClient } from '@/services/stream/streamClient';
 
 
 type Role = 'employee' | 'employer';
@@ -52,6 +52,7 @@ export const useLogin = () => {
       let res;
       if (g.accessToken) {
         res = await requestBackend('/api/auth/login/google/', { access_token: g.accessToken }, 'POST');
+        
       } else if (g.code) {
         res = await requestBackend('/api/auth/login/google/code/', { code: g.code }, 'POST');
       } else {
@@ -145,7 +146,7 @@ export const useLogin = () => {
       await ensureStreamConnected();
       const decoded = jwtDecode<DecodedToken>(accessToken);
       const role = decoded.role;
-      if (role === 'employee') router.push('/employee');
+      if (role === 'employee') router.push('/auth/additional-info/step-one');
       else if (role === 'employer') router.push('/employer');
       else router.replace('/auth/register/type-user');
     } catch (error) {

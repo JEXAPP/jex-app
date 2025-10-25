@@ -50,7 +50,7 @@ export default function SanctionScreen() {
   source={
     worker.image
       ? { uri: worker.image }
-      : require("@/assets/images/jex/Jex-FotoPerfil.png")
+      : require("@/assets/images/jex/Jex-FotoPerfil.webp")
   }
   style={styles.workerImage}
 />

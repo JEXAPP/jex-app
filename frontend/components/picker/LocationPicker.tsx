@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Modal, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, InteractionManager } from 'react-native';
 
 import { Button } from '@/components/button/Button';
 import { Input } from '@/components/input/Input';
@@ -16,10 +16,11 @@ import {
   listarProvincias,
   buscarLocalidades,
   buscarCalles,
-  normalizarDireccion,
 } from '@/services/external/sugerencias/useGeoRefAr';
 import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
 import { Colors } from '@/themes/colors';
+import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
+import { ClickWindow } from '@/components/window/ClickWindow';
 
 type Option = { id: string; name: string };
 
@@ -30,153 +31,299 @@ type LocationAddressPickerProps = {
   buttonLabel?: string;
 };
 
+function useDebounced<T>(value: T, delay = 250) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
+
+/** Redondeo a 10 decimales (compatible con DecimalField max_digits=15, decimal_places=10) */
+function round10(n: number) {
+  return parseFloat(n.toFixed(10));
+}
+
+/** Promedio simple de un array de números */
+function avg(nums: number[]) {
+  if (!nums.length) return NaN;
+  const s = nums.reduce((a, b) => a + b, 0);
+  return s / nums.length;
+}
+
 export default function LocationAddressPicker({
   placeholder,
   value,
   onChange,
   buttonLabel,
 }: LocationAddressPickerProps) {
-  // Modal
   const [open, setOpen] = useState(false);
 
-  // Paso 1: Provincia (DropDown2)
   const [provincias, setProvincias] = useState<Option[]>([]);
-  const [provinciaId, setProvinciaId] = useState<string>(''); // DropDown2 guarda el id seleccionado
-  const [provinciaName, setProvinciaName] = useState<string>('');
+  const [provinciaId, setProvinciaId] = useState('');
+  const [provinciaName, setProvinciaName] = useState('');
 
-  // Paso 2: Localidad (Input + Suggestions)
-  const [queryLocalidad, setQueryLocalidad] = useState('');
+  const [localidadQuery, setLocalidadQuery] = useState('');
+  const debouncedLocalidad = useDebounced(localidadQuery, 250);
   const [localidadesSug, setLocalidadesSug] = useState<{ descripcion: string; placeId: string }[]>([]);
-  const [localidadId, setLocalidadId] = useState<string>('');
-  const [localidadName, setLocalidadName] = useState<string>('');
+  const [localidadId, setLocalidadId] = useState('');
+  const [localidadName, setLocalidadName] = useState('');
 
-  // Paso 3: Calle (Input + Suggestions)
-  const [queryCalle, setQueryCalle] = useState('');
+  const [calleQuery, setCalleQuery] = useState('');
+  const debouncedCalle = useDebounced(calleQuery, 250);
   const [callesSug, setCallesSug] = useState<{ descripcion: string; placeId: string }[]>([]);
-  const [calleNombre, setCalleNombre] = useState<string>('');
-
-  // Paso 4: Altura
-  const [altura, setAltura] = useState<string>('');
+  const [calleNombre, setCalleNombre] = useState('');
+  const [altura, setAltura] = useState('');
 
   const [confirming, setConfirming] = useState(false);
+  const [cwVisible, setCwVisible] = useState(false);
+  const [cwTitle, setCwTitle] = useState('Ubicación sin coordenadas');
+  const [cwMsg, setCwMsg] = useState('');
 
-  const [localidadLocked, setLocalidadLocked] = useState(false);
-const [calleLocked, setCalleLocked] = useState(false);
+  /** --- FIX de “doble tap” en Suggestions --- */
+  const selectingRef = useRef(false);
+  const runSelectionSafely = (fn: () => void) => {
+    if (selectingRef.current) return;
+    selectingRef.current = true;
+    Keyboard.dismiss();
+    // Esperar a que terminen animaciones (teclado / layout) y luego ejecutar
+    InteractionManager.runAfterInteractions(() => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          try { fn(); } finally { selectingRef.current = false; }
+        }, 0);
+      });
+    });
+  };
 
-  // Cargar provincias al abrir
   useEffect(() => {
     if (!open) return;
     (async () => {
       try {
         const provs = await listarProvincias();
-        const opts = provs.map(p => ({ id: p.id, name: p.nombre }));
-        setProvincias(opts);
+        setProvincias(provs.map(p => ({ id: p.id, name: p.nombre })));
       } catch {
         setProvincias([]);
       }
     })();
   }, [open]);
 
-  // Localidades
-useEffect(() => {
-  let cancel = false;
-  const run = async () => {
-    if (localidadLocked || !provinciaId || queryLocalidad.trim().length < 2) {
-      if (!cancel) setLocalidadesSug([]);
-      return;
+  // Si el usuario edita manualmente localidad, des-seleccionar si ya no coincide
+  useEffect(() => {
+    if (localidadId && localidadQuery.trim() !== localidadName.trim()) {
+      setLocalidadId('');
+      setLocalidadName('');
+      setCalleNombre('');
+      setCalleQuery('');
+      setAltura('');
+      setCallesSug([]);
     }
-    try {
-      const s = await buscarLocalidades(provinciaId, queryLocalidad.trim());
-      if (!cancel) setLocalidadesSug(s);
-    } catch { if (!cancel) setLocalidadesSug([]); }
-  };
-  const t = setTimeout(run, 250);
-  return () => { cancel = true; clearTimeout(t); };
-}, [provinciaId, queryLocalidad, localidadLocked]);
+  }, [localidadQuery, localidadId, localidadName]);
 
-// Calles
-useEffect(() => {
-  let cancel = false;
-  const run = async () => {
-    if (calleLocked || !provinciaId || !localidadId || queryCalle.trim().length < 2) {
-      if (!cancel) setCallesSug([]);
-      return;
+  // Si edita manualmente calle, des-seleccionar si ya no coincide
+  useEffect(() => {
+    if (calleNombre && calleQuery.trim() !== calleNombre.trim()) {
+      setCalleNombre('');
     }
-    try {
-      const s = await buscarCalles({ provinciaId, localidadId, localidadName, q: queryCalle.trim() });
-      if (!cancel) setCallesSug(s);
-    } catch { if (!cancel) setCallesSug([]); }
-  };
-  const t = setTimeout(run, 250);
-  return () => { cancel = true; clearTimeout(t); };
-}, [provinciaId, localidadId, localidadName, queryCalle, calleLocked]);
+  }, [calleQuery, calleNombre]);
 
-  // Selección desde Suggestions (Localidad)
+  // Sugerencias de localidades
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      if (!provinciaId || debouncedLocalidad.trim().length < 2) {
+        if (!cancel) setLocalidadesSug([]);
+        return;
+      }
+      try {
+        const s = await buscarLocalidades(provinciaId, debouncedLocalidad.trim());
+        if (!cancel) setLocalidadesSug(s);
+      } catch {
+        if (!cancel) setLocalidadesSug([]);
+      }
+    })();
+    return () => { cancel = true; };
+  }, [provinciaId, debouncedLocalidad]);
+
+  // Sugerencias de calles
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      if (!provinciaId || !localidadId || debouncedCalle.trim().length < 2) {
+        if (!cancel) setCallesSug([]);
+        return;
+      }
+      try {
+        const s = await buscarCalles({ provinciaId, localidadId, localidadName, q: debouncedCalle.trim() });
+        if (!cancel) setCallesSug(s);
+      } catch {
+        if (!cancel) setCallesSug([]);
+      }
+    })();
+    return () => { cancel = true; };
+  }, [provinciaId, localidadId, localidadName, debouncedCalle]);
+
+  // Selecciones desde Suggestions (tap único de verdad)
   const handleSelectLocalidad = (it: { descripcion: string; placeId: string }) => {
-  const parts = Object.fromEntries(it.placeId.split('|').map(kv => { const [k, ...r] = kv.split(':'); return [k, r.join(':')]; }));
-  const locId = parts['loc'] || '';
-  const locName = parts['locName'] || it.descripcion.split(',')[0]?.trim() || '';
-  setLocalidadId(locId);
-  setLocalidadName(locName);
-  setQueryLocalidad(locName);
-  setLocalidadesSug([]);
-  setLocalidadLocked(true);   // 🔒 bloquea re-fetch
-  Keyboard.dismiss();         // quita foco
-};
+    runSelectionSafely(() => {
+      const parts = Object.fromEntries(it.placeId.split('|').map(kv => {
+        const [k, ...r] = kv.split(':'); return [k, r.join(':')];
+      }));
+      const locId = parts['loc'] || '';
+      const locName = parts['locName'] || it.descripcion.split(',')[0]?.trim() || '';
+      setLocalidadId(locId);
+      setLocalidadName(locName);
+      setLocalidadQuery(locName);
+      setLocalidadesSug([]);
+      // Al elegir localidad, limpiar calle/altura
+      setCalleNombre('');
+      setCalleQuery('');
+      setAltura('');
+      setCallesSug([]);
+    });
+  };
 
-  // Selección desde Suggestions (Calle)
   const handleSelectCalle = (it: { descripcion: string; placeId: string }) => {
-  const parts = Object.fromEntries(it.placeId.split('|').map(kv => { const [k, ...r] = kv.split(':'); return [k, r.join(':')]; }));
-  const cName = parts['calleName'] || it.descripcion.split(',')[0]?.trim() || '';
-  setCalleNombre(cName);
-  setQueryCalle(cName);
-  setCallesSug([]);
-  setCalleLocked(true);       // 🔒 bloquea re-fetch
-  Keyboard.dismiss();         // quita foco
-};
+    runSelectionSafely(() => {
+      const parts = Object.fromEntries(it.placeId.split('|').map(kv => {
+        const [k, ...r] = kv.split(':'); return [k, r.join(':')];
+      }));
+      const cName = parts['calleName'] || it.descripcion.split(',')[0]?.trim() || '';
+      setCalleNombre(cName);
+      setCalleQuery(cName);
+      setCallesSug([]);
+    });
+  };
 
-  // habilitar guardar
-  const canConfirm = useMemo(() => {
-    return Boolean(provinciaName && localidadName && calleNombre && Number(altura) > 0);
-  }, [provinciaName, localidadName, calleNombre, altura]);
+  const canConfirm = useMemo(() =>
+    Boolean(provinciaName && localidadId && localidadName && calleNombre && Number(altura) > 0),
+    [provinciaName, localidadId, localidadName, calleNombre, altura]
+  );
+
+  // API direcciones (aplanado)
+  async function fetchDirecciones({
+    direccion,
+    provincia,
+    localidad_censal,
+    max = 1,
+  }: {
+    direccion: string;
+    provincia: string;
+    localidad_censal: string;
+    max?: number;
+  }) {
+    const base = 'https://apis.datos.gob.ar/georef/api/direcciones';
+    const params = new URLSearchParams({
+      direccion,
+      provincia,
+      localidad_censal,
+      aplanar: 'true',
+      max: String(max),
+    });
+    const url = `${base}?${params.toString()}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
+  }
 
   const handleConfirm = async () => {
     if (!canConfirm) return;
     try {
       setConfirming(true);
-      const res = await normalizarDireccion({
-        calleNombre,
-        altura,
-        provinciaNombre: provinciaName,
-        localidadNombre: localidadName,
-      });
-      const canonical =
-        res?.canonical ??
-        `${calleNombre} ${altura}, ${localidadName}, ${provinciaName}, Argentina`;
-      const coords = res?.lat && res?.lon ? { lat: res.lat, lng: res.lon } : null;
 
-      onChange(canonical, coords);
+      const direccionConAltura = `${calleNombre} ${altura}`;
+      const prov = provinciaName;
+      const loc = localidadName;
+
+      /** 1) Buscar con altura */
+      let data = await fetchDirecciones({
+        direccion: direccionConAltura,
+        provincia: prov,
+        localidad_censal: loc,
+        max: 1,
+      });
+
+      if (data?.total > 0 && Array.isArray(data.direcciones) && data.direcciones.length > 0) {
+        const d = data.direcciones[0];
+        const lat = d?.ubicacion_lat;
+        const lon = d?.ubicacion_lon;
+        if (typeof lat === 'number' && typeof lon === 'number') {
+          const canonical = d?.nomenclatura ?? `${direccionConAltura}, ${loc}, ${prov}`;
+          onChange(canonical, { lat: round10(lat), lng: round10(lon) });
+          setOpen(false);
+          return;
+        }
+      }
+
+      /** 2) Fallback: sin altura → traer varias y PROMEDIAR coordenadas */
+      data = await fetchDirecciones({
+        direccion: calleNombre,
+        provincia: prov,
+        localidad_censal: loc,
+        max: 10, // traer varias para promediar
+      });
+
+      if (data?.total > 0 && Array.isArray(data.direcciones) && data.direcciones.length > 0) {
+        const lats = data.direcciones
+          .map((d: any) => d?.ubicacion_lat)
+          .filter((n: any) => typeof n === 'number') as number[];
+        const lons = data.direcciones
+          .map((d: any) => d?.ubicacion_lon)
+          .filter((n: any) => typeof n === 'number') as number[];
+
+        if (lats.length && lons.length) {
+          const latAvg = round10(avg(lats));
+          const lonAvg = round10(avg(lons));
+          const canonical = (data.direcciones[0]?.nomenclatura as string) ?? `${calleNombre}, ${loc}, ${prov}`;
+
+          onChange(canonical, { lat: latAvg, lng: lonAvg });
+
+          // (Opcional) Aviso informativo de que usamos la calle sin altura
+          setCwTitle('Altura no encontrada con coordenadas');
+          setCwMsg(`No se hallaron coordenadas para "${direccionConAltura}". Se usó la ubicación promedio de "${calleNombre}" en "${loc}".`);
+          setCwVisible(true);
+
+          setOpen(false);
+          return;
+        }
+      }
+
+      /** 3) Sin coords de ninguna forma */
+      const canonical = `${calleNombre} ${altura}, ${loc}, ${prov}`;
+      onChange(canonical, null);
+      setCwTitle('No se encontraron coordenadas');
+      setCwMsg(`No fue posible obtener coordenadas para "${direccionConAltura}" ni para la calle sin altura en "${loc}". Verificá calle, altura y localidad.`);
+      setCwVisible(true);
       setOpen(false);
+
+    } catch {
+      const canonical = `${calleNombre} ${altura}, ${localidadName}, ${provinciaName}`;
+      onChange(canonical, null);
+      setCwTitle('Error consultando la dirección');
+      setCwMsg('No pudimos validar la dirección en este momento. Intentá nuevamente.');
+      setCwVisible(true);
     } finally {
       setConfirming(false);
     }
   };
 
-  // Reset al cambiar provincia
   const handleProvinciaChange = (id: string) => {
-  setProvinciaId(id);
-  const provName = provincias.find(p => String(p.id) === String(id))?.name ?? '';
-  setProvinciaName(provName);
+    setProvinciaId(id);
+    const provName = provincias.find(p => String(p.id) === String(id))?.name ?? '';
+    setProvinciaName(provName);
 
-  // reset pasos y locks
-  setLocalidadId(''); setLocalidadName(''); setQueryLocalidad(''); setLocalidadesSug([]); setLocalidadLocked(false);
-  setCalleNombre(''); setQueryCalle(''); setCallesSug([]); setCalleLocked(false);
-  setAltura('');
-};
+    setLocalidadId(''); setLocalidadName(''); setLocalidadQuery(''); setLocalidadesSug([]);
+    setCalleNombre(''); setCalleQuery(''); setCallesSug([]);
+    setAltura('');
+  };
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    setLocalidadesSug([]);
+    setCallesSug([]);
+  };
 
-  // Texto del trigger (placeholder visible si no hay valor)
   const triggerText =
     (buttonLabel && buttonLabel.trim().length > 0)
       ? buttonLabel
@@ -186,14 +333,12 @@ useEffect(() => {
 
   return (
     <>
-      {/* Trigger que simula input */}
       <Button
         texto={triggerText}
         onPress={() => setOpen(true)}
         styles={buttonStyles3}
       />
 
-      {/* Modal progresivo */}
       <Modal visible={open} transparent animationType="fade" onRequestClose={handleClose}>
         <KeyboardAvoidingView
           behavior={Platform.select({ ios: 'padding', android: undefined })}
@@ -204,7 +349,6 @@ useEffect(() => {
           <View style={styles.modal}>
             <Text style={styles.title}>Seleccioná la ubicación</Text>
 
-            {/* 1) Provincia (DropDown2) */}
             <View style={styles.block}>
               <DropDown2
                 name="Provincia"
@@ -216,15 +360,14 @@ useEffect(() => {
               />
             </View>
 
-            {/* 2) Localidad (solo si hay provincia) */}
-            {provinciaId ? (
+            {!!provinciaId && (
               <View style={styles.block}>
                 <View style={styles.suggestWrapper}>
                   <Input
                     placeholder="Localidad"
-                    value={queryLocalidad}
-                    onChangeText={(txt) => { setLocalidadLocked(false); setQueryLocalidad(txt); }}
-                    styles={{...inputStyles1, inputContainer: {...inputStyles1.inputContainer, width: 310}}}
+                    value={localidadQuery}
+                    onChangeText={setLocalidadQuery}
+                    styles={{ ...inputStyles1, inputContainer: { ...inputStyles1.inputContainer, width: 310 } }}
                   />
                   {!!localidadesSug.length && (
                     <Suggestions
@@ -234,20 +377,18 @@ useEffect(() => {
                     />
                   )}
                 </View>
-
               </View>
-            ) : null}
+            )}
 
-            {/* 3) Calle + Altura juntos (solo si hay localidad) */}
-            {localidadId ? (
+            {!!localidadId && (
               <View style={styles.block}>
                 <View style={styles.rowCalleAltura}>
                   <View style={[styles.suggestWrapper, styles.colGrow]}>
                     <Input
                       placeholder="Calle"
-                      value={queryCalle}
-                      onChangeText={(txt) => { setCalleLocked(false); setQueryCalle(txt); }}
-                      styles={{...inputStyles1, inputContainer: {...inputStyles1.inputContainer, width: 200}}}
+                      value={calleQuery}
+                      onChangeText={setCalleQuery}
+                      styles={{ ...inputStyles1, inputContainer: { ...inputStyles1.inputContainer, width: 200 } }}
                     />
                     {!!callesSug.length && (
                       <Suggestions
@@ -264,24 +405,26 @@ useEffect(() => {
                       value={altura}
                       onChangeText={setAltura}
                       keyboardType="numeric"
-                      styles={{...inputStyles1, inputContainer: {...inputStyles1.inputContainer, width: 100}}}
+                      styles={{ ...inputStyles1, inputContainer: { ...inputStyles1.inputContainer, width: 100 } }}
                     />
                   </View>
                 </View>
               </View>
-            ) : null}
+            )}
 
-            {/* Acciones */}
             <View style={styles.actions}>
               <Button
                 texto="Cancelar"
                 onPress={handleClose}
-                styles={{boton: {...buttonStyles1.boton, width: 150, borderRadius: 999, backgroundColor: Colors.gray12, height: 45}, texto: {...buttonStyles1.texto, color: Colors.black, fontSize: 15, fontFamily: 'interMedium'}}}
+                styles={{
+                  boton: { ...buttonStyles1.boton, width: 150, borderRadius: 999, backgroundColor: Colors.gray12, height: 45 },
+                  texto: { ...buttonStyles1.texto, color: Colors.black, fontSize: 15, fontFamily: 'interMedium' }
+                }}
               />
               <Button
                 texto={confirming ? 'Guardando…' : 'Guardar'}
                 onPress={handleConfirm}
-                styles={{texto:{...buttonStyles1.texto, fontSize: 15}, boton: {...buttonStyles1.boton, width: 150, borderRadius: 999, height: 45}}}
+                styles={{ texto: { ...buttonStyles1.texto, fontSize: 15 }, boton: { ...buttonStyles1.boton, width: 150, borderRadius: 999, height: 45 } }}
                 disabled={!canConfirm || confirming}
                 loading={confirming}
               />
@@ -289,6 +432,15 @@ useEffect(() => {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      <ClickWindow
+        visible={cwVisible}
+        title={cwTitle}
+        message={cwMsg}
+        buttonText="Entendido"
+        onClose={() => setCwVisible(false)}
+        styles={clickWindowStyles1}
+      />
     </>
   );
 }

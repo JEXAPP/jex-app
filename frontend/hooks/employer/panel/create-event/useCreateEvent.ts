@@ -140,7 +140,7 @@ export const useCreateEvent = () => {
 
 
      if (imagenFile) {
-        const upload = await uploadImage(imagenFile.uri);
+        const upload = await uploadImage(imagenFile.uri, 'events-images');
         payload.profile_image_url = upload.image_url;
         payload.profile_image_id = upload.image_id;
       }
