@@ -1,9 +1,10 @@
+// ✅ Cambios marcados con "CAMBIO"
 import { useState, useEffect } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
 
 export type OfferStatus = "Pendiente" | "Aceptada" | "Rechazada" | "Vencida";
 
-// 🔹 Nuevo filtro simple
+// 🔹 Filtro simple
 export type FilterSimple = "Pendiente" | "Aceptadas" | "Otro";
 
 export type EventState = {
@@ -48,7 +49,7 @@ const eventStateOrder: Record<string, number> = {
   "Finalizado": 3,
 };
 
-// 🔹 Mapeo nuevo: "Otro" = [Rechazadas (3), Vencidas (5)]
+// 🔹 Mapeo: "Otro" = [Rechazadas (3), Vencidas (5)]
 const filterToBackendIds: Record<FilterSimple, number[]> = {
   Pendiente: [1],
   Aceptadas: [2],
@@ -61,7 +62,7 @@ export const useStateOffers = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
-  const [filter, setFilter] = useState<FilterSimple>("Pendiente");
+  const [filter, setFilter] = useState<FilterSimple>("Aceptadas"); // CAMBIO: default Aceptadas
   const [loading, setLoading] = useState(false);
   const [loadingEvents, setLoadingEvents] = useState(false);
 
@@ -118,7 +119,7 @@ export const useStateOffers = () => {
         const normalized: Offer[] = all.map((item: any) => ({
           id: item?.id ?? 0,
           employeeName: `${item?.employee_name ?? ""} ${item?.employee_lastname ?? ""}`.trim(),
-          employeeImage: require("@/assets/images/jex/Jex-FotoPerfil.png"),
+          employeeImage: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
           role: item?.job_type ?? "Sin rol",
           salary: new Intl.NumberFormat("es-AR").format(item?.shift?.payment ?? 0),
           fechaInicio: item?.shift?.start_date ?? "",
@@ -132,8 +133,9 @@ export const useStateOffers = () => {
           imageId: item?.profile_image_id
         }));
 
-        // opcional: ordená por fecha/hora asc
-        normalized.sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio) || a.horaInicio.localeCompare(b.horaInicio));
+        normalized.sort((a, b) =>
+          a.fechaInicio.localeCompare(b.fechaInicio) || a.horaInicio.localeCompare(b.horaInicio)
+        );
 
         setOffers(normalized);
       } catch (err) {
@@ -149,14 +151,14 @@ export const useStateOffers = () => {
   const goNextEvent = () => {
     if (currentEventIndex < events.length - 1) {
       setCurrentEventIndex((prev) => prev + 1);
-      setFilter("Pendiente");
+      setFilter("Aceptadas"); // CAMBIO: resetear a Aceptadas
     }
   };
 
   const goPrevEvent = () => {
     if (currentEventIndex > 0) {
       setCurrentEventIndex((prev) => prev - 1);
-      setFilter("Pendiente");
+      setFilter("Aceptadas"); // CAMBIO: resetear a Aceptadas
     }
   };
 
@@ -169,7 +171,7 @@ export const useStateOffers = () => {
     filter,
     setFilter,
     offers,
-    filteredOffers: offers, // ya viene filtrado por el backend (y combinado si es "Otro")
+    filteredOffers: offers,
     events,
     loading,
     loadingEvents

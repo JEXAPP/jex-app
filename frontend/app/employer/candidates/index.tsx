@@ -79,7 +79,7 @@ export default function ChooseCandidatesScreen() {
         <View style={s.emptyBox}>
           <Text style={s.emptyTitle}>No tenés eventos aún</Text>
           <Image
-            source={require('@/assets/images/jex/Jex-Sin-Eventos.png')}
+            source={require('@/assets/images/jex/Jex-Sin-Eventos.webp')}
             style={s.emptyImage}
             resizeMode="contain"
           />
@@ -134,7 +134,7 @@ export default function ChooseCandidatesScreen() {
   };
 
   return (
-    <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={s.container} edges={['left', 'right']}>
       <View>
         {/* Header evento con flechas */}
         <View style={s.eventRow}>
@@ -195,7 +195,7 @@ export default function ChooseCandidatesScreen() {
           <View style={s.emptyBox2}>
             <Text style={s.emptyTitle}>No hay vacantes activas</Text>
             <Image
-              source={require('@/assets/images/jex/Jex-Sin-Vacantes.png')}
+              source={require('@/assets/images/jex/Jex-Sin-Vacantes.webp')}
               style={s.emptyImage}
               resizeMode="contain"
             />
@@ -252,7 +252,7 @@ export default function ChooseCandidatesScreen() {
               <View style={s.emptyBox3}>
                 <Text style={s.emptyTitle}>Turno Lleno</Text>
                 <Image
-                  source={require('@/assets/images/jex/Jex-Postulacion-Lleno.png')}
+                  source={require('@/assets/images/jex/Jex-Postulacion-Lleno.webp')}
                   style={s.emptyImage2}
                   resizeMode="contain"
                 />
@@ -267,7 +267,7 @@ export default function ChooseCandidatesScreen() {
                   <View style={s.emptyBox3}>
                     <Text style={s.emptyTitle}>No hay postulaciones</Text>
                     <Image
-                      source={require('@/assets/images/jex/Jex-Postulacion-Vacio.png')}
+                      source={require('@/assets/images/jex/Jex-Postulacion-Vacio.webp')}
                       style={s.emptyImage3}
                       resizeMode="contain"
                     />
@@ -296,7 +296,7 @@ export default function ChooseCandidatesScreen() {
                             source={
                               item.avatarUrl
                                 ? { uri: item.avatarUrl }
-                                : require('@/assets/images/jex/Jex-Postulantes-Default.png')
+                                : require('@/assets/images/jex/Jex-Postulantes-Default.webp')
                             }
                             style={s.avatar}
                           />
@@ -306,19 +306,32 @@ export default function ChooseCandidatesScreen() {
                           {item.fullName}
                         </Text>
 
-                        {/* --- Rating hardcodeado --- */}
                         <View style={s.ratingRow}>
-                          <View style={s.starsRow}>
-                            {iconos.full_star(14, Colors.violet3)}
-                            {iconos.full_star(14, Colors.violet3)}
-                            {iconos.full_star(14, Colors.violet3)}
-                            {iconos.full_star(14, Colors.violet3)}
-                            {iconos.full_star(14, Colors.violet3)}
-                          </View>
-                          <View style={s.ratingPill}>
-                            <Text style={s.ratingText}>5.0</Text>
-                          </View>
-                        </View>
+                        {item.averageRating === null || item.ratingCount === 0 ? (
+                          <Text style={s.noRatingText}>Sin calificación</Text>
+                        ) : (
+                          <>
+                            <View style={s.starsRow}>
+                              {Array.from({ length: (() => {
+                                const avg = item.averageRating ?? 0;
+                                const decimal = avg % 1;
+                                const base = Math.floor(avg);
+                                const rounded = decimal >= 0.8 ? base + 1 : base;
+                                return Math.min(rounded, 5);
+                              })() }).map((_, i) => (
+                                <React.Fragment key={i}>
+                                  {iconos.full_star(14, Colors.violet3)}
+                                </React.Fragment>
+                              ))}
+                            </View>
+                            <View style={s.ratingPill}>
+                              <Text style={s.ratingText}>
+                                {item.averageRating?.toFixed(1)}
+                              </Text>
+                            </View>
+                          </>
+                        )}
+                      </View>
                       </TouchableOpacity>
                     )}
                   />

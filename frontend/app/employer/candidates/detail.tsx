@@ -1,17 +1,16 @@
+import { Button } from '@/components/button/Button';
+import ImageOnline from '@/components/image/ImageOnline';
+import { ClickWindow } from '@/components/window/ClickWindow';
+import { iconos } from '@/constants/iconos';
+import { useEmployeeDetail } from '@/hooks/employer/candidates/useEmployeeDetail';
+import { employeeDetailStyles as s } from '@/styles/app/employer/candidates/employeeDetailStyles';
+import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
+import { Colors } from '@/themes/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useMemo } from 'react';
 import { ImageBackground, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/themes/colors';
-import { iconos } from '@/constants/iconos';
-import { Button } from '@/components/button/Button';
-import { ButtonWithIcon } from '@/components/button/ButtonWithIcon';
-import { useEmployeeDetail } from '@/hooks/employer/candidates/useEmployeeDetail';
-import { employeeDetailStyles as s } from '@/styles/app/employer/candidates/employeeDetailStyles';
-import ImageOnline from '@/components/others/ImageOnline';
-import { ClickWindow } from '@/components/window/ClickWindow';
-import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 
 type RouteParams = { source: 'application' | 'search'; id: string; vacancyId?: string };
 
@@ -40,7 +39,7 @@ export default function EmployeeDetailScreen() {
   const otherCards  = (data?.shiftCards ?? []).filter(c => !c.isCurrent);
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={s.container}>
+    <SafeAreaView edges={['left', 'right']} style={s.container}>
       {/* Top violeta */}
       <View style={s.topHero}>
         <View style={s.backBtnHero} onTouchEnd={goBack}>
@@ -48,7 +47,7 @@ export default function EmployeeDetailScreen() {
         </View>
 
         <View style={s.topHeroCenter}>
-          <ImageOnline imageUrl={data?.profile_image ?? null} size={100} shape="circle" fallback={require('@/assets/images/jex/Jex-Postulantes-Default.png')}/>
+          <ImageOnline imageUrl={data?.profile_image ?? null} size={100} shape="circle" fallback={require('@/assets/images/jex/Jex-Postulantes-Default.webp')}/>
 
           <View style={s.linkedRowCenter}>
             {iconos.usuario_validado(16, Colors.white)}
@@ -58,18 +57,28 @@ export default function EmployeeDetailScreen() {
           <Text style={s.nameCenter}>{data?.name || '—'}</Text>
           {data?.age != null && <Text style={s.ageCenter}>{data.age} Años</Text>}
 
-          {/* Pills hardcodeadas */}
+        
+          {/* Pills dinámicas con promedio real */}
           <View style={s.pillsRow}>
             <View style={s.pillOutline}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                {Array.from({ length: 5 }).map((_, i) => iconos.full_star(20, Colors.white, i))}
-                <Text style={s.pillText}>5.0</Text>
+                {Array.from({ length: 5 }).map((_, i) =>
+                  i < Math.round(data?.average_rating ?? 0)
+                    ? iconos.full_star(20, Colors.white, i)
+                    : iconos.empty_star(20, Colors.white, i)
+                )}
+                <Text style={s.pillText}>
+                  {data?.average_rating?.toFixed(1) ?? '—'}
+                </Text>
               </View>
             </View>
+
             <View style={s.pillOutline}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Ionicons name="time-outline" size={20} color={Colors.white} />
-                <Text style={s.pillText}>Historial</Text>
+                <Ionicons name="people-outline" size={20} color={Colors.white} />
+                <Text style={s.pillText}>
+                  {data?.rating_count ?? 0} valoración{(data?.rating_count ?? 0) === 1 ? '' : 'es'}
+                </Text>
               </View>
             </View>
           </View>

@@ -1,20 +1,28 @@
-import { Borders } from '@/themes/borders';
 import { Colors } from '@/themes/colors';
 import { StyleSheet } from 'react-native';
 
 export const suggestionsStyles1 = StyleSheet.create({
   contenedor: {
-    marginTop: 4,
-    borderWidth: 1,
-    borderColor: Colors.gray2,
-    backgroundColor: Colors.white,
-    borderRadius: Borders.soft,
-    maxHeight: 150,
+    position: 'absolute',
+    bottom: '100%',
+    left: 0,
+    right: 0,
+    marginBottom: 6,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.14,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 16,
+    maxHeight: 260,
+    zIndex: 20000,
   },
   item: {
-    padding: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.gray2,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EFEFEF',
   },
   texto: {
     fontSize: 15,

@@ -1,24 +1,23 @@
+import { Button } from '@/components/button/Button';
 import { SelectableTag } from '@/components/button/SelectableTags';
+import { UploadImage } from '@/components/image/UploadImage';
+import { Input } from '@/components/input/Input';
 import { CharCounter } from '@/components/others/CharCounter';
 import { ClickWindow } from '@/components/window/ClickWindow';
+import { TempWindow } from '@/components/window/TempWindow';
+import { iconos } from '@/constants/iconos';
 import { useAditionalInfo } from '@/hooks/employee/profile/useAditionalInfo';
 import { aditionalInfoStyles as styles } from '@/styles/app/employee/profile/aditionalInfoStyles';
 import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
-import { Colors } from '@/themes/colors';
-import { Button } from '@/components/button/Button';
-import { Input } from '@/components/input/Input';
-import { Ionicons } from '@expo/vector-icons';
-import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
-import React from 'react';
-import { Keyboard, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
-import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1';
 import { selectableTagStyles2 } from '@/styles/components/button/selectableTagsStyles/selectableTagsStyles2';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1';
 import { charCounterStyles1 } from '@/styles/components/others/charCounterStyles1';
-import { TempWindow } from '@/components/window/TempWindow';
+import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
-import { iconos } from '@/constants/iconos';
-import { UploadImage } from '@/components/others/UploadImage';
+import { Colors } from '@/themes/colors';
+import { Ionicons } from '@expo/vector-icons';
+import { Keyboard, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AditionalInfoScreen () {
     const {
@@ -63,7 +62,7 @@ return (
 
                     <UploadImage
                         shape="circle"
-                         defaultImage={require('@/assets/images/jex/Jex-FotoPerfil.png')}
+                         defaultImage={require('@/assets/images/jex/Jex-FotoPerfil.webp')}
                         onChange={(file, uri) => {
                         setImagenFile(file);
                         setImagenPerfil(uri);

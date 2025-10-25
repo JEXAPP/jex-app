@@ -152,7 +152,7 @@ export default function SearchEmployeesScreen() {
       onHandlerStateChange={onSwipe}
       activeOffsetY={[-12, 12]}
       >
-      <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={s.container} edges={['left', 'right']}>
         <View style={s.pagePadding}>
           <Text style={s.h1}>Criterios</Text>
 
@@ -167,7 +167,7 @@ export default function SearchEmployeesScreen() {
             ) : (
               <>
                 <View style={s.heroRow}> 
-                  <Image source={require('@/assets/images/jex/Jex-Busqueda-Ubicacion.png')} style={s.heroImg}/> 
+                  <Image source={require('@/assets/images/jex/Jex-Busqueda-Ubicacion.webp')} style={s.heroImg}/> 
                   <Text style={s.heroTitleViolet}>Ubicación del Empleado</Text> 
                 </View>
 
@@ -280,7 +280,7 @@ export default function SearchEmployeesScreen() {
 
                 {/* Derecha: imagen + título */}
                 <View style={s.splitRight}>
-                  <Image source={require('@/assets/images/jex/Jex-Busqueda-Disponibilidad.png')} style={s.heroImg2}/>
+                  <Image source={require('@/assets/images/jex/Jex-Busqueda-Disponibilidad.webp')} style={s.heroImg2}/>
                   <Text style={s.heroTitleVioletRight}>Disponibilidad del Empleado</Text>
                 </View>
               </View>
@@ -302,7 +302,7 @@ export default function SearchEmployeesScreen() {
                     <Text style={s.heroTitleViolet}>Historial de Trabajo</Text>
                     <Text style={s.heroSubtitle}>(mínimo)</Text>
                   </View>
-                  <Image source={require('@/assets/images/jex/Jex-Busqueda-Historial.png')} style={s.heroImg3}/>
+                  <Image source={require('@/assets/images/jex/Jex-Busqueda-Historial.webp')} style={s.heroImg3}/>
                 </View>
 
                 <View style={s.ratingControlRow}>

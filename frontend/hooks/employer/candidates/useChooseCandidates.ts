@@ -26,6 +26,9 @@ type ApplicantAPI = {
   employee_id: number;
   full_name: string;
   profile_image: string | null;
+  average_rating: number | null
+  rating_count: number
+
 };
 
 // Datos por turno
@@ -56,6 +59,8 @@ type Candidate = {
   avatarUrl?: string | null;
   createdAt: string;
   shiftId: number;
+  averageRating: number | null;
+  ratingCount: number;
 };
 
 type ShiftInfo = {
@@ -222,10 +227,13 @@ export const useChooseCandidates = () => {
           avatarUrl: a.profile_image,
           createdAt: a.created_at,
           shiftId: data.shift_id,
+          averageRating: a.average_rating,
+          ratingCount: a.rating_count,
         }))
         .sort((a, b) => a.fullName.localeCompare(b.fullName));
 
       setCandidates(items);
+
     } catch (e: any) {
       setError(e?.message ?? 'Error al cargar candidatos');
       setCandidates([]);

@@ -49,7 +49,7 @@ export default function ResetNewPasswordScreen() {
 
           <View style={styles.header}>
 
-            <Image source={require('@/assets/images/jex/Jex-Olvidadizo.png')} style={styles.image} />
+            <Image source={require('@/assets/images/jex/Jex-Olvidadizo.webp')} style={styles.image} />
 
             <Text style={styles.title}>Cambia tu contraseña</Text>
 

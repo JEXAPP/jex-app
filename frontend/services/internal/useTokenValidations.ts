@@ -1,6 +1,6 @@
-import * as SecureStore from 'expo-secure-store';
 import { jwtDecode } from 'jwt-decode';
 import { doRefresh } from './api';
+import { getToken as getStoredToken } from '@/services/internal/useTokenStorage';
 
 type Role = 'employee' | 'employer';
 type ValidateOk = { ok: true; role: Role; reason: null };
@@ -30,7 +30,7 @@ const isTokenExpired = (token: string): boolean => {
 
 export const useTokenValidations = () => {
   const getRoleFromAccess = async (): Promise<Role | null> => {
-    let accessToken = await SecureStore.getItemAsync('access');
+    let accessToken = await getStoredToken('access');
 
     if (!accessToken || isTokenExpired(accessToken)) {
       const newAccess = await doRefresh();

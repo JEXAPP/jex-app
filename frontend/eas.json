@@ -7,7 +7,10 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_NEW_ARCH_ENABLED": "1"
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -20,6 +23,16 @@
       "android": {
         "buildType": "apk"
       }
+    },
+    "android": {
+      "env": {
+        "ORG_GRADLE_PROJECT_hermesEnabled": "true",
+        "ORG_GRADLE_PROJECT_newArchEnabled": "true"
+      }
+    },
+    "development-simulator": {
+      "developmentClient": true,
+      "ios": { "simulator": true }
     }
   },
   "submit": {

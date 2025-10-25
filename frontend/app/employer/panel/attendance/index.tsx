@@ -42,7 +42,7 @@ export default function AttendanceScreen() {
             <TouchableOpacity style={styles.card} onPress={startScan}>
               <View>
                 <Image
-                  source={require('@/assets/images/jex/Jex-Escanear.png')}
+                  source={require('@/assets/images/jex/Jex-Escanear.webp')}
                   style={styles.jex}
                 />
               </View>
@@ -101,7 +101,7 @@ export default function AttendanceScreen() {
                         <>
                         <View style={styles.emptyRow}>
                         <Text style={styles.emptyTitle}>No hay datos</Text>
-                        <Image source={require('@/assets/images/jex/Jex-Lista-Vacia.png')} style={styles.image2}/>
+                        <Image source={require('@/assets/images/jex/Jex-Lista-Vacia.webp')} style={styles.image2}/>
                         </View>
                         </>
                       )}

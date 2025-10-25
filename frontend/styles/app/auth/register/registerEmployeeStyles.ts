@@ -26,11 +26,16 @@ export const registerEmployeeStyles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 63,
   },
+  step: { paddingHorizontal: 20 },
+
   opcionesContainer: {
     gap: 15,
     marginBottom: 50,
-    alignItems: 'center'
+    alignItems: 'stretch',      
+    paddingHorizontal: 20,     
+    overflow: 'visible',        
   },
+
   texto:{
     fontFamily: 'interBold',
     fontSize: 18,
@@ -39,7 +44,5 @@ export const registerEmployeeStyles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 10
   },
-  step: {
-    paddingHorizontal: 20
-  }
+  
 });

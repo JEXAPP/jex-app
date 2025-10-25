@@ -13,8 +13,8 @@ export const Carousel = ({ images }: CarouselProps) => {
   return (
     <View style={carouselStyles1.container}>
       <CarouselLib
-        width={220}
-        height={180}
+        width={200}
+        height={160}
         data={images}
         autoPlay
         autoPlayInterval={4000}

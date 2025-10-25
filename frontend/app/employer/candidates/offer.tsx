@@ -1,26 +1,26 @@
-import React, { useRef, useState } from 'react';
-import { Modal, ScrollView, Text, View, TouchableOpacity, Animated, Easing, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Colors } from '@/themes/colors';
-import ImageOnline from '@/components/others/ImageOnline';
 import { Button } from '@/components/button/Button';
+import ImageOnline from '@/components/image/ImageOnline';
 import { Input } from '@/components/input/Input';
+import { CharCounter } from '@/components/others/CharCounter';
 import DatePicker from '@/components/picker/DatePicker';
-import TimePicker from '@/components/picker/TimePicker';
 import { DropDown2 } from '@/components/picker/DropDown2';
-import { useCreateOffer, RouteParams } from '@/hooks/employer/candidates/useCreateOffer';
+import TimePicker from '@/components/picker/TimePicker';
+import { iconos } from '@/constants/iconos';
+import { RouteParams, useCreateOffer } from '@/hooks/employer/candidates/useCreateOffer';
 import { createOfferStyles as s } from '@/styles/app/employer/candidates/createOfferStyles';
 import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
-import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1';
-import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
-import { timePickerStyles1 } from '@/styles/components/picker/timePickerStyles1';
-import { dropdown2Styles1 } from '@/styles/components/picker/dropdown2Styles1';
-import { iconos } from '@/constants/iconos';
-import { CharCounter } from '@/components/others/CharCounter';
-import { charCounterStyles1 } from '@/styles/components/others/charCounterStyles1';
 import { buttonStyles2 } from '@/styles/components/button/buttonStyles/buttonStyles2';
+import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1';
+import { charCounterStyles1 } from '@/styles/components/others/charCounterStyles1';
+import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
+import { dropdown2Styles1 } from '@/styles/components/picker/dropdown2Styles1';
+import { timePickerStyles1 } from '@/styles/components/picker/timePickerStyles1';
 import { Borders } from '@/themes/borders';
+import { Colors } from '@/themes/colors';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRef, useState } from 'react';
+import { Animated, Easing, Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 /** Mostrar fechas tipo “Sábado 14 de septiembre 2025” */
 const formatFechaLarga = (fechaStr: string): string => {
@@ -141,14 +141,14 @@ export default function CreateOfferScreen() {
   }
 
   return (
-    <SafeAreaView edges={['top']} style={s.container}>
+    <SafeAreaView edges={['left', 'right']} style={s.container}>
       {/* HEADER */}
       <View style={s.headerCard}>
         <ImageOnline
           imageUrl={employeeImage}
           size={56}
           shape="circle"
-          fallback={require('@/assets/images/jex/Jex-Postulantes-Default.png')}
+          fallback={require('@/assets/images/jex/Jex-Postulantes-Default.webp')}
         />
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={s.headerName}>{employeeName}</Text>
@@ -337,7 +337,7 @@ export default function CreateOfferScreen() {
           />
           <Animated.View style={{ alignItems: 'center', opacity: contentOpacity, transform: [{ translateX: contentX }] }}>
             <Image
-              source={require('@/assets/images/jex/Jex-Oferta-Generada.png')}
+              source={require('@/assets/images/jex/Jex-Oferta-Generada.webp')}
               style={{ width: 280, height: 280, marginBottom: 8 }}
               resizeMode="contain"
             />

@@ -21,6 +21,13 @@ export const searchResultsStyles = StyleSheet.create({
     fontFamily: 'interBold',
     color: Colors.violet4,
   },
+    noRatingText: {
+    color: Colors.violet3,
+    fontSize: 13,
+    fontFamily: 'interSemiBold',
+    marginVertical: 5,
+  },
+
 
   listContent: {
     paddingHorizontal: 16,

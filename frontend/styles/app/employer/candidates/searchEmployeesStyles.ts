@@ -3,7 +3,8 @@ import { Colors } from '@/themes/colors';
 
 export const searchEmpScreenStyles = StyleSheet.create({
   container: { 
-    backgroundColor: Colors.gray1 
+    backgroundColor: Colors.gray1,
+    marginTop: 20 
   },
   pagePadding: { 
     paddingHorizontal: 20, 
