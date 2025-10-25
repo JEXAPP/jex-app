@@ -4,7 +4,9 @@ import jwt
 import requests
 from typing import Optional
 from user_auth.models.user import CustomUser
+import logging
 
+logger = logging.getLogger(__name__)
 
 class MercadoPagoService:
     @staticmethod
@@ -78,17 +80,26 @@ class MercadoPagoService:
         external_reference: Optional[str] = None
     ) -> str:
         """
-        Crea un link de pago en Mercado Pago para que el empleador pague al empleado,
-        cobrando la comisión a la plataforma.
+        Crea un link de pago en Mercado Pago para marketplace, con logging completo para debugging.
         """
-        # Validar que el mp_user_id del empleado sea un entero
+        logger.info("=== Creando preferencia Mercado Pago ===")
+        logger.info(f"Empleado: {employee_account.user.email}")
+        logger.info(f"Amount: {amount}, Commission: {commission}")
+        logger.info(f"Concepto: {concept}")
+        logger.info(f"External reference: {external_reference}")
+
+        # Validar mp_user_id
         try:
             collector_id = int(employee_account.mp_user_id)
-        except (ValueError, TypeError):
-            raise Exception("El mp_user_id del empleado no es válido")
+            logger.info(f"Collector ID empleado (convertido a int): {collector_id}")
+        except (ValueError, TypeError) as e:
+            logger.error(f"mp_user_id inválido: {employee_account.mp_user_id}")
+            raise Exception(f"mp_user_id inválido: {employee_account.mp_user_id}") from e
 
-        # Usamos el token de la aplicación (MP app) con permisos de marketplace
+        # Token de la aplicación (con permisos de marketplace)
         token = settings.MP_ACCESS_TOKEN
+        logger.info(f"Usando token de MP (longitud): {len(token)}")
+
         url = f"{settings.MP_API_URL}/checkout/preferences"
 
         headers = {
@@ -96,7 +107,6 @@ class MercadoPagoService:
             "Content-Type": "application/json",
         }
 
-        # Crear preference data
         preference_data = {
             "items": [
                 {
@@ -113,19 +123,28 @@ class MercadoPagoService:
                 "pending": settings.MP_PENDING_URL,
             },
             "auto_return": "approved",
-            "collector_id": collector_id,  # el empleado recibe el pago
-            "application_fee": float(commission),  # tu comisión
+            "collector_id": collector_id,
+            "application_fee": float(commission),
         }
 
         if external_reference:
             preference_data["external_reference"] = external_reference
 
-        # Hacer la llamada a la API de Mercado Pago
-        resp = requests.post(url, headers=headers, json=preference_data)
+        logger.info(f"Preference data que se enviará a MP: {preference_data}")
+
+        try:
+            resp = requests.post(url, headers=headers, json=preference_data)
+            logger.info(f"Status code de respuesta MP: {resp.status_code}")
+            logger.info(f"Respuesta MP: {resp.json()}")
+        except Exception as e:
+            logger.error(f"Error en request a MP: {str(e)}")
+            raise Exception(f"Error en request a MP: {str(e)}") from e
 
         if resp.status_code != 201:
-            # Mostrar la respuesta completa para debugging
             raise Exception(f"Error creando preferencia MP: {resp.json()}")
 
-        # Retornar el link de pago
-        return resp.json().get("init_point")
+        init_point = resp.json().get("init_point")
+        logger.info(f"Link de pago generado (init_point): {init_point}")
+        logger.info("=== Fin creación preferencia Mercado Pago ===")
+
+        return init_point
