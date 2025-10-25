@@ -23,6 +23,10 @@ urlpatterns = [
     path('api/events/', include('eventos.urls')),
     path('api/vacancies/', include('vacancies.urls')),
     path('api/applications/', include('applications.urls')),
+    path('api/notifications/', include('notifications.urls')),
+    path('api/chats/', include('chats.urls')),
     path('accounts/', include('allauth.urls')),
     path('media/', include('media_utils.urls')),
+    path('api/rating/', include('rating.urls')),
+    path('api/payments/', include('payments.urls')),
 ]

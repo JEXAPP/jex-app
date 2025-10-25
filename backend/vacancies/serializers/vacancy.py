@@ -1,18 +1,19 @@
+from datetime import datetime
 from rest_framework import serializers
+from eventos.serializers.state_events import EventStateSerializer
 from vacancies.constants import JobTypesEnum, VacancyStates
-from vacancies.errors.params_messages import INVALID_CHOICE, VALUE_MUST_BE_LIST_OF_INTS, VALUE_MUST_BE_NON_EMPTY_LIST, VALUE_MUST_BE_NON_EMPTY_STRING, VALUE_MUST_BE_VALID_DATE
-from vacancies.errors.vacancies_messages import NO_PERMISSION_EVENT, SHIFTS_DATES_OUT_OF_EVENT, SHIFTS_TIMES_OUT_OF_EVENT, SPECIFIC_JOB_TYPE_NOT_ALLOWED, SPECIFIC_JOB_TYPE_REQUIRED
+from vacancies.errors.vacancies_messages import NO_PERMISSION_EVENT, SHIFTS_OUT_OF_EVENT, SHIFTS_START_AFTER_END, SPECIFIC_JOB_TYPE_NOT_ALLOWED, SPECIFIC_JOB_TYPE_REQUIRED
 from vacancies.formatters.date_time import CustomDateField, CustomTimeField
 from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
 from vacancies.models.vacancy_state import VacancyState
 from vacancies.serializers.job_types import ListJobTypesSerializer
 from vacancies.serializers.requirements import CreateRequirementSerializer, RequirementSerializer
-from vacancies.serializers.shifts import CreateShiftSerializer, ShiftSerializer
+from vacancies.serializers.shifts import CreateShiftSerializer, ShiftForOfferSerializer, ShiftSerializer
 from eventos.serializers.event import EventSerializer
 from eventos.models.event import Event
 from django.db import transaction
-from datetime import datetime
+from applications.utils import get_job_type_display
 
 from vacancies.serializers.vacancy_state import ListsVacancyStates
 
@@ -53,7 +54,7 @@ class VacancySerializer(serializers.ModelSerializer):
         event = data.get('event')
         user = self.context.get('user')
         if event and event.owner != user:
-            raise serializers.ValidationError({"event": NO_PERMISSION_EVENT})
+            raise serializers.ValidationError(NO_PERMISSION_EVENT)
 
     def _validate_shifts(self, data):
         event = data.get('event')
@@ -61,30 +62,21 @@ class VacancySerializer(serializers.ModelSerializer):
         if not event or not shifts:
             return
 
-        event_start = event.start_date
-        event_end = event.end_date
-        event_start_time = event.start_time
-        event_end_time = event.end_time
+        for i, shift in enumerate(shifts):
+            shift_start_date = shift['start_date']
+            shift_end_date = shift['end_date']
 
-        for shift in shifts:
-            if shift['start_date'] < event_start or shift['end_date'] > event_end:
-                raise serializers.ValidationError({
-                    "shifts": SHIFTS_DATES_OUT_OF_EVENT.format(
-                        start_date=shift['start_date'], 
-                        end_date=shift['end_date'], 
-                        event_start=event_start, 
-                        event_end=event_end
-                    )
-                })
-            if shift['start_time'] < event_start_time or shift['end_time'] > event_end_time:
-                raise serializers.ValidationError({
-                    "shifts": SHIFTS_TIMES_OUT_OF_EVENT.format(
-                        start_time=shift['start_time'], 
-                        end_time=shift['end_time'], 
-                        event_start_time=event_start_time, 
-                        event_end_time=event_end_time
-                    )
-                })
+            # Validación: que las fechas del turno estén dentro del rango del evento
+            if shift_start_date < event.start_date or shift_end_date > event.end_date:
+                raise serializers.ValidationError(
+                    SHIFTS_OUT_OF_EVENT.format(shift_number=i + 1)
+                )
+
+            # Validación básica: fecha de inicio <= fecha de fin
+            if shift_start_date > shift_end_date:
+                raise serializers.ValidationError(
+                    SHIFTS_START_AFTER_END.format(shift_number=i + 1)
+                )
 
     def _validate_job_type(self, data):
         job_type = data.get('job_type')
@@ -92,9 +84,9 @@ class VacancySerializer(serializers.ModelSerializer):
         otro = JobTypesEnum.OTRO.value
 
         if job_type and job_type.name == otro and not specific:
-            raise serializers.ValidationError({"specific_job_type": SPECIFIC_JOB_TYPE_REQUIRED})
+            raise serializers.ValidationError(SPECIFIC_JOB_TYPE_REQUIRED)
         elif specific and (not job_type or job_type.name != otro):
-            raise serializers.ValidationError({"specific_job_type": SPECIFIC_JOB_TYPE_NOT_ALLOWED})
+            raise serializers.ValidationError(SPECIFIC_JOB_TYPE_NOT_ALLOWED)
 
     def create(self, validated_data):
         requirements = validated_data.pop('requirements', [])
@@ -149,69 +141,133 @@ class ListVacancyShiftSerializer(serializers.ModelSerializer):
     job_type_name = serializers.CharField(source='vacancy.job_type.name')
     specific_job_type = serializers.CharField(source='vacancy.specific_job_type', allow_blank=True)
     start_date = CustomDateField()
+    event_image_public_id = serializers.SerializerMethodField()
+    event_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Shift
-        fields = ['vacancy_id', 'event_name', 'start_date', 'payment', 'job_type_name', 'specific_job_type']
+        fields = ['vacancy_id', 'event_name', 'start_date', 'payment', 'job_type_name', 'specific_job_type', 'event_image_public_id', 'event_image_url']
 
+    def get_event_image_public_id(self, obj):
+        event_image = getattr(obj.vacancy.event, 'event_image', None)
+        return event_image.public_id if event_image else None
 
+    def get_event_image_url(self, obj):
+        event_image = getattr(obj.vacancy.event, 'event_image', None)
+        return event_image.url if event_image else None
 
 """
 Serializer to search vacancies
 """
 
 class SearchVacancyParamsSerializer(serializers.Serializer):
-    choice = serializers.ChoiceField(choices=['role', 'event', 'start_date'])
-    value = serializers.JSONField()
+    """Serializador para validar parámetros de búsqueda de vacantes"""
+
+    CHOICE_OPTIONS = [
+        ('role', 'Role'),
+        ('event', 'Event'), 
+        ('date', 'Date'),
+    ]
+
+    choice = serializers.ChoiceField(choices=CHOICE_OPTIONS, required=True)
+    value = serializers.ListField(
+        child=serializers.CharField(max_length=255),
+        required=False,
+        allow_empty=True,
+        allow_null=True
+    )
+    date_from = serializers.DateField(required=False, allow_null=True, input_formats=['%d/%m/%Y'])
+    date_to = serializers.DateField(required=False, allow_null=True, input_formats=['%d/%m/%Y'])
+    order_by = serializers.CharField(max_length=50, required=False, allow_blank=True)
+
+    def to_internal_value(self, data):
+        """
+        Convierte 'value' a lista si llega como string plano
+        para soportar value=Uno o value=Uno&value=Dos
+        """
+        if isinstance(data.get("value"), str):
+            data["value"] = [data["value"]]
+        return super().to_internal_value(data)
 
     def validate(self, data):
-        choice = data['choice']
-        value = data['value']
+        choice = data.get('choice')
+        value = data.get('value')
+        date_from = data.get('date_from')
+        date_to = data.get('date_to')
 
-        if choice == 'role':
-            # Debe ser una lista con uno o más enteros
-            if not isinstance(value, list) or not all(isinstance(i, int) for i in value):
-                raise serializers.ValidationError({'value': VALUE_MUST_BE_LIST_OF_INTS})
-            if not value:
-                raise serializers.ValidationError({'value': VALUE_MUST_BE_NON_EMPTY_LIST})
-        elif choice == 'event':
-            if not isinstance(value, str) or not value.strip():
-                raise serializers.ValidationError({
-                    'value': VALUE_MUST_BE_NON_EMPTY_STRING
-                })
-        elif choice == 'start_date':
-            try:
-                datetime.strptime(value, '%d/%m/%Y')
-            except (ValueError, TypeError):
-                raise serializers.ValidationError({
-                    'value': VALUE_MUST_BE_VALID_DATE
-                })
-        else:
-            raise serializers.ValidationError({'choice': INVALID_CHOICE})
+        if choice in ['role', 'event']:
+            if not value or len(value) == 0:
+                raise serializers.ValidationError(
+                    f"'value' parameter is required when choice is '{choice}'"
+                )
+        elif choice == 'date':
+            if not date_from:
+                raise serializers.ValidationError(
+                    "'date_from' parameter is required when choice is 'date'"
+                )
+            # Si no se proporciona date_to, usar la misma fecha que date_from
+            if not date_to:
+                data['date_to'] = date_from
+            elif date_from > date_to:
+                raise serializers.ValidationError(
+                    "'date_from' cannot be greater than 'date_to'"
+                )
 
         return data
-
+    
 class SearchVacancyResultSerializer(serializers.ModelSerializer):
-    event = serializers.CharField(source='event.name', read_only=True)
-    job_type = serializers.CharField(source='job_type.name', read_only=True)
-    specific_job_type = serializers.CharField(read_only=True)
-    payment = serializers.SerializerMethodField()
+
+    vacancy_id = serializers.IntegerField(source='id')
+    event_name = serializers.CharField(source='event.name', read_only=True)
     start_date = serializers.SerializerMethodField()
+    payment = serializers.SerializerMethodField()
+    job_type_name = serializers.SerializerMethodField()
+    event_image_url = serializers.SerializerMethodField()
+    event_image_public_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Vacancy
-        fields = ['id', 'event', 'job_type', 'specific_job_type', 'payment', 'start_date']
-
-    def get_payment(self, obj):
-        top_shift = obj.shifts.order_by('-payment').first()
-        return top_shift.payment if top_shift else None
+        fields = [
+            'vacancy_id',
+            'event_name',
+            'start_date', 
+            'payment',
+            'job_type_name',
+            'specific_job_type',
+            'event_image_url',
+            'event_image_public_id'
+        ]
 
     def get_start_date(self, obj):
-        top_shift = obj.shifts.order_by('start_date').first()
-        if top_shift and top_shift.start_date:
-            return top_shift.start_date.strftime('%d/%m/%Y')
+        """Obtiene la fecha de inicio del turno con mejor pago"""
+        best_shift = obj.shifts.order_by('-payment', 'start_date').first()
+        if best_shift:
+            return best_shift.start_date.strftime('%d/%m/%Y')
         return None
-       
+
+    def get_payment(self, obj):
+        """Obtiene el mejor pago de todos los turnos"""
+        best_shift = obj.shifts.order_by('-payment').first()
+        if best_shift:
+            return float(best_shift.payment)
+        return None
+
+    def get_job_type_name(self, obj):
+        """Obtiene el nombre del rol, priorizando job_type sobre specific_job_type"""
+        if obj.job_type:
+            return obj.job_type.name
+        return obj.specific_job_type if obj.specific_job_type else None
+    
+    def get_event_image_url(self, obj):
+        if obj.event.event_image:
+            return obj.event.event_image.url
+        return None
+
+    def get_event_image_public_id(self, obj):
+        if obj.event.event_image:
+            return obj.event.event_image.public_id
+        return None
+    
 
 """
 Serializer to list vacancy by ID
@@ -246,11 +302,29 @@ class EmployerEventsWithVacanciesSerializer(serializers.ModelSerializer):
     end_date = CustomDateField(read_only=True)
     start_time = CustomTimeField(read_only=True)
     end_time = CustomTimeField(read_only=True)
+    state = EventStateSerializer(read_only=True)
 
     class Meta:
         model = Event
         fields = [
-            'id', 'name', 'start_date', 'end_date', 
+            'id', 'name', 'state', 'start_date', 'end_date', 
             'start_time', 'end_time', 'location', 
             'vacancies'
         ]
+
+class VacancyWithShiftsSerializer(serializers.ModelSerializer):
+    job_type_name = serializers.SerializerMethodField(read_only=True)
+    requirements = RequirementSerializer(many=True, read_only=True)
+    shifts = ShiftForOfferSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Vacancy
+        fields = [
+            'id', 'description', 
+            'job_type_name', 'requirements', 'shifts'
+        ]
+
+    def get_job_type_name(self, obj):
+        return get_job_type_display(obj)
+
+    

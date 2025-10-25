@@ -1,9 +1,9 @@
 from django.db import models
 from django.utils import timezone
 
+from applications.models.applications_states import ApplicationState
 from vacancies.models.shifts import Shift
 from user_auth.models.employee import EmployeeProfile
-from applications.constants import ApplicationStates
 
 
 class Application(models.Model):
@@ -17,11 +17,8 @@ class Application(models.Model):
         on_delete=models.CASCADE,
         related_name='applications'
     )
-    status = models.CharField(
-        max_length=20,
-        choices=[(state.value, state.value) for state in ApplicationStates],
-        default=ApplicationStates.PENDING.value
-    )
+    state = models.ForeignKey(ApplicationState, on_delete=models.CASCADE, related_name='applications')
+
     message = models.TextField(blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)

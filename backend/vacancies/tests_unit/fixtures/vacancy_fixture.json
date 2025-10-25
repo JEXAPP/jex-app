@@ -1,0 +1,35 @@
+[
+  {
+    "model": "vacancies.vacancy",
+    "pk": 1,
+    "fields": {
+      "description": "Camarero para concierto",
+      "job_type": 5,
+      "state": 2,
+      "event": 1,
+      "specific_job_type": null,
+      "requirements": [
+        {"description": "Experiencia mínima 2 años"},
+        {"description": "Disponibilidad nocturna"}
+      ],
+      "shifts": [
+    {
+        "start_date": "30/08/2025",
+        "end_date": "30/08/2025",
+        "start_time": "18:00",
+        "end_time": "23:00",
+        "payment": "1500.00",
+        "quantity": 2
+    },
+    {
+        "start_date": "31/08/2025",
+        "end_date": "31/08/2025",
+        "start_time": "18:00",
+        "end_time": "23:00",
+        "payment": "1500.00",
+        "quantity": 3
+    }
+]
+    }
+  }
+]

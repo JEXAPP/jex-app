@@ -1,9 +1,26 @@
-from rest_framework.generics import CreateAPIView
-from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer
-from user_auth.constants import EMPLOYER_ROLE
+from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from applications.constants import OfferStates
+from applications.models.offer_state import OfferState
+from eventos.constants import EventStates
+from eventos.errors.events_messages import ESTADO_DELETED_NO_CONFIGURADO, EVENT_NOT_FOUND, NO_EDITAR_EVENTO_PUBLICADO, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
+from eventos.models.event import Event
+from eventos.models.state_events import EventState
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsEmployeeSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer,ListEventsEmployeeSerializer
+from rating.models.rating import Rating
+from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
+from applications.models import Offer
+
+
+
+from vacancies.constants import VacancyStates
+from vacancies.models.vacancy import Vacancy
+from django.db.models import Prefetch
+
 
 
 class CreateEventView(CreateAPIView):
@@ -30,4 +47,216 @@ class CreateEventView(CreateAPIView):
         response_serializer = CreateEventResponseSerializer(event)
         return Response(response_serializer.data, status=201)
 
+class ListActiveEventsView(ListAPIView):
+    """
+    Listar eventos activos
+    """
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE, EMPLOYEE_ROLE]
+    serializer_class = ListActiveEventsSerializer
+
+    queryset = Event.objects.all().filter(state__name=EventStates.PUBLISHED.value)
+
+        
+class ListEventDetailView(RetrieveAPIView):
+    serializer_class = ListEventDetailSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE, EMPLOYEE_ROLE]
+    lookup_field = "pk"
+
+    def get_queryset(self):
+        return Event.objects.all()
     
+class UpdateEventView(UpdateAPIView):
+    serializer_class = CreateEventSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    lookup_field = "pk"
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser:
+            return Event.objects.all()
+        return Event.objects.filter(owner=user)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['user'] = self.request.user
+        return context
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object() 
+
+        published_state = EventState.objects.get(name=EventStates.PUBLISHED.value)
+        if instance.state == published_state:
+            return Response(
+                NO_EDITAR_EVENTO_PUBLICADO,
+                status=400
+            )
+        serializer = self.get_serializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        response_serializer = CreateEventResponseSerializer(instance)
+        return Response(response_serializer.data)
+    
+class ListEventVacanciesView(ListAPIView):
+    serializer_class = ListEventVacanciesSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        vacancies_qs = Vacancy.objects.filter(
+            state__name=VacancyStates.ACTIVE.value
+        ).select_related("job_type").prefetch_related("shifts")
+
+        return Event.objects.filter(
+            owner=user,
+            state__name=EventStates.PUBLISHED.value
+        ).prefetch_related(
+            Prefetch("vacancies", queryset=vacancies_qs)
+        )
+
+
+class UpdateEventStateView(APIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def patch(self, request, pk):
+        serializer = UpdateEventStateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            event = Event.objects.select_related('state', 'owner').get(id=pk)
+        except Event.DoesNotExist:
+            return Response({"detail": EVENT_NOT_FOUND}, status=status.HTTP_404_NOT_FOUND)
+
+        if event.owner != request.user:
+            return Response({"detail": NO_PERMISSION_EVENT}, status=status.HTTP_403_FORBIDDEN)
+
+        new_state_id = serializer.validated_data['state_id']
+        new_state = EventState.objects.get(id=new_state_id)
+
+        event.state = new_state
+        event.save()
+
+        return Response({"detail": STATE_UPDATED_SUCCESS}, status=status.HTTP_200_OK)
+
+    
+class DeleteEventView(APIView):
+    """
+    Elimina lógicamente un evento cambiando su estado a 'DELETED'.
+    """
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def delete(self, request, pk):
+        try:
+            event = Event.objects.select_related('state', 'owner').get(id=pk)
+        except Event.DoesNotExist:
+            return Response(EVENT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        if event.owner != request.user:
+            return Response(NO_PERMISSION_EVENT, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            deleted_state = EventState.objects.get(name=EventStates.DELETED.value)
+        except EventState.DoesNotExist:
+            return Response(ESTADO_DELETED_NO_CONFIGURADO, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        event.state = deleted_state
+        event.save()
+
+        return Response({"detail": "Evento eliminado correctamente."}, status=status.HTTP_200_OK)
+
+
+
+
+class ListEventsByEmployerView(ListAPIView):
+    """
+    Lista los eventos activos del empleador autenticado.
+    """
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ListEventsByEmployerSerializer
+    active_states = [
+        EventStates.DRAFT.value,
+        EventStates.PUBLISHED.value,
+        EventStates.IN_PROGRESS.value,
+        EventStates.FINALIZED.value,
+    ]
+
+    def get_queryset(self):
+        user = self.request.user
+        return (
+            Event.objects
+            .filter(
+                owner=user,
+                state__name__in=self.active_states
+            )
+            .only("id", "name", "state")
+        )
+
+class ListEventsWithVacanciesView(ListAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ListEventsWithVacanciesSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+
+        active_vacancies_qs = Vacancy.objects.filter(
+            state__name=VacancyStates.ACTIVE.value
+        )
+
+        return (
+            Event.objects
+            .filter(
+                owner=user,
+                state__name=EventStates.PUBLISHED.value,
+                vacancies__in=active_vacancies_qs
+            )
+            .distinct()
+            .prefetch_related(
+                Prefetch("vacancies", queryset=active_vacancies_qs)
+            )
+        )
+class ListEventsEmployeeView(ListAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ListEventsEmployeeSerializer
+
+    def get_queryset(self):
+        request = self.request
+        rater = request.user  # el empleador actual
+        event_id = self.kwargs.get('eventId')
+
+        offer_completed_state = OfferState.objects.get(name=OfferStates.COMPLETED.value)
+
+        # Todas las offers completadas del evento
+        qs = Offer.objects.filter(
+            selected_shift__vacancy__event_id=event_id,
+            state=offer_completed_state
+        ).select_related(
+            "employee",
+            "employee__user",
+            "selected_shift",
+            "selected_shift__vacancy",
+            "selected_shift__vacancy__event",
+        )
+
+        # Empleados (usuarios) que ya fueron calificados por este empleador en este evento
+        rated_employee_ids = Rating.objects.filter(
+            rater=rater,
+            event_id=event_id
+        ).values_list("behavior__user_id", flat=True)
+
+        # Excluir empleados ya calificados
+        qs = qs.exclude(employee__user_id__in=rated_employee_ids)
+
+        return qs
+
+
+    
+        

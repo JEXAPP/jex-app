@@ -1,6 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework import status, permissions
 from rest_framework.response import Response
+from eventos.constants import EventStates
+from eventos.models.state_events import EventState
+from vacancies.constants import VacancyStates
 from vacancies.errors.vacancies_messages import VACANCY_NOT_FOUND, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
 from vacancies.models.vacancy import Vacancy
 from vacancies.models.vacancy_state import VacancyState
@@ -37,5 +40,14 @@ class UpdateVacancyStateView(APIView):
 
         vacancy.state = new_state
         vacancy.save()
+
+        # Si la vacante se publica y el evento está en borrador, publicamos el evento
+        if new_state.name == VacancyStates.ACTIVE.value:
+            event = vacancy.event
+            draft_state = EventState.objects.get(name=EventStates.DRAFT.value)
+            if event.state.name == draft_state.name:
+                published_state = EventState.objects.get(name=EventStates.PUBLISHED.value)
+                event.state = published_state
+                event.save()
 
         return Response({"detail": STATE_UPDATED_SUCCESS}, status=status.HTTP_200_OK)
