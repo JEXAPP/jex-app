@@ -40,7 +40,7 @@ def delete_new_jobtypes(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('vacancies', '0002_populate_enums'),
+        ('vacancies', '0004_remove_shift_qr_enabled'),
     ]
 
     operations = [

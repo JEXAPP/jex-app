@@ -41,7 +41,7 @@ def delete_new_categories(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('eventos', '0003_populate_enums'),
+        ('eventos', '0006_event_stream_announcements_channel_id_and_more'),
     ]
 
     operations = [
