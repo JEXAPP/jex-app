@@ -21,6 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import ImageWindow from "@/components/window/ImageWindow";
 
+
 export default function QualiScreen() {
   const router = useRouter();
   const {
@@ -126,9 +127,15 @@ export default function QualiScreen() {
               <View style={styles.workerRow}>
                 {/* Imagen hardcodeada */}
                 <Image
-                  source={require("@/assets/images/jex/Jex-FotoPerfil.png")}
+                  source={
+                    worker.image
+                      ? { uri: worker.image } // ✅ si hay URL la usamos
+                      : require("@/assets/images/jex/Jex-FotoPerfil.png") // 🧩 si no, usamos la hardcodeada
+                  }
                   style={styles.workerImage}
+                  resizeMode="cover"
                 />
+
                 <View style={{ flex: 1 }}>
                   <Text style={styles.workerName}>{worker.name}</Text>
                   <Text style={styles.workerRole}>{worker.role}</Text>
@@ -161,23 +168,25 @@ export default function QualiScreen() {
                   </TouchableOpacity>
 
                   {/* Sancionar */}
-                  <TouchableOpacity
-                    style={[styles.chip, styles.chipOutline]}
-                    onPress={() => {
-                      setWorkerToSanction(worker.id);
-                      setShowSanction(true);
-                    }}
-                  >
-                    <Ionicons
-                      name="alert-circle-outline"
-                      size={14}
-                      color={Colors.violet4}
-                      style={{ marginRight: 6 }}
-                    />
-                    <Text style={[styles.chipText, { color: Colors.violet4 }]}>
-                      Sancionar
-                    </Text>
-                  </TouchableOpacity>
+                              {!worker.penalized && (
+              <TouchableOpacity
+                style={[styles.chip, styles.chipOutline]}
+                onPress={() => {
+                  setWorkerToSanction(worker.id);
+                  setShowSanction(true);
+                }}
+              >
+                <Ionicons
+                  name="alert-circle-outline"
+                  size={14}
+                  color={Colors.violet4}
+                  style={{ marginRight: 6 }}
+                />
+                <Text style={[styles.chipText, { color: Colors.violet4 }]}>
+                  Sancionar
+                </Text>
+              </TouchableOpacity>
+            )}
                 </View>
               </View>
 

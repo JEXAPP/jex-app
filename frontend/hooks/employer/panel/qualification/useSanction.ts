@@ -23,13 +23,13 @@ export const useSanction = (workerId: string, eventId?: string) => {
       if (Array.isArray(data)) {
         const found = data.find((emp: any) => String(emp.employee_id) === String(workerId));
         if (found) {
-          setWorker({
-            id: found.employee_id,
-            name: found.name,
-            role: found.job_type,
-            image: found.image_url || null,
-          });
-        }
+        setWorker({
+          id: found.employee_id,
+          name: found.name,
+          role: found.job_type,
+          image: found.image || null, // ✅ corregido
+        });
+      }
       }
     } catch (err) {
       console.log("❌ Error cargando empleado:", err);

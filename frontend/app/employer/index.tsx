@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image} from "react-native";
+import React, { useState, useMemo } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Image, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IconButton } from "@/components/button/IconButton";
 import { iconButtonStyles1 } from "@/styles/components/button/iconButtonStyles1";
@@ -8,7 +8,6 @@ import { iconos } from "@/constants/iconos";
 import { useAdminPanel } from "@/hooks/employer/useAdminPanel";
 import { adminPanelStyles as styles } from "@/styles/app/employer/adminPanelStyles";
 import HomeEventsSkeleton from "@/constants/skeletons/employer/homeEventsSkeleton";
-
 
 export default function AdminPanelScreen() {
   const {
@@ -25,48 +24,13 @@ export default function AdminPanelScreen() {
     goToQualifications,
   } = useAdminPanel();
 
-  if (loading) {
-  return <HomeEventsSkeleton />;
-}
+  const [modalVisible, setModalVisible] = useState(false);
 
-if (events.length === 0) {
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>Eventos</Text>
-        <IconButton
-          sizeButton={24}
-          sizeContent={22}
-          styles={iconButtonStyles1}
-          onPress={goToCreateEvent}
-          content="+"
-          backgroundColor={Colors.gray2} 
-          contentColor={Colors.white}
-        />
-      </View>
+  if (loading) return <HomeEventsSkeleton />;
 
-      {/* Card de no hay eventos */}
-      <View style={styles.noEventsCard}>
-        <Text style={styles.noEventsTitle}>No tienes ningún evento activo</Text>
-
-        <Image
-          source={require('@/assets/images/jex/Jex-Sin-Eventos.png')}
-          style={styles.noEventsImage}
-          resizeMode="contain"
-        />
-
-        <Text style={styles.noEventsSubtitle}>
-          Apretá el botón + para crear tu próximo evento
-        </Text>
-      </View>
-    </SafeAreaView>
-  );
-}
-
-  return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
+  if (!currentEvent || events.length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Eventos</Text>
           <IconButton
@@ -80,9 +44,102 @@ if (events.length === 0) {
           />
         </View>
 
-        {/* Event navigation */}
+        <View style={styles.noEventsCard}>
+          <Text style={styles.noEventsTitle}>No tienes ningún evento activo</Text>
+          <Image
+            source={require("@/assets/images/jex/Jex-Sin-Eventos.png")}
+            style={styles.noEventsImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.noEventsSubtitle}>
+            Apretá el botón + para crear tu próximo evento
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const baseButtons = [
+    {
+      label: "Vacantes",
+      icon: iconos.vacantes(22, Colors.violet4),
+      action: () => goToVacancies(currentEvent.id),
+    },
+    {
+      label: "Editar Evento",
+      icon: iconos.editar(22, Colors.violet4),
+      action: () => goToEditEvent(currentEvent.id),
+    },
+    {
+      label: "Asistencia",
+      icon: iconos.asistencia(22, Colors.violet4),
+      action: () => goToAttendance(currentEvent.id),
+    },
+    {
+      label: "Contratación Tardía",
+      icon: iconos.reloj(22, Colors.violet4),
+      action: null,
+    },
+    {
+      label: "Calificaciones",
+      icon: iconos.estrella(22, Colors.violet4),
+      action: () => goToQualifications(currentEvent.id),
+    },
+    {
+      label: "Reportes",
+      icon: iconos.reportes(22, Colors.violet4),
+      action: null,
+    },
+  ];
+
+  const enabledLabelsByState: Record<string, string[]> = {
+    Borrador: ["Vacantes", "Editar Evento"],
+    Publicado: ["Vacantes", "Contratación Tardía"],
+    "En Curso": ["Asistencia"],
+    Finalizado: ["Calificaciones", "Reportes"],
+  };
+
+  const enabledLabels = enabledLabelsByState[currentEvent.estado?.name] ?? [];
+
+  const renderButton = (button: any) => {
+    const disabled = !enabledLabels.includes(button.label);
+
+    return (
+      <TouchableOpacity
+        key={button.label}
+        style={[styles.card, disabled && styles.cardDisabled]}
+        onPress={() => {
+          if (disabled) setModalVisible(true);
+          else button.action?.();
+        }}
+        activeOpacity={disabled ? 1 : 0.7}
+      >
+        <View style={styles.cardContent}>
+          {button.icon}
+          <Text style={styles.cardText}>{button.label}</Text>
+        </View>
+        {iconos.flechaDerecha(22, Colors.violet4)}
+      </TouchableOpacity>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.headerRow}>
+          <Text style={styles.title}>Eventos</Text>
+          <IconButton
+            sizeButton={24}
+            sizeContent={22}
+            styles={iconButtonStyles1}
+            onPress={goToCreateEvent}
+            content="+"
+            backgroundColor={Colors.gray2}
+            contentColor={Colors.white}
+          />
+        </View>
+
         <View style={styles.eventRow}>
-          
           <View style={styles.sideSlot}>
             {currentEventIndex > 0 && (
               <TouchableOpacity onPress={handlePrevEvent}>
@@ -93,10 +150,7 @@ if (events.length === 0) {
 
           <View style={styles.centerSlot}>
             <Text style={styles.eventName}>{currentEvent?.nombre}</Text>
-
-            
           </View>
-
 
           <View style={styles.sideSlot}>
             {currentEventIndex < events.length - 1 && (
@@ -113,71 +167,26 @@ if (events.length === 0) {
           </View>
         )}
 
-        {/* Cards */}
         <View style={styles.cardsContainer}>
-          <TouchableOpacity
-          style={styles.card}
-          onPress={() => goToVacancies(currentEvent.id)}
-        >
-          <View style={styles.cardContent}>
-            {iconos.vacantes(22, Colors.violet4)}
-            <Text style={styles.cardText}>Vacantes</Text>
-          </View>
-          {iconos.flechaDerecha(22, Colors.violet4)}
-        </TouchableOpacity>
-
-
-
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => goToEditEvent(currentEvent.id)}
-          >
-            <View style={styles.cardContent}>
-              {iconos.editar(22, Colors.violet4)}
-              <Text style={styles.cardText}>Editar Evento</Text>
-            </View>
-            {iconos.flechaDerecha(22, Colors.violet4)}
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.card}
-            onPress={() => goToAttendance(currentEvent.id)}>
-            <View style={styles.cardContent}>
-              {iconos.asistencia(22, Colors.violet4)}
-              <Text style={styles.cardText}>Asistencia</Text>
-            </View>
-            {iconos.flechaDerecha(22, Colors.violet4)}
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.card}>
-            <View style={styles.cardContent}>
-              {iconos.reloj(22, Colors.violet4)}
-              <Text style={styles.cardText}>Contratación Tardía</Text>
-            </View>
-            {iconos.flechaDerecha(22, Colors.violet4)}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => goToQualifications(currentEvent.id)}  // 👈 ahora pasa el id
-          >
-            <View style={styles.cardContent}>
-              {iconos.estrella(22, Colors.violet4)}
-              <Text style={styles.cardText}>Calificaciones</Text>
-            </View>
-            {iconos.flechaDerecha(22, Colors.violet4)}
-        </TouchableOpacity>
-
-
-          <TouchableOpacity style={styles.card}>
-            <View style={styles.cardContent}>
-              {iconos.reportes(22, Colors.violet4)}
-              <Text style={styles.cardText}>Reportes</Text>
-            </View>
-            {iconos.flechaDerecha(22, Colors.violet4)}
-          </TouchableOpacity>
+          {baseButtons.map(renderButton)}
         </View>
       </ScrollView>
+
+      <Modal visible={modalVisible} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalText}>
+              Esta opción está deshabilitada dado el estado del evento.
+            </Text>
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={styles.modalButton}
+            >
+              <Text style={styles.modalButtonText}>Aceptar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
