@@ -13,7 +13,7 @@ class PasswordResetOTP(models.Model):
     
 
 class PhoneVerification(models.Model):
-    phone = models.CharField(max_length=15, unique=True)
+    phone = models.CharField(max_length=15)
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     verified_at = models.DateTimeField(null=True, blank=True)
