@@ -104,7 +104,7 @@ class MercadoPagoService:
                 "pending": settings.MP_PENDING_URL,
             },
             "auto_return": "approved",
-            "collector_id": employee_account.mp_user_id,
+            "collector_id":  int(employee_account.mp_user_id),
             "application_fee": float(commission),  # tu comisión
         }
         if external_reference:
