@@ -6,7 +6,7 @@ import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react';
 import { Platform } from 'react-native';
 import { setToken, getToken } from '@/services/internal/useTokenStorage';
-import { connectStream } from '@/services/stream/streamClient';
+import { connectStream, getStreamClient } from '@/services/stream/streamClient';
 
 
 type Role = 'employee' | 'employer';
@@ -95,16 +95,16 @@ export const useLogin = () => {
 
   const ensureStreamConnected = async () => {
     try {
-      await connectStream(); // usa internamente getStreamCredentials()
-      // opcional: console.log('✅ Conectada a Stream');
+      // 1) Conecta (si ya estaba conectado con el mismo user, no hace nada)
+      await connectStream();
+      // 2) Opcional: obtené el cliente para confirmar
+     const client = getStreamClient();
+      // console.log('✅ Stream conectado como', client.userID);
     } catch (e) {
-      // Si falla la conexión a Stream, mantené el login igual,
-      // pero avisá en consola/estado para debug.
       console.log('❌ No se pudo conectar a Stream:', e);
     }
-  };
-
-
+  }
+  
   const handleLogin = async () => {
     if (!email || !password) {
       setErrorMessage('Todos los campos son obligatorios');

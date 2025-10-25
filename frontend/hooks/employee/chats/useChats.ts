@@ -2,25 +2,24 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStreamChannels } from '@/hooks/employee/chats/useStreamChat';
 
-type Option = { id: string; title: string }; // para el dropdown (label/value se mapea en la screen)
+type Option = { id: string; title: string };
 
 export function useChat() {
-  const { loading, error, items } = useStreamChannels(undefined);
-
+  const { loading, error, items: allItems } = useStreamChannels(undefined);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
-  // Opciones por evento (nombre limpio)
+  // Opciones por evento
   const options: Option[] = useMemo(() => {
-    const byEvent = new Map<string, string>(); // id -> title
-    for (const it of items) {
+    const byEvent = new Map<string, string>();
+    for (const it of allItems) {
       if (!it.eventId) continue;
-      const title = it.eventTitle || it.eventTitle || 'Evento';
+      const title = it.eventTitle || 'Evento';
       if (!byEvent.has(it.eventId)) byEvent.set(it.eventId, title);
     }
     return Array.from(byEvent.entries())
       .map(([id, title]) => ({ id, title }))
       .sort((a, b) => a.title.localeCompare(b.title, 'es', { sensitivity: 'base' }));
-  }, [items]);
+  }, [allItems]);
 
   // Selección inicial
   useEffect(() => {
@@ -29,27 +28,27 @@ export function useChat() {
     }
   }, [options, selectedEventId]);
 
-  // Filtrado por evento
-  const itemsFiltered = useMemo(() => {
+  // Filtrado por evento + orden por tipo (anuncios → workers → demás)
+  const items = useMemo(() => {
     if (!selectedEventId) return [];
-    return items
+    return allItems
       .filter((it) => it.eventId === selectedEventId)
       .sort((a, b) => {
         const s = (x: typeof a) => (x.isAnnouncements ? 0 : x.isWorkers ? 1 : 2);
         return s(a) - s(b);
       });
-  }, [items, selectedEventId]);
+  }, [allItems, selectedEventId]);
 
-  const hasChannels = itemsFiltered.length > 0;
+  const hasChannels = items.length > 0;
   const selectEvent = useCallback((id: string) => setSelectedEventId(id), []);
 
   return {
     loading,
     error,
-    options,              // para el dropdown
+    options,
     selectedEventId,
     selectEvent,
-    items: itemsFiltered, // listos para pintar
+    items,       // UiChannelItem[] -> item.id ya es el CID correcto
     hasChannels,
   };
 }

@@ -40,7 +40,7 @@ export default function OnboardingProfileScreen() {
         <View style={styles.profileImageWrapper}>
           <UploadImage
             shape="circle"
-            defaultImage={require('@/assets/images/jex/Jex-Postulantes-Default.png')}
+            defaultImage={require('@/assets/images/jex/Jex-Postulantes-Default.webp')}
             onChange={(file, uri) => {
               setImagenFile(file);
               setImagenPerfil(uri);

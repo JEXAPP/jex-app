@@ -15,7 +15,7 @@ export default function SearchResultsScreen() {
   const renderItem = ({ item }: any) => {
     const imgSource = item.profile_image
       ? { uri: item.profile_image }
-      : require('@/assets/images/jex/Jex-Postulantes-Default.png'); // aseg. extensión real
+      : require('@/assets/images/jex/Jex-Postulantes-Default.webp'); // aseg. extensión real
 
     return (
       <Pressable style={s.card} onPress={() => onPressEmployee(item.employee_id)}>

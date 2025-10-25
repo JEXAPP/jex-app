@@ -16,7 +16,7 @@ type Props = {
   fallback?: ImageSourcePropType; // imagen por defecto
 };
 
-const DEFAULT_FALLBACK = require('@/assets/images/jex/Jex-Evento-Default.png');
+const DEFAULT_FALLBACK = require('@/assets/images/jex/Jex-Evento-Default.webp');
 
 const ImageOnline: React.FC<Props> = ({
   imageId,

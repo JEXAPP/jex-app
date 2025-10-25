@@ -82,7 +82,7 @@ export default function EditEventScreen() {
             initialImageUrl={imageURL} 
             shape="square"
             size={100}
-            defaultImage={require('@/assets/images/jex/Jex-Evento-Default.png')}
+            defaultImage={require('@/assets/images/jex/Jex-Evento-Default.webp')}
             onChange={(file, uri) => {
               setImagenFile(file)
             }}

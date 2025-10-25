@@ -62,7 +62,7 @@ export default function HomeEmployeeScreen () {
             <View style={styles.adsWrapper}>
 
               <Image
-                source={require('@/assets/images/jex/Jex-Publicidad.png')}
+                source={require('@/assets/images/jex/Jex-Publicidad.webp')}
                 style={styles.jexBanner}
                 resizeMode="cover"
               />

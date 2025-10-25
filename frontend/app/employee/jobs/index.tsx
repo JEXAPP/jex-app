@@ -82,7 +82,7 @@ export default function ActiveJobsScreen() {
           <View style={styles.noJobsCard}>
             <Text style={styles.noJobsTitle}>Aún no tienes trabajos</Text>
             <Image
-              source={require("@/assets/images/jex/Jex-Olvidadizo.png")}
+              source={require("@/assets/images/jex/Jex-Olvidadizo.webp")}
               style={styles.noJobsImage}
               resizeMode="contain"
             />

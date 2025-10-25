@@ -62,7 +62,7 @@ return (
 
                     <UploadImage
                         shape="circle"
-                         defaultImage={require('@/assets/images/jex/Jex-FotoPerfil.png')}
+                         defaultImage={require('@/assets/images/jex/Jex-FotoPerfil.webp')}
                         onChange={(file, uri) => {
                         setImagenFile(file);
                         setImagenPerfil(uri);

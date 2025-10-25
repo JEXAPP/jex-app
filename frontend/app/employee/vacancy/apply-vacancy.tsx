@@ -127,7 +127,7 @@ export default function ApplyVacancyScreen() {
           <View>
 
             <Image
-              source={require('@/assets/images/jex/Jex-FotoPerfil.png')}
+              source={require('@/assets/images/jex/Jex-FotoPerfil.webp')}
               style={styles.logoWrapper}
             />
 

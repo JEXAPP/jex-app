@@ -90,7 +90,7 @@ export const useHomeOffers = () => {
             company: vacancy?.event?.name ?? 'Evento sin nombre',
             eventImage: vacancy?.event?.image
               ? { uri: vacancy.event.image }
-              : require('@/assets/images/jex/Jex-Evento-Default.png'),
+              : require('@/assets/images/jex/Jex-Evento-Default.webp'),
             expirationDate: item.expiration_date,
             expirationTime: item.expiration_time,
           };

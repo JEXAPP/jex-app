@@ -114,7 +114,7 @@ export default function EmployeeThreadScreen() {
 
                   <View style={s.headerAvatar}>
                     <Image
-                      source={require('@/assets/images/jex/Jex-Foro-Grupal.png')}
+                      source={require('@/assets/images/jex/Jex-Foro-Grupal.webp')}
                       style={s.avatarImg}
                     />
                   </View>

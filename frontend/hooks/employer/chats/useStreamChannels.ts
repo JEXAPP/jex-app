@@ -5,7 +5,7 @@ import type { ImageSourcePropType } from 'react-native';
 
 // Top-level requires para que Metro incluya los assets
 const AVATAR_FORO: ImageSourcePropType =
-  require('@/assets/images/jex/Jex-Foro-Grupal.png');
+  require('@/assets/images/jex/Jex-Foro-Grupal.webp');
 
 type MinimalChannelData = {
   name?: string;

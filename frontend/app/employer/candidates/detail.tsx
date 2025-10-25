@@ -39,7 +39,7 @@ export default function EmployeeDetailScreen() {
   const otherCards  = (data?.shiftCards ?? []).filter(c => !c.isCurrent);
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={s.container}>
+    <SafeAreaView edges={['left', 'right']} style={s.container}>
       {/* Top violeta */}
       <View style={s.topHero}>
         <View style={s.backBtnHero} onTouchEnd={goBack}>
@@ -47,7 +47,7 @@ export default function EmployeeDetailScreen() {
         </View>
 
         <View style={s.topHeroCenter}>
-          <ImageOnline imageUrl={data?.profile_image ?? null} size={100} shape="circle" fallback={require('@/assets/images/jex/Jex-Postulantes-Default.png')}/>
+          <ImageOnline imageUrl={data?.profile_image ?? null} size={100} shape="circle" fallback={require('@/assets/images/jex/Jex-Postulantes-Default.webp')}/>
 
           <View style={s.linkedRowCenter}>
             {iconos.usuario_validado(16, Colors.white)}

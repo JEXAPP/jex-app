@@ -78,7 +78,7 @@ export default function CreateEventScreen() {
 
               <UploadImage
                 shape="square"
-                defaultImage={require('@/assets/images/jex/Jex-Evento-Default.png')}
+                defaultImage={require('@/assets/images/jex/Jex-Evento-Default.webp')}
                 onChange={(file, uri) => {
                 setImagenFile(file);
                 setImagenPerfil(uri);

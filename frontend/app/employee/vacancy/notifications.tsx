@@ -68,7 +68,7 @@ export default function NotificationsScreen() {
           ListEmptyComponent={
             <View style={s.noNotificationsCard}>
               <Image
-                source={require('@/assets/images/jex/Jex-Sin-Notificaciones.png')}
+                source={require('@/assets/images/jex/Jex-Sin-Notificaciones.webp')}
                 style={s.noNotificationsImage}
                 resizeMode="contain"
               />

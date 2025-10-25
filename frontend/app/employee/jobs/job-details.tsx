@@ -146,7 +146,7 @@ export default function JobDetailScreen() {
         subtitle="El día del evento vas a poder generar un QR para registrar tu presente de manera rápida y sencilla."
         buttonText="Entendido"
         onClose={() => setShowInfo(false)}
-        imageSource={require('@/assets/images/jex/Jex-QR.png')}
+        imageSource={require('@/assets/images/jex/Jex-QR.webp')}
       />
 
       <ImageWindow

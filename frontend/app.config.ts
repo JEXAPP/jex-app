@@ -29,7 +29,17 @@ export default (): ExpoConfig => ({
     splash: {
       image: "./assets/images/jex/Jex-Logo.png",
       resizeMode: "contain",
-      backgroundColor: "#ffffff"
+      backgroundColor: "#ffffff",
+    },
+    permissions: [
+     "INTERNET",
+     "CAMERA",
+     "RECORD_AUDIO",
+     "READ_MEDIA_IMAGES",
+     "POST_NOTIFICATIONS"
+   ],
+    config: {
+      googleMaps: { apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }
     }
   },
   ios: {
@@ -39,6 +49,15 @@ export default (): ExpoConfig => ({
       image: "./assets/images/jex/Jex-Logo.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff"
+    },
+    config: {
+      googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY 
+    },
+    infoPlist: {
+      NSCameraUsageDescription: "Necesitamos la cámara para escanear el QR y tomar fotos.",
+      NSMicrophoneUsageDescription: "Necesitamos el micrófono para grabar mensajes de voz.",
+      NSPhotoLibraryUsageDescription: "Necesitamos acceder a tus fotos para adjuntar imágenes.",
+      NSPhotoLibraryAddUsageDescription: "Necesitamos guardar imágenes/audios si elegís descargarlos."
     }
   },
   web: {

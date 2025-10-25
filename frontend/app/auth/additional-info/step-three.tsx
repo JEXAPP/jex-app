@@ -39,7 +39,7 @@ export default function OnboardingMercadoPagoScreen() {
         {!linked && (
           <View style={styles.card}>
             <Image
-                source={require("@/assets/images/jex/Jex-Mercado-Pago.png")}
+                source={require("@/assets/images/jex/Jex-Mercado-Pago.webp")}
                 style={styles.image}
                 resizeMode="contain"
               />

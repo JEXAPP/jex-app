@@ -104,7 +104,7 @@ export default function SearchVacancyScreen() {
                   <View style={styles.noVancancyCard}>
                     <Text style={styles.noVancancyTitle}>No se encontraron vacantes</Text>
                     <Image
-                      source={require('@/assets/images/jex/Jex-Sin-Trabajo.png')}
+                      source={require('@/assets/images/jex/Jex-Sin-Trabajo.webp')}
                       style={styles.noVancancyImage}
                       resizeMode="contain"
                     />
@@ -116,7 +116,7 @@ export default function SearchVacancyScreen() {
                   <View style={styles.noVancancyCard}>
                     <Text style={styles.noVancancyTitle}>Explorá las vacantes disponibles</Text>
                     <Image
-                      source={require('@/assets/images/jex/Jex-Sin-Eventos.png')}
+                      source={require('@/assets/images/jex/Jex-Sin-Eventos.webp')}
                       style={styles.noVancancyImage}
                       resizeMode="contain"
                     />

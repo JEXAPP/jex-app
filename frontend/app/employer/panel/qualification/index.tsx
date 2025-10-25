@@ -126,7 +126,7 @@ export default function QualiScreen() {
               <View style={styles.workerRow}>
                 {/* Imagen hardcodeada */}
                 <Image
-                  source={require("@/assets/images/jex/Jex-FotoPerfil.png")}
+                  source={require("@/assets/images/jex/Jex-FotoPerfil.webp")}
                   style={styles.workerImage}
                 />
                 <View style={{ flex: 1 }}>

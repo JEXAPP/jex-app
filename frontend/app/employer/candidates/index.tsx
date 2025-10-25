@@ -79,7 +79,7 @@ export default function ChooseCandidatesScreen() {
         <View style={s.emptyBox}>
           <Text style={s.emptyTitle}>No tenés eventos aún</Text>
           <Image
-            source={require('@/assets/images/jex/Jex-Sin-Eventos.png')}
+            source={require('@/assets/images/jex/Jex-Sin-Eventos.webp')}
             style={s.emptyImage}
             resizeMode="contain"
           />
@@ -134,7 +134,7 @@ export default function ChooseCandidatesScreen() {
   };
 
   return (
-    <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={s.container} edges={['left', 'right']}>
       <View>
         {/* Header evento con flechas */}
         <View style={s.eventRow}>
@@ -195,7 +195,7 @@ export default function ChooseCandidatesScreen() {
           <View style={s.emptyBox2}>
             <Text style={s.emptyTitle}>No hay vacantes activas</Text>
             <Image
-              source={require('@/assets/images/jex/Jex-Sin-Vacantes.png')}
+              source={require('@/assets/images/jex/Jex-Sin-Vacantes.webp')}
               style={s.emptyImage}
               resizeMode="contain"
             />
@@ -252,7 +252,7 @@ export default function ChooseCandidatesScreen() {
               <View style={s.emptyBox3}>
                 <Text style={s.emptyTitle}>Turno Lleno</Text>
                 <Image
-                  source={require('@/assets/images/jex/Jex-Postulacion-Lleno.png')}
+                  source={require('@/assets/images/jex/Jex-Postulacion-Lleno.webp')}
                   style={s.emptyImage2}
                   resizeMode="contain"
                 />
@@ -267,7 +267,7 @@ export default function ChooseCandidatesScreen() {
                   <View style={s.emptyBox3}>
                     <Text style={s.emptyTitle}>No hay postulaciones</Text>
                     <Image
-                      source={require('@/assets/images/jex/Jex-Postulacion-Vacio.png')}
+                      source={require('@/assets/images/jex/Jex-Postulacion-Vacio.webp')}
                       style={s.emptyImage3}
                       resizeMode="contain"
                     />
@@ -296,7 +296,7 @@ export default function ChooseCandidatesScreen() {
                             source={
                               item.avatarUrl
                                 ? { uri: item.avatarUrl }
-                                : require('@/assets/images/jex/Jex-Postulantes-Default.png')
+                                : require('@/assets/images/jex/Jex-Postulantes-Default.webp')
                             }
                             style={s.avatar}
                           />

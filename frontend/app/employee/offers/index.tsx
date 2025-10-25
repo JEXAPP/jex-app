@@ -48,7 +48,7 @@ export default function HomeOffersScreen() {
                 <View style={styles.noOffersCard}>
                   <Text style={styles.noOffersTitle}>Aún no tienes ofertas</Text>
                   <Image
-                    source={require('@/assets/images/jex/Jex-Olvidadizo.png')}
+                    source={require('@/assets/images/jex/Jex-Olvidadizo.webp')}
                     style={styles.noOffersImage}
                     resizeMode="contain"
                   />
@@ -68,7 +68,7 @@ export default function HomeOffersScreen() {
                       <Image
                         source={
                           offer.eventImage ??
-                          require('@/assets/images/jex/Jex-Evento-Default.png')
+                          require('@/assets/images/jex/Jex-Evento-Default.webp')
                         }
                         style={styles.offerImage}
                       />

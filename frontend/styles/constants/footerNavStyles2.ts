@@ -1,3 +1,4 @@
+// footerNavStyles2.ts
 import { StyleSheet } from "react-native";
 import { Colors } from "@/themes/colors";
 
@@ -6,7 +7,7 @@ export const footerNavStyles2 = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    bottom: 0,
+    // bottom lo pone el componente con insets
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
@@ -15,8 +16,6 @@ export const footerNavStyles2 = StyleSheet.create({
     backgroundColor: Colors.gray1,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    //borderWidth: 1,
-    //borderColor: Colors.violet4,
 
     shadowColor: "#000",
     shadowOpacity: 0.8,

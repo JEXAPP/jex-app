@@ -102,29 +102,31 @@ export default function HeaderNav({
   };
 
   return (
-    <View style={{ backgroundColor: bgColor }}>
-      {title ? <Text style={s.title}>{title}</Text> : null}
+  <View style={{ backgroundColor: bgColor ?? 'transparent' }}>
+    {title ? <Text style={s.title}>{title}</Text> : null}
 
-      <View style={[s.bar, { backgroundColor: bgColor }]}>
-        {pages.map((p, i) => {
-          const isActive = i === routeIndex;
-          return (
-            <Pressable
-              key={p.route}
-              style={s.tab}
-              onPress={() => onPressTab(i)}
-              onLayout={onTabLayout(i)}
-            >
-              <Text style={[s.tabText, isActive ? s.tabTextActive : null]}>
-                {p.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <View style={s.baseLine} />
-      <Animated.View style={[s.indicator, { left: indicatorX, width: indicatorW }]} />
+    <View style={[s.bar, { backgroundColor: bgColor ?? 'transparent' }]}>
+      {pages.map((p, i) => {
+        const isActive = i === routeIndex;
+        return (
+          <Pressable
+            key={p.route}
+            style={s.tab}
+            onPress={() => onPressTab(i)}
+            onLayout={onTabLayout(i)}
+          >
+            <Text style={[s.tabText, isActive ? s.tabTextActive : null]}>
+              {p.label}
+            </Text>
+          </Pressable>
+        );
+      })}
     </View>
-  );
+
+    {/* Línea inferior usando tu prop (o transparente si no viene) */}
+    <View style={[s.baseLine, { backgroundColor: underlineColor ?? 'transparent' }]} />
+
+    <Animated.View style={[s.indicator, { left: indicatorX, width: indicatorW }]} />
+  </View>
+);
 }

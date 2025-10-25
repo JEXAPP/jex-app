@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Platform, KeyboardAvoidingView } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import type { StreamChat as StreamChatType } from 'stream-chat';
 import {
   OverlayProvider,
   Chat as StreamChatUI,
@@ -12,26 +11,27 @@ import {
   TypingIndicator,
   ScrollToBottomButton,
 } from 'stream-chat-expo';
-import { getStreamClient } from '@/services/stream/streamClient';
-import { threadStyles as s } from '@/styles/app/employer/chats/threadStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
+import { getStreamClient } from '@/services/stream/streamClient';
+import { threadStyles as s } from '@/styles/app/employer/chats/threadStyles';
 
 function parseCid(cid: string) {
   const i = cid.indexOf(':');
   return i === -1 ? { type: '', id: '' } : { type: cid.slice(0, i), id: cid.slice(i + 1) };
 }
 
-export default function AnnouncementThreadScreen() {
+export default function ThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
   const cid = cidParam ?? '';
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
-  const [loading, setLoading] = useState(true);
   const [channel, setChannel] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const client = useMemo<StreamChatType | null>(() => {
+  const client = useMemo(() => {
     try { return getStreamClient(); } catch { return null; }
   }, []);
 
@@ -41,11 +41,9 @@ export default function AnnouncementThreadScreen() {
 
     (async () => {
       setLoading(true);
-      setError(null);
       try {
         const { type, id } = parseCid(cid);
         if (!type || !id) throw new Error('Canal inválido');
-
         const ch = client.channel(type, id);
         await ch.watch({ state: true });
         if (!cancelled) setChannel(ch);
@@ -59,74 +57,54 @@ export default function AnnouncementThreadScreen() {
     return () => { cancelled = true; };
   }, [client, cid]);
 
-  if (!client) {
-    return (
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
-        <View style={{ padding: 16 }}>
-          <Text style={{ fontSize: 16 }}>No se pudo inicializar el chat.</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-  if (!cid) {
-    return (
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
-        <View style={{ padding: 16 }}>
-          <Text style={{ fontSize: 16 }}>Canal no especificado.</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  if (!client) return <Text>No se pudo inicializar el chat.</Text>;
+  if (!cid) return <Text>Canal no especificado.</Text>;
 
   return (
-    <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={s.container} edges={['top', 'left', 'right', 'bottom']}>
       <OverlayProvider>
         <StreamChatUI client={client}>
-          {loading && (
-            <View style={{ padding: 16 }}>
-              <Text>Cargando chat…</Text>
-            </View>
-          )}
-
-          {!loading && error && (
-            <View style={{ padding: 16 }}>
-              <Text style={{ color: 'red' }}>Error: {error}</Text>
-            </View>
-          )}
-
+          {loading && <Text style={{ padding: 16 }}>Cargando chat…</Text>}
+          {!loading && error && <Text style={{ color: 'red', padding: 16 }}>{error}</Text>}
           {!loading && !error && channel && (
-            <StreamChannelUI channel={channel} keyboardVerticalOffset={0}>
+            <StreamChannelUI channel={channel}>
               <>
                 {/* Header */}
                 <View style={s.header}>
                   <TouchableOpacity onPress={() => router.back()} style={s.backButton}>
                     <Ionicons name="chevron-back-outline" size={26} color={Colors.violet4} />
                   </TouchableOpacity>
-
                   <View style={s.headerAvatar}>
                     <Image
-                      source={require('@/assets/images/jex/Jex-Foro-Grupal.png')}
+                      source={require('@/assets/images/jex/Jex-Foro-Grupal.webp')}
                       style={{ width: 28, height: 28, resizeMode: 'contain' }}
                     />
                   </View>
-
                   <View style={s.headerTitleWrap}>
                     <Text style={s.headerTitle}>Foro Grupal</Text>
                     <Text style={s.headerSubtitle}>Anunciá lo que quieras a tus empleados.</Text>
                   </View>
                 </View>
 
-                <View style={{ flex: 1 }}>
-                  <MessageList
-                    TypingIndicator={TypingIndicator}
-                    ScrollToBottomButton={ScrollToBottomButton}
-                    inverted={false}
-                  />
-                </View>
-                <View style={{ marginBottom:0}}>
-                  <MessageInput/>
-                </View>
-                
+                {/* Lista de mensajes */}
+                <KeyboardAvoidingView
+                  style={{ flex: 1 }}
+                  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                  keyboardVerticalOffset={insets.bottom + 90}
+                >
+                  <View style={{ flex: 1 }}>
+                    <MessageList
+                      TypingIndicator={TypingIndicator}
+                      ScrollToBottomButton={ScrollToBottomButton}
+                      inverted={true} 
+                    />
+                  </View>
+
+                  {/* Composer */}
+                  <View style={[s.inputContainer, { paddingBottom: insets.bottom }]}>
+                    <MessageInput />
+                  </View>
+                </KeyboardAvoidingView>
               </>
             </StreamChannelUI>
           )}

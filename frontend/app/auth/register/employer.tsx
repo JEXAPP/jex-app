@@ -42,7 +42,7 @@ export default function RegisterEmployerScreen() {
 
           <View style={styles.header}>
 
-            <Image source={require('@/assets/images/jex/Jex-Registrandose.png')} style={styles.image} />
+            <Image source={require('@/assets/images/jex/Jex-Registrandose.webp')} style={styles.image} />
 
             <Text style={styles.title}>Registrate{'\n'}en JEX</Text>
 

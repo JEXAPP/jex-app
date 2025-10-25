@@ -1,21 +1,16 @@
-import { Stack, router, useSegments, usePathname } from 'expo-router';
+import { Stack, router, usePathname } from 'expo-router';
 import React from "react";
 import { View, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import FooterNavEmployee from "@/constants/navigation/FooterNavEmployee";
+import FooterNavEmployee, { FOOTER_HEIGHT } from "@/constants/navigation/FooterNavEmployee";
 import { Colors } from "@/themes/colors";
 import { transitionFade } from "@/constants/transitions";
-
-const FOOTER_HEIGHT = 65;
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function EmployeeLayout() {
-  const pathname = usePathname(); // p.ej: ["(employee)","chats","threads","123"]
-
-  // quita grupos como "(employee)"
+  const pathname = usePathname();
   const hideFooter = pathname.startsWith('/employee/chats/thread');
-
-  console.log(hideFooter)
-  console.log(pathname)
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={{ flex: 1 }}>
@@ -39,14 +34,9 @@ export default function EmployeeLayout() {
         <Stack.Screen name="profile/index" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 
-      {!hideFooter && (
-        <>
-          <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>
-            <FooterNavEmployee basePath="/employee" />
-          </View>
-          <View style={{ height: FOOTER_HEIGHT }} />
-        </>
-      )}
+      {!hideFooter && <FooterNavEmployee basePath="/employee" />}
+
+      {!hideFooter && <View style={{ height: FOOTER_HEIGHT + insets.bottom }} />}
     </View>
   );
 }

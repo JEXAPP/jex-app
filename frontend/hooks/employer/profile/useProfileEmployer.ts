@@ -45,7 +45,7 @@ export const useProfile = () => {
         if (data) {
           setUser({
             name: `${data.user_full_name}`,
-            image: require("@/assets/images/jex/Jex-FotoPerfil.png"),
+            image: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
             rating:
               data.average_rating !== null
                 ? Number(data.average_rating.toFixed(1))

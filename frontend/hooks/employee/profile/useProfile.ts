@@ -7,6 +7,7 @@ import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { jwtDecode } from "jwt-decode";
+import { disconnectStream } from "@/services/stream/streamClient";
 
 // Tipo del payload de tu JWT
 type JwtPayload = {
@@ -45,7 +46,7 @@ export const useProfile = () => {
         if (data) {
           setUser({
             name: `${data.user_full_name}`,
-            image: require("@/assets/images/jex/Jex-FotoPerfil.png"),
+            image: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
             rating:
               data.average_rating !== null
                 ? Number(data.average_rating.toFixed(1))
@@ -105,20 +106,31 @@ export const useProfile = () => {
 ];
 
   const handleLogout = async () => {
-    try {
-      const refresh = await SecureStore.getItemAsync("refresh");
-      if (refresh) {
-        await requestBackend("/api/auth/logout/", { refresh }, "POST");
-        console.log("✅ Sesión cerrada en backend");
-      }
-    } catch (e: any) {
-      console.warn("⚠️ Error al cerrar sesión en backend:", e.message);
-    } finally {
-      await clearTokens();
-      await debugTokens();
-      router.replace("/");
+  try {
+    const refresh = await SecureStore.getItemAsync("refresh");
+
+    // 1️⃣ Cierra sesión en backend
+    if (refresh) {
+      await requestBackend("/api/auth/logout/", { refresh }, "POST");
+      console.log("✅ Sesión cerrada en backend");
     }
-  };
+
+    // 2️⃣ Desconecta del cliente Stream si está activo
+    try {
+      await disconnectStream();
+      console.log("✅ Desconectado de Stream correctamente");
+    } catch (err) {
+      console.warn("⚠️ Error al desconectar Stream:", err);
+    }
+  } catch (e: any) {
+    console.warn("⚠️ Error general al cerrar sesión:", e.message);
+  } finally {
+    // 3️⃣ Limpieza de tokens y navegación
+    await clearTokens();
+    await debugTokens();
+    router.replace("/");
+  }
+};
 
   return {
     user,

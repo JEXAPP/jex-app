@@ -39,7 +39,7 @@ export default function SelectEventToQualify() {
       <SafeAreaView style={styles.container}>
         {/* Imagen decorativa opcional */}
         <Image
-          source={require("@/assets/images/jex/Jex-Busqueda-Disponibilidad.png")} 
+          source={require("@/assets/images/jex/Jex-Busqueda-Disponibilidad.webp")} 
           style={styles.headerImage}
         />
 

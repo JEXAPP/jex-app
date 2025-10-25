@@ -89,7 +89,7 @@ export const useDetailOffers = () => {
           startTime: shift?.start_time ?? "",
           endTime: shift?.end_time ?? "",
           company: vacancy?.event?.name ?? "Evento sin nombre",
-          eventImage: require("@/assets/images/jex/Jex-Evento-Default.png"),
+          eventImage: require("@/assets/images/jex/Jex-Evento-Default.webp"),
           expirationDate: data.expiration_date,
           expirationTime: data.expiration_time,
           location: vacancy?.event?.location ?? "Ubicación no definida",

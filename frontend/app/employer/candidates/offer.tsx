@@ -141,14 +141,14 @@ export default function CreateOfferScreen() {
   }
 
   return (
-    <SafeAreaView edges={['top']} style={s.container}>
+    <SafeAreaView edges={['left', 'right']} style={s.container}>
       {/* HEADER */}
       <View style={s.headerCard}>
         <ImageOnline
           imageUrl={employeeImage}
           size={56}
           shape="circle"
-          fallback={require('@/assets/images/jex/Jex-Postulantes-Default.png')}
+          fallback={require('@/assets/images/jex/Jex-Postulantes-Default.webp')}
         />
         <View style={{ flex: 1, marginLeft: 10 }}>
           <Text style={s.headerName}>{employeeName}</Text>
@@ -337,7 +337,7 @@ export default function CreateOfferScreen() {
           />
           <Animated.View style={{ alignItems: 'center', opacity: contentOpacity, transform: [{ translateX: contentX }] }}>
             <Image
-              source={require('@/assets/images/jex/Jex-Oferta-Generada.png')}
+              source={require('@/assets/images/jex/Jex-Oferta-Generada.webp')}
               style={{ width: 280, height: 280, marginBottom: 8 }}
               resizeMode="contain"
             />

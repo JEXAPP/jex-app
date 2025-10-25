@@ -12,9 +12,9 @@ type MinimalChannelData = {
 };
 
 const AVATAR_FORO: ImageSourcePropType =
-  require('@/assets/images/jex/Jex-Foro-Grupal.png');
+  require('@/assets/images/jex/Jex-Foro-Grupal.webp');
 const AVATAR_TRAB: ImageSourcePropType =
-  require('@/assets/images/jex/Jex-Chat-Trabajadores.png');
+  require('@/assets/images/jex/Jex-Chat-Trabajadores.webp');
 
 export type UiChannelItem = {
   id: string;                 // channel cid
