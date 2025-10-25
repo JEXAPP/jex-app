@@ -5,7 +5,6 @@ from django.conf import settings
 import time
 import cloudinary.utils
 from rest_framework import serializers
-
 from media_utils.errors.media_errors_messages import CLOUDINARY_CREDENTIALS_NOT_CONFIGURED, CLOUDINARY_INVALID_FOLDER, CLOUDINARY_MISSING_FOLDER_PARAM
 
 

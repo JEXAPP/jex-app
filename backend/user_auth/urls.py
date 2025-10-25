@@ -21,7 +21,6 @@ urlpatterns = [
     path('password-reset-complete/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('verify/send-code/', SendPhoneVerificationCodeView.as_view(), name='send-phone-code'),
     path('verify/check-code/', VerifyPhoneCodeView.as_view(), name='verify-phone-code'),
-    path('employee/additional-info/', EmployeeAdditionalInfoView.as_view(), name='employee-additional-info'),
     path('employee/profile-description/', EmployeeProfileDescriptionView.as_view(), name='employee-profile-description'),
     path('employee/work-experience/', EmployeeWorkExperienceView.as_view(), name='employee-work-experience'),
     path('employee/education/', EmployeeEducationView.as_view(), name='employee-education'),
