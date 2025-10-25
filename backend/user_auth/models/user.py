@@ -38,7 +38,7 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True, null=False, blank=False)
-    phone = models.CharField(max_length=20, null=False, blank=False, unique=True)
+    phone = models.CharField(max_length=20, null=True, blank=True, unique=True)
 
     profile_image = models.OneToOneField(
         Image,
