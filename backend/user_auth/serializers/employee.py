@@ -89,7 +89,7 @@ class CompleteEmployeeSocialSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=20)
     dni = serializers.CharField(max_length=20)
     address = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    birth_date = serializers.DateField(required=False)
+    birth_date = CustomDateField(required=False)
     latitude = serializers.FloatField(required=False)
     longitude = serializers.FloatField(required=False)
 
