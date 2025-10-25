@@ -286,3 +286,26 @@ MP_WEBHOOK_SECRET = os.getenv('MP_WEBHOOK_SECRET')
 
 STREAM_API_KEY = os.getenv('STREAM_API_KEY') 
 STREAM_API_SECRET = os.getenv('STREAM_API_SECRET')
+
+# LOGGING
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'ignore_warnings': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': lambda record: not record.getMessage().startswith('UserWarning'),
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['ignore_warnings'],
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}

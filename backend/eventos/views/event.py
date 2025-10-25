@@ -181,6 +181,7 @@ class ListEventsByEmployerView(ListAPIView):
     required_groups = [EMPLOYER_ROLE]
     serializer_class = ListEventsByEmployerSerializer
     active_states = [
+        EventStates.DRAFT.value,
         EventStates.PUBLISHED.value,
         EventStates.IN_PROGRESS.value,
         EventStates.FINALIZED.value,

@@ -89,7 +89,7 @@ class CreateEventSerializer(serializers.ModelSerializer):
                 }
             )
 
-        public_state = EventState.objects.get(name=EventStates.PUBLISHED.value)
+        public_state = EventState.objects.get(name=EventStates.DRAFT.value)
 
         validated_data['owner'] = user
         validated_data['state'] = public_state
