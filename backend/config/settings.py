@@ -274,6 +274,7 @@ QR_JWT_EXP_MINUTES = int(os.getenv("QR_JWT_EXP_MINUTES", default=2))
 MP_CLIENT_ID = os.getenv("MP_CLIENT_ID")
 MP_CLIENT_SECRET = os.getenv("MP_CLIENT_SECRET")
 MP_AUTH_REDIRECT_URI = os.getenv("MP_AUTH_REDIRECT_URI")
+MP_API_URL = os.getenv("MP_API_URL", default="https://api.mercadopago.com")
 MP_TOKEN_URL = os.getenv("MP_TOKEN_URL", default="https://api.mercadopago.com/oauth/token")
 JWT_MP_SECRET = os.getenv("JWT_MP_SECRET")
 MP_ACCESS_TOKEN = os.getenv('MP_ACCESS_TOKEN')
@@ -281,6 +282,7 @@ MP_SUCCESS_URL = os.getenv('MP_SUCCESS_URL')
 MP_FAILURE_URL = os.getenv('MP_FAILURE_URL')
 MP_PENDING_URL = os.getenv('MP_PENDING_URL')
 MP_WEBHOOK_SECRET = os.getenv('MP_WEBHOOK_SECRET')
+MP_COLLECTION_ID = os.getenv('MP_COLLECTION_ID')
 
 # Stream CHAT
 

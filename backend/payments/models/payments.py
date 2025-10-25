@@ -10,7 +10,7 @@ class Payment(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     commission = models.DecimalField(max_digits=10, decimal_places=2)
     concept = models.CharField(max_length=255)
-    mp_payment_id = models.CharField(max_length=100)
+    mp_payment_id = models.CharField(max_length=100, null=True, blank=True)
     state = models.ForeignKey(PaymentState, on_delete=models.CASCADE, related_name='payments')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
