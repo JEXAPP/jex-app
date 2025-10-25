@@ -1,111 +1,140 @@
-// hooks/employer/panel/qualification/useSanction.ts
-import { useState } from "react";
+// ✅ Hook corregido
+import { useEffect, useState } from "react";
+import useBackendConection from "@/services/internal/useBackendConection";
+import { Alert } from "react-native";
 
-const sanctionTree = [
-  {
-    label: "Compromiso y puntualidad",
-    value: "leves",
-    icon: "walk-outline",
-    children: [
-      { label: "Llega tarde", value: "tarde", icon: "time-outline" },
-      { label: "No confirma asistencia", value: "no_confirma", icon: "help-circle-outline" },
-      { label: "Trabaja desinteresadamente", value: "desinteres", icon: "remove-circle-outline" },
-    ],
-  },
-  {
-    label: "Responsabilidad laboral",
-    value: "moderadas",
-    icon: "alert-circle-outline",
-    children: [
-      { label: "No presentarse al turno", value: "no_presenta", icon: "close-circle-outline" },
-      { label: "Abandonar turno", value: "abandona", icon: "exit-outline" },
-      { label: "No cumplir funciones", value: "no_funciones", icon: "briefcase-outline" },
-    ],
-  },
-  {
-    label: "Conducta inadecuada",
-    value: "graves",
-    icon: "flame-outline",
-    children: [
-      { label: "Conducta violenta", value: "violenta", icon: "warning-outline" },
-      { label: "Fraude", value: "fraude", icon: "cash-outline" },
-      { label: "Robo", value: "robo", icon: "bag-handle-outline" },
-    ],
-  },
-];
+export const useSanction = (workerId: string, eventId?: string) => {
+  const { requestBackend } = useBackendConection();
 
-export const useSanction = (workerId: string) => {
-  const mockWorkers = [
-    {
-      id: "1",
-      name: "Martina Salvo",
-      image: "https://randomuser.me/api/portraits/women/44.jpg",
-    },
-    {
-      id: "2",
-      name: "Juan García",
-      image: "https://randomuser.me/api/portraits/men/46.jpg",
-    },
-    {
-      id: "3",
-      name: "Luna Costas",
-      role: "Fotógrafo",
-      image: "https://randomuser.me/api/portraits/women/68.jpg",
-      linked: false,
-    },
-    {
-      id: "4",
-      name: "Diego López",
-      role: "Cantante",
-      image: "https://randomuser.me/api/portraits/men/12.jpg",
-      linked: true,
-    },
-    {
-      id: "5",
-      name: "Paula Méndez",
-      role: "DJ",
-      image: "https://randomuser.me/api/portraits/women/22.jpg",
-      linked: false,
-    },
-  ];
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
+  const [selectedType, setSelectedType] = useState<any | null>(null);
+  const [customComment, setCustomComment] = useState<string>("");
+  const [loading, setLoading] = useState(false);
 
-  const worker = mockWorkers.find((w) => w.id === workerId);
+  const [worker, setWorker] = useState<any>(null);
+  
 
-  const [path, setPath] = useState<any[]>([]);
-  const [selectedSanction, setSelectedSanction] = useState<any>(null);
+  // 🟣 Traer info del empleado
+  const fetchWorker = async () => {
+    if (!workerId || !eventId) return;
+    try {
+      const data = await requestBackend(`/api/events/${eventId}/employee/`, null, "GET");
+      if (Array.isArray(data)) {
+        const found = data.find((emp: any) => String(emp.employee_id) === String(workerId));
+        if (found) {
+          setWorker({
+            id: found.employee_id,
+            name: found.name,
+            role: found.job_type,
+            image: found.image_url || null,
+          });
+        }
+      }
+    } catch (err) {
+      console.log("❌ Error cargando empleado:", err);
+    }
+  };
 
-  const currentOptions =
-    path.length === 0 ? sanctionTree : path[path.length - 1].children || [];
+  // 🟣 Traer categorías de sanciones
+  const fetchCategories = async () => {
+  try {
+    const data = await requestBackend("/api/rating/penalty/categories/", null, "GET");
+    if (Array.isArray(data)) {
+      const filtered = data.filter((cat) => cat.id !== 7);
+      const withOther = [...filtered, { id: "otro", name: "Otro", types: [] }];
 
+      const iconMap: Record<string | number, string> = {
+        4: "time-outline",
+        5: "briefcase-outline",
+        6: "alert-circle-outline",
+        otro: "create-outline",
+      };
+
+      const withIcons = withOther.map((cat) => ({
+        ...cat,
+        icon: iconMap[cat.id] || "alert-outline",
+      }));
+
+      setCategories(withIcons);
+    }
+  } catch (err) {
+    console.log("❌ Error cargando categorías:", err);
+    Alert.alert("Error", "No se pudieron cargar las categorías de sanciones.");
+  }
+};
+
+  useEffect(() => {
+    fetchWorker();
+    fetchCategories();
+  }, [workerId, eventId]);
+
+  // 🟣 Seleccionar categoría o tipo
   const selectOption = (option: any) => {
-    if (option.children) {
-      setPath([...path, option]);
-    } else {
-      setSelectedSanction(option);
+    if (!selectedCategory) {
+      setSelectedCategory(option);
+      if (option.id === "otro") setSelectedType({ id: "otro" });
+    } else if (selectedCategory && !selectedType && selectedCategory.id !== "otro") {
+      setSelectedType(option);
     }
   };
 
   const goBackOption = () => {
-    if (path.length > 0) {
-      setPath(path.slice(0, -1));
-      setSelectedSanction(null);
+  if (selectedCategory?.id === "otro") {
+    setSelectedType(null);
+    setSelectedCategory(null);
+  } else if (selectedType) {
+    setSelectedType(null);
+  } else if (selectedCategory) {
+    setSelectedCategory(null);
+  }
+};
+  // 🟣 Registrar sanción
+  const registerSanction = async () => {
+    if (!workerId || !eventId) return;
+
+    const isOther = selectedCategory?.id === "otro";
+    if (isOther && !customComment.trim()) {
+      Alert.alert("Aviso", "Debes escribir una descripción para la sanción.");
+      return;
+    }
+
+    const body = {
+      penalized_user: Number(workerId),
+      event: Number(eventId),
+      penalty_type: isOther ? null : selectedType?.id,
+      comments: isOther ? customComment.trim() : selectedType?.name,
+    };
+
+    try {
+      setLoading(true);
+      const res = await requestBackend("/api/rating/penalty/create/", body, "POST");
+      Alert.alert("Éxito", res?.message || "Sanción registrada correctamente");
+    } catch (err) {
+      console.log("❌ Error registrando sanción:", err);
+      Alert.alert("Error", "No se pudo registrar la sanción.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const registerSanction = () => {
-    console.log("✅ Sanción registrada:", {
-      workerId,
-      sanction: selectedSanction,
-    });
-  };
+  const currentOptions = !selectedCategory
+    ? categories
+    : selectedCategory.id !== "otro"
+      ? selectedCategory.types
+      : [];
 
   return {
     worker,
     currentOptions,
-    selectedSanction,
+    selectedCategory,
+    selectedType,
     selectOption,
     goBackOption,
     registerSanction,
-    canGoBack: path.length > 0,
+    canGoBack: !!selectedCategory,
+    customComment,
+    setCustomComment,
+    loading,
   };
 };

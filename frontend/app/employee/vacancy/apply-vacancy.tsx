@@ -148,13 +148,11 @@ export default function ApplyVacancyScreen() {
             </View>
 
             <View style={styles.organizerInfoItem}>
-
-              <Text style={styles.organizerInfoValue}>
-                {organizer.rating} <Text style={{ color: Colors.violet5 }}>★</Text>
-              </Text>
-              <Text style={styles.organizerInfoLabel}>Puntaje</Text>
-
-            </View>
+            <Text style={styles.organizerInfoValue}>
+              {Number(organizer.rating).toFixed(1)} <Text style={{ color: Colors.violet5 }}>★</Text>
+            </Text>
+            <Text style={styles.organizerInfoLabel}>Puntaje</Text>
+          </View>
 
             <View style={styles.organizerInfoItem}>
 
