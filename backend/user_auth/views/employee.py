@@ -9,6 +9,7 @@ from user_auth.permissions import IsInGroup
 from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, EmployeeAdditionalInfoSerializer, EmployeeEducationSerializer, EmployeeInterestsSerializer, EmployeeProfileDescriptionSerializer, EmployeeRegisterSerializer, EmployeeWorkExperienceSerializer
 from user_auth.models.user import CustomUser
 from rest_framework import serializers
+from django.db import transaction
 
 class EmployeeRegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -82,20 +83,32 @@ class EmployeeWorkExperienceView(APIView):
     required_groups = [EMPLOYEE_ROLE]
 
     def post(self, request):
-        serializer = EmployeeWorkExperienceSerializer(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        exp = serializer.save()
-        return Response(serializer.data, status=201)
+        data = request.data
+        saved_items = []
+
+        with transaction.atomic():
+            for item in data:
+                serializer = EmployeeWorkExperienceSerializer(data=item, context={'request': request})
+                serializer.is_valid(raise_exception=True)
+                saved_items.append(serializer.save())
+
+        return Response(status=status.HTTP_201_CREATED)
     
 class EmployeeEducationView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE]
 
     def post(self, request):
-        serializer = EmployeeEducationSerializer(data=request.data, context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        edu = serializer.save()
-        return Response(serializer.data, status=201)
+        data = request.data
+        saved_items = []
+
+        with transaction.atomic():
+            for item in data:
+                serializer = EmployeeEducationSerializer(data=item, context={'request': request})
+                serializer.is_valid(raise_exception=True)
+                saved_items.append(serializer.save())
+
+        return Response(status=status.HTTP_201_CREATED)
         
 class EmployeeInterestsView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
