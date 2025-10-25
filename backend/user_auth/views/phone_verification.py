@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from user_auth.models.user import CustomUser
 from user_auth.services.twilio import TwilioService
 from django.utils import timezone
 from datetime import timedelta
@@ -12,7 +13,14 @@ class SendPhoneVerificationCodeView(APIView):
     def post(self, request):
         serializer = SendCodeSerializer(data=request.data)
         if serializer.is_valid():
-            phone = serializer.validated_data['phone']          
+            phone = serializer.validated_data['phone']
+
+            # Validar si el teléfono ya está registrado
+            if CustomUser.objects.filter(phone=phone).exists():
+                return Response(
+                    {"error": "Ya existe un usuario registrado con este número de teléfono."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )          
       
             # Send code using Twilio
             twilio_service = TwilioService()
@@ -24,7 +32,7 @@ class SendPhoneVerificationCodeView(APIView):
                     defaults={
                         'is_verified': False,
                         'verified_at': None,
-                        'expires_at': timezone.now() + timedelta(minutes=10)  # 10 mins
+                        'expires_at': timezone.now() + timedelta(minutes=10)
                     }
                 )              
                 action = "enviado" if created else "reenviado"
