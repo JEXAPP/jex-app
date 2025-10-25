@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.http import HttpResponse
 from django.shortcuts import redirect
 import requests
 from rest_framework import status, permissions, views
@@ -62,7 +63,9 @@ class MercadoPagoOAuthCallbackView(views.APIView):
         )
 
         redirect_url = f"jex://auth/additional-info/step-for?status=success&user_id={user.id}"
-        return redirect(redirect_url)
+        response = HttpResponse(status=302)
+        response['Location'] = redirect_url
+        return response
     
 
 class GenerateMPStateView(views.APIView):
