@@ -13,15 +13,7 @@ class SendPhoneVerificationCodeView(APIView):
         serializer = SendCodeSerializer(data=request.data)
         if serializer.is_valid():
             phone = serializer.validated_data['phone']          
-            # Check if phone number exists and is verified
-            existing = PhoneVerification.objects.filter(
-                phone=phone,
-                is_verified=True
-            ).first()          
-            if existing:
-                return Response({
-                    'error': 'This phone number is already verified.',
-                }, status=status.HTTP_400_BAD_REQUEST)          
+      
             # Send code using Twilio
             twilio_service = TwilioService()
             result = twilio_service.send_verification_code(phone)          
