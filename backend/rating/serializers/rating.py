@@ -95,17 +95,24 @@ class SingleRatingSerializer(serializers.Serializer):
 class ViewRatingsSerializer(serializers.ModelSerializer):
     user_full_name = serializers.SerializerMethodField()
     average_rating = serializers.FloatField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Behavior
         fields = [
             'average_rating',
             'user_full_name',
+            'image_url',
         ]
     
     def get_user_full_name(self, obj):
         user = obj.user
         return f"{user.first_name} {user.last_name}".strip()
+    
+    def get_image_url(self, obj):
+        user = obj.user
+        return user.profile_image.url if user.profile_image else None
+
 
 
 class ListEmployerEventsSerializer(serializers.ModelSerializer):
