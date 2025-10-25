@@ -91,12 +91,23 @@ class ApplicationCreateSerializer(serializers.Serializer):
                 Application(employee=employee, shift_id=shift_id, state=pending_state)
                 for shift_id in shifts_ids
             ])
+        
+        application = Application.objects.filter(
+            employee=employee,
+            shift_id__in=shifts_ids
+        ).first()
 
         send_notification(
             user=employer,
-            title="Nueva postulación",
-            message="POSTULADO nomas",
-            notification_type_name=NotificationTypes.APPLICATION.value
+            title="Postulacion",
+            message="Has recibido una nueva postulacion.",
+            notification_type_name=NotificationTypes.APPLICATION.value,
+            data={
+                "application_id": application.id,
+                "vacancy_id": vacancy.id,
+                "employee_id": employee.id,
+                "shifts": shifts_ids
+            }
         )
 
         return True

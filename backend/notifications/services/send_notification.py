@@ -17,7 +17,7 @@ if not logger.hasHandlers():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-def send_notification(user, title, message, notification_type_name):
+def send_notification(user, title, message, notification_type_name, data=None):
     """
     Crea una notificación en la base de datos y envía push a todos los dispositivos del usuario.
     
@@ -35,7 +35,8 @@ def send_notification(user, title, message, notification_type_name):
         user=user,
         title=title,
         message=message,
-        notification_type=notif_type
+        notification_type=notif_type,
+        data=data or {}
     )
 
     # Enviar push a todos los dispositivos del usuario
@@ -47,7 +48,7 @@ def send_notification(user, title, message, notification_type_name):
             "title": title,
             "body": message,
             "channelId": "default",
-            "data": {"type": notification_type_name}
+            "data": data
         }
         try:
             resp = requests.post(settings.EXPO_PUSH_API_URL, json=payload, timeout=5)

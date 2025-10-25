@@ -13,5 +13,5 @@ class Notification(models.Model):
         on_delete=models.PROTECT,
         related_name='notifications'
     )
-    action = models.CharField(blank=True, null=True)
+    data = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
