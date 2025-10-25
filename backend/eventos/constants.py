@@ -19,5 +19,16 @@ class CategoryEnum(str, Enum):
     EVENTO_DEPORTIVO = "Evento deportivo"
     OTROS = "Otros"
 
+class CategoryEnum2(Enum):
+    CONFERENCIA = "Conferencia"
+    EXPO = "Expo"
+    SEMINARIO = "Seminario"
+    BIRTHDAY = "Cumpleaños"
+    FIESTASECRETA = "Fiesta secreta"
+    BABYSHOWER = "Baby shower"
+    ANIVERSARIO = "Aniversario"
+    OBRATEATRO = "Obra de teatro"
+    FERIA = "Feria"
+
 class Unaccent(Func):
     function = 'UNACCENT'
