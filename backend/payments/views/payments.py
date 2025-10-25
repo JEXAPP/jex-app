@@ -20,6 +20,9 @@ import mercadopago
 from django.conf import settings
 from rest_framework import status, views
 from rest_framework.response import Response
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class MercadoPagoOAuthCallbackView(views.APIView):
@@ -153,7 +156,10 @@ class GeneratePaymentLinkView(views.APIView):
                     mp_account, amount, commission, concept, external_reference=str(payment.id)
                 )
 
+            logger.info(f"Link de pago generado: {payment_url} para payment_id: {payment.id}")
+
         except Exception as e:
+            logger.error(f"Error creando preferencia Mercado Pago: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return Response({

@@ -77,7 +77,18 @@ class MercadoPagoService:
         concept: Optional[str] = None,
         external_reference: Optional[str] = None
     ) -> str:
-        token = MercadoPagoService.get_access_token()
+        """
+        Crea un link de pago en Mercado Pago para que el empleador pague al empleado,
+        cobrando la comisión a la plataforma.
+        """
+        # Validar que el mp_user_id del empleado sea un entero
+        try:
+            collector_id = int(employee_account.mp_user_id)
+        except (ValueError, TypeError):
+            raise Exception("El mp_user_id del empleado no es válido")
+
+        # Usamos el token de la aplicación (MP app) con permisos de marketplace
+        token = settings.MP_ACCESS_TOKEN
         url = f"{settings.MP_API_URL}/checkout/preferences"
 
         headers = {
@@ -85,16 +96,14 @@ class MercadoPagoService:
             "Content-Type": "application/json",
         }
 
-        # Aumentamos el precio total para que el cliente pague el extra
-        total_price = amount + commission
-
+        # Crear preference data
         preference_data = {
             "items": [
                 {
                     "title": concept or "Pago de turno trabajado",
                     "quantity": 1,
                     "currency_id": "ARS",
-                    "unit_price": float(total_price),
+                    "unit_price": float(amount),  # solo el monto real
                 }
             ],
             "payment_methods": {"installments": 1},
@@ -104,14 +113,19 @@ class MercadoPagoService:
                 "pending": settings.MP_PENDING_URL,
             },
             "auto_return": "approved",
-            "collector_id":  int(employee_account.mp_user_id),
+            "collector_id": collector_id,  # el empleado recibe el pago
             "application_fee": float(commission),  # tu comisión
         }
+
         if external_reference:
             preference_data["external_reference"] = external_reference
 
+        # Hacer la llamada a la API de Mercado Pago
         resp = requests.post(url, headers=headers, json=preference_data)
+
         if resp.status_code != 201:
+            # Mostrar la respuesta completa para debugging
             raise Exception(f"Error creando preferencia MP: {resp.json()}")
 
+        # Retornar el link de pago
         return resp.json().get("init_point")
