@@ -36,7 +36,7 @@ export const useRegisterEmployer = () => {
     setLoading(true);
     try {
       if (desdeGoogle) {
-        await requestBackend('/api/auth/google/register', {
+        await requestBackend('/api/auth/register/employer/social/', {
           google_access_token: gAt || undefined,
           google_code: gCode || undefined,
           datosAdicionales: payload,
