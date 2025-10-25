@@ -35,36 +35,35 @@ class CreatePenaltySerializer(serializers.Serializer):
     comments = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, data):
-        # --- Validar usuario penalizado ---
+        # Validar usuario penalizado
         try:
             penalized_user = CustomUser.objects.get(pk=data['penalized_user'])
         except CustomUser.DoesNotExist:
             raise serializers.ValidationError(USER_NOT_FOUND)
 
-        # --- Validar evento ---
+        # Validar evento
         try:
             event_obj = Event.objects.get(pk=data['event'])
         except Event.DoesNotExist:
             raise serializers.ValidationError(EVENT_NOT_FOUND)
 
-        # --- Validar tipo de penalización ---
+        # Validar tipo de penalización
         try:
             penalty_type_obj = PenaltyType.objects.get(pk=data['penalty_type'])
         except PenaltyType.DoesNotExist:
             raise serializers.ValidationError(PENALTY_TYPE_NOT_FOUND)
 
-        # --- Buscar el Behavior del usuario penalizado ---
+        # Buscar el Behavior del usuario penalizado
         try:
             behavior_obj = Behavior.objects.get(user=penalized_user)
         except Behavior.DoesNotExist:
             raise serializers.ValidationError(BEHAVIOR_NOT_FOUND)
 
-        # Guardamos los objetos validados para usarlos en la vista
+        # Guardar objetos validados
         data['penalized_user_obj'] = penalized_user
         data['event_obj'] = event_obj
         data['penalty_type_obj'] = penalty_type_obj
         data['behavior_obj'] = behavior_obj
-
         return data
 
     def create(self, validated_data):
@@ -74,7 +73,7 @@ class CreatePenaltySerializer(serializers.Serializer):
         event = validated_data['event_obj']
         comments = validated_data.get('comments', '')
 
-        # StatePenalty: por ahora podrías setear un estado inicial (ej: "Pendiente")
+        # Estado inicial de la penalización
         in_review_state = PenaltyStates.IN_REVIEW.value
         state_in_review = StatePenalty.objects.filter(name=in_review_state).first()
 
@@ -87,3 +86,24 @@ class CreatePenaltySerializer(serializers.Serializer):
             penalty_type=penalty_type
         )
         return penalty
+
+
+# Serializer para respuesta de penalización
+class PenaltySerializer(serializers.ModelSerializer):
+    penalized_user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Penalty
+        fields = [
+            'id',
+            'penalized_user',
+            'punisher',
+            'event',
+            'comments',
+            'penalty_state',
+            'penalty_type',
+            'penalty_date',
+        ]
+
+    def get_penalized_user(self, obj):
+        return obj.behavior.user.id
