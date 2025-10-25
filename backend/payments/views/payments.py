@@ -92,7 +92,7 @@ class GeneratePaymentLinkView(views.APIView):
 
     def post(self, request, *args, **kwargs):
         serializer = GeneratePaymentLinkSerializer(
-            data=request.data,
+            data={"offer_id": kwargs.get("offer_id")},
             context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
