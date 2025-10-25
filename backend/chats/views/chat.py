@@ -11,10 +11,27 @@ class StreamTokenView(APIView):
     required_groups = [EMPLOYER_ROLE, EMPLOYEE_ROLE]
 
     def get(self, request):
-        upsert_user(request.user)
+        uid = upsert_user(request.user)
         token = create_user_token(request.user)
+
+        if request.user.is_employer():
+            company_name = getattr(request.user.employer_profile, "company_name", None)
+            display_name = company_name
+        else:
+            display_name = f"{request.user.first_name} {request.user.last_name}".strip()
+
+        user_data = {
+            "id": uid,
+            "name": display_name,
+            "role": "employer" if request.user.is_employer() else "employee",
+        }
+
+        if getattr(request.user, "profile_image", None):
+            user_data["image"] = request.user.profile_image.url
+
+
         return Response({
             "api_key": settings.STREAM_API_KEY,
-            "user_id": stream_user_id(request.user),
+            "user": user_data,
             "token": token,
         })
