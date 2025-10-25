@@ -22,6 +22,20 @@ class JobTypesEnum(str, Enum):
     ANIMADOR = "Animador"
     OTRO = "Otro"
 
+class JobTypeEnum2(Enum):
+    CATERING = "Catering"
+    JUEZ = "Juez"
+    MARKETING = "Marketing"
+    DJ = "DJ"
+    MAESTRO_CEREMONIAS = "Maestro de ceremonias"
+    CHOFER = "Chofer"
+    COCINERO = "Cocinero"
+    BARRISTA = "Barrista"
+    HOST = "Host / Anfitrión"
+    PERSONAL_BACKSTAGE = "Personal de backstage"
+    TECNICO_LUCES = "Técnico de luces"
+    TECNICO_SONIDO = "Técnico de sonido"
+
 class Unaccent(Func):
     function = 'UNACCENT'
 
