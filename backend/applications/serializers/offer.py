@@ -9,6 +9,8 @@ from applications.utils import get_job_type_display
 from chats.services.stream_chat_service import sync_offer_chat
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from eventos.serializers.event import EventSerializer
+from notifications.constants import NotificationTypes
+from notifications.services.send_notification import send_notification
 from rating.utils import get_user_average_rating, get_user_rating_count
 from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
@@ -129,7 +131,6 @@ class OfferCreateSerializer(serializers.ModelSerializer):
                 if current_offers >= max_quantity:
                     raise serializers.ValidationError(MAX_OFFERS_REACHED.format(max_quantity=max_quantity))
 
-                # 🔹 Validar oferta repetida
                 if Offer.objects.filter(employee=employee, employer=employer, selected_shift=shift).exists():
                     raise serializers.ValidationError(OFFER_ALREADY_EXISTS)
 
@@ -167,6 +168,17 @@ class OfferCreateSerializer(serializers.ModelSerializer):
             offert_state = ApplicationState.objects.get(name=ApplicationStates.OFFERT.value)
             application.state = offert_state
             application.save(update_fields=['state'])
+
+        send_notification(
+            user=employee.user,
+            title="¡Recibiste una oferta!",
+            message="Recibiste una nueva oferta de trabajo",
+            notification_type_name=NotificationTypes.OFFERT.value,
+            data={
+                "employee_id": employee.id,
+                "offer_id": offers[0].id,
+            }
+        )
 
         return offers[0] if application else offers
 
