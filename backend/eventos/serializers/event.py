@@ -10,6 +10,7 @@ from eventos.serializers.state_events import EventStateSerializer
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from media_utils.models import Image, ImageType
 from media_utils.serializers import ImageSerializer
+from rating.models.penalty import Penalty
 from rating.models.users_connections import UserConnection
 from user_auth.models.user import CustomUser
 from datetime import date
@@ -288,6 +289,7 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField()
     already_rated = serializers.SerializerMethodField()
     is_linked = serializers.SerializerMethodField()
+    is_penalized = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -299,6 +301,7 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
             "rating",
             "already_rated",
             "is_linked",
+            "is_penalized",
         ]
 
     def get_name(self, obj):
@@ -346,6 +349,23 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
             employee=employee_user,
             employer=employer_user
         ).exists()
+    
+    def get_is_penalized(self, obj):
+        """
+        Devuelve True si el empleado ya fue penalizado en este evento.
+        """
+        request = self.context.get('request')
+        punisher = getattr(request, 'user', None)
+        event = obj.selected_shift.vacancy.event
+        employee_user = obj.employee.user
+
+        # Buscar si existe una penalización creada por este empleador para este empleado en el evento
+        return Penalty.objects.filter(
+            punisher=punisher,
+            event=event,
+            behavior__user=employee_user
+        ).exists()
+        
 
 
         
