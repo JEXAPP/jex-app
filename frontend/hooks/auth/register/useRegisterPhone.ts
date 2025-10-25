@@ -50,7 +50,7 @@ export const useRegisterPhone = () => {
 
       router.push(`/auth/register/code-validation?${qs}`);
     } catch (error: any) {
-      setErrorMessage(error?.message || 'Ocurrió un error inesperado');
+      setErrorMessage(error?.error || 'Ocurrió un error inesperado');
       setShowError(true);
     } finally {
       setLoading(false);

@@ -95,11 +95,7 @@ export const useRegisterEmployee = () => {
         if (refresh) await setToken('refresh', refresh);
       } else {
         // Registro por Google; enviamos el access de Google o el code si lo tuvimos
-        await requestBackend('/api/auth/register/employee/social/', {
-          google_access_token: gAt || undefined,
-          google_code: gCode || undefined,
-          datosAdicionales: payload,
-        }, 'POST');
+        await requestBackend('/api/auth/register/employee/social/', payload, 'POST');
       }
 
       setLoading(false);
@@ -112,7 +108,7 @@ export const useRegisterEmployee = () => {
     }
   };
 
-  const closeSuccess = () => { setShowSuccess(false); router.push('/employee/profile/aditional-info'); };
+  const closeSuccess = () => { setShowSuccess(false); router.push('/auth/additional-info/step-one'); };
   const closeError = () => { setShowError(false); setErrorMessage(''); };
 
   return {

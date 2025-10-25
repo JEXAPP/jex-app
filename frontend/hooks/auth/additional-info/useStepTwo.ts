@@ -54,22 +54,24 @@ export const useOnboardingExperience = () => {
   const siguiente = async () => {
     const payload = {
       experiences: experiencias.map(e => ({
-        role: e.cargo,
-        employment_type: e.tipoTrabajo,
-        company: e.empresa,
+        title: e.cargo,
+        job_type: e.tipoTrabajo,
+        company_or_event: e.empresa,
         start_date: e.fechaInicio ? e.fechaInicio.toISOString() : null,
         end_date: e.fechaFin ? e.fechaFin.toISOString() : null,
         description: e.descripcion || null,
-        photos_uris: e.fotosUris,
+        image_url: null,
+        image_id: null
       })),
       studies: estudios.map(e => ({
         institution: e.institucion,
-        degree_title: e.titulo,
+        degree: e.titulo,
         discipline: e.disciplina,
         start_date: e.fechaInicio ? e.fechaInicio.toISOString() : null,
         end_date: e.fechaFin ? e.fechaFin.toISOString() : null,
         description: e.descripcion || null,
-        photos_uris: e.fotosUris,
+        image_url: null,
+        image_id: null
       })),
     };
     // await requestBackend('/reemplazar', payload, 'PUT');

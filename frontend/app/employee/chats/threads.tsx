@@ -24,6 +24,7 @@ function parseCid(cid: string) {
   return i === -1 ? { type: '', id: '' } : { type: cid.slice(0, i), id: cid.slice(i + 1) };
 }
 
+
 export default function EmployeeThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
   const cid = cidParam ?? '';

@@ -1,6 +1,6 @@
 // services/external/streamClient.ts
-import { StreamChat } from 'stream-chat';
-import { getStreamCredentials, type StreamCredentials } from './streamApi';
+import { StreamChat } from "stream-chat";
+import { getStreamCredentials, StreamCredentials } from "./streamApi";
 
 let chatClient: StreamChat | null = null;
 let connectedUserId: string | null = null;
@@ -16,25 +16,12 @@ export async function connectStream() {
   const { api_key, user_id, token }: StreamCredentials = await getStreamCredentials();
 
   // 2) Creamos/obtenemos instancia singleton de Stream
-  //    (La instancia se cachea por api_key)
   const client = StreamChat.getInstance(api_key);
 
-  // 3) Si ya hay alguien conectado:
-  if (connectedUserId) {
-    if (connectedUserId === user_id) {
-      // Ya estamos conectados con el mismo user → devolvemos
-      chatClient = client;
-      return { client, user_id, api_key, token };
-    }
-    // Hay otro user conectado → desconectar antes
-    try { await client.disconnectUser(); } catch {}
-    connectedUserId = null;
-  }
-
-  // 4) Conectar al usuario actual
+  // 3) Conectamos a la usuaria
   await client.connectUser({ id: user_id }, token);
 
-  // 5) Guardar referencias
+  // 4) Guardamos referencias para re-uso
   chatClient = client;
   connectedUserId = user_id;
 
@@ -46,10 +33,9 @@ export async function connectStream() {
  */
 export async function disconnectStream() {
   if (chatClient) {
-    try { await chatClient.disconnectUser(); } finally {
-      chatClient = null;
-      connectedUserId = null;
-    }
+    await chatClient.disconnectUser();
+    chatClient = null;
+    connectedUserId = null;
   }
 }
 
@@ -57,9 +43,7 @@ export async function disconnectStream() {
  * Devuelve el cliente ya conectado. Si no está, lanza error.
  */
 export function getStreamClient(): StreamChat {
-  if (!chatClient) {
-    throw new Error('Stream no está conectado (llamá connectStream primero).');
-  }
+  if (!chatClient) throw new Error("Stream no está conectado (llamá connectStream primero).");
   return chatClient;
 }
 
