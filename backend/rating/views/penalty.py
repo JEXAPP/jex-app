@@ -1,8 +1,9 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListAPIView, CreateAPIView
+from rest_framework.response import Response
 from rating.models.penalty import Penalty
 from rating.models.penalty_category import PenaltyCategory
-from rating.serializers.penalty import CreatePenaltySerializer, PenaltyCategorySerializer
+from rating.serializers.penalty import CreatePenaltySerializer, PenaltyCategorySerializer, PenaltySerializer
 from user_auth.constants import EMPLOYER_ROLE
 
 
@@ -23,4 +24,13 @@ class CreatePenaltyView(CreateAPIView):
     permission_classes = [IsAuthenticated]
     required_groups = [EMPLOYER_ROLE]
     serializer_class = CreatePenaltySerializer
-    queryset = Penalty.objects.none() 
+    queryset = Penalty.objects.none()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        penalty = serializer.save()
+
+        # Usamos serializer de respuesta
+        response_serializer = PenaltySerializer(penalty)
+        return Response(response_serializer.data, status=201)
