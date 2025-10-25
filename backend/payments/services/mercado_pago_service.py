@@ -80,7 +80,8 @@ class MercadoPagoService:
         external_reference: Optional[str] = None
     ) -> str:
         """
-        Crea un link de pago en Mercado Pago para marketplace, con logging completo para debugging.
+        Crea un link de pago en Mercado Pago con split payments (marketplace).
+        El empleador paga el total, la comisión se queda en la app y el resto va al empleado.
         """
         logger.info("=== Creando preferencia Mercado Pago ===")
         logger.info(f"Empleado: {employee_account.user.email}")
@@ -88,40 +89,32 @@ class MercadoPagoService:
         logger.info(f"Concepto: {concept}")
         logger.info(f"External reference: {external_reference}")
 
-        # Validar que tenga access_token
-        if not employee_account.access_token:
-            logger.error(f"El empleado {employee_account.user.email} no tiene access_token")
-            raise Exception("El empleado debe autorizar su cuenta de Mercado Pago primero")
-
-        # Validar mp_user_id
+        # Validar mp_user_id del empleado
         try:
-            collector_id = int(employee_account.mp_user_id)
-            logger.info(f"Collector ID empleado (convertido a int): {collector_id}")
+            receiver_id = int(employee_account.mp_user_id)
+            logger.info(f"Receiver ID empleado (convertido a int): {receiver_id}")
         except (ValueError, TypeError) as e:
             logger.error(f"mp_user_id inválido: {employee_account.mp_user_id}")
             raise Exception(f"mp_user_id inválido: {employee_account.mp_user_id}") from e
 
-        # 🔥 CAMBIO CRÍTICO: Usar el token del EMPLEADO, no el de la aplicación
-        token = employee_account.access_token
-        logger.info(f"Usando access_token del empleado (longitud): {len(token)}")
+        # Token de la aplicación (con permisos de marketplace)
+        token = settings.MP_ACCESS_TOKEN
+        logger.info(f"Usando token de la app (longitud): {len(token)}")
 
         url = f"{settings.MP_API_URL}/checkout/preferences"
-
         headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
         }
 
-        # El monto incluye la comisión
-        total_amount = float(amount) + float(commission)
-        
         preference_data = {
             "items": [
                 {
                     "title": concept or "Pago de turno trabajado",
                     "quantity": 1,
                     "currency_id": "ARS",
-                    "unit_price": total_amount,  # Total que paga el empleador
+                    "unit_price": float(amount),  # Solo el monto que recibe el empleado
+                    "receiver_id": receiver_id,    # El empleado recibe su parte
                 }
             ],
             "payment_methods": {"installments": 1},
@@ -131,13 +124,8 @@ class MercadoPagoService:
                 "pending": settings.MP_PENDING_URL,
             },
             "auto_return": "approved",
-            # El pago va al empleado (collector_id) 
-            # y automáticamente se descuenta la comisión a favor de tu app
-            "marketplace_fee": float(commission),  # Comisión que te quedas TÚ
-            "metadata": {
-                "external_reference": external_reference,
-                "employee_email": employee_account.user.email,
-            }
+            "collector_id": settings.MP_COLLECTION_ID,  # Tu cuenta app
+            "application_fee": float(commission),      # Comisión que te queda a ti
         }
 
         if external_reference:
