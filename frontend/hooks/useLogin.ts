@@ -1,131 +1,138 @@
-import { useGoogleAuthRequest } from '@/services/external/useGoogleAuthRequest';
+import { useGoogleAuthRequest } from '@/services/external/google/useGoogleAuthRequest';
+import { usePushNotifications } from '@/services/internal/notifications/usePushNotifications';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react';
+import { Platform } from 'react-native';
+import { setToken, getToken } from '@/services/internal/useTokenStorage';
+import { connectStream, getStreamClient } from '@/services/stream/streamClient';
+
 
 type Role = 'employee' | 'employer';
-
-interface DecodedToken {
-  role?: Role | null;
-  [key: string]: any;
-}
+interface DecodedToken { role?: Role | null; [k: string]: any; }
 
 export const useLogin = () => {
   const router = useRouter();
+  const { registerForPushNotificationsAsync } = usePushNotifications();
+  const { requestBackend } = useBackendConection();
+  const { signIn: googleSignIn, ready: gReady } = useGoogleAuthRequest();
 
-  // Hook para manejar la conexión con el backend
-  const { requestBackend } = useBackendConection(); 
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mostrarPassword, setMostrarPassword] = useState(false);
-
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const { promptAsync, accessToken } = useGoogleAuthRequest();
-
-  // 👇 helper para guardar tokens con soporte para ambas variantes
   const saveTokens = async (data: any) => {
-    const access = data.access || data.access_token;
-    const refresh = data.refresh || data.refresh_token;
-    if (access) {
-      await SecureStore.setItemAsync('access', access);
-    }
-    if (refresh) {
-      await SecureStore.setItemAsync('refresh', refresh);
-    }
+    const access = data?.access || data?.access_token;
+    const refresh = data?.refresh || data?.refresh_token;
+    if (access) await setToken('access', access);
+    if (refresh) await setToken('refresh', refresh);
   };
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      setErrorMessage('Todos los campos son obligatorios');
+  const handleGoogle = async () => {
+    if (!gReady) {
+      setErrorMessage('Google aún se está inicializando. Probá de nuevo.');
       setShowError(true);
       return;
     }
-
     setLoading(true);
     try {
-      const data = await requestBackend(
-        '/api/auth/login/jwt/',
-        { email, password },
-        'POST'
-      );
+      const g = await googleSignIn();
+      if (!g) {
+        setErrorMessage('No se pudo completar el inicio de sesión con Google.');
+        setShowError(true);
+        return;
+      }
 
-      await saveTokens(data);
+      let res;
+      if (g.accessToken) {
+        res = await requestBackend('/api/auth/login/google/', { access_token: g.accessToken }, 'POST');
+      } else if (g.code) {
+        res = await requestBackend('/api/auth/login/google/code/', { code: g.code }, 'POST');
+      } else {
+        setErrorMessage('No se pudo obtener un token válido de Google.');
+        setShowError(true);
+        return;
+      }
+
+      await saveTokens(res);
+
+      try {
+        if (Platform.OS !== 'web') {
+          await registerForPushNotificationsAsync();
+        }
+      } catch {}
 
       setSuccessMessage('Sesión iniciada correctamente');
       setShowSuccess(true);
 
       setTimeout(async () => {
         setShowSuccess(false);
-        await handleLoginToken();
-      }, 1500);
-    } catch (error) {
-      console.log(error);
-      setErrorMessage('Correo o contraseña incorrectos');
+        if (res?.incomplete_user) {
+          const qs = new URLSearchParams({
+            google: '1',
+            ...(g.accessToken ? { gAt: g.accessToken } : {}),
+            ...(g.code ? { gCode: g.code } : {}),
+          }).toString();
+          router.push(`/auth/register?${qs}`);
+        } else {
+          await handleLoginToken();
+        }
+      }, 800);
+    } catch (e: any) {
+      console.log('Error Google Sign-In:', e?.message || e);
+      setErrorMessage('Error al iniciar sesión con Google');
       setShowError(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogle = async () => {
-    await handleGoogleAuth();
-    await handleGoogleLogin();
-  };
-
-  const handleGoogleAuth = async () => {
+  const ensureStreamConnected = async () => {
     try {
-      const result = await promptAsync();
-      if (result.type !== 'success') {
-        throw new Error('Login cancelado por el usuario');
-      }
-    } catch (err) {
-      console.log('Error al iniciar sesión con Google:', err);
-      setErrorMessage('Error al iniciar sesión con Google');
-      setShowError(true);
+      // 1) Conecta (si ya estaba conectado con el mismo user, no hace nada)
+      await connectStream();
+      // 2) Opcional: obtené el cliente para confirmar
+     const client = getStreamClient();
+      // console.log('✅ Stream conectado como', client.userID);
+    } catch (e) {
+      console.log('❌ No se pudo conectar a Stream:', e);
     }
-  };
-
-  const handleGoogleLogin = async () => {
-    if (!accessToken) {
-      setErrorMessage('No se pudo obtener el token de Google');
+  }
+  
+  const handleLogin = async () => {
+    if (!email || !password) {
+      setErrorMessage('Todos los campos son obligatorios');
       setShowError(true);
       return;
     }
-
     setLoading(true);
     try {
-      const res = await requestBackend(
-        '/api/auth/login/google/',
-        { access_token: accessToken },
-        'POST'
-      );
-
-      if (res?.access || res?.access_token) {
-        await saveTokens(res);
-
-        setSuccessMessage('Sesión iniciada correctamente');
-        setShowSuccess(true);
-
-        setTimeout(async () => {
-          setShowSuccess(false);
-          if (res?.incomplete_user) {
-            await SecureStore.setItemAsync('desde-google', 'true');
-            router.push('/auth/register');
-          } else {
-            await handleLoginToken();
-          }
-        }, 1500);
+      const data = await requestBackend('/api/auth/login/jwt/', { email: email.trim(), password: password.trim() }, 'POST');
+      await saveTokens(data);
+      try {
+        if (Platform.OS !== 'web') {
+          await registerForPushNotificationsAsync();
+        }
+      } catch {}
+      setSuccessMessage('Sesión iniciada correctamente');
+      setShowSuccess(true);
+      setTimeout(async () => { setShowSuccess(false); await handleLoginToken(); }, 800);
+    } catch (e: any) {
+      const status = e?.response?.status;
+      const path = e?.config?.url;
+      console.log('Error en login:', status, path, e?.response?.data || e?.message);
+      if (path?.includes('/api/auth/login/jwt/') && (status === 400 || status === 401)) {
+        setErrorMessage('Correo o contraseña incorrectos');
       } else {
-        setErrorMessage('Error al autenticar con el servidor');
-        setShowError(true);
+        setErrorMessage('Error al iniciar sesión. Intentalo de nuevo.');
       }
+      setShowError(true);
     } finally {
       setLoading(false);
     }
@@ -133,52 +140,34 @@ export const useLogin = () => {
 
   const handleLoginToken = async () => {
     try {
-      const accessToken = await SecureStore.getItemAsync('access');
-      const decoded = jwtDecode<DecodedToken>(accessToken!);
+      const accessToken = await getToken('access');
+      if (!accessToken) throw new Error('No access token');
+      await ensureStreamConnected();
+      const decoded = jwtDecode<DecodedToken>(accessToken);
       const role = decoded.role;
-
-      if (role === 'employee') {
-        router.push('/employee');
-      } else if (role === 'employer') {
-        router.push('/employer');
-      } else {
-        router.replace('/auth/register/type-user');
-      }
+      if (role === 'employee') router.push('/employee');
+      else if (role === 'employer') router.push('/employer');
+      else router.replace('/auth/register/type-user');
     } catch (error) {
       console.log('Token inválido:', error);
       router.replace('/');
     }
   };
 
-  const handleNavigateToRegister = async () => {
-    await SecureStore.setItemAsync('desde-google', 'false');
-    router.push('/auth/register');
+  const handleNavigateToRegister = () => {
+    router.push('/auth/register?google=0');
   };
 
-  const handlePasswordForgot = () => {
-    router.push('/auth/reset-password');
-  };
-
+  const handlePasswordForgot = () => router.push('/auth/reset-password');
   const closeError = () => setShowError(false);
   const closeSuccess = () => setShowSuccess(false);
 
   return {
-    email,
-    password,
-    loading,
-    showError,
-    errorMessage,
-    showSuccess,
-    successMessage,
-    mostrarPassword,
-    setMostrarPassword,
-    setEmail,
-    setPassword,
-    handleLogin,
-    handleNavigateToRegister,
-    closeError,
-    closeSuccess,
-    handleGoogle,
-    handlePasswordForgot,
+    email, password, loading,
+    showError, errorMessage, showSuccess, successMessage,
+    mostrarPassword, setMostrarPassword,
+    setEmail, setPassword,
+    handleLogin, handleNavigateToRegister,
+    closeError, closeSuccess, handleGoogle, handlePasswordForgot,
   };
 };

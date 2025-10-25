@@ -8,6 +8,8 @@ type EmployeeItem = {
   profile_image: string | null;
   name: string;
   approximate_location: string | null;
+  average_rating: number | null;
+  rating_count: number;
 };
 
 type ApiResponse = {
@@ -19,7 +21,6 @@ type ApiResponse = {
 
 const PAGE_SIZE = 10;
 
-// Completa tiempos si hay fechas (día único por defecto)
 function ensureTimes(q: Record<string, any>) {
   if (q.start_date && !q.end_date) q.end_date = q.start_date;
   if ((q.start_date || q.end_date) && !q.start_time) q.start_time = '00:00';
@@ -72,7 +73,18 @@ export const useSearchEmployeesResults = () => {
       const res: ApiResponse = await requestBackend(buildUrl(pageNum), null, 'GET');
       if (!res) throw new Error('Respuesta vacía');
       setCount(res.count ?? 0);
-      setItems(prev => (mode === 'reset' ? res.results : [...prev, ...res.results]));
+
+      // ✅ Mapear los nuevos datos del backend
+      const mapped = res.results.map(e => ({
+        employee_id: e.employee_id,
+        profile_image: e.profile_image,
+        name: e.name,
+        approximate_location: e.approximate_location,
+        average_rating: e.average_rating,
+        rating_count: e.rating_count,
+      }));
+
+      setItems(prev => (mode === 'reset' ? mapped : [...prev, ...mapped]));
       setPage(pageNum);
       setErrorMsg(null);
     } catch (err) {
@@ -104,9 +116,7 @@ export const useSearchEmployeesResults = () => {
   }, []);
 
   return {
-    // data
     items, count, loading, loadingMore, refreshing, errorMsg,
-    // actions
     reload, loadMore, goBack, onPressEmployee,
   };
 };

@@ -23,6 +23,7 @@ export const useActiveJobs = () => {
   const { requestBackend } = useBackendConection();
   const { formatFechaLarga } = useDataTransformation();
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState<boolean>(false)
 
   // dd/mm/yyyy → Date
   const parseDate = (dateStr: string) => {
@@ -44,6 +45,8 @@ export const useActiveJobs = () => {
       try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+
+        setLoading(true)
 
         const data = await requestBackend("/api/applications/employee-jobs/", null, "GET");
         if (!mounted) return;
@@ -78,6 +81,8 @@ export const useActiveJobs = () => {
         setJobs(normalized);
       } catch (e) {
         console.log("Error cargando trabajos activos:", e);
+      } finally {
+        setLoading(false)
       }
     };
 
@@ -95,5 +100,5 @@ export const useActiveJobs = () => {
     });
   };
 
-  return { jobs, goToJobDetail };
+  return { jobs, goToJobDetail, loading };
 };

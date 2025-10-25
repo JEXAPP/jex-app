@@ -47,6 +47,14 @@ export const editEventStyles = StyleSheet.create({
   },
   button:{
     marginTop: 20
-  }
+  },
+  campoUbicacion: {
+    position: 'relative',
+    width: '100%',
+    marginVertical: 10,
+    overflow: 'visible',
+    zIndex: 9999,     
+    elevation: 9999,  
+},
 
 });

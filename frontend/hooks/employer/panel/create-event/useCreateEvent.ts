@@ -1,9 +1,7 @@
-import useGooglePlaces from '@/services/external/useGooglePlaces';
-import { useUploadImageServ } from '@/services/external/useUploadImage';
+import { useUploadImageServ } from '@/services/external/cloudinary/useUploadImage';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Keyboard } from 'react-native';
 
 type UploadableImage = {
   uri: string;
@@ -21,8 +19,7 @@ export const useCreateEvent = () => {
   const [fechaFinEvento, setFechaFinEvento] = useState<Date | null>(null);
   const [horaFin, setHoraFin] = useState<string | null>(null);
   const [ubicacionEvento, setUbicacionEvento] = useState('');
-  const [ubicacionId, setUbicacionId] = useState('');
-  const { sugerencias, setSugerencias, buscarSugerencias, obtenerCoordenadas } = useGooglePlaces();
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
@@ -56,32 +53,7 @@ export const useCreateEvent = () => {
     fetchRubros();
   }, []);
 
-  const handleUbicacion = (texto: string) => {
-    setUbicacionEvento(texto);
-    buscarSugerencias(texto);
-  };
-
-  const seleccionarUbicacion = (item: { descripcion: string; placeId: string }) => {
-    setUbicacionEvento(item.descripcion);
-    setUbicacionId(item.placeId);
-    setSugerencias([]);
-    Keyboard.dismiss();
-  };
-
-  // 🔧 función helper para limitar la longitud total de dígitos
-const limitarDecimales = (num: number, maxDigits = 15): number => {
-  // Convertimos a string
-  const str = num.toString();
-
-  if (str.length <= maxDigits) return num;
-
-  // Si es muy largo, redondeamos a menos decimales
-  const [intPart, decPart = ""] = str.split(".");
-
-  // calculamos cuántos decimales podemos dejar
-  const maxDec = Math.max(0, maxDigits - intPart.length - 1); 
-  return parseFloat(num.toFixed(maxDec));
-};
+  const handleUbicacion = (texto: string, coord: {lat: number, lng: number}) => { setUbicacionEvento(texto); setCoords(coord); };
 
   //#region Validación de campos
   const validarCampos = () => {
@@ -95,13 +67,6 @@ const limitarDecimales = (num: number, maxDigits = 15): number => {
     //#region Validación de fechas
     if (new Date(fechaInicioEvento) > new Date(fechaFinEvento)) {
       setErrorMessage('La Fecha de Inicio debe ser menor o igual a la Fecha de Fin');
-      setShowError(true);
-      return false;
-    }
-    //#endregion
-
-    if (!ubicacionId) {
-      setErrorMessage('Debés seleccionar una ubicación válida');
       setShowError(true);
       return false;
     }
@@ -138,12 +103,8 @@ const limitarDecimales = (num: number, maxDigits = 15): number => {
 
     setLoading(true)
     try {
-      // Obtenemos las coordenadas a partir del placeId
-      const coords = await obtenerCoordenadas(ubicacionId);
-
-// Redondeamos para no superar 15 dígitos
-      const lat = limitarDecimales(coords.lat);
-      const lng = limitarDecimales(coords.lng);
+      const lat = coords?.lat
+      const lng = coords?.lng
 
       const fechaInicioFormateada = fechaInicioEvento ? `${fechaInicioEvento.getDate().toString().padStart(2, '0')}/${(fechaInicioEvento.getMonth() + 1).toString().padStart(2, '0')}/${fechaInicioEvento.getFullYear()}`: ''
       const fechaFinFormateada = fechaFinEvento ? `${fechaFinEvento.getDate().toString().padStart(2, '0')}/${(fechaFinEvento.getMonth() + 1).toString().padStart(2, '0')}/${fechaFinEvento.getFullYear()}`: ''
@@ -166,8 +127,8 @@ const limitarDecimales = (num: number, maxDigits = 15): number => {
       name: nombreEvento,
       description: descripcionEvento,
       location: ubicacionEvento,
-      latitude: lat,
-      longitude: lng,
+      latitude: lat!,
+      longitude: lng!,
       start_date: fechaInicioFormateada,
       end_date: fechaFinFormateada,
       start_time: horaInicio,
@@ -191,7 +152,8 @@ const limitarDecimales = (num: number, maxDigits = 15): number => {
 
       setShowSuccess(true);
       // Si fue exitoso, mostramos mensaje de éxito
-      router.replace(`./create-vacancy?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`)
+      router.replace(`/employer/panel/vacancy/create-vacancy?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`);
+      //router.replace(`./create-vacancy?id=${idEventoCreado}&fechaInicio=${fechaInicioFormateada}&fechaFin=${fechaFinFormateada}`)
       
     } catch (error: any) {
       // Manejo de errores
@@ -209,11 +171,9 @@ const limitarDecimales = (num: number, maxDigits = 15): number => {
     fechaInicioEvento,
     fechaFinEvento,
     ubicacionEvento,
-    sugerencias,
     horaInicio,
     horaFin,
     loading,
-    seleccionarUbicacion,
     setNombreEvento,
     setDescripcionEvento,
     setFechaInicioEvento,

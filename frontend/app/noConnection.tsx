@@ -33,7 +33,7 @@ export default function NoWifiScreen() {
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <View style={styles.content}>
         <Image
-          source={require("@/assets/images/jex/Jex-Sin-Wifi.png")}
+          source={require("@/assets/images/jex/Jex-Sin-Wifi.webp")}
           style={styles.image}
           resizeMode="contain"
         />

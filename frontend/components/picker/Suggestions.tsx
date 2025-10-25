@@ -24,7 +24,7 @@ export default function Suggestions({
     <View style={styles.contenedor}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        nestedScrollEnabled
+        nestedScrollEnabled={true}
         style={{ maxHeight: 200 }} 
       >
         {primeras.map((item, index) => (

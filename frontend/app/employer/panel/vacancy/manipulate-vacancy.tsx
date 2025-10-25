@@ -149,7 +149,7 @@ export default function ManipulateVacancyScreen() {
           <View style={styles.headerTop}>
             
             <Image
-              source={require('@/assets/images/jex/Jex-FotoPerfil.png')}
+              source={require('@/assets/images/jex/Jex-FotoPerfil.webp')}
               style={styles.logoWrapper}
             />
 

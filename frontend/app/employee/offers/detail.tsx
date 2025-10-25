@@ -108,7 +108,7 @@ export default function OfferDetailsScreen() {
             >
               {/* Reemplazá la imagen por la tuya de JEX festejando */}
               <Image
-                source={require("@/assets/images/jex/Jex-Match.png")}
+                source={require("@/assets/images/jex/Jex-Match.webp")}
                 style={styles.matchImage}
               />
               <Text style={styles.matchText}>¡Match!</Text>

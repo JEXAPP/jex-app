@@ -66,7 +66,7 @@ export default function EditVacancyScreen() {
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.container}>
             <View style={styles.header}>
-              <Image source={require('@/assets/images/jex/Jex-Creando-Vacantes.png')} style={styles.image} />
+              <Image source={require('@/assets/images/jex/Jex-Creando-Vacantes.webp')} style={styles.image} />
               <Text style={styles.title}>Editar Vacante</Text>
             </View>
 

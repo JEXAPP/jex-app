@@ -4,39 +4,39 @@ import { Borders } from '@/themes/borders';
 
 export const showVacancyStyles1 = StyleSheet.create({
   card: {
-    width: 160,
+    width: 140,
     padding: 8,
     backgroundColor: Colors.white,
     borderRadius: Borders.soft,
     alignItems: 'flex-start',
   },
   image: {
-    width: 140,
-    height: 140,
+    width: 120,
+    height: 120,
     borderRadius: Borders.soft,
     marginTop: 3,
-    marginBottom: 4,
+    marginBottom: 5,
     alignSelf: 'center'
   },
   textContainer: {
     padding: 4,
     flex: 1,
-    minHeight: 90,
+    minHeight: 92,
   },
   role: {
     fontSize: 16,
     fontFamily: 'interBold',
-    marginVertical: 2,
+    marginVertical: 5,
     color: Colors.violet5,
     lineHeight: 20,
   },
   date: {
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.gray3,
-    fontFamily: 'interMedium'
+    fontFamily: 'interItalic'
   },
   payment: {
-    fontSize: 15,
+    fontSize: 14,
     color: Colors.violet3,
     fontFamily: 'interSemiBold'
   },

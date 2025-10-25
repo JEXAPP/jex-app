@@ -7,18 +7,17 @@ import { StyleSheet } from 'react-native';
 export const buttonStyles3 = StyleSheet.create({
   boton: {
     justifyContent: 'center',
-    height: 50,
+    height: 55,
     alignItems: 'baseline',
     borderRadius: Borders.soft,
-    marginBottom: 10,
     width: 350,
     alignSelf: 'center',
     backgroundColor: 'white',
   },
   texto: {
     color: Colors.gray3,
-    fontFamily: 'interSemiBold',
+    fontFamily: 'interMedium',
     fontSize: 16,
-    marginLeft: 27
+    marginLeft: 20
   },
 });

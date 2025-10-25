@@ -75,17 +75,8 @@ export const useHomeOffers = () => {
         if (!mounted) return;
 
         const normalized: Offer[] = (data ?? []).map((item: any) => {
-          const shift = item?.application?.shift;
-          const vacancy = shift?.vacancy;
-
-          // Calcula fecha de vencimiento restando 3 días a la fecha de inicio
-          let expirationDate = '';
-          if (shift?.start_date) {
-            const [d, m, y] = shift.start_date.split('/').map(Number);
-            const start = new Date(y, m - 1, d);
-            start.setDate(start.getDate() - 3);
-            expirationDate = formatDate(start);
-          }
+          const shift = item?.application?.shift ?? item?.shift;
+          const vacancy = shift?.vacancy;        
 
           return {
             id:
@@ -99,12 +90,9 @@ export const useHomeOffers = () => {
             company: vacancy?.event?.name ?? 'Evento sin nombre',
             eventImage: vacancy?.event?.image
               ? { uri: vacancy.event.image }
-              : require('@/assets/images/jex/Jex-Evento-Default.png'),
-            expirationDate,
-            expirationTime: '00:00',
-            location: vacancy?.event?.location ?? '',
-            requirements: item?.requirements ?? vacancy?.requirements ?? [],
-            comments: item?.comments ?? '',
+              : require('@/assets/images/jex/Jex-Evento-Default.webp'),
+            expirationDate: item.expiration_date,
+            expirationTime: item.expiration_time,
           };
         });
 

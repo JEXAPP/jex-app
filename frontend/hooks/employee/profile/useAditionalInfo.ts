@@ -1,4 +1,4 @@
-import { useUploadImageServ } from '@/services/external/useUploadImage';
+import { useUploadImageServ } from '@/services/external/cloudinary/useUploadImage';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useTokenValidations } from '@/services/internal/useTokenValidations';
 import { useRouter } from 'expo-router';

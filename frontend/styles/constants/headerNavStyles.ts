@@ -2,7 +2,6 @@ import { StyleSheet } from 'react-native';
 import { Colors } from '@/themes/colors';
 
 export const headerNavStyles = StyleSheet.create({
-  // Título grande opcional (pedido)
   title: {
     fontSize: 50,
     lineHeight: 60,
@@ -10,15 +9,14 @@ export const headerNavStyles = StyleSheet.create({
     color: Colors.violet4,
     marginRight: 10,
     paddingHorizontal: 16,
-    marginTop: 20
+    marginTop: 20,
   },
   bar: {
     flexDirection: 'row',
-    backgroundColor: Colors.gray1,
     paddingTop: 5,
   },
   tab: {
-    flex: 1,                
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
@@ -34,8 +32,7 @@ export const headerNavStyles = StyleSheet.create({
     fontSize: 15,
   },
   baseLine: {
-    height: 1,
-    backgroundColor: Colors.gray12,
+    height: StyleSheet.hairlineWidth, 
   },
   indicator: {
     position: 'absolute',

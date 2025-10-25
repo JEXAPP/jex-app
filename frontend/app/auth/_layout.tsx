@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { Pressable } from 'react-native';
 import { Colors } from '@/themes/colors';
+import React from 'react';
 
 export default function AuthLayout() {
   return (
@@ -18,6 +19,22 @@ export default function AuthLayout() {
         ),
       }}
     >
+      <Stack.Screen
+        name="additional-info/step-one"
+        options={{ ...transitionFade, headerShown: false }}
+      />
+      <Stack.Screen
+        name="additional-info/step-two"
+        options={{ ...transitionFade, headerShown: false }}
+      />
+      <Stack.Screen
+        name="additional-info/step-three"
+        options={{ ...transitionFade, headerShown: false }}
+      />
+      <Stack.Screen
+        name="additional-info/step-four"
+        options={{ ...transitionFade, headerShown: false }}
+      />
       <Stack.Screen
         name="reset-password/index"
         options={{ ...exitHeader('/'), ...transitionFade }}
