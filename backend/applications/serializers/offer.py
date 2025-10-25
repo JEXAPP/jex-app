@@ -469,7 +469,7 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
     
     def get_payment_state(self, obj):
         # Intentamos obtener el Payment relacionado con esta oferta y empleado
-        payment = Payment.objects.filter(offer=obj, employee=obj.employee).first()
+        payment = Payment.objects.filter(offer=obj, employee=obj.employee.user).first()
         if payment and payment.state:
             return payment.state.name
         return "NOT_PAYED"
