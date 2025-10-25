@@ -61,7 +61,7 @@ class MercadoPagoOAuthCallbackView(views.APIView):
             },
         )
 
-        redirect_url = f"jex://mercadopago/success?status=success&user_id={user.id}"
+        redirect_url = f"jex://auth/additional-info/step-for?status=success&user_id={user.id}"
         return redirect(redirect_url)
     
 
