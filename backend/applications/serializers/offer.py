@@ -11,6 +11,7 @@ from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from eventos.serializers.event import EventSerializer
 from notifications.constants import NotificationTypes
 from notifications.services.send_notification import send_notification
+from payments.models.payments import Payment
 from rating.utils import get_user_average_rating, get_user_rating_count
 from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
@@ -455,6 +456,7 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
 
     expiration_date = CustomDateField(required=False)
     expiration_time = CustomTimeField(required=False)
+    payment_state = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -468,6 +470,7 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
             "offer_state",
             "expiration_date",
             "expiration_time",
+            "payment_state"
         ]
 
     def get_profile_image(self, obj):
@@ -475,6 +478,16 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
     
     def get_job_type(self, obj):
         return get_job_type_display(obj.selected_shift.vacancy)
+    
+    def get_payment_state(self, obj):
+        # Intentamos obtener el Payment relacionado con esta oferta y empleado
+        payment = Payment.objects.filter(offer=obj, employee=obj.employee.user).first()
+        if payment and payment.state:
+            return payment.state.name
+        return "NOT_PAYED"
+
+
+
 
 
 class ShiftDetailOfferAcceptedSerializer(serializers.ModelSerializer):

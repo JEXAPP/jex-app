@@ -105,7 +105,7 @@ class GeneratePaymentLinkView(views.APIView):
         employee_user = offer.employee.user
 
         # Calculamos la comisión automáticamente (10% del monto)
-        commission = (amount * Decimal("0.10")).quantize(Decimal("0.01"))
+        commission = (amount * Decimal("0.05")).quantize(Decimal("0.01"))
 
         pending_state = PaymentState.objects.get(name=PaymentStates.PENDING.value)
 
