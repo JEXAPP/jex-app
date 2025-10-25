@@ -119,15 +119,15 @@ class ListEventVacanciesView(ListAPIView):
         )
 
 
+class UpdateEventStateView(APIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
 
     def patch(self, request, pk):
         serializer = UpdateEventStateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        try:class UpdateEventStateView(APIView):
-    permission_classes = [IsAuthenticated, IsInGroup]
-    required_groups = [EMPLOYER_ROLE]
-
+        try:
             event = Event.objects.select_related('state', 'owner').get(id=pk)
         except Event.DoesNotExist:
             return Response({"detail": EVENT_NOT_FOUND}, status=status.HTTP_404_NOT_FOUND)
