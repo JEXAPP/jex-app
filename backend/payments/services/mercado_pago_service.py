@@ -88,6 +88,11 @@ class MercadoPagoService:
         logger.info(f"Concepto: {concept}")
         logger.info(f"External reference: {external_reference}")
 
+        # Validar que tenga access_token
+        if not employee_account.access_token:
+            logger.error(f"El empleado {employee_account.user.email} no tiene access_token")
+            raise Exception("El empleado debe autorizar su cuenta de Mercado Pago primero")
+
         # Validar mp_user_id
         try:
             collector_id = int(employee_account.mp_user_id)
@@ -96,9 +101,9 @@ class MercadoPagoService:
             logger.error(f"mp_user_id inválido: {employee_account.mp_user_id}")
             raise Exception(f"mp_user_id inválido: {employee_account.mp_user_id}") from e
 
-        # Token de la aplicación (con permisos de marketplace)
-        token = settings.MP_ACCESS_TOKEN
-        logger.info(f"Usando token de MP (longitud): {len(token)}")
+        # 🔥 CAMBIO CRÍTICO: Usar el token del EMPLEADO, no el de la aplicación
+        token = employee_account.access_token
+        logger.info(f"Usando access_token del empleado (longitud): {len(token)}")
 
         url = f"{settings.MP_API_URL}/checkout/preferences"
 
@@ -107,13 +112,16 @@ class MercadoPagoService:
             "Content-Type": "application/json",
         }
 
+        # El monto incluye la comisión
+        total_amount = float(amount) + float(commission)
+        
         preference_data = {
             "items": [
                 {
                     "title": concept or "Pago de turno trabajado",
                     "quantity": 1,
                     "currency_id": "ARS",
-                    "unit_price": float(amount),  # solo el monto real
+                    "unit_price": total_amount,  # Total que paga el empleador
                 }
             ],
             "payment_methods": {"installments": 1},
@@ -123,8 +131,13 @@ class MercadoPagoService:
                 "pending": settings.MP_PENDING_URL,
             },
             "auto_return": "approved",
-            "collector_id": collector_id,
-            "application_fee": float(commission),
+            # El pago va al empleado (collector_id) 
+            # y automáticamente se descuenta la comisión a favor de tu app
+            "marketplace_fee": float(commission),  # Comisión que te quedas TÚ
+            "metadata": {
+                "external_reference": external_reference,
+                "employee_email": employee_account.user.email,
+            }
         }
 
         if external_reference:
@@ -141,7 +154,9 @@ class MercadoPagoService:
             raise Exception(f"Error en request a MP: {str(e)}") from e
 
         if resp.status_code != 201:
-            raise Exception(f"Error creando preferencia MP: {resp.json()}")
+            error_data = resp.json()
+            logger.error(f"Error creando preferencia: {error_data}")
+            raise Exception(f"Error creando preferencia MP: {error_data}")
 
         init_point = resp.json().get("init_point")
         logger.info(f"Link de pago generado (init_point): {init_point}")
