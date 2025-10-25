@@ -124,7 +124,7 @@ class MercadoPagoService:
                 "pending": settings.MP_PENDING_URL,
             },
             "auto_return": "approved",
-            "collector_id": settings.MP_COLLECTION_ID,  # Tu cuenta app
+            "collector_id": int(settings.MP_COLLECTION_ID),  # Tu cuenta app
             "application_fee": float(commission),      # Comisión que te queda a ti
         }
 
