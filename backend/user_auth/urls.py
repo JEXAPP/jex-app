@@ -25,5 +25,5 @@ urlpatterns = [
     path('employee/work-experience/', EmployeeWorkExperienceView.as_view(), name='employee-work-experience'),
     path('employee/education/', EmployeeEducationView.as_view(), name='employee-education'),
     path('employee/interests/', EmployeeInterestsView.as_view(), name='employee-interests'),
-    path('employee/validate-mail/', EmployeeValidateMailView.as_view(), name='employee-validate-mail')
+    path('validate-mail/', EmployeeValidateMailView.as_view(), name='employee-validate-mail')
 ]
