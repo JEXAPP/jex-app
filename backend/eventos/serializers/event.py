@@ -130,16 +130,16 @@ class CreateEventResponseSerializer(serializers.ModelSerializer):
 
 class EventOwnerSerializer(serializers.ModelSerializer):
     profile_image = ImageSerializer(allow_null=True)
-    full_name = serializers.SerializerMethodField()
+    company_name = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     rating_count = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'first_name', 'last_name', 'full_name', 'email', 'profile_image', 'average_rating', 'rating_count']
+        fields = ['id', 'company_name', 'email', 'profile_image', 'average_rating', 'rating_count']
 
-    def get_full_name(self, obj):
-        return f"{obj.first_name} {obj.last_name}".strip()
+    def get_company_name(self, obj):
+        return f"{obj.campany_name}".strip()
     
     def get_average_rating(self, obj):
         return get_user_average_rating(obj)

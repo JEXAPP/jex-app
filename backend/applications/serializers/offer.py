@@ -9,6 +9,8 @@ from applications.utils import get_job_type_display
 from chats.services.stream_chat_service import sync_offer_chat
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from eventos.serializers.event import EventSerializer
+from notifications.constants import NotificationTypes
+from notifications.services.send_notification import send_notification
 from payments.models.payments import Payment
 from rating.utils import get_user_average_rating, get_user_rating_count
 from user_auth.models.employee import EmployeeProfile
@@ -24,6 +26,9 @@ from applications.models.offers import OfferState
 from vacancies.models.requirements import Requirements
 from vacancies.models.vacancy_state import VacancyState
 from django.db.models import Sum
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class OfferCreateSerializer(serializers.ModelSerializer):
@@ -130,7 +135,6 @@ class OfferCreateSerializer(serializers.ModelSerializer):
                 if current_offers >= max_quantity:
                     raise serializers.ValidationError(MAX_OFFERS_REACHED.format(max_quantity=max_quantity))
 
-                # 🔹 Validar oferta repetida
                 if Offer.objects.filter(employee=employee, employer=employer, selected_shift=shift).exists():
                     raise serializers.ValidationError(OFFER_ALREADY_EXISTS)
 
@@ -168,6 +172,17 @@ class OfferCreateSerializer(serializers.ModelSerializer):
             offert_state = ApplicationState.objects.get(name=ApplicationStates.OFFERT.value)
             application.state = offert_state
             application.save(update_fields=['state'])
+
+        send_notification(
+            user=employee.user,
+            title="¡Recibiste una oferta!",
+            message="Recibiste una nueva oferta de trabajo",
+            notification_type_name=NotificationTypes.OFFERT.value,
+            data={
+                "employee_id": employee.id,
+                "offer_id": offers[0].id,
+            }
+        )
 
         return offers[0] if application else offers
 
@@ -329,6 +344,23 @@ class OfferDecisionSerializer(serializers.Serializer):
                 vacancy.save(update_fields=['state'])
             
             sync_offer_chat(offer)
+
+            try:
+                employer_user = vacancy.event.owner  # o como tengas referenciado al empleador
+                event_name = vacancy.event.name
+
+                send_notification(
+                    user=employer_user,
+                    title="Oferta aceptada",
+                    message = f"El empleado {user.first_name} {user.last_name} aceptó la oferta para trabajar en '{event_name}'.",
+                    notification_type_name=NotificationTypes.OFFERT.value,
+                    data={
+                        "event_id": vacancy.event.id,
+                        "offer_id": offer.id
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Error enviando notificación al empleador {getattr(offer, 'id', None)}: {e}")
 
 
         return offer

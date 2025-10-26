@@ -106,8 +106,14 @@ class ViewRatingsSerializer(serializers.ModelSerializer):
         ]
     
     def get_user_full_name(self, obj):
+
         user = obj.user
-        return f"{user.first_name} {user.last_name}".strip()
+
+        if hasattr(user, "employee_profile"):
+            return f"{user.first_name} {user.last_name}"
+        
+        if hasattr(user, "employer_profile"):
+            return user.employer_profile.company_name
     
     def get_image_url(self, obj):
         user = obj.user

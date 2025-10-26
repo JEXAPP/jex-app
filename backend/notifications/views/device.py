@@ -14,6 +14,8 @@ class DeviceRegisterView(APIView):
 
         expo_token = serializer.validated_data["expo_push_token"]
 
+        Device.objects.filter(expo_push_token=expo_token).exclude(user=request.user).delete()
+
         device, created = Device.objects.update_or_create(
             user=request.user,
             expo_push_token=expo_token,

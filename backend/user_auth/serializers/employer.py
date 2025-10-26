@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from media_utils.models import Image, ImageType
 from user_auth.utils import get_username_from_email
 from user_auth.constants import EMPLOYER_ROLE
 from user_auth.models.user import CustomUser
@@ -86,3 +87,39 @@ class CompleteEmployerSocialSerializer(serializers.Serializer):
         user.groups.add(employer_group)
 
         return user
+    
+
+class EmployerProfileDescriptionSerializer(serializers.ModelSerializer):
+    profile_image_url = serializers.URLField(required=False, allow_null=True)
+    profile_image_id = serializers.CharField(required=False, allow_null=True)
+    description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+
+    class Meta:
+        model = EmployerProfile
+        fields = ['description', 'profile_image_url', 'profile_image_id']
+
+    def validate(self, attrs):
+        url, img_id = attrs.get('profile_image_url'), attrs.get('profile_image_id')
+        if (url and not img_id) or (img_id and not url):
+            raise serializers.ValidationError(
+                "Both 'profile_image_url' and 'profile_image_id' must be provided together."
+            )
+        return attrs
+
+    def update(self, instance, validated_data):
+        user = instance.user
+
+        if 'description' in validated_data:
+            instance.description = validated_data['description']
+
+        url, img_id = validated_data.get('profile_image_url'), validated_data.get('profile_image_id')
+        if url and img_id:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=img_id,
+                defaults={'url': url, 'type': ImageType.PROFILE, 'uploaded_by': user}
+            )
+            user.profile_image = image_obj
+            user.save()
+
+        instance.save()
+        return instance
