@@ -190,14 +190,24 @@ class PaymentCallbackView(views.APIView):
             payment = Payment.objects.filter(mp_payment_id=preference_id).first()
 
         if not payment:
-            return Response(PAYMENT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Mostrar el estado actual del pago desde la base de datos
-        return Response({
-            "payment_id": payment.id,
-            "payment_state": payment.state.name,
-            "payment_state_message": payment.state.get_display_name() if hasattr(payment.state, "get_display_name") else payment.state.name
-        }, status=status.HTTP_200_OK)
+        # Determinar estado para deeplink
+        state = payment.state.name.lower()  # ejemplo: 'approved', 'pending', 'failure'
+        if state == PaymentStates.APPROVED.value.lower():
+            status_param = "success"
+        elif state == PaymentStates.PENDING.value.lower():
+            status_param = "pending"
+        else:
+            status_param = "failure"
+
+        # Construir deeplink
+        redirect_url = f"jex://employee/offers?status={status_param}&payment_id={payment.id}"
+
+        # Redireccionar
+        response = HttpResponse(status=302)
+        response['Location'] = redirect_url
+        return response
 
 
 class MercadoPagoWebhookView(views.APIView):
