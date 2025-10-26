@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, InteractionManager } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, InteractionManager, TextInput } from 'react-native';
 
 import { Button } from '@/components/button/Button';
 import { Input } from '@/components/input/Input';
@@ -81,13 +81,18 @@ export default function LocationAddressPicker({
   const [cwTitle, setCwTitle] = useState('Ubicación sin coordenadas');
   const [cwMsg, setCwMsg] = useState('');
 
+  /** Refs para blurear / focusear inputs */
+  const locRef = useRef<TextInput>(null);
+  const calleRef = useRef<TextInput>(null);
+  const alturaRef = useRef<TextInput>(null);
+
   /** --- FIX de “doble tap” en Suggestions --- */
   const selectingRef = useRef(false);
   const runSelectionSafely = (fn: () => void) => {
     if (selectingRef.current) return;
     selectingRef.current = true;
+    // cerrar teclado antes de tocar el estado
     Keyboard.dismiss();
-    // Esperar a que terminen animaciones (teclado / layout) y luego ejecutar
     InteractionManager.runAfterInteractions(() => {
       requestAnimationFrame(() => {
         setTimeout(() => {
@@ -164,35 +169,49 @@ export default function LocationAddressPicker({
     return () => { cancel = true; };
   }, [provinciaId, localidadId, localidadName, debouncedCalle]);
 
-  // Selecciones desde Suggestions (tap único de verdad)
+  // Selecciones desde Suggestions (tap único, sin modificar Suggestions)
   const handleSelectLocalidad = (it: { descripcion: string; placeId: string }) => {
     runSelectionSafely(() => {
+      // cerrar input y teclado + ocultar sugerencias
+      locRef.current?.blur();
+      setLocalidadesSug([]);
+
       const parts = Object.fromEntries(it.placeId.split('|').map(kv => {
         const [k, ...r] = kv.split(':'); return [k, r.join(':')];
       }));
       const locId = parts['loc'] || '';
       const locName = parts['locName'] || it.descripcion.split(',')[0]?.trim() || '';
+
       setLocalidadId(locId);
       setLocalidadName(locName);
       setLocalidadQuery(locName);
-      setLocalidadesSug([]);
-      // Al elegir localidad, limpiar calle/altura
+
+      // reset dependientes
       setCalleNombre('');
       setCalleQuery('');
       setAltura('');
       setCallesSug([]);
+
+      // foco al siguiente
+      setTimeout(() => calleRef.current?.focus(), 80);
     });
   };
 
   const handleSelectCalle = (it: { descripcion: string; placeId: string }) => {
     runSelectionSafely(() => {
+      // cerrar input y teclado + ocultar sugerencias
+      calleRef.current?.blur();
+      setCallesSug([]);
+
       const parts = Object.fromEntries(it.placeId.split('|').map(kv => {
         const [k, ...r] = kv.split(':'); return [k, r.join(':')];
       }));
       const cName = parts['calleName'] || it.descripcion.split(',')[0]?.trim() || '';
       setCalleNombre(cName);
       setCalleQuery(cName);
-      setCallesSug([]);
+
+      // foco a Altura
+      setTimeout(() => alturaRef.current?.focus(), 80);
     });
   };
 
@@ -256,12 +275,12 @@ export default function LocationAddressPicker({
         }
       }
 
-      /** 2) Fallback: sin altura → traer varias y PROMEDIAR coordenadas */
+      /** 2) Fallback: sin altura → traer varias y promediar */
       data = await fetchDirecciones({
         direccion: calleNombre,
         provincia: prov,
         localidad_censal: loc,
-        max: 10, // traer varias para promediar
+        max: 10,
       });
 
       if (data?.total > 0 && Array.isArray(data.direcciones) && data.direcciones.length > 0) {
@@ -279,7 +298,6 @@ export default function LocationAddressPicker({
 
           onChange(canonical, { lat: latAvg, lng: lonAvg });
 
-          // (Opcional) Aviso informativo de que usamos la calle sin altura
           setCwTitle('Altura no encontrada con coordenadas');
           setCwMsg(`No se hallaron coordenadas para "${direccionConAltura}". Se usó la ubicación promedio de "${calleNombre}" en "${loc}".`);
           setCwVisible(true);
@@ -367,6 +385,8 @@ export default function LocationAddressPicker({
                     placeholder="Localidad"
                     value={localidadQuery}
                     onChangeText={setLocalidadQuery}
+                    onBlur={() => setLocalidadesSug([])}
+                    inputRef={locRef}
                     styles={{ ...inputStyles1, inputContainer: { ...inputStyles1.inputContainer, width: 310 } }}
                   />
                   {!!localidadesSug.length && (
@@ -383,17 +403,19 @@ export default function LocationAddressPicker({
             {!!localidadId && (
               <View style={styles.block}>
                 <View style={styles.rowCalleAltura}>
-                  <View style={[styles.suggestWrapper, styles.colGrow]}>
+                  <View style={styles.suggestWrapper} pointerEvents="box-none">
                     <Input
                       placeholder="Calle"
                       value={calleQuery}
                       onChangeText={setCalleQuery}
+                      onBlur={() => setCallesSug([])}
+                      inputRef={calleRef}
                       styles={{ ...inputStyles1, inputContainer: { ...inputStyles1.inputContainer, width: 200 } }}
                     />
                     {!!callesSug.length && (
                       <Suggestions
-                        sugerencias={callesSug}
-                        onSeleccionar={handleSelectCalle}
+                        sugerencias={callesSug}            // <- lista correcta
+                        onSeleccionar={handleSelectCalle}  // <- handler correcto
                         styles={suggestionsStyles2}
                       />
                     )}
@@ -405,6 +427,7 @@ export default function LocationAddressPicker({
                       value={altura}
                       onChangeText={setAltura}
                       keyboardType="numeric"
+                      inputRef={alturaRef}
                       styles={{ ...inputStyles1, inputContainer: { ...inputStyles1.inputContainer, width: 100 } }}
                     />
                   </View>

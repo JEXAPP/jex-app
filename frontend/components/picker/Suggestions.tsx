@@ -13,28 +13,22 @@ interface SuggestionsProps {
   };
 }
 
-export default function Suggestions({
-  sugerencias,
-  onSeleccionar,
-  styles,
-}: SuggestionsProps) {
+export default function Suggestions({ sugerencias, onSeleccionar, styles }: SuggestionsProps) {
   if (!sugerencias?.length) return null;
-
-  const visibles = sugerencias.slice(0, 4); // máximo 4
+  const visibles = sugerencias.slice(0, 4);
 
   return (
     <View
       style={styles.contenedor}
-      pointerEvents="box-only"   // ✔️ el padre no roba los toques detrás
-      collapsable={false}        // ✔️ Android: asegura el view en nativo
+      pointerEvents="auto"     // ⬅️ clave: dejan pasar toques a los hijos
+      collapsable={false}
     >
-      {visibles.map((item, index) => (
+      {visibles.map((item, i) => (
         <TouchableOpacity
-          key={`${item.placeId}-${index}`}
+          key={`${item.placeId}-${i}`}
           onPress={() => onSeleccionar(item)}
           style={styles.item}
           activeOpacity={0.7}
-          // ❌ NO poner pointerEvents acá; TouchableOpacity no lo soporta
         >
           <Text style={styles.texto}>{item.descripcion}</Text>
         </TouchableOpacity>
@@ -42,3 +36,4 @@ export default function Suggestions({
     </View>
   );
 }
+
