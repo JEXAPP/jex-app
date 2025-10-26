@@ -212,13 +212,22 @@ class MercadoPagoWebhookView(views.APIView):
 
         # --- 1. Validar firma ---
         body_bytes = request.body
-        signature_received = request.headers.get("X-Signature")
+        signature_header = request.headers.get("X-Signature")
+        signature_received = None
+
+        if signature_header:
+            # extraer el hash 'v1' del formato "ts=...,v1=<hash>"
+            try:
+                signature_received = signature_header.split(",")[1].split("=")[1]
+            except IndexError:
+                logger.warning("Formato de X-Signature inválido: %s", signature_header)
+
         secret = settings.MP_WEBHOOK_SECRET.encode("utf-8")
         expected_signature = hmac.new(secret, body_bytes, hashlib.sha256).hexdigest()
-        logger.info("Received signature: %s", signature_received)
+        logger.info("Received signature (v1): %s", signature_received)
         logger.info("Expected signature: %s", expected_signature)
 
-        if signature_received and not hmac.compare_digest(signature_received, expected_signature):
+        if signature_received is None or not hmac.compare_digest(signature_received, expected_signature):
             logger.warning("Invalid signature for MP webhook")
             return Response({"error": "Invalid signature"}, status=status.HTTP_403_FORBIDDEN)
 
