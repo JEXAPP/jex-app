@@ -92,7 +92,7 @@ export default function EmployeeThreadScreen() {
   return (
     <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
       <OverlayProvider>
-        <StreamChatUI client={client}>
+        <StreamChatUI client={client as any}>
           {loading && (
             <View style={{ padding: 16 }}>
               <Text>Cargando chat…</Text>
