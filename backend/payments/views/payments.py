@@ -205,29 +205,34 @@ class MercadoPagoWebhookView(views.APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
-        # Debug: imprimir payload
-        print("Webhook payload:", request.data)
-
-        # 1. Extraer payment_id desde data.id
-        mp_payment_id = request.data.get("data", {}).get("id")
-        if not mp_payment_id:
-            return Response({"error": "MP payment id missing"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 2. Validar la firma (opcional, según configuración)
-        signature_received = request.headers.get("X-MercadoPago-Signature")
+        # --- 1. Validar firma ---
         body_bytes = request.body
+        signature_received = request.headers.get("X-MercadoPago-Signature")
         secret = settings.MP_WEBHOOK_SECRET.encode("utf-8")
         expected_signature = hmac.new(secret, body_bytes, hashlib.sha256).hexdigest()
         if signature_received and not hmac.compare_digest(signature_received, expected_signature):
             return Response({"error": "Invalid signature"}, status=status.HTTP_403_FORBIDDEN)
 
-        # 3. Obtener el Payment desde la DB
+        # --- 2. Validar serializer ---
+        serializer = PaymentCallbackSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        mp_payment_id = request.data.get("data", {}).get("id")
+        if not mp_payment_id:
+            return Response({"error": "MP payment id missing"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # --- 3. Consultar pago en Mercado Pago ---
+        sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
+        mp_resp = sdk.payment().get(mp_payment_id)
+        if mp_resp["status"] != 200:
+            return Response({"error": "No valid payment from MP"}, status=status.HTTP_502_BAD_GATEWAY)
+        mp_data = mp_resp.get("response", {})
+
+        # --- 4. Buscar Payment en DB ---
         try:
             payment = Payment.objects.get(mp_payment_id=mp_payment_id)
         except Payment.DoesNotExist:
-            # Intentar fallback con external_reference si existe
-            mp_resp = mercadopago.SDK(settings.MP_ACCESS_TOKEN).payment().get(mp_payment_id)
-            mp_data = mp_resp.get("response", {})
+            # fallback con external_reference
             external_reference = mp_data.get("external_reference")
             if external_reference:
                 try:
@@ -237,7 +242,7 @@ class MercadoPagoWebhookView(views.APIView):
             else:
                 return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # 4. Mapear estado
+        # --- 5. Mapear estado ---
         status_name = mp_data.get("status", "pending")
         if status_name == "approved":
             payment_state = PaymentStates.APPROVED.value
@@ -249,7 +254,7 @@ class MercadoPagoWebhookView(views.APIView):
             payment_state = PaymentStates.FAILURE.value
             friendly_status = "Fallido"
 
-        # 5. Actualizar Payment en DB
+        # --- 6. Actualizar Payment ---
         payment.state = PaymentState.objects.get(name=payment_state)
         if not payment.mp_payment_id:
             payment.mp_payment_id = mp_payment_id
