@@ -4,6 +4,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 
+from notifications.constants import NotificationTypes
+from notifications.services.send_notification import send_notification
 from rating.models.users_connections import UserConnection
 from user_auth.permissions import IsInGroup
 from user_auth.constants import EMPLOYER_ROLE, EMPLOYEE_ROLE
@@ -18,6 +20,7 @@ from rating.models import Behavior, Rating
 from django.db import transaction
 from user_auth.models import CustomUser
 from eventos.models.event import Event
+
 from rating.errors.rating_menssage import (
     BODY_MUST_BE_ARRAY,
     EVENT_NOT_FOUND,
@@ -29,6 +32,10 @@ from rating.errors.rating_menssage import (
 from applications.models import Offer
 from applications.constants import OfferStates
 from applications.models.offer_state import OfferState
+
+import logging
+logger = logging.getLogger(__name__)
+
 
 class BulkCreateRatingView(APIView):
     permission_classes = [IsAuthenticated, IsInGroup]
@@ -118,6 +125,21 @@ class BulkCreateRatingView(APIView):
                 rating=v['rating'],
                 comments=v.get('comments', ""),
             ))
+
+            try:
+                send_notification(
+                    user=employee_user,
+                        title="!Calificación recibida!",
+                        message=f"{rater.employer_profile.company_name} te calificó por tu trabajo en '{event_obj.name}'.",
+                    notification_type_name=NotificationTypes.JOBS.value,
+                    data={
+                        "event_id": event_obj.id,
+                        "rating_value": v['rating'],
+                        "rater_name": rater.employer_profile.company_name
+                    }
+                )
+            except Exception as e:
+                logger.error("Error enviando notificación:", e)
 
         if rating_objs:
             with transaction.atomic():
