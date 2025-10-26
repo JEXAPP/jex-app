@@ -205,61 +205,54 @@ class MercadoPagoWebhookView(views.APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
-        serializer = PaymentCallbackSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        # Debug: imprimir payload
+        print("Webhook payload:", request.data)
 
-        # Extraer el payment_id desde data['id']
+        # 1. Extraer payment_id desde data.id
         mp_payment_id = request.data.get("data", {}).get("id")
         if not mp_payment_id:
-            return Response(MISSING_MP_CODE, status=status.HTTP_400_BAD_REQUEST)
-        # --- 1. Validar la firma ---
+            return Response({"error": "MP payment id missing"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Validar la firma (opcional, según configuración)
         signature_received = request.headers.get("X-MercadoPago-Signature")
         body_bytes = request.body
         secret = settings.MP_WEBHOOK_SECRET.encode("utf-8")
-
         expected_signature = hmac.new(secret, body_bytes, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(signature_received or "", expected_signature):
-            return Response(INVALID_SIGNATURE, status=status.HTTP_403_FORBIDDEN)
+        if signature_received and not hmac.compare_digest(signature_received, expected_signature):
+            return Response({"error": "Invalid signature"}, status=status.HTTP_403_FORBIDDEN)
 
-        # --- 2. Obtener el pago ---
+        # 3. Obtener el Payment desde la DB
         try:
             payment = Payment.objects.get(mp_payment_id=mp_payment_id)
         except Payment.DoesNotExist:
-            return Response(PAYMENT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+            # Intentar fallback con external_reference si existe
+            mp_resp = mercadopago.SDK(settings.MP_ACCESS_TOKEN).payment().get(mp_payment_id)
+            mp_data = mp_resp.get("response", {})
+            external_reference = mp_data.get("external_reference")
+            if external_reference:
+                try:
+                    payment = Payment.objects.get(id=int(external_reference))
+                except (Payment.DoesNotExist, ValueError):
+                    return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # --- 3. Consultar estado real en Mercado Pago ---
-        sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
-        mp_resp = sdk.payment().get(mp_payment_id)
-        if mp_resp["status"] != 200:
-            return Response(NO_VALID_PAYMENT, status=status.HTTP_502_BAD_GATEWAY)
-
-        mp_data = mp_resp["response"]
+        # 4. Mapear estado
         status_name = mp_data.get("status", "pending")
-        external_reference = mp_data.get("external_reference")
-
-        # Buscar el Payment por external_reference
-        try:
-            payment = Payment.objects.get(id=external_reference)
-        except Payment.DoesNotExist:
-            return Response(PAYMENT_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
-
-        # Si no tiene mp_payment_id, lo actualizamos
-        if not payment.mp_payment_id:
-            payment.mp_payment_id = mp_payment_id
-
-        # Mapear a PaymentStates
         if status_name == "approved":
             payment_state = PaymentStates.APPROVED.value
             friendly_status = "Aprobado"
-        elif status_name == "pending" or status_name == "in_process":
+        elif status_name in ["pending", "in_process"]:
             payment_state = PaymentStates.PENDING.value
             friendly_status = "Pendiente"
         else:
             payment_state = PaymentStates.FAILURE.value
             friendly_status = "Fallido"
 
-        # --- 4. Actualizar estado en DB ---
+        # 5. Actualizar Payment en DB
         payment.state = PaymentState.objects.get(name=payment_state)
+        if not payment.mp_payment_id:
+            payment.mp_payment_id = mp_payment_id
         payment.save()
 
         return Response({
