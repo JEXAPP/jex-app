@@ -38,8 +38,8 @@ class PasswordResetRequestView(GenericAPIView):
         )
 
         # Enviar mail con el OTP
-        subject = "Código para restablecer tu contraseña"
-        message = f"Hola {user.username},\n\nTu código para restablecer la contraseña es: {otp}\nEste código es válido por 5 minutos.\n\nSi no solicitaste este código, ignora este mensaje."
+        subject = "Restablece tu contraseña"
+        message = f"Hola, {user.username}: \n\nRecibimos una solicitud para restablecer tu contraseña. \n\nSi no fuiste vos el que envió la solicitud, ignorá este mensaje. En caso contrario podes restablecer la contraseña con este código:\n\n{otp}\n\nEste código es válido por 5 minutos.\n\nGracias.\nJex."
         send_mail(subject, message, None, [user.email])
 
         return Response({"detail": "Si el email existe, se envió un código de recuperación."}, status=status.HTTP_200_OK)
