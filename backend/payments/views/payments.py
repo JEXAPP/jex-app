@@ -153,7 +153,10 @@ class GeneratePaymentLinkView(views.APIView):
                     state=pending_state
                 )
                 payment_url = MercadoPagoService.create_payment_link(
-                    mp_account, amount, commission, concept, external_reference=str(payment.id)
+                    employee_account=mp_account,
+                    amount=amount,
+                    concept=concept,
+                    external_reference=str(payment.id)
                 )
 
             logger.info(f"Link de pago generado: {payment_url} para payment_id: {payment.id}")
