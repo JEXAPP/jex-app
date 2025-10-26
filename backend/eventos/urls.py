@@ -16,5 +16,6 @@ urlpatterns = [
     path('vacancies/', ListEventVacanciesView.as_view(), name='event-vacancies'),
     path('by-employer/', ListEventsByEmployerView.as_view(), name='list-active-events-by-employer'),
     path('with-vacancies-availables/', ListEventsWithVacanciesView.as_view(), name='list-events-with-vacancies'),
-    path('<int:eventId>/employee/', ListEventsEmployeeView.as_view(), name='list-employee-event')
+    path('<int:eventId>/employee/', ListEventsEmployeeView.as_view(), name='list-employee-event'),
+    path('<int:event_id>/report/', ReportEventView .as_view(), name='report-event'),
 ]
