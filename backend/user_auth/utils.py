@@ -34,8 +34,6 @@ def get_city_locality(address):
     if not parts:
         return None
 
-    if len(parts) >= 3:
-        barrio = parts[-3]
-        provincia = parts[-2]
-        return f"{barrio}, {provincia}"
+    if len(parts) >= 2:
+        return f"{parts[-2]}, {parts[-1]}"
     return parts[0]
