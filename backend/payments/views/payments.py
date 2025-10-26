@@ -212,7 +212,7 @@ class MercadoPagoWebhookView(views.APIView):
 
         # --- 1. Validar firma ---
         body_bytes = request.body
-        signature_received = request.headers.get("X-MercadoPago-Signature")
+        signature_received = request.headers.get("X-Signature")
         secret = settings.MP_WEBHOOK_SECRET.encode("utf-8")
         expected_signature = hmac.new(secret, body_bytes, hashlib.sha256).hexdigest()
         logger.info("Received signature: %s", signature_received)
