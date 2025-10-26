@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from decimal import ROUND_HALF_UP, Decimal
 from django.conf import settings
 import jwt
 import requests
@@ -93,12 +94,10 @@ class MercadoPagoService:
             "Content-Type": "application/json",
         }
 
-        # Porcentajes de fees
-        mp_fee_percent = 0.0653
-        app_fee_percent = 0.0347
+        mp_fee_percent = Decimal("0.0653")
+        app_fee_percent = Decimal("0.0347")
 
-        # Monto total bruto que debe pagar el empleador
-        total_amount = amount / (1 - (mp_fee_percent + app_fee_percent))
+        total_amount = amount / (Decimal("1") - (mp_fee_percent + app_fee_percent))
 
         # Comisión de tu app (marketplace_fee)
         commission = total_amount * app_fee_percent
@@ -109,7 +108,7 @@ class MercadoPagoService:
                     "title": concept or "Pago de turno trabajado",
                     "quantity": 1,
                     "currency_id": "ARS",
-                    "unit_price": round(total_amount, 2),
+                    "unit_price": float(total_amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
                 }
             ],
             "payment_methods": {"installments": 1},
@@ -119,8 +118,7 @@ class MercadoPagoService:
                 "pending": settings.MP_PENDING_URL,
             },
             "auto_return": "approved",
-            "marketplace_fee": round(commission, 2),
-            # Quitá external_reference de metadata
+            "marketplace_fee": float(commission.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)),
             "metadata": {
                 "employee_email": employee_account.user.email,
             }
