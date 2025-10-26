@@ -1,11 +1,12 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 from ..utils import generate_otp
 from django.utils import timezone
 from datetime import timedelta
-from django.core.mail import send_mail
 from user_auth.models.user import CustomUser
 from user_auth.models.validation import PasswordResetOTP
 from user_auth.serializers.password_reset import PasswordResetCompleteSerializer, PasswordResetRequestSerializer, PasswordResetVerifySerializer 
@@ -21,29 +22,51 @@ class PasswordResetRequestView(GenericAPIView):
         try:
             user = CustomUser.objects.get(email=email)
         except CustomUser.DoesNotExist:
-            # No revelamos si existe el email
-            return Response({"detail": "Si el email existe, se envió un código de recuperación."}, status=status.HTTP_200_OK)
+            return Response(
+                {"detail": "Si el email existe, se envió un código de recuperación."},
+                status=status.HTTP_200_OK
+            )
 
         # Generar OTP y guardar
         otp = generate_otp()
-        valid_until = timezone.now() + timedelta(minutes=5)  # válido 5 minutos
+        valid_until = timezone.now() + timedelta(minutes=5)
 
-        # Guardar o actualizar OTP para el usuario
         PasswordResetOTP.objects.update_or_create(
             user=user,
-            defaults={
-                'otp_code': otp,
-                'valid_until': valid_until
-            }
+            defaults={'otp_code': otp, 'valid_until': valid_until}
         )
 
-        # Enviar mail con el OTP
+        # Preparar contexto y render HTML
+        context = {"username": user.username, "otp": otp, "valid_minutes": 5}
+        html_content = render_to_string("emails/password_reset.html", context)
+
+        # Texto plano como fallback
+        text_content = f"""
+            Hola, {user.username}:
+
+            Recibimos una solicitud para restablecer tu contraseña.
+
+            Si no fuiste vos, ignorá este mensaje.
+            Usa este código para restablecer la contraseña: {otp}
+
+            Este código es válido por {context['valid_minutes']} minutos.
+
+            Gracias,
+            Jex
+            """
+        # Enviar correo
         subject = "Restablece tu contraseña"
-        message = f"Hola, {user.username}: \n\nRecibimos una solicitud para restablecer tu contraseña. \n\nSi no fuiste vos el que envió la solicitud, ignorá este mensaje. En caso contrario podes restablecer la contraseña con este código:\n\n{otp}\n\nEste código es válido por 5 minutos.\n\nGracias.\nJex."
-        send_mail(subject, message, None, [user.email])
+        from_email = None 
+        to_email = [user.email]
 
-        return Response({"detail": "Si el email existe, se envió un código de recuperación."}, status=status.HTTP_200_OK)
+        email_message = EmailMultiAlternatives(subject, text_content, from_email, to_email)
+        email_message.attach_alternative(html_content, "text/html")
+        email_message.send()
 
+        return Response(
+            {"detail": "Si el email existe, se envió un código de recuperación."},
+            status=status.HTTP_200_OK
+        )
 class PasswordResetVerifyView(GenericAPIView):
     serializer_class = PasswordResetVerifySerializer
 
