@@ -99,7 +99,7 @@ export default function EmployeeDetailScreen() {
         {/* Ubicación solo en búsqueda */}
         {data?.approximate_location && (
           <ImageBackground
-            source={require('@/assets/images/maps-blurred.png')}
+            source={require('@/assets/images/maps-blurred.webp')}
             imageStyle={s.locationBgImage}
             style={s.locationCard}
           >

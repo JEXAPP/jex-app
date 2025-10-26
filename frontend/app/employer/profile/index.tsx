@@ -76,7 +76,7 @@ export default function ProfileScreen() {
           source={
             user.image
               ? { uri: user.image }
-              : require("@/assets/images/jex/Jex-FotoPerfil.png") // imagen por defecto si no hay foto
+              : require("@/assets/images/jex/Jex-FotoPerfil.webp") // imagen por defecto si no hay foto
           }
           style={styles.avatar}
         />

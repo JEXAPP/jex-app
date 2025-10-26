@@ -130,7 +130,7 @@ export default function QualiScreen() {
                   source={
                     worker.image
                       ? { uri: worker.image } // ✅ si hay URL la usamos
-                      : require("@/assets/images/jex/Jex-FotoPerfil.png") // 🧩 si no, usamos la hardcodeada
+                      : require("@/assets/images/jex/Jex-FotoPerfil.webp") // 🧩 si no, usamos la hardcodeada
                   }
                   style={styles.workerImage}
                   resizeMode="cover"

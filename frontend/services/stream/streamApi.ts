@@ -2,7 +2,12 @@ import useBackendConection from "@/services/internal/useBackendConection";
 
 export type StreamCredentials = {
   api_key: string;
-  user_id: string;
+  user: {
+    id: string;
+    name: string;
+    image?: string;
+    role?: string;
+  };
   token: string;
 };
 
@@ -14,6 +19,10 @@ export async function getStreamCredentials() {
   const { requestBackend } = useBackendConection<StreamCredentials>();
 
   const response = await requestBackend(url, null, "GET");
+
+  if (response?.user?.id) {
+    response.user.id = String(response.user.id)
+  }
 
   return response; 
   // esperado: { api_key, user_id, token }

@@ -58,7 +58,7 @@ export default function OfferDetailsScreen() {
               <Text style={styles.locationLabel}>Ubicación:</Text>
               <Text style={styles.location}>{offer.location}</Text>
 
-              <Image source={require("@/assets/images/maps.png")} style={styles.mapImage} />
+              <Image source={require("@/assets/images/maps.webp")} style={styles.mapImage} />
 
               <Text style={styles.requirementsTitle}>Requerimientos:</Text>
               {offer.requirements.map((req, index) => (

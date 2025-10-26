@@ -73,7 +73,7 @@ export const useApplyVacancy = () => {
         deadline: formatFechaCorta(vacante.shifts[0]?.end_date),
         event_image_url: vacante.event.event_image_url,
         event_image_public_id: vacante.event.event_image_public_id,
-        mapImage: require('@/assets/images/maps.png'),
+        mapImage: require('@/assets/images/maps.webp'),
         rating: 4.0, // rating del trabajo en sí, no del organizador
       });
 

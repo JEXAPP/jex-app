@@ -2,7 +2,7 @@ import { Colors } from '@/themes/colors';
 import { StyleSheet } from 'react-native';
 
 export const suggestionsStyles2 = StyleSheet.create({
-  contenedor: {
+contenedor: {
   position: 'absolute',
   top: '100%',
   left: 0,
@@ -18,7 +18,6 @@ export const suggestionsStyles2 = StyleSheet.create({
   marginTop: 6,
   overflow: 'visible', // 👈 importante: si se superpone, que no corte el área táctil
 },
-
   item: {
     paddingHorizontal: 12,
     paddingVertical: 10,

@@ -49,7 +49,7 @@ export default function AdminPanelScreen() {
         <View style={styles.noEventsCard}>
           <Text style={styles.noEventsTitle}>No tienes ningún evento activo</Text>
           <Image
-            source={require("@/assets/images/jex/Jex-Sin-Eventos.png")}
+            source={require("@/assets/images/jex/Jex-Sin-Eventos.webp")}
             style={styles.noEventsImage}
             resizeMode="contain"
           />

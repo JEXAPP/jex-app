@@ -164,7 +164,7 @@ export default function ManipulateVacancyScreen() {
             </View>
           </View>
 
-          <Image source={require('@/assets/images/maps.png')} style={styles.map} />
+          <Image source={require('@/assets/images/maps.webp')} style={styles.map} />
         </View>
 
         <Text style={styles.containerTitle}>{job.role}</Text>

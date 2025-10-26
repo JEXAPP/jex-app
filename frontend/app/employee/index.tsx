@@ -69,9 +69,9 @@ export default function HomeEmployeeScreen () {
               
               <Carousel
                 images={[
-                  require('@/assets/images/Publicidad1.png'),
-                  require('@/assets/images/Publicidad2.png'),
-                  require('@/assets/images/Publicidad3.png'),
+                  require('@/assets/images/Publicidad1.webp'),
+                  require('@/assets/images/Publicidad2.webp'),
+                  require('@/assets/images/Publicidad3.webp'),
                 ]}
               />
 

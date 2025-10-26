@@ -9,23 +9,23 @@ let connectedUserId: string | null = null;
  * Conecta el usuario actual a Stream usando credenciales del backend.
  * Llamala justo después del login exitoso.
  *
- * @returns { client, user_id, api_key, token }
+ * @returns { client, user, api_key, token }
  */
 export async function connectStream() {
   // 1) Pedimos credenciales al backend
-  const { api_key, user_id, token }: StreamCredentials = await getStreamCredentials();
+  const { api_key, user, token }: StreamCredentials = await getStreamCredentials();
 
   // 2) Creamos/obtenemos instancia singleton de Stream
   const client = StreamChat.getInstance(api_key);
 
   // 3) Conectamos a la usuaria
-  await client.connectUser({ id: user_id }, token);
+  await client.connectUser({ id: user.id }, token);
 
   // 4) Guardamos referencias para re-uso
   chatClient = client;
-  connectedUserId = user_id;
+  connectedUserId = user.id;
 
-  return { client, user_id, api_key, token };
+  return { client, user, api_key, token };
 }
 
 /**
