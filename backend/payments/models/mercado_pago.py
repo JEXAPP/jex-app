@@ -10,7 +10,7 @@ class MercadoPagoAccount(models.Model):
         on_delete=models.CASCADE,
         related_name="mercado_pago_account"
     )
-    mp_user_id = models.IntegerField(unique=True)  # ID de usuario en Mercado Pago
+    mp_user_id = models.BigIntegerField(unique=True)
     access_token = models.TextField()  # Token para operar
     refresh_token = models.TextField()  # Para renovar access_token
     public_key = models.CharField(max_length=200, blank=True, null=True)
