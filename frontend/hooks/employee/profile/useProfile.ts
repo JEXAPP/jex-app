@@ -3,56 +3,40 @@ import { router } from "expo-router";
 import { clearTokens } from "@/services/internal/api";
 import useBackendConection from "@/services/internal/useBackendConection";
 import * as SecureStore from "expo-secure-store";
-import { Asset } from "expo-asset";
-import * as FileSystem from "expo-file-system/legacy";
-import * as Sharing from "expo-sharing";
-import { jwtDecode } from "jwt-decode";
-
-// Tipo del payload de tu JWT
-type JwtPayload = {
-  user_id: number; // asegurate que tu backend ponga el id acá
-  exp: number;
-};
 
 export const useProfile = () => {
   const { requestBackend } = useBackendConection();
 
   const [user, setUser] = useState<{
     name: string;
-    image: string | null; 
+    description: string | null;
+    image: string | null;
     rating: number;
+    ratingCount: number;
   } | null>(null);
 
-  // 👉 decodificar token para obtener id
-  const getEmployeeId = async () => {
-    const access = await SecureStore.getItemAsync("access");
-    if (!access) throw new Error("No hay access token");
-    const decoded: JwtPayload = jwtDecode(access);
-    return decoded.user_id;
-  };
-
-  // 👉 cargar datos del empleado
+  // 👉 cargar datos del usuario desde el nuevo endpoint
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const employeeId = await getEmployeeId();
         const data = await requestBackend(
-          `/api/rating/viewratings/${employeeId}/`,
+          "/api/auth/user/profile/",
           null,
           "GET"
         );
 
         if (data) {
           setUser({
-            name: `${data.user_full_name}`,
-            image: data.image_url ?? null, 
+            name: data.user_name ?? "Usuario",
+            description: data.description ?? null,
+            image: data.image_url ?? null,
             rating:
-              data.average_rating !== null
-                ? Number(data.average_rating.toFixed(1))
+              data.rating !== null && !isNaN(data.rating)
+                ? Number(data.rating)
                 : 0,
+            ratingCount: data.rating_count ?? 0,
           });
         }
-
       } catch (e: any) {
         console.warn("⚠️ Error cargando perfil:", e.message);
       }
@@ -68,20 +52,14 @@ export const useProfile = () => {
     console.log("REFRESH:", refresh);
   };
 
-  
-
   const options = [
-  //{ label: "Configuración de la cuenta", icon: "settings" },
-  //{ label: "Consultá tu perfil", icon: "user" },
-  //{ label: "Privacidad", icon: "lock" },
-  //{ label: "Invitá a un trabajador", icon: "user-plus" },
-  {
-    label: "Calificar organizadores",
-    icon: "star",
-    onPress: () => router.push("/employee/profile/qualify-list"),
-  },
-  { label: "Legal", icon: "file-text" }, // ahora lo abre ProfileScreen con loadTerms
-];
+    {
+      label: "Calificar organizadores",
+      icon: "star",
+      onPress: () => router.push("/employee/profile/qualify-list"),
+    },
+    { label: "Legal", icon: "file-text" }, // lo abre ProfileScreen con loadTerms
+  ];
 
   const handleLogout = async () => {
     try {

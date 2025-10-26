@@ -24,12 +24,6 @@ export const useAdminPanel = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
 
-  useFocusEffect(
-  useCallback(() => {
-    fetchEvents();
-  }, [])
-);
-
   const mapEvent = (e: any): EventItem => ({
     id: e.id,
     nombre: e.name,
@@ -54,12 +48,15 @@ export const useAdminPanel = () => {
     }
   };
 
-  useEffect(() => { fetchEvents(); }, []); // solo en mount
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents();
+    }, [])
+  );
 
-  const refreshEvents = () =>
-    requestBackend("/api/events/by-employer/", null, "GET")
-      .then((data) => { if (Array.isArray(data)) setEvents(data.map(mapEvent)); })
-      .catch((err) => console.log("Error refrescando eventos:", err));
+  useEffect(() => {
+    fetchEvents();
+  }, []); // solo en montaje
 
   const orderedEvents = useMemo(() => {
     return [...events].sort((a, b) => {
@@ -71,6 +68,27 @@ export const useAdminPanel = () => {
 
   const currentEvent = orderedEvents[currentEventIndex];
 
+  const enabledLabelsByState: Record<string, string[]> = {
+    Borrador: ["Vacantes", "Editar Evento"],
+    Publicado: ["Vacantes", "Contratación Tardía"],
+    "En Curso": ["Asistencia"],
+    Finalizado: ["Calificaciones", "Reportes"],
+  };
+
+  const getOrderedButtons = (buttons: any[]) => {
+    const enabledLabels = enabledLabelsByState[currentEvent?.estado?.name] ?? [];
+
+    const enabled = buttons
+      .filter(btn => enabledLabels.includes(btn.label))
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    const disabled = buttons
+      .filter(btn => !enabledLabels.includes(btn.label))
+      .sort((a, b) => a.label.localeCompare(b.label));
+
+    return [...enabled, ...disabled];
+  };
+
   const handleNextEvent = () => {
     if (currentEventIndex < orderedEvents.length - 1) setCurrentEventIndex(i => i + 1);
   };
@@ -80,7 +98,6 @@ export const useAdminPanel = () => {
 
   const goToCreateEvent = () => router.push("/employer/panel/create-event");
   const goToEditEvent = (id: number) => router.push(`/employer/panel/edit-event?id=${id}`);
-
   const goToVacancies = (eventId: number) => {
     const idx = orderedEvents.findIndex(e => e.id === eventId);
     if (idx >= 0) setCurrentEventIndex(idx);
@@ -88,12 +105,10 @@ export const useAdminPanel = () => {
   };
 
   const goToAttendance = (id: number) => router.push(`/employer/panel/attendance?id=${id}`);
-  const goToQualifications = (eventId: number) => {
-  router.push({ pathname: "/employer/panel/qualification", params: { eventId: String(eventId) } });
-};
+  const goToQualifications = (eventId: number) =>
+    router.push({ pathname: "/employer/panel/qualification", params: { eventId: String(eventId) } });
 
   return {
-    // Eventos
     loading,
     events: orderedEvents,
     currentEvent,
@@ -103,12 +118,15 @@ export const useAdminPanel = () => {
     handlePrevEvent,
     goToCreateEvent,
     goToEditEvent,
-    refreshEvents,
+    refreshEvents: fetchEvents,
 
-    // Navegación
+    // NUEVO: Orden de botones listo para consumir en la pantalla
+    getOrderedButtons,
+
     goToVacancies,
     goToAttendance,
     goToQualifications,
   };
 };
+
 export default useAdminPanel;

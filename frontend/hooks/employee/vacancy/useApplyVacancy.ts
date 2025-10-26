@@ -74,19 +74,27 @@ export const useApplyVacancy = () => {
         event_image_url: vacante.event.event_image_url,
         event_image_public_id: vacante.event.event_image_public_id,
         mapImage: require('@/assets/images/maps.png'),
-        rating: 4.0, // rating del trabajo en sí, no del organizador
+        rating: 4.0,
       });
 
+      // ✅ Se maneja la imagen del organizador con fallback
+      const organizerImage =
+        owner.profile_image && typeof owner.profile_image === "string"
+          ? owner.profile_image
+          : null;
+
       setOrganizer({
-        name: owner.full_name || owner.email || '-', // si no tiene nombre, mostramos el mail
+        name: owner.company_name || owner.email || '-',
         reviews: owner.rating_count ?? 0,
         rating: owner.average_rating ?? 0,
-        jexTime: '1 año', // sigue hardcodeado
+        jexTime: '1 año',
+        image: organizerImage
+          ? organizerImage
+          : require('@/assets/images/jex/Jex-FotoPerfil.png'), // fallback local
       });
 
       // === Agrupar shifts por día ===
       const grupos = new Map<string, Shift>();
-
       for (const shift of vacante.shifts) {
         const dia = formatFechaLarga(shift.start_date);
         const pagoBase =

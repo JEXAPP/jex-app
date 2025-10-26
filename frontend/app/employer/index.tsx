@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, Image, Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { IconButton } from "@/components/button/IconButton";
@@ -22,6 +22,7 @@ export default function AdminPanelScreen() {
     goToVacancies,
     goToAttendance,
     goToQualifications,
+    getOrderedButtons,
   } = useAdminPanel();
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -92,16 +93,17 @@ export default function AdminPanelScreen() {
     },
   ];
 
-  const enabledLabelsByState: Record<string, string[]> = {
-    Borrador: ["Vacantes", "Editar Evento"],
-    Publicado: ["Vacantes", "Contratación Tardía"],
-    "En Curso": ["Asistencia"],
-    Finalizado: ["Calificaciones", "Reportes"],
-  };
-
-  const enabledLabels = enabledLabelsByState[currentEvent.estado?.name] ?? [];
+  const orderedButtons = getOrderedButtons(baseButtons);
 
   const renderButton = (button: any) => {
+    const enabledLabels =
+      {
+        Borrador: ["Vacantes", "Editar Evento"],
+        Publicado: ["Vacantes", "Contratación Tardía"],
+        "En Curso": ["Asistencia"],
+        Finalizado: ["Calificaciones", "Reportes"],
+      }[currentEvent.estado?.name] ?? [];
+
     const disabled = !enabledLabels.includes(button.label);
 
     return (
@@ -168,7 +170,7 @@ export default function AdminPanelScreen() {
         )}
 
         <View style={styles.cardsContainer}>
-          {baseButtons.map(renderButton)}
+          {orderedButtons.map(renderButton)}
         </View>
       </ScrollView>
 
@@ -176,8 +178,9 @@ export default function AdminPanelScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalText}>
-              Esta opción está deshabilitada dado el estado del evento.
+              Esta opción está deshabilitada ya que el evento está {currentEvent?.estado?.name}.
             </Text>
+
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               style={styles.modalButton}

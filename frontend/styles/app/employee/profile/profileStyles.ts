@@ -57,10 +57,6 @@ export const profileStyles = StyleSheet.create({
     fontFamily: "interBold",
     color: Colors.violet5,
   },
-  commentsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
   ratingComments: {
     fontSize: 14,
     fontFamily: "interMedium",
@@ -109,4 +105,39 @@ export const profileStyles = StyleSheet.create({
     color: Colors.gray3,
     justifyContent: "center",
   },
+
+  // ✨ Placeholder estético
+  placeholderCard: {
+    backgroundColor: Colors.violet2,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 30,
+    shadowColor: Colors.black,
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 2,
+    alignItems: "center",
+  },
+  placeholderText: {
+    fontSize: 16,
+    fontFamily: "interMedium",
+    color: Colors.violet5,
+    marginBottom: 12,
+    textAlign: "center",
+  },
+  badgesRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  badgeEmpty: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: Colors.violet4,
+    backgroundColor: "rgba(255,255,255,0.2)",
+  },
+  
 });

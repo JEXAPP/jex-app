@@ -80,11 +80,10 @@ export const useQuali = () => {
 };
 
   useEffect(() => {
-    if (eventId) {
-      fetchRoles();
-      fetchWorkers();
-    }
-  }, [eventId]);
+  if (eventId) {
+    fetchRoles();
+  }
+}, [eventId]);
 
   // 🟣 Filtrar trabajadores según el rol seleccionado
   const workers = useMemo(

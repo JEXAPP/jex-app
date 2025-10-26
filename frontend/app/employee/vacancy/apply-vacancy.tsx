@@ -129,9 +129,14 @@ export default function ApplyVacancyScreen() {
           <View>
 
             <Image
-              source={require('@/assets/images/jex/Jex-FotoPerfil.png')}
-              style={styles.logoWrapper}
-            />
+          source={
+            typeof organizer.image === "number"
+              ? organizer.image // imagen local (require)
+              : { uri: organizer.image } // URL desde backend
+          }
+          style={styles.logoWrapper}
+        />
+
 
             <View style={styles.organizerNameTag}>
 
@@ -156,12 +161,7 @@ export default function ApplyVacancyScreen() {
             <Text style={styles.organizerInfoLabel}>Puntaje</Text>
           </View>
 
-            <View style={styles.organizerInfoItem}>
-
-              <Text style={styles.organizerInfoValue}>
-                {organizer.jexTime.split(' ')[0]}
-              </Text>
-              <Text style={styles.organizerInfoLabel}>Años en Jex</Text>
+            <View style={styles.organizerInfoItem}>    
 
             </View>
 
