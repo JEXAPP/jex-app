@@ -6,7 +6,6 @@ from notifications.models.notification_type import NotificationType
 
 # Configuramos el logger (una sola vez en tu módulo)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)  # Nivel mínimo de log
 
 # Opcional: agregar handler si no hay uno configurado (para desarrollo local)
 if not logger.hasHandlers():
