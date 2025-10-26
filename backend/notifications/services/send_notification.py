@@ -3,8 +3,8 @@ import logging
 from config import settings
 from notifications.models.notification import Notification
 from notifications.models.notification_type import NotificationType
+import logging
 
-# Configuramos el logger (una sola vez en tu módulo)
 logger = logging.getLogger(__name__)
 
 # Opcional: agregar handler si no hay uno configurado (para desarrollo local)
@@ -53,4 +53,5 @@ def send_notification(user, title, message, notification_type_name, data=None):
             resp = requests.post(settings.EXPO_PUSH_API_URL, json=payload, timeout=5)
             logger.info("Push enviado a %s | %s", token, resp.status_code)
         except requests.RequestException as e:
+            logger.info("Error enviando push a %s: %s", token, e)
             logger.error("Error enviando push a %s: %s", token, e)
