@@ -3,6 +3,8 @@ from user_auth.models.user import CustomUser
 
 class EmployerProfile(models.Model):
     company_name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255, null=True, blank=True)
+
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='employer_profile')
     
 

@@ -3,7 +3,7 @@ from user_auth.views.auth import EmailTokenObtainPairView, CustomGoogleLoginView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from user_auth.views.employee import CompleteEmployeeSocialView, EmployeeEducationView, EmployeeInterestsView, EmployeeProfileDescriptionView, EmployeeRegisterView, EmployeeValidateMailView, EmployeeWorkExperienceView
-from user_auth.views.employer import CompleteEmployerSocialView, EmployerRegisterView
+from user_auth.views.employer import CompleteEmployerSocialView, EmployerProfileDescriptionView, EmployerRegisterView
 from user_auth.views.password_reset import PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
 from user_auth.views.phone_verification import SendPhoneVerificationCodeView, VerifyPhoneCodeView
     
@@ -25,5 +25,6 @@ urlpatterns = [
     path('employee/work-experience/', EmployeeWorkExperienceView.as_view(), name='employee-work-experience'),
     path('employee/education/', EmployeeEducationView.as_view(), name='employee-education'),
     path('employee/interests/', EmployeeInterestsView.as_view(), name='employee-interests'),
+    path('employer/profile-description/', EmployerProfileDescriptionView.as_view(), name='employer-profile-description'),
     path('validate-mail/', EmployeeValidateMailView.as_view(), name='employee-validate-mail')
 ]
