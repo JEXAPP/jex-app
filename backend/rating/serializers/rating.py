@@ -166,7 +166,8 @@ class ListEmployerEventsSerializer(serializers.ModelSerializer):
             "event_start_time",
             "event_end_date",
             "event_end_time",
-            "already_rated"
+            "already_rated",
+            "image_url"
         ]
 
     def get_owner_full_name(self, obj):

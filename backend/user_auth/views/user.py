@@ -1,4 +1,4 @@
-from requests import Response
+from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework.views import APIView
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
