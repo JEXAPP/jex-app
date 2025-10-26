@@ -58,7 +58,7 @@ export default function CreateEventScreen() {
   return (
 
     <View style={{flex: 1}}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
         
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         

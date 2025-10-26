@@ -7,6 +7,7 @@ import { Asset } from "expo-asset";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { jwtDecode } from "jwt-decode";
+import { disconnectStream } from "@/services/stream/streamClient";
 
 // Tipo del payload de tu JWT
 type JwtPayload = {
@@ -103,6 +104,7 @@ export const useProfile = () => {
         await requestBackend("/api/auth/logout/", { refresh }, "POST");
         console.log("✅ Sesión cerrada en backend");
       }
+      await disconnectStream();
     } catch (e: any) {
       console.warn("⚠️ Error al cerrar sesión en backend:", e.message);
     } finally {

@@ -7,14 +7,10 @@ import { stateOffersStyles as styles } from "@/styles/app/employer/offers/stateO
 import { Colors } from "@/themes/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { FlatList, Image, Text, TouchableOpacity, View, Alert } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { SelectableTag } from "@/components/button/SelectableTags";
 import { selectableTagStyles2 } from "@/styles/components/button/selectableTagsStyles/selectableTagsStyles2";
-
-// NUEVO
 import * as WebBrowser from "expo-web-browser";
-import useBackendConection from "@/services/internal/useBackendConection";
-import { useState } from "react";
 
 export default function StateOffersScreen() {
   const {
@@ -23,59 +19,24 @@ export default function StateOffersScreen() {
     goPrevEvent,
     canGoNext,
     canGoPrev,
-    filter,            // "Pendiente" | "Aceptadas" | "Otro"
+    filter,
     setFilter,
     filteredOffers,
     offers,
     events,
     loading,
-    loadingEvents
+    loadingEvents,
+    creatingPaymentId,
+    createPaymentLink,
   } = useStateOffers();
 
-  // NUEVO: para feedback de botón individual
-  const [payingId, setPayingId] = useState<number | null>(null);
-  const { requestBackend } = useBackendConection();
-
-  // NUEVO: handler de pago
   const handlePay = async (offerId: number) => {
     try {
-      setPayingId(offerId);
-
-      // Intenta como POST (crear intención de pago)
-      let data: any = await requestBackend(
-        `/api/payments/mercadopago/payments/${offerId}/`,
-        null,
-        "POST"
-      );
-
-      // Si tu backend lo expone como GET, intentamos fallback:
-      if (!data || typeof data !== "object") {
-        data = await requestBackend(
-          `/api/payments/mercadopago/payments/${offerId}/`,
-          null,
-          "GET"
-        );
-      }
-
-      // Resolución robusta del link devuelto
-      const url =
-        data?.init_point ||
-        data?.sandbox_init_point ||
-        data?.url ||
-        data?.redirect_url ||
-        data?.link;
-
-      if (!url || typeof url !== "string") {
-        throw new Error("El backend no devolvió un link de pago válido.");
-      }
-
-      // Abre Custom Tab / SFSafariViewController
+      const { url } = await createPaymentLink(offerId);
       await WebBrowser.openBrowserAsync(url);
     } catch (err: any) {
       console.error("Error al iniciar pago MP:", err);
       Alert.alert("Error", err?.message ?? "No se pudo iniciar el pago.");
-    } finally {
-      setPayingId(null);
     }
   };
 
@@ -100,7 +61,7 @@ export default function StateOffersScreen() {
   const hasOffersForEvent = offers.some((o) => o.eventId === currentEvent!.id);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
       <View>
         <Text style={styles.title}>Ofertas</Text>
 
@@ -126,7 +87,7 @@ export default function StateOffersScreen() {
           </View>
         </View>
 
-        {/* 🔹 Filtros con SelectableTag (por defecto queda en "Aceptadas") */}
+        {/* Filtros */}
         <View style={styles.tagsRow}>
           <SelectableTag
             title="Pendiente"
@@ -178,10 +139,9 @@ export default function StateOffersScreen() {
                   ? styles.statusPendiente
                   : item.status === "Aceptada"
                   ? styles.statusAceptada
-                  : styles.statusRechazada; // Rechazada/Vencida
+                  : styles.statusRechazada;
 
-              const badgeText =
-                item.status === "Vencida" ? "Vencida" : item.status;
+              const badgeText = item.status === "Vencida" ? "Vencida" : item.status;
 
               return (
                 <View style={styles.offerCard}>
@@ -196,7 +156,7 @@ export default function StateOffersScreen() {
                       size={70}
                       shape="circle"
                       style={{ marginRight: 10 }}
-                      fallback={require('@/assets/images/jex/Jex-Postulantes-Default.webp')}
+                      fallback={require("@/assets/images/jex/Jex-Postulantes-Default.webp")}
                     />
                     <View style={styles.column}>
                       <Text style={styles.employeeName}>{item.employeeName}</Text>
@@ -215,7 +175,6 @@ export default function StateOffersScreen() {
                     </Text>
                   </View>
 
-                  {/* NUEVO: Botón Pagar (visible idealmente en Aceptadas) */}
                   {item.status === "Aceptada" && (
                     <TouchableOpacity
                       onPress={() => handlePay(item.id)}
@@ -226,14 +185,14 @@ export default function StateOffersScreen() {
                         paddingVertical: 10,
                         paddingHorizontal: 16,
                         borderRadius: 12,
-                        opacity: payingId === item.id ? 0.7 : 1
+                        opacity: creatingPaymentId === item.id ? 0.7 : 1,
                       }}
-                      disabled={payingId === item.id}
+                      disabled={creatingPaymentId === item.id}
                     >
                       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                         <Ionicons name="card" size={16} color="#fff" />
                         <Text style={{ color: "#fff", fontWeight: "600" }}>
-                          {payingId === item.id ? "Abriendo..." : "Pagar"}
+                          {creatingPaymentId === item.id ? "Abriendo..." : "Pagar"}
                         </Text>
                       </View>
                     </TouchableOpacity>

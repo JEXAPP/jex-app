@@ -1,6 +1,8 @@
 import { suggestCargosESCO, suggestDisciplinasOpenAlex, suggestUniversidadesHipolabs } from '@/services/external/sugerencias/useSuggestSources';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
+import { useUploadImageServ } from '@/services/external/cloudinary/useUploadImage';
+import useBackendConection from '@/services/internal/useBackendConection';
 
 type UploadableImage = { uri: string; name: string; type: string };
 
@@ -30,14 +32,20 @@ type SugItem = { descripcion: string; placeId: string };
 
 const DEBOUNCE_MS = 280;
 
-// helper
+// helpers
 const isNonEmpty = (s?: string | null) => !!s && s.trim().length > 0;
 const isDate = (d: Date | null) => d instanceof Date && !isNaN(d.getTime());
 const startLEEnd = (a: Date, b: Date) => a.getTime() <= b.getTime();
 
+// ⬇️ NUEVO: formateo dd/mm/yyyy
+const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+const toDDMMYYYY = (d: Date | null): string | null =>
+  d ? `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}` : null;
+
 export const useOnboardingExperience = () => {
   const router = useRouter();
-
+  const { requestBackend } = useBackendConection();
+  const { uploadImage } = useUploadImageServ();
   // listas
   const [experiencias, setExperiencias] = useState<Experiencia[]>([]);
   const [estudios, setEstudios] = useState<Educacion[]>([]);
@@ -52,30 +60,65 @@ export const useOnboardingExperience = () => {
   const omitir = () => router.replace('/employee');
 
   const siguiente = async () => {
-    const payload = {
-      experiences: experiencias.map(e => ({
-        title: e.cargo,
-        job_type: e.tipoTrabajo,
-        company_or_event: e.empresa,
-        start_date: e.fechaInicio ? e.fechaInicio.toISOString() : null,
-        end_date: e.fechaFin ? e.fechaFin.toISOString() : null,
-        description: e.descripcion || null,
-        image_url: null,
-        image_id: null
-      })),
-      studies: estudios.map(e => ({
-        institution: e.institucion,
-        degree: e.titulo,
-        discipline: e.disciplina,
-        start_date: e.fechaInicio ? e.fechaInicio.toISOString() : null,
-        end_date: e.fechaFin ? e.fechaFin.toISOString() : null,
-        description: e.descripcion || null,
-        image_url: null,
-        image_id: null
-      })),
-    };
-    // await requestBackend('/reemplazar', payload, 'PUT');
-    router.replace('/auth/additional-info/step-three');
+    try {
+      const payload = {
+        experiences: await Promise.all(
+          experiencias.map(async (e) => {
+            let image_url: string | null = null;
+            let image_id: string | null = null;
+
+            const firstUri = e.fotosUris?.[0] ?? null;
+            if (firstUri) {
+              const res: any = await uploadImage(firstUri, 'work-experiences-docs');
+              image_url = res?.image_url ?? res?.secure_url ?? res?.url ?? null;
+              image_id = res?.image_id ?? res?.public_id ?? null;
+            }
+
+            return {
+              title: e.cargo,
+              work_type: e.tipoTrabajo,
+              company_or_event: e.empresa,
+              start_date: toDDMMYYYY(e.fechaInicio),
+              end_date: toDDMMYYYY(e.fechaFin),
+              description: e.descripcion || null,
+              image_url,
+              image_id,
+            };
+          })
+        ),
+
+        studies: await Promise.all(
+          estudios.map(async (s) => {
+            let image_url: string | null = null;
+            let image_id: string | null = null;
+
+            const firstUri = s.fotosUris?.[0] ?? null;
+            if (firstUri) {
+              const res: any = await uploadImage(firstUri, 'certificates-docs');
+              image_url = res?.image_url ?? res?.secure_url ?? res?.url ?? null;
+              image_id = res?.image_id ?? res?.public_id ?? null;
+            }
+
+            return {
+              institution: s.institucion,
+              title: s.titulo,
+              discipline: s.disciplina,
+              start_date: toDDMMYYYY(s.fechaInicio),
+              end_date: toDDMMYYYY(s.fechaFin),
+              description: s.descripcion || null,
+              image_url,
+              image_id,
+            };
+          })
+        ),
+      };
+
+      await requestBackend('/api/auth/employee/work-experience/', payload.experiences, 'POST');
+      await requestBackend('/api/auth/employee/education/', payload.studies, 'POST');
+      router.replace('/auth/additional-info/step-three');
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   // ---- MODAL EXPERIENCIA ----
@@ -105,12 +148,10 @@ export const useOnboardingExperience = () => {
   // types en el hook
   type Option = { id: string; name: string };
 
-  // reemplazá tu arreglo de strings por esto:
   const tiposTrabajoOptions: Option[] = [
-    'Parcial','Completo','Independiente','Prácticas','Temporal','Contrato','Freelance',
+    'Parcial', 'Completo', 'Independiente', 'Prácticas', 'Temporal', 'Contrato', 'Freelance',
   ].map((t, i) => ({ id: String(i + 1), name: t }));
 
-  // helper para convertir tu string guardado -> Option | null
   const tipoTrabajoToOption = (name: string): Option | null =>
     tiposTrabajoOptions.find(o => o.name === name) ?? null;
 
@@ -144,8 +185,8 @@ export const useOnboardingExperience = () => {
     return true;
   };
 
-  const guardarExp = () => {
-    if (!validarExp()) return;
+  const guardarExp = (): boolean => {
+    if (!validarExp()) return false;
 
     const item: Experiencia = {
       cargo: expForm.cargo.trim(),
@@ -166,6 +207,7 @@ export const useOnboardingExperience = () => {
       setExperiencias((p) => [...p, item]);
     }
     cerrarModalExp();
+    return true;
   };
 
   const editarExp = (idx: number) => {
@@ -192,6 +234,9 @@ export const useOnboardingExperience = () => {
   // ---- SUGERENCIAS EXP (ESCO cargos) ----
   const [cargoSug, setCargoSug] = useState<SugItem[]>([]);
   const cargoTimer = useRef<any>(null);
+
+  const clearCargoSug = () => setCargoSug([]);
+
   const onChangeCargo = (txt: string) => {
     setExpFormField('cargo', txt);
     if (cargoTimer.current) clearTimeout(cargoTimer.current);
@@ -256,8 +301,8 @@ export const useOnboardingExperience = () => {
     return true;
   };
 
-  const guardarEdu = () => {
-    if (!validarEdu()) return;
+  const guardarEdu = (): boolean => {
+    if (!validarEdu()) return false;
 
     const item: Educacion = {
       institucion: eduForm.institucion.trim(),
@@ -278,6 +323,7 @@ export const useOnboardingExperience = () => {
       setEstudios((p) => [...p, item]);
     }
     cerrarModalEdu();
+    return true;
   };
 
   const editarEdu = (idx: number) => {
@@ -306,6 +352,9 @@ export const useOnboardingExperience = () => {
   const [discSug, setDiscSug] = useState<SugItem[]>([]);
   const instTimer = useRef<any>(null);
   const discTimer = useRef<any>(null);
+
+  const clearInstSug = () => setInstSug([]);
+  const clearDiscSug = () => setDiscSug([]);
 
   const onChangeInst = (txt: string) => {
     setEduFormField('institucion', txt);
@@ -359,5 +408,8 @@ export const useOnboardingExperience = () => {
     fechaInicioEdu, setFechaInicioEdu, fechaFinEdu, setFechaFinEdu,
     tipoTrabajoToOption,
     formErrorEdu,
+
+    // helpers sugerencias
+    clearCargoSug, clearInstSug, clearDiscSug,
   };
 };

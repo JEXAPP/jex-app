@@ -146,8 +146,8 @@ export const useLogin = () => {
       await ensureStreamConnected();
       const decoded = jwtDecode<DecodedToken>(accessToken);
       const role = decoded.role;
-      if (role === 'employee') router.push('/auth/additional-info/step-one');
-      else if (role === 'employer') router.push('/employer');
+      if (role === 'employee') router.replace('/employee');
+      else if (role === 'employer') router.replace('/employer');
       else router.replace('/auth/register/type-user');
     } catch (error) {
       console.log('Token inválido:', error);

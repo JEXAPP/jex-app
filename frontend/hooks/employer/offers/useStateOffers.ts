@@ -1,10 +1,7 @@
-// ✅ Cambios marcados con "CAMBIO"
 import { useState, useEffect } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
 
 export type OfferStatus = "Pendiente" | "Aceptada" | "Rechazada" | "Vencida";
-
-// 🔹 Filtro simple
 export type FilterSimple = "Pendiente" | "Aceptadas" | "Otro";
 
 export type EventState = {
@@ -42,14 +39,12 @@ const backendStateToStatus: Record<string, OfferStatus> = {
   EXPIRED: "Vencida",
 };
 
-// orden de prioridad de estados de evento
 const eventStateOrder: Record<string, number> = {
   "En progreso": 1,
   "Publicado": 2,
   "Finalizado": 3,
 };
 
-// 🔹 Mapeo: "Otro" = [Rechazadas (3), Vencidas (5)]
 const filterToBackendIds: Record<FilterSimple, number[]> = {
   Pendiente: [1],
   Aceptadas: [2],
@@ -62,20 +57,23 @@ export const useStateOffers = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
-  const [filter, setFilter] = useState<FilterSimple>("Aceptadas"); // CAMBIO: default Aceptadas
+  const [filter, setFilter] = useState<FilterSimple>("Aceptadas");
   const [loading, setLoading] = useState(false);
   const [loadingEvents, setLoadingEvents] = useState(false);
 
+  // feedback para el botón de pago (por item)
+  const [creatingPaymentId, setCreatingPaymentId] = useState<number | null>(null);
+
   const currentEvent: Event | null = events[currentEventIndex] ?? null;
 
-  // Traer eventos
+  // Traer eventos del empleador
   useEffect(() => {
     const fetchEvents = async () => {
       setLoadingEvents(true);
       try {
         const data = await requestBackend("/api/events/by-employer/", null, "GET");
         if (Array.isArray(data)) {
-          const normalized = data.map((e: any) => ({
+          const normalized: Event[] = data.map((e: any) => ({
             id: e.id,
             name: e.name,
             state: {
@@ -84,10 +82,10 @@ export const useStateOffers = () => {
             },
           }));
 
-          normalized.sort((a: Event, b: Event) => {
-            const stateA = eventStateOrder[a.state.name] ?? 99;
-            const stateB = eventStateOrder[b.state.name] ?? 99;
-            if (stateA !== stateB) return stateA - stateB;
+          normalized.sort((a, b) => {
+            const aOrder = eventStateOrder[a.state.name] ?? 99;
+            const bOrder = eventStateOrder[b.state.name] ?? 99;
+            if (aOrder !== bOrder) return aOrder - bOrder;
             return a.name.localeCompare(b.name);
           });
 
@@ -102,7 +100,7 @@ export const useStateOffers = () => {
     fetchEvents();
   }, []);
 
-  // Traer ofertas por evento + filtro (1, 2 o [3,5])
+  // Traer ofertas por evento + filtro
   useEffect(() => {
     const fetchOffers = async () => {
       if (!currentEvent) return;
@@ -113,7 +111,6 @@ export const useStateOffers = () => {
           requestBackend(`/api/applications/offers/${currentEvent.id}/state/${sid}/`, null, "GET")
         );
         const results = await Promise.all(requests);
-
         const all = results.flat().filter(Boolean);
 
         const normalized: Offer[] = all.map((item: any) => ({
@@ -130,11 +127,13 @@ export const useStateOffers = () => {
           status: backendStateToStatus[item?.offer_state?.name] ?? "Pendiente",
           eventId: currentEvent.id,
           imageUrl: item?.profile_image_url,
-          imageId: item?.profile_image_id
+          imageId: item?.profile_image_id,
         }));
 
-        normalized.sort((a, b) =>
-          a.fechaInicio.localeCompare(b.fechaInicio) || a.horaInicio.localeCompare(b.horaInicio)
+        normalized.sort(
+          (a, b) =>
+            a.fechaInicio.localeCompare(b.fechaInicio) ||
+            a.horaInicio.localeCompare(b.horaInicio)
         );
 
         setOffers(normalized);
@@ -151,14 +150,57 @@ export const useStateOffers = () => {
   const goNextEvent = () => {
     if (currentEventIndex < events.length - 1) {
       setCurrentEventIndex((prev) => prev + 1);
-      setFilter("Aceptadas"); // CAMBIO: resetear a Aceptadas
+      setFilter("Aceptadas");
     }
   };
 
   const goPrevEvent = () => {
     if (currentEventIndex > 0) {
       setCurrentEventIndex((prev) => prev - 1);
-      setFilter("Aceptadas"); // CAMBIO: resetear a Aceptadas
+      setFilter("Aceptadas");
+    }
+  };
+
+  // Crear pago y devolver link (no abre navegador acá)
+  const createPaymentLink = async (
+    offerId: number
+  ): Promise<{ url: string; paymentId?: number }> => {
+    setCreatingPaymentId(offerId);
+    try {
+      // Preferentemente POST; si tu backend expone GET, ajustá aquí
+      let data: any = await requestBackend(
+        `/api/payments/mercadopago/payments/${offerId}/`,
+        null,
+        "POST"
+      );
+
+      // Fallback a GET si no vino objeto
+      if (!data || typeof data !== "object") {
+        data = await requestBackend(
+          `/api/payments/mercadopago/payments/${offerId}/`,
+          null,
+          "GET"
+        );
+      }
+
+      // Soporte para múltiples formados de respuesta
+      const url =
+        data?.payment_url ||
+        data?.init_point ||
+        data?.sandbox_init_point ||
+        data?.url ||
+        data?.redirect_url ||
+        data?.link;
+
+      const paymentId = data?.payment_id ?? data?.id;
+
+      if (!url || typeof url !== "string") {
+        throw new Error("El backend no devolvió un link de pago válido.");
+      }
+
+      return { url, paymentId };
+    } finally {
+      setCreatingPaymentId(null);
     }
   };
 
@@ -174,6 +216,10 @@ export const useStateOffers = () => {
     filteredOffers: offers,
     events,
     loading,
-    loadingEvents
+    loadingEvents,
+
+    // pago
+    creatingPaymentId,
+    createPaymentLink,
   };
 };
