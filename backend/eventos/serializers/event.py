@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from applications.models.attendance import Attendance
 from applications.utils import get_job_type_display
 from eventos.errors.events_messages import BOTH_PROFILE_IMAGE_FIELDS_REQUIRED, EVENT_START_DATE_AFTER_END_DATE, EVENT_START_TIME_NOT_BEFORE_END_TIME, EVENT_START_DATE_IN_PAST, INVALID_STATE_ID
 from eventos.models.category_events import Category
@@ -10,6 +11,9 @@ from eventos.serializers.state_events import EventStateSerializer
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from media_utils.models import Image, ImageType
 from media_utils.serializers import ImageSerializer
+from payments.constants import PaymentStates
+from payments.models.payment_state import PaymentState
+from payments.models.payments import Payment
 from rating.models.penalty import Penalty
 from rating.models.users_connections import UserConnection
 from user_auth.models.user import CustomUser
@@ -366,6 +370,81 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
             behavior__user=employee_user
         ).exists()
         
+class EmployeeReportSerializer(serializers.Serializer):
+    employee_id = serializers.IntegerField(source='employee.user.id')
+    employee_name = serializers.CharField(source='employee.user.get_full_name')
+    attendance = serializers.SerializerMethodField()
+    payment_status = serializers.SerializerMethodField()
+    rating = serializers.SerializerMethodField()
+
+    def get_attendance(self, obj):
+        # Verifica si el empleado asistió al shift de la oferta
+        return Attendance.objects.filter(
+            employee=obj.employee,
+            shift=obj.selected_shift
+        ).exists()
+
+    def get_payment_status(self, obj):
+        # Obtiene el estado del pago asociado a la oferta
+        payment = Payment.objects.filter(offer=obj).first()
+        if not payment:
+            return "NO_PAYMENT"
+        return payment.state.name
+
+    def get_rating(self, obj):
+        # Obtiene el rating del empleado para este evento
+        event = self.context.get("event")
+        try:
+            behavior = obj.employee.behaviors.first()
+            if not behavior:
+                return None
+            rating_obj = behavior.ratings.filter(event=event).first()
+            if rating_obj:
+                return rating_obj.rating
+        except Behavior.DoesNotExist:
+            return None
+        return None
 
 
-        
+class EventReportSerializer(serializers.ModelSerializer):
+    total_offers_accepted = serializers.SerializerMethodField()
+    total_attendances_confirmed = serializers.SerializerMethodField()
+    total_payments_approved = serializers.SerializerMethodField()
+    employees = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Event
+        fields = [
+            'id', 'name',
+            'total_offers_accepted',
+            'total_attendances_confirmed',
+            'total_payments_approved',
+            'employees'
+        ]
+
+    def get_total_offers_accepted(self, obj):
+        return Offer.objects.filter(
+            selected_shift__vacancy__event=obj,
+            state__name='ACCEPTED'
+        ).count()
+
+    def get_total_attendances_confirmed(self, obj):
+        return Attendance.objects.filter(
+            shift__vacancy__event=obj
+        ).count()
+
+    def get_total_payments_approved(self, obj):
+        approved_state = PaymentState.objects.get(name=PaymentStates.APPROVED.value)
+        return Payment.objects.filter(
+            offer__selected_shift__vacancy__event=obj,
+            state=approved_state
+        ).count()
+
+    def get_employees(self, obj):
+        offers = Offer.objects.filter(
+            selected_shift__vacancy__event=obj,
+            state__name='ACCEPTED'
+        )
+        return EmployeeReportSerializer(
+            offers, many=True, context={"event": obj}
+        ).data
