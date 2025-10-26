@@ -59,6 +59,10 @@ class PaymentCallbackSerializer(serializers.Serializer):
     preference_id = serializers.CharField(required=False, allow_blank=True)
 
     def validate(self, data):
+        # Intentar extraer payment_id desde data.id si no viene directamente
+        if not data.get("payment_id") and "data" in self.initial_data:
+            data["payment_id"] = self.initial_data["data"].get("id")
+        
         if not data.get("payment_id") and not data.get("preference_id"):
             raise serializers.ValidationError("Se requiere payment_id o preference_id")
         return data
