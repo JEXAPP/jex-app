@@ -6,6 +6,7 @@ from user_auth.views.employee import CompleteEmployeeSocialView, EmployeeEducati
 from user_auth.views.employer import CompleteEmployerSocialView, EmployerProfileDescriptionView, EmployerRegisterView
 from user_auth.views.password_reset import PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
 from user_auth.views.phone_verification import SendPhoneVerificationCodeView, VerifyPhoneCodeView
+from user_auth.views.user import UserProfileView
     
 urlpatterns = [
     path('register/employer/', EmployerRegisterView.as_view(), name='register-employer'),
@@ -26,5 +27,6 @@ urlpatterns = [
     path('employee/education/', EmployeeEducationView.as_view(), name='employee-education'),
     path('employee/interests/', EmployeeInterestsView.as_view(), name='employee-interests'),
     path('employer/profile-description/', EmployerProfileDescriptionView.as_view(), name='employer-profile-description'),
-    path('validate-mail/', EmployeeValidateMailView.as_view(), name='employee-validate-mail')
+    path('validate-mail/', EmployeeValidateMailView.as_view(), name='employee-validate-mail'),
+    path('user/profile/', UserProfileView.as_view(), name='user-profile')
 ]
