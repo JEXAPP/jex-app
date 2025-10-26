@@ -81,10 +81,11 @@ class CheckAttendanceView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE]
 
-    def get(self, request):
-        offer_id = request.query_params.get("offer_id")
+    def get(self, request, *args, **kwargs):
+        offer_id = kwargs.get("offer_id")  # Lo obtenemos de la URL
+
         if not offer_id:
-            return serializers.ValidationError(NOT_OFFER_ID)
+            raise serializers.ValidationError(NOT_OFFER_ID)
 
         user = request.user
 
@@ -94,7 +95,7 @@ class CheckAttendanceView(APIView):
 
         # Verificar que el empleado sea dueño de la oferta
         if offer.employee.user != user:
-            return serializers.ValidationError(NOT_OFFER_OWNER)
+            raise serializers.ValidationError(NOT_OFFER_OWNER)
 
         # Verificar si ya registró asistencia
         attendance_exists = Attendance.objects.filter(employee=offer.employee, shift=offer.selected_shift).exists()
