@@ -6,7 +6,6 @@ from applications.views.jobs import EmployeeJobsView
 from applications.views.offer import  EmployeeSearchDetailView, EmployeeSearchView, ListOfferEmployeeShiftsView, ListOfferEventByState, OfferAcceptedDetailView, OfferCreateView, OfferConsultView, DecideOfferView, OfferDetailView
 
 
-
 urlpatterns = [
     path('<int:application_id>/detail/', ApplicationDetailForOffer.as_view(), name='application-detail'),
     path('apply/', ApplicationCreateView.as_view(), name='apply'),
