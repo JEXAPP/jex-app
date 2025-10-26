@@ -200,8 +200,6 @@ class PaymentCallbackView(views.APIView):
         }, status=status.HTTP_200_OK)
 
 
-
-
 class MercadoPagoWebhookView(views.APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -210,24 +208,35 @@ class MercadoPagoWebhookView(views.APIView):
         logger.info("Request headers: %s", request.headers)
         logger.info("Request body: %s", request.body.decode('utf-8'))
 
-        # --- 1. Validar firma ---
-        body_bytes = request.body
-        signature_header = request.headers.get("X-Signature")
+        # --- 1. Validar firma según template oficial ---
+        signature_header = request.headers.get("X-Signature", "")
         signature_received = None
+        ts = None
 
         if signature_header:
-            # extraer el hash 'v1' del formato "ts=...,v1=<hash>"
             try:
-                signature_received = signature_header.split(",")[1].split("=")[1]
+                parts = signature_header.split(",")
+                ts = parts[0].split("=")[1]
+                signature_received = parts[1].split("=")[1]
             except IndexError:
                 logger.warning("Formato de X-Signature inválido: %s", signature_header)
 
+        if not signature_received or not ts:
+            logger.warning("X-Signature o ts faltante")
+            return Response({"error": "Invalid signature"}, status=status.HTTP_403_FORBIDDEN)
+
+        # Construir payload según template oficial: id:[data.id_url];request-id:[x-request-id];ts:[ts];
+        data_id = request.data.get("data", {}).get("id", "")
+        request_id = request.headers.get("X-Request-Id", "")
+        payload = f"id:{data_id};request-id:{request_id};ts:{ts};".encode("utf-8")
+
         secret = settings.MP_WEBHOOK_SECRET.encode("utf-8")
-        expected_signature = hmac.new(secret, body_bytes, hashlib.sha256).hexdigest()
+        expected_signature = hmac.new(secret, payload, hashlib.sha256).hexdigest()
+
         logger.info("Received signature (v1): %s", signature_received)
         logger.info("Expected signature: %s", expected_signature)
 
-        if signature_received is None or not hmac.compare_digest(signature_received, expected_signature):
+        if not hmac.compare_digest(signature_received, expected_signature):
             logger.warning("Invalid signature for MP webhook")
             return Response({"error": "Invalid signature"}, status=status.HTTP_403_FORBIDDEN)
 
