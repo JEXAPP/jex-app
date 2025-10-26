@@ -201,49 +201,75 @@ class PaymentCallbackView(views.APIView):
 
 
 
+
 class MercadoPagoWebhookView(views.APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
+        logger.info("=== MP Webhook received ===")
+        logger.info("Request headers: %s", request.headers)
+        logger.info("Request body: %s", request.body.decode('utf-8'))
+
         # --- 1. Validar firma ---
         body_bytes = request.body
         signature_received = request.headers.get("X-MercadoPago-Signature")
         secret = settings.MP_WEBHOOK_SECRET.encode("utf-8")
         expected_signature = hmac.new(secret, body_bytes, hashlib.sha256).hexdigest()
+        logger.info("Received signature: %s", signature_received)
+        logger.info("Expected signature: %s", expected_signature)
+
         if signature_received and not hmac.compare_digest(signature_received, expected_signature):
+            logger.warning("Invalid signature for MP webhook")
             return Response({"error": "Invalid signature"}, status=status.HTTP_403_FORBIDDEN)
 
         # --- 2. Validar serializer ---
         serializer = PaymentCallbackSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            logger.warning("Serializer validation failed: %s", serializer.errors)
+            return Response({"error": "Invalid payload", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+        logger.info("Serializer validated successfully")
+
+        # --- 3. Obtener MP payment ID ---
         mp_payment_id = request.data.get("data", {}).get("id")
+        logger.info("MP payment ID from payload: %s", mp_payment_id)
         if not mp_payment_id:
+            logger.warning("MP payment ID missing in payload")
             return Response({"error": "MP payment id missing"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # --- 3. Consultar pago en Mercado Pago ---
+        # --- 4. Consultar pago en Mercado Pago ---
         sdk = mercadopago.SDK(settings.MP_ACCESS_TOKEN)
         mp_resp = sdk.payment().get(mp_payment_id)
+        logger.info("MP API response: %s", mp_resp)
         if mp_resp["status"] != 200:
+            logger.error("Failed to fetch payment from MP API")
             return Response({"error": "No valid payment from MP"}, status=status.HTTP_502_BAD_GATEWAY)
-        mp_data = mp_resp.get("response", {})
 
-        # --- 4. Buscar Payment en DB ---
+        mp_data = mp_resp.get("response", {})
+        logger.info("MP payment data: %s", mp_data)
+
+        # --- 5. Buscar Payment en DB ---
         try:
             payment = Payment.objects.get(mp_payment_id=mp_payment_id)
+            logger.info("Payment found in DB by mp_payment_id: %s", payment.id)
         except Payment.DoesNotExist:
-            # fallback con external_reference
+            logger.warning("Payment not found by mp_payment_id, trying external_reference")
             external_reference = mp_data.get("external_reference")
+            logger.info("External reference from MP: %s", external_reference)
             if external_reference:
                 try:
                     payment = Payment.objects.get(id=int(external_reference))
-                except (Payment.DoesNotExist, ValueError):
+                    logger.info("Payment found in DB by external_reference: %s", payment.id)
+                except (Payment.DoesNotExist, ValueError) as e:
+                    logger.error("Payment not found by external_reference: %s", e)
                     return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
             else:
+                logger.error("Payment not found and no external_reference provided")
                 return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # --- 5. Mapear estado ---
+        # --- 6. Mapear estado ---
         status_name = mp_data.get("status", "pending")
+        logger.info("MP payment status: %s", status_name)
         if status_name == "approved":
             payment_state = PaymentStates.APPROVED.value
             friendly_status = "Aprobado"
@@ -254,11 +280,12 @@ class MercadoPagoWebhookView(views.APIView):
             payment_state = PaymentStates.FAILURE.value
             friendly_status = "Fallido"
 
-        # --- 6. Actualizar Payment ---
+        # --- 7. Actualizar Payment ---
         payment.state = PaymentState.objects.get(name=payment_state)
         if not payment.mp_payment_id:
             payment.mp_payment_id = mp_payment_id
         payment.save()
+        logger.info("Payment updated successfully: %s - %s", payment.id, payment_state)
 
         return Response({
             "message": "Pago actualizado vía webhook",
