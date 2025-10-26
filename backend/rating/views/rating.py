@@ -149,7 +149,8 @@ class BulkCreateRatingView(APIView):
 
 class ViewRatings(RetrieveAPIView):
     serializer_class = ViewRatingsSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE, EMPLOYEE_ROLE]
     lookup_field = 'user_id'
     lookup_url_kwarg = 'user_id'
 
