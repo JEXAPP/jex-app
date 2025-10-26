@@ -70,7 +70,7 @@ class ApplicationCreateSerializer(serializers.Serializer):
 
         if already_applied_shifts:
             raise serializers.ValidationError(
-                ALREADY_APPLIED_SHIFTS.format(shifts=", ".join(map(str, already_applied_shifts)))
+                ALREADY_APPLIED_SHIFTS
             )
 
         return data
