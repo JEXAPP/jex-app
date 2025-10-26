@@ -27,6 +27,9 @@ from vacancies.models.requirements import Requirements
 from vacancies.models.vacancy_state import VacancyState
 from django.db.models import Sum
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class OfferCreateSerializer(serializers.ModelSerializer):
     application_id = serializers.IntegerField(required=False)
@@ -320,6 +323,23 @@ class OfferDecisionSerializer(serializers.Serializer):
                 vacancy.save(update_fields=['state'])
             
             sync_offer_chat(offer)
+
+            try:
+                employer_user = vacancy.event.owner  # o como tengas referenciado al empleador
+                event_name = vacancy.event.name
+
+                send_notification(
+                    user=employer_user,
+                    title="Oferta aceptada",
+                    message = f"El empleado {user.first_name} {user.last_name} aceptó la oferta para trabajar en '{event_name}'.",
+                    notification_type_name=NotificationTypes.OFFERT.value,
+                    data={
+                        "event_id": vacancy.event.id,
+                        "offer_id": offer.id
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Error enviando notificación al empleador {getattr(offer, 'id', None)}: {e}")
 
 
         return offer
