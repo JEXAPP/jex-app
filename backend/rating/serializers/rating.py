@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rating.models import Rating, Behavior
 from rating.models.users_connections import UserConnection
-from user_auth.models import CustomUser
+from user_auth.models import CustomUser, user
 from user_auth.models.employer import EmployerProfile
 from eventos.models.event import Event
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
@@ -106,8 +106,14 @@ class ViewRatingsSerializer(serializers.ModelSerializer):
         ]
     
     def get_user_full_name(self, obj):
+
         user = obj.user
-        return f"{user.first_name} {user.last_name}".strip()
+
+        if hasattr(user, "employee_profile"):
+            return f"{user.first_name} {user.last_name}"
+        
+        if hasattr(user, "employer_profile"):
+            return user.employer_profile.company_name
     
     def get_image_url(self, obj):
         user = obj.user
