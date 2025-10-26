@@ -120,8 +120,8 @@ class MercadoPagoService:
             },
             "auto_return": "approved",
             "marketplace_fee": round(commission, 2),
+            # Quitá external_reference de metadata
             "metadata": {
-                "external_reference": external_reference,
                 "employee_email": employee_account.user.email,
             }
         }
