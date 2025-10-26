@@ -3,6 +3,7 @@ from rest_framework.generics import CreateAPIView, RetrieveAPIView
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from applications.constants import OfferStates
+from applications.errors.attendance_messages import NOT_OFFER_ID, NOT_OFFER_OWNER
 from applications.models.offer_state import OfferState
 from applications.models.offers import Offer
 from applications.serializers.attendance import AttendanceValidationSerializer, AttendanceResponseSerializer, GenerateQRTokenSerializer, OfferByEventSerializer
@@ -11,6 +12,8 @@ from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
 from applications.models.attendance import Attendance
 from eventos.models.event import Event
+from rest_framework import serializers
+from rest_framework.views import APIView
 
 
 
@@ -73,3 +76,27 @@ class AttendanceDetailByEvent(RetrieveAPIView):
 
         serializer = self.get_serializer(offers, many=True)
         return Response(serializer.data, status=200)
+    
+class CheckAttendanceView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def get(self, request):
+        offer_id = request.query_params.get("offer_id")
+        if not offer_id:
+            return serializers.ValidationError(NOT_OFFER_ID)
+
+        user = request.user
+
+        # Verificar que la oferta existe y está aceptada
+        state_accepted = get_object_or_404(OfferState, name=OfferStates.ACCEPTED.value)
+        offer = get_object_or_404(Offer, pk=offer_id, state=state_accepted)
+
+        # Verificar que el empleado sea dueño de la oferta
+        if offer.employee.user != user:
+            return serializers.ValidationError(NOT_OFFER_OWNER)
+
+        # Verificar si ya registró asistencia
+        attendance_exists = Attendance.objects.filter(employee=offer.employee, shift=offer.selected_shift).exists()
+
+        return Response({"message": attendance_exists}, status=200)
