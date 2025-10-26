@@ -90,6 +90,42 @@ export const adminPanelStyles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'interBold',
   },
+    // --- NUEVOS estilos ---
+  cardDisabled: {
+    opacity: 0.4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 20,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalText: {
+    fontSize: 16,
+    fontFamily: "interMedium",
+    textAlign: "center",
+    color: Colors.black,
+    marginBottom: 16,
+  },
+  modalButton: {
+    backgroundColor: Colors.violet4,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: Colors.white,
+    fontFamily: "interSemiBold",
+    fontSize: 15,
+  },
+
 
   cardText: {
     fontSize: 17,

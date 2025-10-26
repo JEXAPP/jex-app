@@ -85,7 +85,8 @@ export const profileStyles = StyleSheet.create({
   logoutContainer: {
     borderTopWidth: 1,
     borderTopColor: Colors.gray3,
-    paddingTop: 16,
+    paddingTop: 12,
+    marginBottom: 30,
   },
   logoutRow: {
     flexDirection: "row",

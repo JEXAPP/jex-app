@@ -1,15 +1,19 @@
 // hooks/employer/panel/qualification/useQuali.ts
-import { useEffect, useMemo, useState } from "react";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { Alert } from "react-native";
 import useBackendConection from "@/services/internal/useBackendConection";
+
 
 type Worker = {
   id: string;
   name: string;
   role: string;
   linked: boolean;
+  penalized: boolean;
+  image: string | null; // 🆕 campo nuevo
 };
+
 
 type RatingData = {
   rating: number;
@@ -26,6 +30,12 @@ export const useQuali = () => {
   const [ratings, setRatings] = useState<Record<string, RatingData>>({});
   const [workersState, setWorkersState] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  useFocusEffect(
+  useCallback(() => {
+    fetchWorkers();
+  }, [eventId])
+);
 
   // 🟣 Traer vacantes del evento -> armar roles
   const fetchRoles = async () => {
@@ -47,25 +57,27 @@ export const useQuali = () => {
 
   // 🟣 Traer empleados del evento
   const fetchWorkers = async () => {
-    if (!eventId) return;
-    setLoading(true);
-    try {
-      const data = await requestBackend(`/api/events/${eventId}/employee/`, null, "GET");
-      if (Array.isArray(data)) {
-        const mapped: Worker[] = data.map((emp: any) => ({
-          id: String(emp.employee_id),
-          name: emp.name,
-          role: emp.job_type,
-          linked: emp.is_linked, // respetamos lo que venga del backend
-        }));
-        setWorkersState(mapped);
-      }
-    } catch (err) {
-      console.log("Error cargando empleados:", err);
-    } finally {
-      setLoading(false);
+  if (!eventId) return;
+  setLoading(true);
+  try {
+    const data = await requestBackend(`/api/events/${eventId}/employee/`, null, "GET");
+    if (Array.isArray(data)) {
+      const mapped: Worker[] = data.map((emp: any) => ({
+        id: String(emp.employee_id),
+        name: emp.name,
+        role: emp.job_type,
+        linked: emp.is_linked,
+        penalized: emp.is_penalized,
+        image: emp.image ?? null, // 🆕 se guarda la URL si existe
+      }));
+      setWorkersState(mapped);
     }
-  };
+  } catch (err) {
+    console.log("Error cargando empleados:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     if (eventId) {

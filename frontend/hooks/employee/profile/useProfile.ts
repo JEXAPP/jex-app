@@ -3,9 +3,6 @@ import { router } from "expo-router";
 import { clearTokens } from "@/services/internal/api";
 import useBackendConection from "@/services/internal/useBackendConection";
 import * as SecureStore from "expo-secure-store";
-import { Asset } from "expo-asset";
-import * as FileSystem from "expo-file-system/legacy";
-import * as Sharing from "expo-sharing";
 import { jwtDecode } from "jwt-decode";
 import { disconnectStream } from "@/services/stream/streamClient";
 
@@ -20,7 +17,7 @@ export const useProfile = () => {
 
   const [user, setUser] = useState<{
     name: string;
-    image: any; // 👈 puede ser require() o string
+    image: string | null; 
     rating: number;
   } | null>(null);
 
@@ -46,7 +43,7 @@ export const useProfile = () => {
         if (data) {
           setUser({
             name: `${data.user_full_name}`,
-            image: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
+            image: data.image_url ?? null, 
             rating:
               data.average_rating !== null
                 ? Number(data.average_rating.toFixed(1))
@@ -69,40 +66,19 @@ export const useProfile = () => {
     console.log("REFRESH:", refresh);
   };
 
-  const openLegalPdf = async () => {
-    try {
-      const asset = Asset.fromModule(require("@/assets/legal.pdf"));
-      await asset.downloadAsync();
-
-      if (!asset.localUri) throw new Error("No se pudo obtener la ruta local del PDF");
-
-      const dest = FileSystem.cacheDirectory + "legal.pdf";
-      await FileSystem.copyAsync({ from: asset.localUri, to: dest });
-
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(dest, { mimeType: "application/pdf" });
-      } else {
-        console.warn("⚠️ Sharing no está disponible en este dispositivo");
-      }
-    } catch (e: any) {
-      console.warn("⚠️ No se pudo abrir el PDF:", e.message);
-    }
-  };
+  
 
   const options = [
-  { label: "Configuración de la cuenta", icon: "settings" },
-  { label: "Consultá tu perfil", icon: "user" },
-  { label: "Privacidad", icon: "lock" },
-  { label: "Invitá a un trabajador", icon: "user-plus" },
-
-  // 🔥 Nuevo botón Calificar empleados
+  //{ label: "Configuración de la cuenta", icon: "settings" },
+  //{ label: "Consultá tu perfil", icon: "user" },
+  //{ label: "Privacidad", icon: "lock" },
+  //{ label: "Invitá a un trabajador", icon: "user-plus" },
   {
     label: "Calificar organizadores",
     icon: "star",
     onPress: () => router.push("/employee/profile/qualify-list"),
   },
-
-  { label: "Legal", icon: "file-text", onPress: openLegalPdf },
+  { label: "Legal", icon: "file-text" }, // ahora lo abre ProfileScreen con loadTerms
 ];
 
   const handleLogout = async () => {

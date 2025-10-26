@@ -237,8 +237,7 @@ export const useEditEvent = () => {
   const handleEliminarEvento = () => setMostrarConfirmEliminar(true);
 
   const confirmarEliminar = async () => {
-    try {
-      await requestBackend(`/api/events/update/${eventIdNum}/state/`, 6, 'PATCH');
+    try {await requestBackend(`/api/events/delete/${eventIdNum}/`,null,'DELETE');
       setMostrarConfirmEliminar(false);
       setShowSuccess(true);
       setTimeout(() => router.back(), 600);

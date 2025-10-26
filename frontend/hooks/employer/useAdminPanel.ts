@@ -1,6 +1,7 @@
 import useBackendConection from "@/services/internal/useBackendConection";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 type EventItem = {
   id: number;
@@ -21,6 +22,12 @@ export const useAdminPanel = () => {
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
+
+  useFocusEffect(
+  useCallback(() => {
+    fetchEvents();
+  }, [])
+);
 
   const mapEvent = (e: any): EventItem => ({
     id: e.id,

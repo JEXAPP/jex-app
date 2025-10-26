@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { View, Text, Image, TouchableOpacity, ScrollView, TextInput, ActivityIndicator } from "react-native";
 import { useSanction } from "@/hooks/employer/panel/qualification/useSanction";
 import { sanctionStyles as styles } from "@/styles/app/employer/panel/qualification/sanctionStyles";
-import React from "react";
+import * as React from "react";
 import { Colors } from "@/themes/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
