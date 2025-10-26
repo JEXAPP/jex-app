@@ -139,7 +139,7 @@ class EventOwnerSerializer(serializers.ModelSerializer):
         fields = ['id', 'company_name', 'email', 'profile_image', 'average_rating', 'rating_count']
 
     def get_company_name(self, obj):
-        return f"{obj.campany_name}".strip()
+        return f"{obj.employer_profile.company_name}"
     
     def get_average_rating(self, obj):
         return get_user_average_rating(obj)

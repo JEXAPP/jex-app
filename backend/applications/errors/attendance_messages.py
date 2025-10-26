@@ -9,3 +9,6 @@ SHIFT_NOT_QR_ENABLED = "El turno no tiene el check-in por QR habilitado."
 EMPLOYEE_DOES_NOT_MATCH_TOKEN = "El empleado no coincide con el token."
 TOKEN_MISSING_REQUIRED_FIELDS = "Token missing required fields."
 INVALID_TOKEN = "Token inválido o expirado."
+
+NOT_OFFER_ID = "El ID de la oferta es requerido."
+NOT_OFFER_OWNER = "No sos el dueño de esta oferta."

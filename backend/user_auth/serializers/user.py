@@ -8,10 +8,11 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     description = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
     rating_count = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['user_name', 'description', 'rating', 'rating_count']
+        fields = ['user_name', 'description', 'rating', 'rating_count', 'image_url']
 
     def get_user_name(self, obj):
         if hasattr(obj, "employee_profile"):
@@ -32,3 +33,6 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
 
     def get_rating_count(self, obj):
         return get_user_rating_count(obj)
+    
+    def get_image_url(self, obj):
+        return obj.profile_image.url if obj.profile_image else None

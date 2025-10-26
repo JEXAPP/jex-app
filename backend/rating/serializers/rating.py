@@ -151,6 +151,8 @@ class ListEmployerEventsSerializer(serializers.ModelSerializer):
     )
     already_rated = serializers.SerializerMethodField()
 
+    image_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Offer
         fields = [
@@ -201,6 +203,9 @@ class ListEmployerEventsSerializer(serializers.ModelSerializer):
             event=event, rater=rater, rated_user=owner_user
         )
 
+    def get_image_url(self, obj):
+        owner = obj.selected_shift.vacancy.event.owner
+        return owner.profile_image.url if owner.profile_image else None
 
 class SingleEmployerRatingSerializer(serializers.Serializer):
     employer = serializers.IntegerField(required=True)
