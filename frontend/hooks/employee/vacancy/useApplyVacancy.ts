@@ -142,7 +142,7 @@ export const useApplyVacancy = () => {
       }, 1500);
     } catch (err) {
       console.log('Error al postularse:', err);
-      setErrorMessage('Hubo un problema al postularte. Intentá nuevamente.');
+      setErrorMessage(err.error);
       setShowError(true);
     } finally {
       setLoading(false);

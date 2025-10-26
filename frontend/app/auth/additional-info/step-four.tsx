@@ -5,7 +5,6 @@ import { SelectableTag } from '@/components/button/SelectableTags';
 import { iconos } from '@/constants/iconos';
 import { useStepFour } from '@/hooks/auth/additional-info/useStepFour';
 import { stepFourAdditionalInfoStyles as styles } from '@/styles/app/auth/additional-info/stepFourStyles';
-import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
 import { selectableTagStyles2 } from '@/styles/components/button/selectableTagsStyles/selectableTagsStyles2';
 import { Colors } from '@/themes/colors';
 import { ClickWindow } from '@/components/window/ClickWindow';

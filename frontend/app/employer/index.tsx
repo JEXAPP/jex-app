@@ -97,7 +97,7 @@ export default function AdminPanelScreen() {
   const enabledLabelsByState: Record<string, string[]> = {
     Borrador: ["Vacantes", "Editar Evento"],
     Publicado: ["Vacantes", "Contratación Tardía"],
-    "En Curso": ["Asistencia"],
+    "En curso": ["Asistencia"],
     Finalizado: ["Calificaciones", "Reportes"],
   };
 

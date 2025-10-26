@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, InteractionManager, TextInput } from 'react-native';
+import {
+  Modal, View, Text, TouchableOpacity, KeyboardAvoidingView,
+  Platform, Keyboard, TextInput
+} from 'react-native';
 
 import { Button } from '@/components/button/Button';
 import { Input } from '@/components/input/Input';
@@ -40,17 +43,8 @@ function useDebounced<T>(value: T, delay = 250) {
   return debounced;
 }
 
-/** Redondeo a 10 decimales (compatible con DecimalField max_digits=15, decimal_places=10) */
-function round10(n: number) {
-  return parseFloat(n.toFixed(10));
-}
-
-/** Promedio simple de un array de números */
-function avg(nums: number[]) {
-  if (!nums.length) return NaN;
-  const s = nums.reduce((a, b) => a + b, 0);
-  return s / nums.length;
-}
+function round10(n: number) { return parseFloat(n.toFixed(10)); }
+function avg(nums: number[]) { if (!nums.length) return NaN; return nums.reduce((a, b) => a + b, 0) / nums.length; }
 
 export default function LocationAddressPicker({
   placeholder,
@@ -81,26 +75,10 @@ export default function LocationAddressPicker({
   const [cwTitle, setCwTitle] = useState('Ubicación sin coordenadas');
   const [cwMsg, setCwMsg] = useState('');
 
-  /** Refs para blurear / focusear inputs */
+  // Refs
   const locRef = useRef<TextInput>(null);
   const calleRef = useRef<TextInput>(null);
   const alturaRef = useRef<TextInput>(null);
-
-  /** --- FIX de “doble tap” en Suggestions --- */
-  const selectingRef = useRef(false);
-  const runSelectionSafely = (fn: () => void) => {
-    if (selectingRef.current) return;
-    selectingRef.current = true;
-    // cerrar teclado antes de tocar el estado
-    Keyboard.dismiss();
-    InteractionManager.runAfterInteractions(() => {
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          try { fn(); } finally { selectingRef.current = false; }
-        }, 0);
-      });
-    });
-  };
 
   useEffect(() => {
     if (!open) return;
@@ -114,7 +92,7 @@ export default function LocationAddressPicker({
     })();
   }, [open]);
 
-  // Si el usuario edita manualmente localidad, des-seleccionar si ya no coincide
+  // Si se edita manualmente la localidad, limpiar dependencias
   useEffect(() => {
     if (localidadId && localidadQuery.trim() !== localidadName.trim()) {
       setLocalidadId('');
@@ -126,7 +104,7 @@ export default function LocationAddressPicker({
     }
   }, [localidadQuery, localidadId, localidadName]);
 
-  // Si edita manualmente calle, des-seleccionar si ya no coincide
+  // Si se edita manualmente la calle, des-seleccionar si ya no coincide
   useEffect(() => {
     if (calleNombre && calleQuery.trim() !== calleNombre.trim()) {
       setCalleNombre('');
@@ -169,76 +147,62 @@ export default function LocationAddressPicker({
     return () => { cancel = true; };
   }, [provinciaId, localidadId, localidadName, debouncedCalle]);
 
-  // Selecciones desde Suggestions (tap único, sin modificar Suggestions)
+  // ---------- Handlers de selección (inmediatos) ----------
   const handleSelectLocalidad = (it: { descripcion: string; placeId: string }) => {
-    runSelectionSafely(() => {
-      // cerrar input y teclado + ocultar sugerencias
-      locRef.current?.blur();
-      setLocalidadesSug([]);
+    // 1) parse
+    const parts = Object.fromEntries(it.placeId.split('|').map(kv => {
+      const [k, ...r] = kv.split(':'); return [k, r.join(':')];
+    }));
+    const locId = parts['loc'] || '';
+    const locName = parts['locName'] || it.descripcion.split(',')[0]?.trim() || '';
 
-      const parts = Object.fromEntries(it.placeId.split('|').map(kv => {
-        const [k, ...r] = kv.split(':'); return [k, r.join(':')];
-      }));
-      const locId = parts['loc'] || '';
-      const locName = parts['locName'] || it.descripcion.split(',')[0]?.trim() || '';
+    // 2) set estado primero (sin delays)
+    setLocalidadId(locId);
+    setLocalidadName(locName);
+    setLocalidadQuery(locName);
 
-      setLocalidadId(locId);
-      setLocalidadName(locName);
-      setLocalidadQuery(locName);
+    // 3) reset dependientes y ocultar sugerencias
+    setCalleNombre('');
+    setCalleQuery('');
+    setAltura('');
+    setCallesSug([]);
+    setLocalidadesSug([]); // ocultar lista
 
-      // reset dependientes
-      setCalleNombre('');
-      setCalleQuery('');
-      setAltura('');
-      setCallesSug([]);
-
-      // foco al siguiente
-      setTimeout(() => calleRef.current?.focus(), 80);
-    });
+    // 4) cerrar teclado y pasar foco al siguiente (pequeño delay para evitar carrera)
+    setTimeout(() => {
+      Keyboard.dismiss();
+      calleRef.current?.focus();
+    }, 50);
   };
 
   const handleSelectCalle = (it: { descripcion: string; placeId: string }) => {
-    runSelectionSafely(() => {
-      // cerrar input y teclado + ocultar sugerencias
-      calleRef.current?.blur();
-      setCallesSug([]);
+    const parts = Object.fromEntries(it.placeId.split('|').map(kv => {
+      const [k, ...r] = kv.split(':'); return [k, r.join(':')];
+    }));
+    const cName = parts['calleName'] || it.descripcion.split(',')[0]?.trim() || '';
 
-      const parts = Object.fromEntries(it.placeId.split('|').map(kv => {
-        const [k, ...r] = kv.split(':'); return [k, r.join(':')];
-      }));
-      const cName = parts['calleName'] || it.descripcion.split(',')[0]?.trim() || '';
-      setCalleNombre(cName);
-      setCalleQuery(cName);
+    setCalleNombre(cName);
+    setCalleQuery(cName);
+    setCallesSug([]); // ocultar lista
 
-      // foco a Altura
-      setTimeout(() => alturaRef.current?.focus(), 80);
-    });
+    setTimeout(() => {
+      Keyboard.dismiss();
+      alturaRef.current?.focus();
+    }, 50);
   };
+  // -------------------------------------------------------
 
   const canConfirm = useMemo(() =>
     Boolean(provinciaName && localidadId && localidadName && calleNombre && Number(altura) > 0),
     [provinciaName, localidadId, localidadName, calleNombre, altura]
   );
 
-  // API direcciones (aplanado)
   async function fetchDirecciones({
-    direccion,
-    provincia,
-    localidad_censal,
-    max = 1,
-  }: {
-    direccion: string;
-    provincia: string;
-    localidad_censal: string;
-    max?: number;
-  }) {
+    direccion, provincia, localidad_censal, max = 1,
+  }: { direccion: string; provincia: string; localidad_censal: string; max?: number; }) {
     const base = 'https://apis.datos.gob.ar/georef/api/direcciones';
     const params = new URLSearchParams({
-      direccion,
-      provincia,
-      localidad_censal,
-      aplanar: 'true',
-      max: String(max),
+      direccion, provincia, localidad_censal, aplanar: 'true', max: String(max),
     });
     const url = `${base}?${params.toString()}`;
     const r = await fetch(url);
@@ -255,18 +219,11 @@ export default function LocationAddressPicker({
       const prov = provinciaName;
       const loc = localidadName;
 
-      /** 1) Buscar con altura */
-      let data = await fetchDirecciones({
-        direccion: direccionConAltura,
-        provincia: prov,
-        localidad_censal: loc,
-        max: 1,
-      });
-
+      // 1) Buscar con altura
+      let data = await fetchDirecciones({ direccion: direccionConAltura, provincia: prov, localidad_censal: loc, max: 1 });
       if (data?.total > 0 && Array.isArray(data.direcciones) && data.direcciones.length > 0) {
         const d = data.direcciones[0];
-        const lat = d?.ubicacion_lat;
-        const lon = d?.ubicacion_lon;
+        const lat = d?.ubicacion_lat, lon = d?.ubicacion_lon;
         if (typeof lat === 'number' && typeof lon === 'number') {
           const canonical = d?.nomenclatura ?? `${direccionConAltura}, ${loc}, ${prov}`;
           onChange(canonical, { lat: round10(lat), lng: round10(lon) });
@@ -275,46 +232,31 @@ export default function LocationAddressPicker({
         }
       }
 
-      /** 2) Fallback: sin altura → traer varias y promediar */
-      data = await fetchDirecciones({
-        direccion: calleNombre,
-        provincia: prov,
-        localidad_censal: loc,
-        max: 10,
-      });
-
+      // 2) Fallback: sin altura → promedio
+      data = await fetchDirecciones({ direccion: calleNombre, provincia: prov, localidad_censal: loc, max: 10 });
       if (data?.total > 0 && Array.isArray(data.direcciones) && data.direcciones.length > 0) {
-        const lats = data.direcciones
-          .map((d: any) => d?.ubicacion_lat)
-          .filter((n: any) => typeof n === 'number') as number[];
-        const lons = data.direcciones
-          .map((d: any) => d?.ubicacion_lon)
-          .filter((n: any) => typeof n === 'number') as number[];
-
+        const lats = data.direcciones.map((d: any) => d?.ubicacion_lat).filter((n: any) => typeof n === 'number') as number[];
+        const lons = data.direcciones.map((d: any) => d?.ubicacion_lon).filter((n: any) => typeof n === 'number') as number[];
         if (lats.length && lons.length) {
           const latAvg = round10(avg(lats));
           const lonAvg = round10(avg(lons));
           const canonical = (data.direcciones[0]?.nomenclatura as string) ?? `${calleNombre}, ${loc}, ${prov}`;
-
           onChange(canonical, { lat: latAvg, lng: lonAvg });
-
           setCwTitle('Altura no encontrada con coordenadas');
           setCwMsg(`No se hallaron coordenadas para "${direccionConAltura}". Se usó la ubicación promedio de "${calleNombre}" en "${loc}".`);
           setCwVisible(true);
-
           setOpen(false);
           return;
         }
       }
 
-      /** 3) Sin coords de ninguna forma */
+      // 3) Sin coords
       const canonical = `${calleNombre} ${altura}, ${loc}, ${prov}`;
       onChange(canonical, null);
       setCwTitle('No se encontraron coordenadas');
       setCwMsg(`No fue posible obtener coordenadas para "${direccionConAltura}" ni para la calle sin altura en "${loc}". Verificá calle, altura y localidad.`);
       setCwVisible(true);
       setOpen(false);
-
     } catch {
       const canonical = `${calleNombre} ${altura}, ${localidadName}, ${provinciaName}`;
       onChange(canonical, null);
@@ -343,19 +285,13 @@ export default function LocationAddressPicker({
   };
 
   const triggerText =
-    (buttonLabel && buttonLabel.trim().length > 0)
-      ? buttonLabel
-      : (value && value.trim().length > 0)
-        ? value
-        : placeholder;
+    (buttonLabel && buttonLabel.trim().length > 0) ? buttonLabel
+      : (value && value.trim().length > 0) ? value
+      : placeholder;
 
   return (
     <>
-      <Button
-        texto={triggerText}
-        onPress={() => setOpen(true)}
-        styles={buttonStyles3}
-      />
+      <Button texto={triggerText} onPress={() => setOpen(true)} styles={buttonStyles3} />
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={handleClose}>
         <KeyboardAvoidingView
@@ -378,14 +314,18 @@ export default function LocationAddressPicker({
               />
             </View>
 
+            {/* LOCALIDAD */}
             {!!provinciaId && (
               <View style={styles.block}>
-                <View style={styles.suggestWrapper}>
+                <View
+                  style={styles.suggestWrapper}
+                  onStartShouldSetResponderCapture={() => { Keyboard.dismiss(); return false; }}
+                  collapsable={false}
+                >
                   <Input
                     placeholder="Localidad"
                     value={localidadQuery}
                     onChangeText={setLocalidadQuery}
-                    onBlur={() => setLocalidadesSug([])}
                     inputRef={locRef}
                     styles={{ ...inputStyles1, inputContainer: { ...inputStyles1.inputContainer, width: 310 } }}
                   />
@@ -400,22 +340,27 @@ export default function LocationAddressPicker({
               </View>
             )}
 
+            {/* CALLE + ALTURA */}
             {!!localidadId && (
               <View style={styles.block}>
                 <View style={styles.rowCalleAltura}>
-                  <View style={styles.suggestWrapper} pointerEvents="box-none">
+                  <View
+                    style={styles.suggestWrapper}
+                    pointerEvents="box-none"
+                    onStartShouldSetResponderCapture={() => { Keyboard.dismiss(); return false; }}
+                    collapsable={false}
+                  >
                     <Input
                       placeholder="Calle"
                       value={calleQuery}
                       onChangeText={setCalleQuery}
-                      onBlur={() => setCallesSug([])}
                       inputRef={calleRef}
                       styles={{ ...inputStyles1, inputContainer: { ...inputStyles1.inputContainer, width: 200 } }}
                     />
                     {!!callesSug.length && (
                       <Suggestions
-                        sugerencias={callesSug}            // <- lista correcta
-                        onSeleccionar={handleSelectCalle}  // <- handler correcto
+                        sugerencias={callesSug}
+                        onSeleccionar={handleSelectCalle}
                         styles={suggestionsStyles2}
                       />
                     )}

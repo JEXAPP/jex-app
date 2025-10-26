@@ -56,7 +56,7 @@ export const useStepFour = () => {
 
     setLoading(true);
     try {
-      await requestBackend('/api/auth/employee/additional-info/', payload, 'PUT');
+      await requestBackend('/api/auth/employee/interests/', payload, 'PUT');
       setTimeout(() => {
         router.replace('/employee');
       }, 1100);

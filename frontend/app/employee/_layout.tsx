@@ -26,7 +26,6 @@ export default function EmployeeLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
-        <Stack.Screen name="profile/aditional-info" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="jobs/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/index" options={{ ...transitionFade, headerShown: false }} />

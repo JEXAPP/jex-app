@@ -3,6 +3,7 @@ import useBackendConection from "@/services/internal/useBackendConection";
 
 export type OfferStatus = "Pendiente" | "Aceptada" | "Rechazada" | "Vencida";
 export type FilterSimple = "Pendiente" | "Aceptadas" | "Otro";
+export type PaymentState = "NOT_PAYED" | "APPROVED" | "PENDING" | "FAILURE";
 
 export type EventState = {
   id: number;
@@ -30,6 +31,8 @@ export type Offer = {
   eventId: number;
   imageUrl: string;
   imageId: string;
+  // 🔹 NUEVO
+  payment_state: PaymentState;
 };
 
 const backendStateToStatus: Record<string, OfferStatus> = {
@@ -128,6 +131,8 @@ export const useStateOffers = () => {
           eventId: currentEvent.id,
           imageUrl: item?.profile_image_url,
           imageId: item?.profile_image_id,
+          // 🔹 toma el valor tal cual viene; default NOT_PAYED
+          payment_state: (item?.payment_state as PaymentState) ?? "NOT_PAYED",
         }));
 
         normalized.sort(
@@ -183,7 +188,7 @@ export const useStateOffers = () => {
         );
       }
 
-      // Soporte para múltiples formados de respuesta
+      // Soporte para múltiples formatos de respuesta
       const url =
         data?.payment_url ||
         data?.init_point ||

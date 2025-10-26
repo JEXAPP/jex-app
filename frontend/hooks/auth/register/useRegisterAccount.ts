@@ -23,7 +23,7 @@ export const useRegisterAccount = () => {
 
   const handleContinue = async () => {
     const emailExists = await validateEmailExists(correo);
-    if (emailExists) {
+    if (!emailExists) {
       setErrorMessage('Este correo ya está registrado.');
       setShowError(true);
       return;

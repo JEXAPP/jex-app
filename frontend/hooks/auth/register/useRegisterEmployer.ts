@@ -42,7 +42,15 @@ export const useRegisterEmployer = () => {
           datosAdicionales: payload,
         }, 'POST');
       } else {
-        await requestBackend('/api/auth/register/employer/', payload, 'POST');
+        await requestBackend('/api/auth/register/employer/', payload, 'POST')
+        // login automático
+        const loginRes = await requestBackend('/api/auth/login/jwt/', { email, password }, 'POST');
+        // guardamos tokens *solo* con abstracción (web/nativo)
+        const { access, refresh } = loginRes;
+        // reutilizamos tokenStorage
+        const { setToken } = await import('@/services/internal/useTokenStorage')
+        if (access) await setToken('access', access);
+        if (refresh) await setToken('refresh', refresh);;
       }
       setLoading(false);
       setShowSuccess(true);
@@ -54,7 +62,7 @@ export const useRegisterEmployer = () => {
     }
   };
 
-  const closeSuccess = () => { setShowSuccess(false); router.push('/employer'); };
+  const closeSuccess = () => { setShowSuccess(false); router.push('/auth/additional-info/step-employer'); };
   const closeError = () => { setShowError(false); setErrorMessage(''); };
 
   useEffect(() => { setContinuarHabilitado(nombreEmpresa.length > 0); }, [nombreEmpresa]);

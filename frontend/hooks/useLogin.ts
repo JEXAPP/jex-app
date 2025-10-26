@@ -86,7 +86,7 @@ export const useLogin = () => {
         }
       }, 800);
     } catch (e: any) {
-      console.log('Error Google Sign-In:', e?.message || e);
+      console.log('Error Google Sign-In:', e?.error || e);
       setErrorMessage('Error al iniciar sesión con Google');
       setShowError(true);
     } finally {
@@ -128,11 +128,7 @@ export const useLogin = () => {
       const status = e?.response?.status;
       const path = e?.config?.url;
       console.log('Error en login:', status, path, e?.response?.data || e?.message);
-      if (path?.includes('/api/auth/login/jwt/') && (status === 400 || status === 401)) {
-        setErrorMessage('Correo o contraseña incorrectos');
-      } else {
-        setErrorMessage('Error al iniciar sesión. Intentalo de nuevo.');
-      }
+      setErrorMessage(e?.error);
       setShowError(true);
     } finally {
       setLoading(false);

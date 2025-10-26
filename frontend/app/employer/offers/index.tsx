@@ -6,7 +6,15 @@ import { useStateOffers } from "@/hooks/employer/offers/useStateOffers";
 import { stateOffersStyles as styles } from "@/styles/app/employer/offers/stateOffersStyles";
 import { Colors } from "@/themes/colors";
 import { Ionicons } from "@expo/vector-icons";
-import { FlatList, Image, Text, TouchableOpacity, View, Alert } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Text,
+  TouchableOpacity,
+  View,
+  Alert,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SelectableTag } from "@/components/button/SelectableTags";
 import { selectableTagStyles2 } from "@/styles/components/button/selectableTagsStyles/selectableTagsStyles2";
@@ -38,6 +46,117 @@ export default function StateOffersScreen() {
       console.error("Error al iniciar pago MP:", err);
       Alert.alert("Error", err?.message ?? "No se pudo iniciar el pago.");
     }
+  };
+
+  const PaymentControl = ({
+    offerId,
+    paymentState,
+  }: {
+    offerId: number;
+    paymentState: "NOT_PAYED" | "APPROVED" | "PENDING" | "FAILURE";
+  }) => {
+    if (paymentState === "PENDING") {
+      return (
+        <View
+          style={{
+            marginTop: 12,
+            alignSelf: "flex-end",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            paddingVertical: 10,
+            paddingHorizontal: 16,
+            borderRadius: 12,
+            backgroundColor: "#EDEDED",
+          }}
+        >
+          <ActivityIndicator size="small" />
+          <Text style={{ fontWeight: "600", color: "#333" }}>Pendiente</Text>
+        </View>
+      );
+    }
+
+    if (paymentState === "APPROVED") {
+      return (
+        <View
+          style={{
+            marginTop: 12,
+            alignSelf: "flex-end",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            paddingVertical: 10,
+            paddingHorizontal: 16,
+            borderRadius: 12,
+            backgroundColor: "#D8F3DC", // verdoso claro
+            opacity: 0.9,
+          }}
+        >
+          <Ionicons name="checkmark-circle" size={18} color="#1B5E20" />
+          <Text style={{ fontWeight: "700", color: "#1B5E20" }}>Pagado</Text>
+        </View>
+      );
+    }
+
+    // FAILURE: texto rojo + botón como NOT_PAYED
+    if (paymentState === "FAILURE") {
+      return (
+        <View style={{ marginTop: 12, alignSelf: "stretch" }}>
+          <Text
+            style={{
+              color: "#D32F2F",
+              fontWeight: "600", // interMedium style
+              marginBottom: 8,
+            }}
+          >
+            Hubo un error en el pago, intenta devuelta
+          </Text>
+          <TouchableOpacity
+            onPress={() => handlePay(offerId)}
+            style={{
+              alignSelf: "flex-end",
+              backgroundColor: Colors.violet4,
+              paddingVertical: 10,
+              paddingHorizontal: 16,
+              borderRadius: 12,
+              opacity: creatingPaymentId === offerId ? 0.7 : 1,
+            }}
+            disabled={creatingPaymentId === offerId}
+          >
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Ionicons name="card" size={16} color="#fff" />
+              <Text style={{ color: "#fff", fontWeight: "600" }}>
+                {creatingPaymentId === offerId ? "Abriendo..." : "Pagar"}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // NOT_PAYED (default): botón Pagar
+    return (
+      <TouchableOpacity
+        onPress={() => handlePay(offerId)}
+        style={{
+          marginTop: 12,
+          alignSelf: "flex-end",
+          backgroundColor: Colors.violet4,
+          paddingVertical: 10,
+          paddingHorizontal: 16,
+          borderRadius: 12,
+          opacity: creatingPaymentId === offerId ? 0.7 : 1,
+        }}
+        disabled={creatingPaymentId === offerId}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Ionicons name="card" size={16} color="#fff" />
+          <Text style={{ color: "#fff", fontWeight: "600" }}>
+            {creatingPaymentId === offerId ? "Abriendo..." : "Pagar"}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
   };
 
   if (loadingEvents) return <StateOffersSkeleton />;
@@ -74,7 +193,7 @@ export default function StateOffersScreen() {
             )}
           </View>
 
-          <View style={styles.centerSlot}>
+        <View style={styles.centerSlot}>
             <Text style={styles.eventName}>{currentEvent!.name}</Text>
           </View>
 
@@ -175,27 +294,9 @@ export default function StateOffersScreen() {
                     </Text>
                   </View>
 
+                  {/* 🔹 Control de pago según payment_state (sólo si la oferta está Aceptada) */}
                   {item.status === "Aceptada" && (
-                    <TouchableOpacity
-                      onPress={() => handlePay(item.id)}
-                      style={{
-                        marginTop: 12,
-                        alignSelf: "flex-end",
-                        backgroundColor: Colors.violet4,
-                        paddingVertical: 10,
-                        paddingHorizontal: 16,
-                        borderRadius: 12,
-                        opacity: creatingPaymentId === item.id ? 0.7 : 1,
-                      }}
-                      disabled={creatingPaymentId === item.id}
-                    >
-                      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                        <Ionicons name="card" size={16} color="#fff" />
-                        <Text style={{ color: "#fff", fontWeight: "600" }}>
-                          {creatingPaymentId === item.id ? "Abriendo..." : "Pagar"}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
+                    <PaymentControl offerId={item.id} paymentState={item.payment_state} />
                   )}
                 </View>
               );
