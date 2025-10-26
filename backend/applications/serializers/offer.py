@@ -292,6 +292,27 @@ class OfferDecisionSerializer(serializers.Serializer):
             
             offer.save(update_fields=['state', 'rejection_reason'])
 
+            # ---- NUEVO: Rechazar ofertas conflictivas del mismo usuario ----
+            shift = offer.selected_shift
+            conflicting_offers = Offer.objects.filter(
+                application__employee=offer.application.employee,
+                state__name=OfferStates.PENDING.value,
+                selected_shift__start_time__lt=shift.end_time,
+                selected_shift__end_time__gt=shift.start_time
+            ).exclude(id=offer.id)
+
+            rejected_state = OfferState.objects.get(name=OfferStates.REJECTED.value)
+            for o in conflicting_offers:
+                o.state = rejected_state
+                o.rejection_reason = "Conflicto de horario con otra oferta aceptada"
+                if o.application:
+                    pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
+                    o.application.state = pending_state
+                    o.application.save(update_fields=['state'])
+                o.save(update_fields=['state', 'rejection_reason'])
+            
+            # -----------------------------------------------------------------
+
             vacancy = offer.selected_shift.vacancy
 
             total_quantity = vacancy.shifts.aggregate(total=Sum('quantity'))['total'] or 0
