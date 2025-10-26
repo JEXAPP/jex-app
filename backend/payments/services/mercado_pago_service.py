@@ -4,9 +4,6 @@ import jwt
 import requests
 from typing import Optional
 from user_auth.models.user import CustomUser
-import logging
-
-logger = logging.getLogger(__name__)
 
 class MercadoPagoService:
     @staticmethod
@@ -75,36 +72,20 @@ class MercadoPagoService:
     def create_payment_link(
         employee_account,
         amount: float,
-        commission: float,
         concept: Optional[str] = None,
         external_reference: Optional[str] = None
     ) -> str:
         """
-        Crea un link de pago en Mercado Pago para marketplace, con logging completo para debugging.
+        Crea un link de pago en Mercado Pago para marketplace, 
+        incluyendo los fees de Mercado Pago (6.53%) y la comisión propia (3.47%),
+        los cuales serán cubiertos por el empleador.
         """
-        logger.info("=== Creando preferencia Mercado Pago ===")
-        logger.info(f"Empleado: {employee_account.user.email}")
-        logger.info(f"Amount: {amount}, Commission: {commission}")
-        logger.info(f"Concepto: {concept}")
-        logger.info(f"External reference: {external_reference}")
 
         # Validar que tenga access_token
         if not employee_account.access_token:
-            logger.error(f"El empleado {employee_account.user.email} no tiene access_token")
             raise Exception("El empleado debe autorizar su cuenta de Mercado Pago primero")
 
-        # Validar mp_user_id
-        try:
-            collector_id = int(employee_account.mp_user_id)
-            logger.info(f"Collector ID empleado (convertido a int): {collector_id}")
-        except (ValueError, TypeError) as e:
-            logger.error(f"mp_user_id inválido: {employee_account.mp_user_id}")
-            raise Exception(f"mp_user_id inválido: {employee_account.mp_user_id}") from e
-
-        # Usar el token del EMPLEADO, no el de la aplicación
         token = employee_account.access_token
-        logger.info(f"Usando access_token del empleado (longitud): {len(token)}")
-
         url = f"{settings.MP_API_URL}/checkout/preferences"
 
         headers = {
@@ -112,16 +93,23 @@ class MercadoPagoService:
             "Content-Type": "application/json",
         }
 
-        # El monto incluye la comisión
-        total_amount = float(amount) + float(commission)
-        
+        # Porcentajes de fees
+        mp_fee_percent = 0.0653
+        app_fee_percent = 0.0347
+
+        # Monto total bruto que debe pagar el empleador
+        total_amount = amount / (1 - (mp_fee_percent + app_fee_percent))
+
+        # Comisión de tu app (marketplace_fee)
+        commission = total_amount * app_fee_percent
+
         preference_data = {
             "items": [
                 {
                     "title": concept or "Pago de turno trabajado",
                     "quantity": 1,
                     "currency_id": "ARS",
-                    "unit_price": total_amount,
+                    "unit_price": round(total_amount, 2),
                 }
             ],
             "payment_methods": {"installments": 1},
@@ -131,9 +119,7 @@ class MercadoPagoService:
                 "pending": settings.MP_PENDING_URL,
             },
             "auto_return": "approved",
-            # y automáticamente se descuenta la comisión a favor de tu app
-            "marketplace_fee": float(commission),
-            "fee_payer": "payer",  
+            "marketplace_fee": round(commission, 2),
             "metadata": {
                 "external_reference": external_reference,
                 "employee_email": employee_account.user.email,
@@ -143,23 +129,14 @@ class MercadoPagoService:
         if external_reference:
             preference_data["external_reference"] = external_reference
 
-        logger.info(f"Preference data que se enviará a MP: {preference_data}")
-
         try:
             resp = requests.post(url, headers=headers, json=preference_data)
-            logger.info(f"Status code de respuesta MP: {resp.status_code}")
-            logger.info(f"Respuesta MP: {resp.json()}")
+            resp.raise_for_status()
         except Exception as e:
-            logger.error(f"Error en request a MP: {str(e)}")
             raise Exception(f"Error en request a MP: {str(e)}") from e
 
+        data = resp.json()
         if resp.status_code != 201:
-            error_data = resp.json()
-            logger.error(f"Error creando preferencia: {error_data}")
-            raise Exception(f"Error creando preferencia MP: {error_data}")
+            raise Exception(f"Error creando preferencia MP: {data}")
 
-        init_point = resp.json().get("init_point")
-        logger.info(f"Link de pago generado (init_point): {init_point}")
-        logger.info("=== Fin creación preferencia Mercado Pago ===")
-
-        return init_point
+        return data.get("init_point")
