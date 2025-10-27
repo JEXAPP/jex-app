@@ -1,5 +1,5 @@
 from django.urls import path
-from eventos.views.event import CreateEventView, DeleteEventView, ListEventsByEmployerView, ListActiveEventsView, ListEventDetailView, ListEventVacanciesView, ListEventsWithVacanciesView, UpdateEventStateView, UpdateEventView, ListEventsEmployeeView
+from eventos.views.event import CreateEventView, DeleteEventView, ListEventsByEmployerView, ListActiveEventsView, ListEventDetailView, ListEventVacanciesView, ListEventsWithVacanciesView, ReportEventView, UpdateEventStateView, UpdateEventView, ListEventsEmployeeView
 from eventos.views.category_events import ListCategoryView
 
 
@@ -17,5 +17,5 @@ urlpatterns = [
     path('by-employer/', ListEventsByEmployerView.as_view(), name='list-active-events-by-employer'),
     path('with-vacancies-availables/', ListEventsWithVacanciesView.as_view(), name='list-events-with-vacancies'),
     path('<int:eventId>/employee/', ListEventsEmployeeView.as_view(), name='list-employee-event'),
-    path('<int:event_id>/report/', ReportEventView .as_view(), name='report-event'),
+    path('<int:event_id>/report/', ReportEventView.as_view(), name='report-event'),
 ]
