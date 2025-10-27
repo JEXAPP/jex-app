@@ -439,11 +439,15 @@ class OfferDetailSerializer(serializers.ModelSerializer):
     event_image_url = serializers.SerializerMethodField()
     event_image_public_id = serializers.SerializerMethodField()
     shift = serializers.SerializerMethodField()
+    address = serializers.CharField(source="selected_shift.vacancy.event.location", read_only=True)
+    latitude = serializers.FloatField(source="selected_shift.vacancy.event.latitude", read_only=True)
+    longitude = serializers.FloatField(source="selected_shift.vacancy.event.longitude", read_only=True)
+    is_mp_associated = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
         fields = ["id", "expiration_date", "expiration_time", "additional_comments", "application", "shift", "event_image_url",
-            "event_image_public_id"]
+            "event_image_public_id", "address", "latitude", "longitude", "is_mp_associated" ]
 
 
 
@@ -470,6 +474,12 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             if event_image:
                 return event_image.public_id
         return None
+    
+    def get_is_mp_associated(self, obj):
+            try:
+                return obj.employer.user.mercado_pago_account is not None
+            except AttributeError:
+                return False
 
 class OfferStateSerializer(serializers.ModelSerializer):
     class Meta:
