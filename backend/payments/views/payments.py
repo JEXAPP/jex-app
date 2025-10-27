@@ -195,20 +195,19 @@ class PaymentCallbackView(views.APIView):
         # Determinar tu propio estado
         state = payment.state.name.lower()
         if state == PaymentStates.APPROVED.value.lower():
-            status_param = "success"
+            payment_status = "success"
         elif state == PaymentStates.PENDING.value.lower():
-            status_param = "pending"
+            payment_status = "pending"
         else:
-            status_param = "failure"
+            payment_status = "failure"
 
-        # 🔹 Construir el deeplink limpio, sin ningún otro parámetro
-        redirect_url = f"jex://employer/offers?status={status_param}"
+        # Construir el deeplink con nombre único de parámetro
+        redirect_url = f"jex://employer/offers?payment_status={payment_status}"
 
         # Redireccionar
         response = HttpResponse(status=302)
         response["Location"] = redirect_url
         return response
-
 
 class MercadoPagoWebhookView(views.APIView):
     permission_classes = [permissions.AllowAny]
