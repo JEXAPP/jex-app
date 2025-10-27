@@ -178,11 +178,11 @@ class PaymentCallbackView(views.APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, *args, **kwargs):
-        # Mercado Pago redirige con preference_id y external_reference como query params
+        # Obtener parámetros relevantes
         preference_id = request.query_params.get("preference_id")
         external_reference = request.query_params.get("external_reference")
 
-        # Buscar el Payment por external_reference
+        # Buscar el Payment
         payment = None
         if external_reference:
             payment = Payment.objects.filter(id=external_reference).first()
@@ -192,8 +192,8 @@ class PaymentCallbackView(views.APIView):
         if not payment:
             return Response({"error": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Determinar estado para deeplink
-        state = payment.state.name.lower()  # ejemplo: 'approved', 'pending', 'failure'
+        # Determinar tu propio estado
+        state = payment.state.name.lower()
         if state == PaymentStates.APPROVED.value.lower():
             status_param = "success"
         elif state == PaymentStates.PENDING.value.lower():
@@ -201,12 +201,12 @@ class PaymentCallbackView(views.APIView):
         else:
             status_param = "failure"
 
-        # Construir deeplink
-        redirect_url = f"jex://employee/offers?status={status_param}&payment_id={payment.id}"
+        # 🔹 Construir el deeplink limpio, sin ningún otro parámetro
+        redirect_url = f"jex://employer/offers?status={status_param}"
 
         # Redireccionar
         response = HttpResponse(status=302)
-        response['Location'] = redirect_url
+        response["Location"] = redirect_url
         return response
 
 
