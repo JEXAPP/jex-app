@@ -6,7 +6,7 @@ export const imageWindowStyles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
-    padding: 16,
+    padding: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -26,7 +26,7 @@ export const imageWindowStyles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 23,
+    fontSize: 25,
     fontFamily: "titulos",
     color: Colors.violet4 ?? '#3A0A5E',
     textAlign: 'center',
@@ -37,14 +37,14 @@ export const imageWindowStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 16,
-    marginBottom: 20,
+    marginBottom: 10,
   },
   image: {
     width: 200,
     height: 200,
   },
   button: {
-    width: '75%',
+    width: '50%',
     alignSelf: 'center',
     paddingVertical: 12,
     borderRadius: 18,
@@ -53,17 +53,17 @@ export const imageWindowStyles = StyleSheet.create({
   buttonText: {
     textAlign: 'center',
     color: '#fff',
-    fontWeight: '700',
+    fontFamily: 'interBold',
     fontSize: 16,
   },
   subtitle: {
-  fontSize: 18,
+  fontSize: 16,
   color: Colors.gray3,
-  fontFamily: "interRegular",
+  fontFamily: "interItalic",
   textAlign: 'center',
   marginHorizontal: 8,
   lineHeight: 20,
-  marginBottom: 20
+  marginBottom: 30
 },
 text:{
   fontSize: 15,

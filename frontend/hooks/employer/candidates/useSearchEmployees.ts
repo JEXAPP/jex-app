@@ -2,7 +2,6 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-// Nuevo servicio Open Source (GeoRef)
 import {
   listarProvincias,
   buscarLocalidades,
@@ -10,7 +9,6 @@ import {
   type Sugerencia,
 } from '@/services/external/sugerencias/useGeoRefAr';
 
-// ----------------- Utiles de fecha (igual que antes) -----------------
 type Sug = { descripcion: string; placeId: string };
 
 const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
@@ -24,15 +22,10 @@ const clampDate = (d: Date) => {
   return only < MIN_DATE ? MIN_DATE : only > MAX_DATE ? MAX_DATE : only;
 };
 
-// ----------------- Tipos internos -----------------
-export type BubbleKey = 'location' | 'availability' | 'history';
+type BubbleKey = 'location' | 'availability' | 'history';
+type ProvinciaSel = { id: string; nombre: string; placeId: string };
 
-// Para manejar provincia elegida con id (requerido por GeoRef)
-type ProvinciaSel = { id: string; nombre: string };
-
-// ----------------- Hook -----------------
 export function useSearchEmployees() {
-  // UI
   const [activeBubble, setActiveBubble] = useState<BubbleKey>('location');
   const toggleBubble = useCallback((b: BubbleKey) => setActiveBubble(b), []);
   const [showError, setShowError] = useState(false);
@@ -40,30 +33,23 @@ export function useSearchEmployees() {
   const closeError = useCallback(() => setShowError(false), []);
   const err = useCallback((msg: string) => { setErrorMessage(msg); setShowError(true); }, []);
 
-  // ----------------- Ubicación -----------------
   const [provinciaInput, setProvinciaInput] = useState('');
   const [localidadInput, setLocalidadInput] = useState('');
 
-  // Opciones de provincia (ahora vienen del GeoRef de forma asíncrona)
   const [provinciaOptions, setProvinciaOptions] = useState<Sug[]>([]);
   const [loadingProvincias, setLoadingProvincias] = useState(false);
-
-  // Provincia seleccionada (guardamos id+nombre porque GeoRef pide id para buscar localidades)
   const [selectedProvincia, setSelectedProvincia] = useState<ProvinciaSel | null>(null);
 
-  // Localidad seleccionada y sugerencias
   const [selectedLocalidad, setSelectedLocalidad] = useState<Sugerencia | null>(null);
   const [localidadSug, setLocalidadSug] = useState<Sugerencia[]>([]);
   const canPickLocalidad = !!selectedProvincia;
 
-  // Cargar provincias al montar
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
         setLoadingProvincias(true);
-        const provs = await listarProvincias(); // [{id, nombre}]
-        // Adaptamos al mismo shape que tus pickers (descripcion/placeId)
+        const provs = await listarProvincias();
         const opts: Sug[] = provs
           .sort((a, b) => a.nombre.localeCompare(b.nombre))
           .map(p => ({
@@ -81,26 +67,23 @@ export function useSearchEmployees() {
   }, []);
 
   const parseProvinciaIdFromPlaceId = (placeId: string) => {
-    // Formato: "prov:<id>|provName:<nombre>"
-    const parts = placeId.split('|');
-    const idPart = parts.find(p => p.startsWith('prov:'));
-    const namePart = parts.find(p => p.startsWith('provName:'));
-    const id = idPart ? idPart.replace('prov:', '') : '';
-    const nombre = namePart ? namePart.replace('provName:', '') : '';
-    return { id, nombre };
+    const parts = Object.fromEntries(placeId.split('|').map(kv => kv.split(':')));
+    return {
+      id: parts['prov'] || '',
+      nombre: parts['provName'] || '',
+      placeId,
+    };
   };
 
   const onProvinciaPick = useCallback((item: Sug) => {
-    const { id, nombre } = parseProvinciaIdFromPlaceId(item.placeId);
-    setSelectedProvincia({ id, nombre: nombre || item.descripcion });
+    const parsed = parseProvinciaIdFromPlaceId(item.placeId);
+    setSelectedProvincia(parsed);
     setProvinciaInput(item.descripcion);
-    // reset localidad
     setSelectedLocalidad(null);
     setLocalidadInput('');
     setLocalidadSug([]);
   }, []);
 
-  // Debounce para cambios de localidad
   const debouncedFetchLocalidadesRef = useRef<ReturnType<typeof makeDebounce> | null>(null);
   if (!debouncedFetchLocalidadesRef.current) {
     debouncedFetchLocalidadesRef.current = makeDebounce(async (provId: string, q: string) => {
@@ -115,7 +98,7 @@ export function useSearchEmployees() {
   }
 
   const onLocalidadChange = useCallback(
-    async (text: string) => {
+    (text: string) => {
       setLocalidadInput(text);
       setSelectedLocalidad(null);
       setLocalidadSug([]);
@@ -139,7 +122,6 @@ export function useSearchEmployees() {
     setLocalidadSug([]);
   }, []);
 
-  // ----------------- Disponibilidad -----------------
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [isRange, setIsRange] = useState(false);
@@ -170,13 +152,11 @@ export function useSearchEmployees() {
     if (hi * 60 + mi > hf * 60 + mf) setEndTime(startTime);
   }, [startTime, endTime]);
 
-  // ----------------- Historial -----------------
   const [ratingMin, setRatingMin] = useState<number>(0);
   const [jobsMin, setJobsMin] = useState<number | null>(null);
   const decRating = useCallback(() => setRatingMin(p => Math.max(0, Math.round((p - 0.5) * 2) / 2)), []);
   const incRating = useCallback(() => setRatingMin(p => Math.min(5, Math.round((p + 0.5) * 2) / 2)), []);
 
-  // ----------------- Acciones -----------------
   const validarParaBuscar = useCallback(() => {
     if (localidadInput && !selectedProvincia) { err('Primero seleccioná una provincia.'); return false; }
     if (localidadInput && !selectedLocalidad) { err('Elegí una localidad de la lista de sugerencias.'); return false; }
@@ -214,25 +194,14 @@ export function useSearchEmployees() {
   const labels = useMemo(() => ({ minDate: ddmmyyyy(MIN_DATE), maxDate: ddmmyyyy(MAX_DATE) }), []);
 
   return {
-    // UI
     activeBubble, toggleBubble, showError, errorMessage, closeError,
-
-    // Ubicación
-    provinciaInput,
-    provinciaOptions,           // ahora viene del GeoRef
-    loadingProvincias,
+    provinciaInput, provinciaOptions, loadingProvincias,
     localidadInput, localidadSug,
     selectedProvincia, selectedLocalidad,
     onProvinciaPick, onLocalidadChange, onLocalidadPick, onLocalidadClear, canPickLocalidad,
-
-    // Disponibilidad
     startDate, endDate, isRange, setSingleDate, applyDateSelection,
     startTime, endTime, setStartTime, setEndTime, showTimePickers, normalizeSingleDayTimes, labels,
-
-    // Historial
     ratingMin, setRatingMin, jobsMin, setJobsMin, decRating, incRating,
-
-    // Acciones
     validarParaBuscar, limpiarTodo, onBuscar,
   };
 }

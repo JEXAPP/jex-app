@@ -6,23 +6,34 @@ export const applyVacancyStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.gray1,
-    marginTop: 50
   },
-  scroll:{
-    paddingHorizontal: 26, 
+  scroll:{ 
     paddingBottom: 100
+  },
+  role: {
+    paddingHorizontal: 26,
+  },
+  backBtnHero: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    marginBottom: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   header: {
     backgroundColor: Colors.violet4,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 7,
-    gap: 12,
+    paddingTop: 8,
+    paddingBottom: 22,
+    paddingHorizontal: 26,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    marginBottom: 5
   },
   headerText: {
     flex: 1,
@@ -65,19 +76,28 @@ export const applyVacancyStyles = StyleSheet.create({
     color: Colors.violet4,
     textAlign: 'left',
     marginBottom: 5,
+    marginTop: 10
   },
   containerText: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: 'interRegular',
     color: Colors.gray3,
-    textAlign: 'justify',
-    marginBottom: 5
   },
   containerText2: {
     fontSize: 17,
     fontFamily: 'interRegular',
     color: Colors.gray3,
     textAlign: 'justify',
+    marginBottom: 10
+  },
+  containerText3: {
+    fontSize: 17,
+    fontFamily: 'interItalic',
+    color: Colors.gray3,
+    paddingVertical: 5,
+    justifyContent: 'center',
+    textAlign: 'center',
+    alignSelf: 'center',
     marginBottom: 10
   },
   organizerArea: {

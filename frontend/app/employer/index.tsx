@@ -23,7 +23,8 @@ export default function AdminPanelScreen() {
     goToVacancies,
     goToAttendance,
     goToNotifications,
-    goToQualifications
+    goToQualifications,
+    goToReports
   } = useAdminPanel();
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -32,7 +33,7 @@ export default function AdminPanelScreen() {
 
   if (!currentEvent || events.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Eventos</Text>
           <IconButton
@@ -40,10 +41,19 @@ export default function AdminPanelScreen() {
             sizeContent={22}
             styles={iconButtonStyles1}
             onPress={goToCreateEvent}
-            content="+"
+            content="add"
             backgroundColor={Colors.gray2}
             contentColor={Colors.white}
           />
+          <View style={{marginLeft: 100}}>
+            <IconButton
+              sizeContent={40}
+              styles={iconButtonStyles1}
+              onPress={goToNotifications}
+              content="notifications-circle-sharp"
+              contentColor={Colors.violet4}
+            />
+          </View>
         </View>
 
         <View style={styles.noEventsCard}>
@@ -90,7 +100,7 @@ export default function AdminPanelScreen() {
     {
       label: "Reportes",
       icon: iconos.reportes(22, Colors.violet4),
-      action: null,
+      action: () => goToReports(currentEvent.id),
     },
   ];
 

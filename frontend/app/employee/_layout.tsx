@@ -1,6 +1,6 @@
 import { Stack, router, usePathname } from 'expo-router';
 import React from "react";
-import { View, Pressable } from "react-native";
+import { View, Pressable, StatusBar } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import FooterNavEmployee, { FOOTER_HEIGHT } from "@/constants/navigation/FooterNavEmployee";
 import { Colors } from "@/themes/colors";
@@ -12,9 +12,20 @@ export default function EmployeeLayout() {
   const hideFooter = pathname.startsWith('/employee/chats/thread');
   const insets = useSafeAreaInsets();
 
+  const isDetail =
+      pathname?.startsWith('/employee/vacancy/apply-vacancy')
+  
+  const bg = isDetail ? Colors.violet4 : Colors.gray1
+
   return (
     <View style={{ flex: 1 }}>
-      <Stack
+
+      <StatusBar
+        translucent
+        barStyle={isDetail ? 'light-content' : 'dark-content'}
+      />
+      {isDetail ? (<View style={{ height: insets.top, backgroundColor: bg}} />) : <></>}
+     <Stack
         screenOptions={{
           headerTransparent: true,
           headerTitle: "",
@@ -26,6 +37,7 @@ export default function EmployeeLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="vacancy/apply-vacancy" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="jobs/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/index" options={{ ...transitionFade, headerShown: false }} />

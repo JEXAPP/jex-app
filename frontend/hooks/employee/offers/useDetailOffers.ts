@@ -4,6 +4,13 @@ import useBackendConection from "@/services/internal/useBackendConection";
 import { Animated, Easing } from "react-native";
 import { Offer } from "@/constants/interfaces";
 
+type Coords = { latitude: number; longitude: number };
+
+const toNum = (v: any) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
 export const useDetailOffers = () => {
   const { id } = useLocalSearchParams();
   const { requestBackend } = useBackendConection();
@@ -16,11 +23,12 @@ export const useDetailOffers = () => {
   const [showRejected, setShowRejected] = useState(false);
   const [showMatch, setShowMatch] = useState(false);
 
-  // Animaciones para pantalla de "match"
+  const [locationAddress, setLocationAddress] = useState<string | null>(null);
+  const [locationCoords, setLocationCoords] = useState<Coords | null>(null);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
-  // Dispara animación de match y luego redirige
   useEffect(() => {
     if (showMatch) {
       Animated.parallel([
@@ -44,14 +52,12 @@ export const useDetailOffers = () => {
     }
   }, [showMatch]);
 
-  // Formatea números con locale es-AR
   const formatNumber = (value: string | number) => {
     const num = Number(value);
     if (isNaN(num)) return String(value);
     return new Intl.NumberFormat("es-AR").format(num);
   };
 
-  // Devuelve dd/mm/yyyy
   const formatDate = (date: Date) => {
     const d = date.getDate().toString().padStart(2, "0");
     const m = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -59,7 +65,6 @@ export const useDetailOffers = () => {
     return `${d}/${m}/${y}`;
   };
 
-  // Consulta detalle y normaliza a Offer (sin cambiar nombres)
   useEffect(() => {
     let mounted = true;
 
@@ -71,11 +76,11 @@ export const useDetailOffers = () => {
 
         const shift = data?.application?.shift ?? data?.shift;
         const vacancy = shift?.vacancy;
+        const ev = vacancy?.event ?? {};
 
-        // Calcula vencimiento restando 3 días a la fecha de inicio
         let expirationDate = "";
         if (shift?.start_date) {
-          const [d, m, y] = shift.start_date.split("/").map(Number);
+          const [d, m, y] = String(shift.start_date).split("/").map(Number);
           const start = new Date(y, m - 1, d);
           start.setDate(start.getDate() - 3);
           expirationDate = formatDate(start);
@@ -88,16 +93,35 @@ export const useDetailOffers = () => {
           date: shift?.start_date ?? "",
           startTime: shift?.start_time ?? "",
           endTime: shift?.end_time ?? "",
-          company: vacancy?.event?.name ?? "Evento sin nombre",
+          company: ev?.name ?? "Evento sin nombre",
           eventImage: require("@/assets/images/jex/Jex-Evento-Default.webp"),
-          expirationDate: data.expiration_date,
-          expirationTime: data.expiration_time,
-          location: vacancy?.event?.location ?? "Ubicación no definida",
-          requirements: vacancy?.requirements?.map((r: any) => r.description) ?? [],
+          expirationDate: data?.expiration_date,
+          expirationTime: data?.expiration_time,
+          location: data?.address || ev?.location || "Ubicación no definida",
+          requirements: (vacancy?.requirements || []).map((r: any) => r?.description).filter(Boolean),
           comments: vacancy?.description ?? data?.additional_comments ?? "",
         };
 
         setOffer(mapped);
+
+        const topLevelAddr: string | null =
+          typeof data?.address === "string" && data.address.trim().length > 0 ? data.address.trim() : null;
+        const eventAddr: string | null =
+          typeof ev?.location === "string" && ev.location.trim().length > 0 ? ev.location.trim() : null;
+
+        const topLat = toNum(data?.latitude);
+        const topLng = toNum(data?.longitude);
+        const evLat = toNum(ev?.latitude);
+        const evLng = toNum(ev?.longitude);
+
+        setLocationAddress(topLevelAddr || eventAddr || mapped.location || null);
+        setLocationCoords(
+          topLat !== null && topLng !== null
+            ? { latitude: topLat, longitude: topLng }
+            : evLat !== null && evLng !== null
+            ? { latitude: evLat, longitude: evLng }
+            : null
+        );
       } catch (e) {
         console.log("Error al traer detalle de oferta:", e);
       } finally {
@@ -111,7 +135,6 @@ export const useDetailOffers = () => {
     };
   }, [id]);
 
-  // Envía decisión (aceptar/rechazar) y maneja estados asociados
   const decideOffer = async (rejected: boolean, onAccepted?: () => void) => {
     if (rejected) setShowRejected(true);
     try {
@@ -137,7 +160,6 @@ export const useDetailOffers = () => {
     router.replace("/employee/offers");
   };
 
-  // Control de confirmación de rechazo
   const openConfirmReject = () => setConfirmRejectVisible(true);
   const closeConfirmReject = () => setConfirmRejectVisible(false);
   const confirmReject = async () => {
@@ -161,5 +183,8 @@ export const useDetailOffers = () => {
     openConfirmReject,
     closeConfirmReject,
     confirmReject,
+
+    locationAddress,
+    locationCoords,
   };
 };

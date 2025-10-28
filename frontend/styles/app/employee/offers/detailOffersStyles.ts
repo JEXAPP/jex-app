@@ -98,7 +98,8 @@ export const detailOffersStyles = StyleSheet.create({
   requirementsTitle: { 
     fontSize: 16, 
     fontFamily: 'interSemiBold', 
-    marginBottom: 4 
+    marginBottom: 4,
+    marginTop: 5
   },
   requirement: { 
     fontSize: 15, 

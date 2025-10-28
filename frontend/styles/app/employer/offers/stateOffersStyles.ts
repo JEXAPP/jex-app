@@ -5,7 +5,6 @@ export const stateOffersStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.gray1,
-    paddingHorizontal: 20,
   },
   title: {
     fontSize: 50,

@@ -15,7 +15,7 @@ import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1'
 import { Colors } from '@/themes/colors';
 import { Image, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import LocationMapCard from '@/components/others/LocationMapCard';
 
 export default function ApplyVacancyScreen() {
   const {
@@ -32,7 +32,11 @@ export default function ApplyVacancyScreen() {
     loading,
     salarioAMostrar,
     turnoSeleccionadoValido,
-    closeSuccess
+    closeSuccess,
+    allShiftsApplied,
+    locationAddress,
+    locationCoords,
+    goBack
   } = useApplyVacancy();
 
   const stars = job?.rating ? Math.round(job.rating) : 0;
@@ -48,15 +52,13 @@ export default function ApplyVacancyScreen() {
   }
 
   return (
-
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-
         <View style={styles.header}>
-
+          <View style={styles.backBtnHero} onTouchEnd={goBack}>
+            {iconos.flechaIzquierdaVolver(24, Colors.white)}
+          </View>
           <View style={styles.headerTop}>
-
             <ImageOnline
               imageUrl={job.event_image_url}
               imageId={job.event_image_public_id}
@@ -64,131 +66,147 @@ export default function ApplyVacancyScreen() {
               shape="square"
               style={styles.image}
             />
-
             <View style={styles.headerText}>
-
               <Text style={styles.eventTitle}>{job.title}</Text>
-
             </View>
-
           </View>
 
-          <Image source={require('@/assets/images/maps.webp')} style={styles.map} />
-          
+          {/* Mapa + card */}
+          <LocationMapCard
+            address={locationAddress || undefined}
+            coords={locationCoords || undefined}
+            style={{ marginTop: 4 }}
+          />
         </View>
 
-        <Text style={styles.containerTitle}>{job.role}</Text>
-        <Text style={styles.containerText}>{job.description}</Text>
+        <View style={styles.role}>
+          <Text style={styles.containerTitle}>{job.role}</Text>
+          <Text style={styles.containerText}>{job.description}</Text>
 
-        <Text style={styles.containerSubtitle}>¿Qué necesitás?</Text>
-
-        {job.requirements.map((item: string, index: number) => (
-          <View key={index} style={styles.organizerArea}>
-
-            <Text style={styles.bulletNumber}>{index + 1}.</Text>
-            <Text style={styles.containerBulletPoints}>{item}</Text>
-
-          </View>
-        ))}
-
-        <Text style={styles.containerSubtitle}>Turnos disponibles</Text>
-        
-        <View style={styles.multiple}>
-          {turnos.map((bloque) => (
-            <View key={bloque.id}>
-
-              <Text style={[styles.containerText2]}>
-                {bloque.dia}
-              </Text>
-              <View style={styles.multiple}>
-              {bloque.turnos.map((turno) => (              
-                  <SelectableTag
-                    styles={selectableTagStyles1}
-                    key={turno.id}
-                    title={turno.horario}
-                    subtitle={turno.paga}
-                    iconName="time"
-                    selected={turnosSeleccionados.includes(turno.id)}
-                    onPress={() => handleToggleTurnos(turno.id)}
-                  />              
-              ))}
-              </View>
-
+          <Text style={styles.containerSubtitle}>¿Qué necesitás?</Text>
+          {job.requirements.map((item: string, index: number) => (
+            <View key={index} style={styles.organizerArea}>
+              <Text style={styles.bulletNumber}>{index + 1}.</Text>
+              <Text style={styles.containerBulletPoints}>{item}</Text>
             </View>
           ))}
-        </View>
 
-        <View style={styles.separator} />
+          <Text style={styles.containerSubtitle}>Turnos disponibles</Text>
 
-        <Text style={styles.containerSubtitle}>Conocé al organizador</Text>
+          <View style={styles.multiple}>
+            {turnos.map((bloque) => (
+              <View key={bloque.id}>
+                <Text style={[styles.containerText2]}>{bloque.dia}</Text>
 
-        <View style={styles.organizerContainer}>
+                <View style={styles.multiple}>
+                  {bloque.turnos.map((turno) => {
+                    const disabled = !!turno.already_applied;
 
-          <View>
-
-            <Image
-              source={require('@/assets/images/jex/Jex-FotoPerfil.webp')}
-              style={styles.logoWrapper}
-            />
-
-            <View style={styles.organizerNameTag}>
-
-              <Text style={styles.organizerNameText}>{organizer.name}</Text>
-
-            </View>
-
+                    return (
+                      <View
+                        key={turno.id}
+                        style={{ opacity: disabled ? 0.5 : 1 }}
+                        pointerEvents={disabled ? 'none' : 'auto'}
+                      >
+                        <SelectableTag
+                          styles={{
+                            ...selectableTagStyles1,
+                            tag: {
+                              ...selectableTagStyles1.tag,
+                              borderColor: disabled ? Colors.gray3 : Colors.violet4,
+                              
+                            },
+                            tagText: {
+                              ...selectableTagStyles1.tagText,
+                              color: disabled ? Colors.gray3 : selectableTagStyles1.tagText.color,
+                            },
+                            tagSubtitle: {
+                              ...selectableTagStyles1.tagSubtitle,
+                              color: disabled ? Colors.gray3 : selectableTagStyles1.tagSubtitle.color,
+                            },
+                          }}
+                          title={turno.horario}
+                          subtitle={disabled ? 'Ya postulado' : turno.paga}
+                          iconName="time"
+                          selected={turnosSeleccionados.includes(turno.id)}
+                          onPress={() => {
+                            if (!disabled) handleToggleTurnos(turno.id);
+                          }}
+                        />
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            ))}
           </View>
 
-          <View style={styles.organizerInfo}>
+          <View style={styles.separator} />
 
-            <View style={styles.organizerInfoItem}>
-              <Text style={styles.organizerInfoValue}>{organizer.reviews}</Text>
-              <Text style={styles.organizerInfoLabel}>Evaluaciones</Text>
+          <Text style={styles.containerSubtitle}>Conocé al organizador</Text>
 
+          <View style={styles.organizerContainer}>
+            <View>
+              <Image
+                source={require('@/assets/images/jex/Jex-FotoPerfil.webp')}
+                style={styles.logoWrapper}
+              />
+
+              <View style={styles.organizerNameTag}>
+                <Text style={styles.organizerNameText}>{organizer.name}</Text>
+              </View>
             </View>
 
-            <View style={styles.organizerInfoItem}>
-            <Text style={styles.organizerInfoValue}>
-              {Number(organizer.rating).toFixed(1)} <Text style={{ color: Colors.violet5 }}>★</Text>
+            <View style={styles.organizerInfo}>
+              <View style={styles.organizerInfoItem}>
+                <Text style={styles.organizerInfoValue}>{organizer.reviews}</Text>
+                <Text style={styles.organizerInfoLabel}>Evaluaciones</Text>
+              </View>
+
+              <View style={styles.organizerInfoItem}>
+                <Text style={styles.organizerInfoValue}>
+                  {Number(organizer.rating).toFixed(1)} <Text style={{ color: Colors.violet5 }}>★</Text>
+                </Text>
+                <Text style={styles.organizerInfoLabel}>Puntaje</Text>
+              </View>
+
+              <View style={styles.organizerInfoItem}>
+                <Text style={styles.organizerInfoValue}>{organizer.jexTime.split(' ')[0]}</Text>
+                <Text style={styles.organizerInfoLabel}>Años en Jex</Text>
+              </View>
+            </View>
+          </View>
+
+        </View>
+        </ScrollView>
+
+      {/* Pie de postulación */}
+      {allShiftsApplied ? (
+        <View style={styles.applyBox}>
+            <Text style={styles.containerText3}>
+              Ya te postulaste a los turnos de esta vacante
             </Text>
-            <Text style={styles.organizerInfoLabel}>Puntaje</Text>
+        </View>
+      ) : (
+        <View style={styles.applyBox}>
+          <View style={styles.applyBox2}>
+            <Text style={styles.salary}>{salarioAMostrar}</Text>
+            <Text style={styles.deadline}>Vence el {job.deadline}</Text>
           </View>
 
-            <View style={styles.organizerInfoItem}>
-
-              <Text style={styles.organizerInfoValue}>
-                {organizer.jexTime.split(' ')[0]}
-              </Text>
-              <Text style={styles.organizerInfoLabel}>Años en Jex</Text>
-
-            </View>
-
-          </View>
-
+          <Button
+            onPress={handleApply}
+            disabled={!turnoSeleccionadoValido}
+            styles={
+              turnoSeleccionadoValido
+                ? { texto: buttonStyles1.texto, boton: { ...buttonStyles1.boton, width: 150 } }
+                : { texto: buttonStyles4.texto, boton: { ...buttonStyles4.boton, width: 150 } }
+            }
+            texto="Postularme"
+            loading={loading}
+          />
         </View>
-
-      </ScrollView>
-
-      <View style={styles.applyBox}>
-
-        <View style={styles.applyBox2}>
-
-          <Text style={styles.salary}>{salarioAMostrar}</Text>
-          <Text style={styles.deadline}>Vence el {job.deadline}</Text>
-
-        </View>
-
-        <Button
-          onPress={handleApply}
-          disabled={!turnoSeleccionadoValido}
-          styles={turnoSeleccionadoValido ? 
-            {texto: buttonStyles1.texto, boton: { ...buttonStyles1.boton, width: 150 }} 
-            : {texto: buttonStyles4.texto, boton: { ...buttonStyles4.boton, width: 150 }}} 
-          texto="Postularme"
-          loading={loading}
-        />
-
-      </View>
+      )}
 
       <TempWindow
         visible={showSuccess}
@@ -199,15 +217,14 @@ export default function ApplyVacancyScreen() {
       />
 
       <ClickWindow
-        title='Error'
-        visible={showError} 
-        message={errorMessage} 
-        onClose={() => setShowError(false)} 
-        styles={clickWindowStyles1} 
+        title="Error"
+        visible={showError}
+        message={errorMessage}
+        onClose={() => setShowError(false)}
+        styles={clickWindowStyles1}
         icono={iconos.error_outline(30, Colors.white)}
-        buttonText='Entendido'
+        buttonText="Entendido"
       />
-
     </SafeAreaView>
   );
 }

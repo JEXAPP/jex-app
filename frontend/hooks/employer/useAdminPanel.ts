@@ -78,6 +78,7 @@ export const useAdminPanel = () => {
   };
 
   const goToCreateEvent = () => router.push("/employer/panel/create-event");
+
   const goToEditEvent = (id: number) => router.push(`/employer/panel/edit-event?id=${id}`);
 
   const goToVacancies = (eventId: number) => {
@@ -88,10 +89,15 @@ export const useAdminPanel = () => {
 
   const goToNotifications = () => router.push('/employer/panel/notifications')
 
+  const goToReports = (id: number) => {
+    router.push({ pathname: "/employer/panel/report", params: { id: String(id) } })
+  }
+
   const goToAttendance = (id: number) => router.push(`/employer/panel/attendance?id=${id}`);
+
   const goToQualifications = (eventId: number) => {
-  router.push({ pathname: "/employer/panel/qualification", params: { eventId: String(eventId) } });
-};
+    router.push({ pathname: "/employer/panel/qualification", params: { eventId: String(eventId) } });
+  };
 
   return {
     // Eventos
@@ -111,6 +117,7 @@ export const useAdminPanel = () => {
     goToAttendance,
     goToNotifications,
     goToQualifications,
+    goToReports
   };
 };
 export default useAdminPanel;
