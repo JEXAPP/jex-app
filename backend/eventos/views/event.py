@@ -233,12 +233,17 @@ class ListEventsEmployeeView(ListAPIView):
         rater = request.user  # el empleador actual
         event_id = self.kwargs.get('eventId')
 
-        offer_completed_state = OfferState.objects.get(name=OfferStates.COMPLETED.value)
+        states_to_include = OfferState.objects.filter(
+        name__in=[
+            OfferStates.COMPLETED.value,
+            OfferStates.NOT_SHOWN.value
+        ]
+    )
 
-        # Todas las offers completadas del evento
+        # Ofertas del evento con esos estados
         qs = Offer.objects.filter(
             selected_shift__vacancy__event_id=event_id,
-            state=offer_completed_state
+            state__in=states_to_include
         ).select_related(
             "employee",
             "employee__user",
