@@ -32,3 +32,6 @@ class CategoryEnum2(Enum):
 
 class Unaccent(Func):
     function = 'UNACCENT'
+
+
+OFFER_VALID_STATES = ['ACCEPTED', 'NOT_SHOWN', 'COMPLETED']

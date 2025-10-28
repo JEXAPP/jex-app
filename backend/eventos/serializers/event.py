@@ -5,7 +5,7 @@ from eventos.errors.events_messages import BOTH_PROFILE_IMAGE_FIELDS_REQUIRED, E
 from eventos.models.category_events import Category
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
-from eventos.constants import EventStates
+from eventos.constants import OFFER_VALID_STATES, EventStates
 from eventos.serializers.category_events import ListCategorySerializer
 from eventos.serializers.state_events import EventStateSerializer
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
@@ -158,10 +158,13 @@ class EventSerializer(serializers.ModelSerializer):
     state = EventStateSerializer()
     event_image_public_id = serializers.SerializerMethodField()
     event_image_url = serializers.SerializerMethodField()
+    address = serializers.CharField(source='location')
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'description', 'owner', 'category', 'state', 'event_image_public_id', 'event_image_url']
+        fields = ['id', 'name', 'description', 'owner', 'category', 'state', 'event_image_public_id', 'event_image_url', 'address', 'latitude', 'longitude']
 
     def get_event_image_public_id(self, obj):
         event_image = getattr(obj, 'event_image', None)
@@ -387,6 +390,8 @@ class EmployeeReportSerializer(serializers.Serializer):
     attendance = serializers.SerializerMethodField()
     payment_status = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
+    profile_image_url = serializers.SerializerMethodField()
+    job_type = serializers.SerializerMethodField()
 
     def get_attendance(self, obj):
         # Verifica si el empleado asistió al shift de la oferta
@@ -403,18 +408,24 @@ class EmployeeReportSerializer(serializers.Serializer):
         return payment.state.name
 
     def get_rating(self, obj):
-        # Obtiene el rating del empleado para este evento
         event = self.context.get("event")
-        try:
-            behavior = obj.employee.behaviors.first()
-            if not behavior:
-                return None
-            rating_obj = behavior.ratings.filter(event=event).first()
-            if rating_obj:
-                return rating_obj.rating
-        except Behavior.DoesNotExist:
+        behavior = getattr(obj.employee.user, "behaviors", None)
+        if not behavior:
             return None
-        return None
+
+        behavior_instance = behavior.first()
+        if not behavior_instance:
+            return None
+
+        rating_obj = behavior_instance.ratings.filter(event=event).first()
+        return rating_obj.rating if rating_obj else None
+
+    def get_profile_image_url(self, obj):
+        user = obj.employee.user
+        return user.profile_image.url if user.profile_image else None
+    
+    def get_job_type(self, obj):
+        return get_job_type_display(obj.selected_shift.vacancy)
 
 
 class EventReportSerializer(serializers.ModelSerializer):
@@ -436,7 +447,7 @@ class EventReportSerializer(serializers.ModelSerializer):
     def get_total_offers_accepted(self, obj):
         return Offer.objects.filter(
             selected_shift__vacancy__event=obj,
-            state__name='ACCEPTED'
+            state__name__in=OFFER_VALID_STATES
         ).count()
 
     def get_total_attendances_confirmed(self, obj):
@@ -454,7 +465,7 @@ class EventReportSerializer(serializers.ModelSerializer):
     def get_employees(self, obj):
         offers = Offer.objects.filter(
             selected_shift__vacancy__event=obj,
-            state__name='ACCEPTED'
+            state__name__in=OFFER_VALID_STATES
         )
         return EmployeeReportSerializer(
             offers, many=True, context={"event": obj}
