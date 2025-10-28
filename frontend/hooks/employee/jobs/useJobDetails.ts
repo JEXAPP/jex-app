@@ -19,9 +19,9 @@ function parseDateTimeLocal(dateStr?: string | null, timeStr?: string | null): D
   if (!dateStr || !timeStr) return null;
   const [y, m, d] = dateStr.split('-').map(Number);
   const [hh, mm, ss = '0'] = String(timeStr).split(':');
-  const h  = Number(hh);
+  const h = Number(hh);
   const mi = Number(mm);
-  const s  = Number(ss);
+  const s = Number(ss);
   if ([y, m, d, h, mi, s].some(n => Number.isNaN(n))) return null;
   return new Date(y, (m - 1), d, h, mi, s, 0);
 }
@@ -32,7 +32,7 @@ function buildWeekFromDate(dateStr?: string | null): WeekDay[] {
   if (!dateStr) return [];
   const base = new Date(dateStr + 'T00:00:00');
   if (isNaN(base.getTime())) return [];
-  const day = base.getDay(); 
+  const day = base.getDay();
   const mondayOffset = ((day + 6) % 7);
   const monday = new Date(base);
   monday.setDate(base.getDate() - mondayOffset);
@@ -65,75 +65,97 @@ export function useJobDetails() {
   const [weekDays, setWeekDays] = useState<WeekDay[]>([]);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
 
+  // Carga principal del trabajo
   useEffect(() => {
+    const fetchJobData = async () => {
+      setLoading(true);
+      try {
+        const back = await requestBackend(`/api/applications/offer-detail/${offerId}/accepted/`, null, 'GET');
+        console.log(back);
+        const shift = back?.shift;
+
+        const requirements: string[] = Array.isArray(shift?.requirements)
+          ? shift.requirements
+              .map((r: any) => (typeof r === 'string' ? r : r?.description ?? ''))
+              .filter((x: string) => !!x && x.trim().length > 0)
+          : [];
+
+        const normalized: Job = {
+          event_name: shift?.event_name ?? null,
+          job_type: shift?.job_type ?? null,
+          start_date: shift?.start_date ?? null,
+          start_time: toHHMM(shift?.start_time),
+          end_time: toHHMM(shift?.end_time),
+          requirements,
+          payment: shift?.payment ?? null,
+          event_location: shift?.event_location ?? null,
+        };
+
+        setJob(normalized);
+
+        if (normalized.start_date) {
+          const wk = buildWeekFromDate(normalized.start_date);
+          setWeekDays(wk);
+          setSelectedDay(normalized.start_date);
+        } else {
+          setWeekDays([]);
+          setSelectedDay(null);
+        }
+      } catch (e: any) {
+        console.log('[API ERROR]', e?.response?.status, e?.config?.url, e?.response?.data);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchJobData();
   }, [offerId]);
 
-  const fetchJobData = async () => {
-    setLoading(true);
-    try {
-      const back = await requestBackend(`/api/applications/offer-detail/${offerId}/accepted/`, null, 'GET');
-      console.log(back)
-      const shift = back?.shift;
-
-      const requirements: string[] = Array.isArray(shift?.requirements)
-        ? shift.requirements
-            .map((r: any) => (typeof r === 'string' ? r : r?.description ?? ''))
-            .filter((x: string) => !!x && x.trim().length > 0)
-        : [];
-
-      const normalized: Job = {
-        event_name: shift?.event_name ?? null,
-        job_type: shift?.job_type ?? null,
-        start_date: shift?.start_date ?? null,
-        start_time: toHHMM(shift?.start_time),
-        end_time: toHHMM(shift?.end_time),
-        requirements,
-        payment: shift?.payment ?? null,
-        event_location: shift?.event_location ?? null,
-      };
-
-      setJob(normalized);
-
-      if (normalized.start_date) {
-        const wk = buildWeekFromDate(normalized.start_date);
-        setWeekDays(wk);
-        setSelectedDay(normalized.start_date);
-      } else {
-        setWeekDays([]);
-        setSelectedDay(null);
-      }
-    } catch (e: any) {
-      const status = e?.response?.status;
-      const data = e?.response?.data;
-      const url = e?.config?.url;
-      console.log('[API ERROR]', status, url, data);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Control de asistencia y habilitación del QR
   useEffect(() => {
+    let alreadyMarked = false; // bandera que evita volver a habilitar
+
+    const checkAttendance = async () => {
+      try {
+        const res = await requestBackend(
+          `/api/applications/attendance/check/${offerId}/`,
+          null,
+          'GET'
+        );
+        console.log('[CHECK ATTENDANCE]', res);
+
+        if (res?.message === true) {
+          alreadyMarked = true;
+          setAttendanceEnabled(false);
+          console.log('[ATTENDANCE DISABLED ✅]');
+        }
+      } catch (err) {
+        console.log('[ERROR CHECK ATTENDANCE]', err);
+      } finally {
+        setGenerating(false);
+      }
+    };
+
+    checkAttendance();
+
     const start = parseDateTimeLocal(job?.start_date || null, job?.start_time || null);
     if (!start) {
       setAttendanceEnabled(false);
       return;
     }
+
     const compute = () => {
+      if (alreadyMarked) return; // no habilitar si ya tiene asistencia
       const enableAt = new Date(start.getTime() - 15 * 60 * 1000);
       setAttendanceEnabled(new Date() >= enableAt);
     };
+
     compute();
     const id = setInterval(compute, 15_000);
     return () => clearInterval(id);
-  }, [job?.start_date, job?.start_time]);
+  }, [offerId, job?.start_date, job?.start_time]);
 
-  /*
-  useEffect(() => {
-    setAttendanceEnabled(false);
-  }, []);
-  PARA DESHABILITAR Y HABILITAR EL BOTON MANUALMENTE*/
-
+  // Generación del QR
   const generateQR = async () => {
     if (!attendanceEnabled || generating) return;
     try {
@@ -147,12 +169,13 @@ export function useJobDetails() {
       setQrValue(token || null);
       setShowQR(true);
     } catch (err: any) {
-      console.log('[ERROR]', err?.response?.status, err?.response?.data);
+      console.log('[ERROR GENERATE QR]', err?.response?.status, err?.response?.data);
     } finally {
       setGenerating(false);
     }
   };
 
+  // Datos derivados
   const timeLabel = useMemo(() => {
     if (job?.start_time && job?.end_time) return `${job.start_time} a ${job.end_time}`;
     if (job?.start_time) return job.start_time;
@@ -160,9 +183,7 @@ export function useJobDetails() {
     return null;
   }, [job?.start_time, job?.end_time]);
 
-  const eventLocation = useMemo(() => {
-    return job?.event_location || 'A definir';
-  }, [job?.event_location]);
+  const eventLocation = useMemo(() => job?.event_location || 'A definir', [job?.event_location]);
 
   return {
     loading,
