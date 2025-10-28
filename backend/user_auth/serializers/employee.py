@@ -403,3 +403,42 @@ class EmployeeInterestsSerializer(serializers.ModelSerializer):
             instance.job_types.set(validated_data['job_types'])
         instance.save()
         return instance
+
+class ViewEmployeeWorkExperienceSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = WorkExperience
+        fields = ['id', 'title', 'company_or_event', 'start_date', 'end_date', 'description', 'image_url']
+
+    def get_image_url(self, obj):
+        return obj.image.url if obj.image else None
+    
+class ViewEmployeeEducationSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EducationCertification
+        fields = ['id', 'institution', 'title', 'discipline', 'start_date', 'end_date', 'description', 'image_url']
+
+    def get_image_url(self, obj):
+        return obj.image.url if obj.image else None
+
+class ViewEmployeeInterestsSerializer(serializers.ModelSerializer):
+    job_types = ListJobTypesSerializer(many=True)
+
+    class Meta:
+        model = EmployeeProfile
+        fields = ['job_types']
+
+
+class ViewEmployeeProfileDescriptionSerializer(serializers.ModelSerializer):
+    profile_image_url = serializers.SerializerMethodField()
+    description = serializers.CharField()    
+
+    class Meta:
+        model = EmployeeProfile
+        fields = ['description','profile_image_url']
+
+    def get_profile_image_url(self, obj):
+        return obj.user.profile_image.url if obj.user.profile_image else None

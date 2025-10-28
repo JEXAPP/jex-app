@@ -129,7 +129,7 @@ class BulkCreateRatingView(APIView):
             try:
                 send_notification(
                     user=employee_user,
-                        title="!Calificación recibida!",
+                        title="¡Calificación recibida!",
                         message=f"{rater.employer_profile.company_name} te calificó por tu trabajo en '{event_obj.name}'.",
                     notification_type_name=NotificationTypes.JOBS.value,
                     data={
