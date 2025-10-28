@@ -78,13 +78,8 @@ export const useDetailOffers = () => {
         const vacancy = shift?.vacancy;
         const ev = vacancy?.event ?? {};
 
-        let expirationDate = "";
-        if (shift?.start_date) {
-          const [d, m, y] = String(shift.start_date).split("/").map(Number);
-          const start = new Date(y, m - 1, d);
-          start.setDate(start.getDate() - 3);
-          expirationDate = formatDate(start);
-        }
+        const expirationDate = data?.expiration_date ?? '';
+        const expirationTime = data?.expiration_time ?? '';
 
         const mapped: Offer = {
           id: data?.id ?? 0,
@@ -93,13 +88,16 @@ export const useDetailOffers = () => {
           date: shift?.start_date ?? "",
           startTime: shift?.start_time ?? "",
           endTime: shift?.end_time ?? "",
-          company: ev?.name ?? "Evento sin nombre",
-          eventImage: require("@/assets/images/jex/Jex-Evento-Default.webp"),
-          expirationDate: data?.expiration_date,
-          expirationTime: data?.expiration_time,
-          location: data?.address || ev?.location || "Ubicación no definida",
-          requirements: (vacancy?.requirements || []).map((r: any) => r?.description).filter(Boolean),
-          comments: vacancy?.description ?? data?.additional_comments ?? "",
+          company: vacancy?.event?.name ?? "Evento sin nombre",
+          eventImage:
+          data?.event_image_url && typeof data.event_image_url === 'string'
+            ? { uri: data.event_image_url }
+            : require('@/assets/images/jex/Jex-Evento-Default.png'),
+          expirationDate,
+          expirationTime,
+          location: vacancy?.event?.location ?? "Ubicación no definida",
+          requirements: vacancy?.requirements?.map((r: any) => r.description) ?? [],
+          comments: data?.additional_comments ?? "-",
         };
 
         setOffer(mapped);

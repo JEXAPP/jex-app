@@ -47,7 +47,15 @@ export default function QualifyScreen() {
             {/* Card Organizador */}
             <View style={styles.card}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <Image source={{ uri: organizer.image }} style={styles.avatar} />
+               <Image
+              source={
+                typeof organizer.image === "number"
+                  ? organizer.image // imagen local (require)
+                  : { uri: organizer.image } // URL desde backend
+              }
+              style={styles.avatar}
+            />
+
                 <View style={{ flex: 1 }}>
                   <Text style={styles.name}>{organizer.name}</Text>
                   <Text style={styles.event}>Evento: {organizer.event}</Text>

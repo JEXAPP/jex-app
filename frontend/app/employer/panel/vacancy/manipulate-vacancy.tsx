@@ -149,18 +149,19 @@ export default function ManipulateVacancyScreen() {
           <View style={styles.headerTop}>
             
             <Image
-              source={require('@/assets/images/jex/Jex-FotoPerfil.webp')}
-              style={styles.logoWrapper}
-            />
+            source={
+              job?.event_image_url && typeof job.event_image_url === 'string'
+                ? { uri: job.event_image_url }
+                : require('@/assets/images/jex/Jex-FotoPerfil.png')
+            }
+            style={styles.logoWrapper}
+          />
+
 
             <View style={styles.headerText}>
               <Text style={styles.eventTitle}>{job.title}</Text>
 
-              <View style={styles.ratingWrapper}>
-                {Array.from({ length: stars }).map((_, i) => (
-                  <Ionicons key={i} name="star" size={16} style={styles.starsIcon} />
-                ))}
-              </View>
+              
             </View>
           </View>
 

@@ -1,4 +1,3 @@
-// hooks/employee/useQualifyList.ts
 import { useEffect, useState } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
 
@@ -14,6 +13,7 @@ type EmployerToRate = {
   event_end_date: string;
   event_end_time: string;
   already_rated: boolean;
+  image_url: string | null; // ✅ nuevo atributo
 };
 
 export const useQualifyList = () => {
@@ -25,7 +25,7 @@ export const useQualifyList = () => {
   useEffect(() => {
     const fetchEmployers = async () => {
       try {
-        const res = await requestBackend("/api/rating/employers/torating/",null,"GET");
+        const res = await requestBackend("/api/rating/employers/torating/", null, "GET");
         setEmployers(res);
       } catch (err: any) {
         console.error("❌ Error al traer empleadores:", err);

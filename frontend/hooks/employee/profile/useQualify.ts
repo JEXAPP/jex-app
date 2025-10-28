@@ -40,6 +40,12 @@ export const useQualify = () => {
     }
   };
 
+  // ✅ se usa la imagen proveniente del backend o fallback local
+  const imageSource =
+    typeof params.imageUrl === "string" && params.imageUrl.length > 0
+      ? params.imageUrl
+      : null;
+
   return {
     rating,
     comment,
@@ -52,7 +58,9 @@ export const useQualify = () => {
       event: params.eventName,
       date: params.date,
       time: params.time,
-      image: "https://randomuser.me/api/portraits/men/45.jpg",
+      image: imageSource
+        ? imageSource
+        : require("@/assets/images/jex/Jex-FotoPerfil.png"), // ✅ fallback local
     },
     role: params.jobType,
   };

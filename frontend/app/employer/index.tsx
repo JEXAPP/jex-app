@@ -24,7 +24,8 @@ export default function AdminPanelScreen() {
     goToAttendance,
     goToNotifications,
     goToQualifications,
-    goToReports
+    goToReports,
+    getOrderedButtons,
   } = useAdminPanel();
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -112,8 +113,17 @@ export default function AdminPanelScreen() {
   };
 
   const enabledLabels = enabledLabelsByState[currentEvent.estado?.name] ?? [];
+  const orderedButtons = getOrderedButtons(baseButtons);
 
   const renderButton = (button: any) => {
+    const enabledLabels =
+      {
+        Borrador: ["Vacantes", "Editar Evento"],
+        Publicado: ["Vacantes", "Contratación Tardía"],
+        "En Curso": ["Asistencia"],
+        Finalizado: ["Calificaciones", "Reportes"],
+      }[currentEvent.estado?.name] ?? [];
+
     const disabled = !enabledLabels.includes(button.label);
 
     return (
@@ -189,7 +199,7 @@ export default function AdminPanelScreen() {
         )}
 
         <View style={styles.cardsContainer}>
-          {baseButtons.map(renderButton)}
+          {orderedButtons.map(renderButton)}
         </View>
 
       </ScrollView>
@@ -198,8 +208,9 @@ export default function AdminPanelScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalText}>
-              Esta opción está deshabilitada dado el estado del evento.
+              Esta opción está deshabilitada ya que el evento está {currentEvent?.estado?.name}.
             </Text>
+
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               style={styles.modalButton}

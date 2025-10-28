@@ -75,8 +75,11 @@ export const useHomeOffers = () => {
         if (!mounted) return;
 
         const normalized: Offer[] = (data ?? []).map((item: any) => {
-          const shift = item?.application?.shift ?? item?.shift;
-          const vacancy = shift?.vacancy;        
+          const shift = item?.application?.shift;
+          const vacancy = shift?.vacancy;
+
+          const expirationDate = item?.expiration_date ?? '';
+          const expirationTime = item?.expiration_time ?? '';
 
           return {
             id:
@@ -88,11 +91,16 @@ export const useHomeOffers = () => {
             startTime: shift?.start_time ?? '',
             endTime: shift?.end_time ?? '',
             company: vacancy?.event?.name ?? 'Evento sin nombre',
-            eventImage: vacancy?.event?.image
-              ? { uri: vacancy.event.image }
-              : require('@/assets/images/jex/Jex-Evento-Default.webp'),
-            expirationDate: item.expiration_date,
-            expirationTime: item.expiration_time,
+           eventImage:
+            item?.event_image_url && typeof item.event_image_url === 'string'
+              ? { uri: item.event_image_url }
+              : require('@/assets/images/jex/Jex-Evento-Default.png'),
+
+            expirationDate,
+            expirationTime,
+            location: vacancy?.event?.location ?? '',
+            requirements: item?.requirements ?? vacancy?.requirements ?? [],
+            comments: item?.comments ?? '',
           };
         });
 

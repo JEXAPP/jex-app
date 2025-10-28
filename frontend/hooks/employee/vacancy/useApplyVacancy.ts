@@ -104,18 +104,26 @@ export const useApplyVacancy = () => {
         time: `${vacante.shifts[0]?.start_time} a ${vacante.shifts[0]?.end_time}`,
         requirements: (vacante.requirements as Requirement[]).map(r => `${r.description}`),
         salary: `${vacante.shifts[0]?.payment ?? ''} ARS`,
-        deadline: formatFechaCorta(vacante.shifts[0]?.end_date),
+        deadline: formatFechaCorta(vacante.shifts[0]?.start_date),
         event_image_url: vacante.event.event_image_url,
         event_image_public_id: vacante.event.event_image_public_id,
-        mapImage: require('@/assets/images/maps.webp'),
-        rating: 4.0,
+        mapImage: require('@/assets/images/maps.png'),
+        rating: owner.average_rating ?? 0,
       });
 
+      // ✅ Manejo correcto de imagen del organizador
+      const organizerImage =
+        owner.profile_image && typeof owner.profile_image === "object" && owner.profile_image.url
+          ? owner.profile_image.url
+          : require('@/assets/images/jex/Jex-FotoPerfil.png');
+
+
       setOrganizer({
-        name: owner.full_name || owner.email || '-',
+        name: owner.company_name || owner.email || '-',
         reviews: owner.rating_count ?? 0,
         rating: owner.average_rating ?? 0,
         jexTime: '1 año',
+        image: organizerImage,
       });
 
       // ===== Ubicación segura (evita [object Object]) =====
