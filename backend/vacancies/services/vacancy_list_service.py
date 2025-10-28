@@ -1,9 +1,12 @@
 
 from django.db.models import OuterRef, Subquery
 from django.utils import timezone
+from eventos.constants import EventStates
 from vacancies.models.shifts import Shift
 from vacancies.constants import VacancyStates
 from vacancies.utils import is_event_near
+from datetime import timedelta
+
 
 class VacancyListService:
 
@@ -20,7 +23,8 @@ class VacancyListService:
         best_shift_per_event = Shift.objects.filter(
             vacancy__event=OuterRef('vacancy__event'),
             vacancy__state__name=VacancyStates.ACTIVE.value,
-            start_date__gte=today
+            start_date__gte=today,
+            vacancy__event__state__name=EventStates.PUBLISHED.value,
         ).order_by('-payment', 'start_date')  # primero pago alto, luego más próximo
 
         qs = Shift.objects.filter(
@@ -46,9 +50,16 @@ class VacancyListService:
     @staticmethod
     def filter_by_soon(queryset):
         """
-        Ordena los turnos por fecha de inicio más próxima
+        Devuelve los turnos próximos dentro de los próximos 30 días,
+        ordenados por fecha de inicio (más cercana primero).
         """
-        return queryset.order_by('start_date')
+        today = timezone.now().date()
+        next_30_days = today + timedelta(days=30)
+
+        return queryset.filter(
+            start_date__gte=today,
+            start_date__lte=next_30_days
+        ).order_by('start_date')
     
 
     @staticmethod
