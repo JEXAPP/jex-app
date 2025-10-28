@@ -297,6 +297,7 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
     already_rated = serializers.SerializerMethodField()
     is_linked = serializers.SerializerMethodField()
     is_penalized = serializers.SerializerMethodField()
+    has_shown = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -309,6 +310,7 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
             "already_rated",
             "is_linked",
             "is_penalized",
+            "has_shown"
         ]
 
     def get_name(self, obj):
@@ -371,6 +373,15 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
             punisher=punisher,
             event=event,
             behavior__user=employee_user
+        ).exists()
+    
+    def get_has_shown(self, obj):
+        """
+        Devuelve True si el empleado asistió al shift de la oferta.
+        """
+        return Attendance.objects.filter(
+            employee=obj.employee,
+            shift=obj.selected_shift
         ).exists()
         
 class EmployeeReportSerializer(serializers.Serializer):

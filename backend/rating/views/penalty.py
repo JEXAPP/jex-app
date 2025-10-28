@@ -34,3 +34,4 @@ class CreatePenaltyView(CreateAPIView):
         # Usamos serializer de respuesta
         response_serializer = PenaltySerializer(penalty)
         return Response(response_serializer.data, status=201)
+

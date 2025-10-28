@@ -3,10 +3,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from user_auth.constants import EMPLOYEE_ROLE
-from user_auth.errors.user_errors_messages import EMAIL_REQUIRED
+from user_auth.errors.user_errors_messages import EMAIL_REQUIRED, EMPLOYEE_PROFILE_NOT_FOUND
 from user_auth.models.employee import EmployeeProfile
 from user_auth.permissions import IsInGroup
-from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, EmployeeAdditionalInfoSerializer, EmployeeEducationSerializer, EmployeeInterestsSerializer, EmployeeProfileDescriptionSerializer, EmployeeRegisterSerializer, EmployeeWorkExperienceSerializer
+from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, EmployeeAdditionalInfoSerializer, EmployeeEducationSerializer, EmployeeInterestsSerializer, EmployeeProfileDescriptionSerializer, EmployeeRegisterSerializer, EmployeeWorkExperienceSerializer, ViewEmployeeEducationSerializer, ViewEmployeeInterestsSerializer, ViewEmployeeProfileDescriptionSerializer, ViewEmployeeWorkExperienceSerializer
 from user_auth.models.user import CustomUser
 from rest_framework import serializers
 from django.db import transaction
@@ -144,3 +144,55 @@ class EmployeeValidateMailView(APIView):
         exists = CustomUser.objects.filter(email__iexact=email).exists()
 
         return Response({"message": exists}, status=status.HTTP_200_OK)
+    
+class ViewEmployeeWorkExperience(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def get(self, request):
+        try:
+            profile = request.user.employee_profile
+        except EmployeeProfile.DoesNotExist:
+            return Response(EMPLOYEE_PROFILE_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ViewEmployeeWorkExperienceSerializer(profile.work_experiences.all(), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class ViewEmployeeEducation(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def get(self, request):
+        try:
+            profile = request.user.employee_profile
+        except EmployeeProfile.DoesNotExist:
+            return Response(EMPLOYEE_PROFILE_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ViewEmployeeEducationSerializer(profile.educations.all(), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class ViewEmployeeInterests(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def get(self, request):
+        try:
+            profile = request.user.employee_profile
+        except EmployeeProfile.DoesNotExist:
+            return Response(EMPLOYEE_PROFILE_NOT_FOUND, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ViewEmployeeInterestsSerializer(profile)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class ViewEmployeeProfileDescription(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def get(self, request):
+        try:
+            profile = request.user.employee_profile
+        except Exception:
+            return Response(EMPLOYEE_PROFILE_NOT_FOUND, status=404)
+
+        serializer = ViewEmployeeProfileDescriptionSerializer(profile)
+        return Response(serializer.data, status=status.HTTP_200_OK)
