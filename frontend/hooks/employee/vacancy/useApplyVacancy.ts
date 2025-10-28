@@ -70,11 +70,11 @@ export const useApplyVacancy = () => {
         time: `${vacante.shifts[0]?.start_time} a ${vacante.shifts[0]?.end_time}`,
         requirements: (vacante.requirements as Requirement[]).map(r => `${r.description}`),
         salary: `${vacante.shifts[0]?.payment ?? ''} ARS`,
-        deadline: formatFechaCorta(vacante.shifts[0]?.end_date),
+        deadline: formatFechaCorta(vacante.shifts[0]?.start_date),
         event_image_url: vacante.event.event_image_url,
         event_image_public_id: vacante.event.event_image_public_id,
         mapImage: require('@/assets/images/maps.png'),
-        rating: 4.0,
+        rating: owner.average_rating ?? 0,
       });
 
       // ✅ Manejo correcto de imagen del organizador

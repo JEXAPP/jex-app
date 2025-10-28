@@ -78,7 +78,8 @@ export const useHomeOffers = () => {
           const shift = item?.application?.shift;
           const vacancy = shift?.vacancy;
 
-          const expirationDate = data?.expiration_date
+          const expirationDate = item?.expiration_date ?? '';
+          const expirationTime = item?.expiration_time ?? '';
 
           return {
             id:
@@ -96,7 +97,7 @@ export const useHomeOffers = () => {
               : require('@/assets/images/jex/Jex-Evento-Default.png'),
 
             expirationDate,
-            expirationTime: '00:00',
+            expirationTime,
             location: vacancy?.event?.location ?? '',
             requirements: item?.requirements ?? vacancy?.requirements ?? [],
             comments: item?.comments ?? '',

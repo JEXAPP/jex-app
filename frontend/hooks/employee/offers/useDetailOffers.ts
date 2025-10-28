@@ -72,7 +72,8 @@ export const useDetailOffers = () => {
         const shift = data?.application?.shift;
         const vacancy = shift?.vacancy;
 
-        const expirationDate = data?.expiration_date
+        const expirationDate = data?.expiration_date ?? '';
+        const expirationTime = data?.expiration_time ?? '';
 
         const mapped: Offer = {
           id: data?.id ?? 0,
@@ -87,10 +88,10 @@ export const useDetailOffers = () => {
             ? { uri: data.event_image_url }
             : require('@/assets/images/jex/Jex-Evento-Default.png'),
           expirationDate,
-          expirationTime: "00:00",
+          expirationTime,
           location: vacancy?.event?.location ?? "Ubicación no definida",
           requirements: vacancy?.requirements?.map((r: any) => r.description) ?? [],
-          comments: vacancy?.description ?? data?.additional_comments ?? "",
+          comments: data?.additional_comments ?? "-",
         };
 
         setOffer(mapped);
