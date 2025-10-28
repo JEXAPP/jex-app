@@ -392,18 +392,17 @@ class EmployeeReportSerializer(serializers.Serializer):
         return payment.state.name
 
     def get_rating(self, obj):
-        # Obtiene el rating del empleado para este evento
         event = self.context.get("event")
-        try:
-            behavior = obj.employee.behaviors.first()
-            if not behavior:
-                return None
-            rating_obj = behavior.ratings.filter(event=event).first()
-            if rating_obj:
-                return rating_obj.rating
-        except Behavior.DoesNotExist:
+        behavior = getattr(obj.employee.user, "behaviors", None)
+        if not behavior:
             return None
-        return None
+
+        behavior_instance = behavior.first()
+        if not behavior_instance:
+            return None
+
+        rating_obj = behavior_instance.ratings.filter(event=event).first()
+        return rating_obj.rating if rating_obj else None
 
 
 class EventReportSerializer(serializers.ModelSerializer):
