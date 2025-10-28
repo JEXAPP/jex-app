@@ -1,4 +1,3 @@
-// styles/app/employer/panel/qualification/qualiStyles.ts
 import { StyleSheet } from "react-native";
 import { Colors } from "@/themes/colors";
 
@@ -15,8 +14,6 @@ export const qualiStyles = StyleSheet.create({
     color: Colors.violet4,
     marginBottom: 20,
   },
-
-  // Tabs de roles
   filterContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -42,7 +39,6 @@ export const qualiStyles = StyleSheet.create({
     color: "#fff",
   },
 
-  // Card trabajador
   workerCard: {
     backgroundColor: "#fff",
     borderRadius: 20,
@@ -59,12 +55,34 @@ export const qualiStyles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 14,
   },
+  workerImageContainer: {
+    position: "relative",
+  },
   workerImage: {
     width: 80,
     height: 80,
     borderRadius: 40,
     marginRight: 14,
   },
+
+  // ✅ Ícono de asistencia
+  attendanceIcon: {
+    position: "absolute",
+    bottom: -4,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  attendanceIconTrue: {
+    backgroundColor: Colors.violet4,
+  },
+  attendanceIconFalse: {
+    backgroundColor: Colors.red,
+  },
+
   workerName: {
     fontSize: 18,
     fontFamily: "interBold",
@@ -77,7 +95,6 @@ export const qualiStyles = StyleSheet.create({
     fontFamily: "interMedium",
   },
 
-  // Chips
   chip: {
     flexDirection: "row",
     alignItems: "center",
@@ -110,7 +127,6 @@ export const qualiStyles = StyleSheet.create({
     color: Colors.gray3,
   },
 
-  // Rating
   ratingRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -123,7 +139,6 @@ export const qualiStyles = StyleSheet.create({
     fontFamily: "interMedium",
   },
 
-  // Comentarios
   commentBox: {
     marginTop: 8,
   },
@@ -146,7 +161,6 @@ export const qualiStyles = StyleSheet.create({
     marginTop: 4,
   },
 
-  // Footer
   footer: {
     position: "absolute",
     bottom: 0,
@@ -194,4 +208,85 @@ export const qualiStyles = StyleSheet.create({
     fontFamily: "interBold",
     color: "#fff",
   },
+
+  // 🟣 "Ya calificaste a todos"
+  noEventsCard: {
+    height: 500,
+    width: 350,
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    alignSelf: "center",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  noEventsTitle: {
+    fontSize: 20,
+    fontFamily: "interBold",
+    color: Colors.violet4,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  noEventsImage: {
+    width: 210,
+    height: 210,
+    marginBottom: 55,
+    marginTop: 25,
+    alignSelf: "center",
+  },
+  noEventsSubtitle: {
+    fontSize: 14,
+    fontFamily: "interItalic",
+    color: Colors.gray3,
+    textAlign: "center",
+  },
+    qrIconContainer: {
+  position: "absolute",
+  bottom: -5,
+  right: 10,
+  alignSelf: "center",
+  width: 24,
+  height: 24,
+  borderRadius: 21,
+  backgroundColor: Colors.violet4,
+  alignItems: "center",
+  justifyContent: "center",
+  shadowColor: Colors.black,
+  shadowOffset: { width: 0, height: 3 },
+  shadowOpacity: 0.25,
+  shadowRadius: 3.5,
+  elevation: 6,
+},
+qrIconContainerInactive: {
+  backgroundColor: Colors.violet4, // sigue violeta
+  opacity: 0.9,
+},
+qrIcon: {
+  fontSize: 16,
+  color: "#fff",
+},
+
+// ❌ Cruz roja perfecta
+crossOverlay: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  alignItems: "center",
+  justifyContent: "center",
+},
+crossLine: {
+  position: "absolute",
+  width: 2,       // grosor de la línea
+  height: 24,     // largo de la línea
+  backgroundColor: Colors.red,
+  borderRadius: 1,
+},
+crossLine1: {
+  transform: [{ rotate: "45deg" }],
+},
+crossLine2: {
+  transform: [{ rotate: "-45deg" }],
+},
+
 });
