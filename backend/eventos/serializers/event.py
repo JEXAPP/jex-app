@@ -5,7 +5,7 @@ from eventos.errors.events_messages import BOTH_PROFILE_IMAGE_FIELDS_REQUIRED, E
 from eventos.models.category_events import Category
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
-from eventos.constants import EventStates
+from eventos.constants import OFFER_VALID_STATES, EventStates
 from eventos.serializers.category_events import ListCategorySerializer
 from eventos.serializers.state_events import EventStateSerializer
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
@@ -425,7 +425,7 @@ class EventReportSerializer(serializers.ModelSerializer):
     def get_total_offers_accepted(self, obj):
         return Offer.objects.filter(
             selected_shift__vacancy__event=obj,
-            state__name='ACCEPTED'
+            state__name__in=OFFER_VALID_STATES
         ).count()
 
     def get_total_attendances_confirmed(self, obj):
@@ -443,7 +443,7 @@ class EventReportSerializer(serializers.ModelSerializer):
     def get_employees(self, obj):
         offers = Offer.objects.filter(
             selected_shift__vacancy__event=obj,
-            state__name='ACCEPTED'
+            state__name__in=OFFER_VALID_STATES
         )
         return EmployeeReportSerializer(
             offers, many=True, context={"event": obj}
