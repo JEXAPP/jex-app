@@ -376,6 +376,8 @@ class EmployeeReportSerializer(serializers.Serializer):
     attendance = serializers.SerializerMethodField()
     payment_status = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
+    profile_image_url = serializers.SerializerMethodField()
+    job_type = serializers.SerializerMethodField()
 
     def get_attendance(self, obj):
         # Verifica si el empleado asistió al shift de la oferta
@@ -403,6 +405,13 @@ class EmployeeReportSerializer(serializers.Serializer):
 
         rating_obj = behavior_instance.ratings.filter(event=event).first()
         return rating_obj.rating if rating_obj else None
+
+    def get_profile_image_url(self, obj):
+        user = obj.employee.user
+        return user.profile_image.url if user.profile_image else None
+    
+    def get_job_type(self, obj):
+        return get_job_type_display(obj.selected_shift.vacancy)
 
 
 class EventReportSerializer(serializers.ModelSerializer):
