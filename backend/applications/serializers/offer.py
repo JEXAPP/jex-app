@@ -310,7 +310,7 @@ class OfferDecisionSerializer(serializers.Serializer):
             # ---- NUEVO: Rechazar ofertas conflictivas del mismo usuario ----
             shift = offer.selected_shift
             conflicting_offers = Offer.objects.filter(
-                application__employee=offer.application.employee,
+                employee=offer.employee,
                 state__name=OfferStates.PENDING.value,
                 selected_shift__start_time__lt=shift.end_time,
                 selected_shift__end_time__gt=shift.start_time
@@ -346,7 +346,7 @@ class OfferDecisionSerializer(serializers.Serializer):
             sync_offer_chat(offer)
 
             try:
-                employer_user = vacancy.event.owner  # o como tengas referenciado al empleador
+                employer_user = vacancy.event.owner
                 event_name = vacancy.event.name
 
                 send_notification(
