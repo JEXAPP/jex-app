@@ -547,6 +547,9 @@ class ShiftDetailOfferAcceptedSerializer(serializers.ModelSerializer):
     requirements = RequirementSerializer(source="vacancy.requirements", many=True, read_only=True)
     event_name = serializers.CharField(source="vacancy.event.name", read_only=True)
     event_location = serializers.CharField(source="vacancy.event.location", read_only=True)
+    address = serializers.CharField(source="vacancy.event.location", read_only=True)
+    latitude = serializers.FloatField(source="vacancy.event.latitude", read_only=True)
+    longitude = serializers.FloatField(source="vacancy.event.longitude", read_only=True)
 
     class Meta:
         model = Shift
@@ -561,6 +564,9 @@ class ShiftDetailOfferAcceptedSerializer(serializers.ModelSerializer):
             "requirements",
             "event_name",
             "event_location",
+            "address",
+            "latitude",
+            "longitude",
         ]
 
     def get_job_type(self, obj):
