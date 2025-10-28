@@ -41,7 +41,7 @@ class ShiftSerializer(serializers.ModelSerializer):
         """
         user = self.context.get('request').user
         try:
-            employee_profile = user.employeeprofile
+            employee_profile = user.employee_profile
         except AttributeError:
             return False
 
