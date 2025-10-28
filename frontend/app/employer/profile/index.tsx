@@ -58,7 +58,7 @@ export default function ProfileScreen() {
             source={
               user.image
                 ? { uri: user.image }
-                : require("@/assets/images/jex/Jex-FotoPerfil.png")
+                : require("@/assets/images/jex/Jex-FotoPerfil.webp")
             }
             style={styles.avatar}
           />

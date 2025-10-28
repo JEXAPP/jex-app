@@ -94,7 +94,7 @@ export const useHomeOffers = () => {
            eventImage:
             item?.event_image_url && typeof item.event_image_url === 'string'
               ? { uri: item.event_image_url }
-              : require('@/assets/images/jex/Jex-Evento-Default.png'),
+              : require('@/assets/images/jex/Jex-Evento-Default.webp'),
 
             expirationDate,
             expirationTime,

@@ -117,7 +117,7 @@ export default function QualiScreen() {
       {noWorkers ? (
         <View style={styles.noEventsCard}>
           <Image
-            source={require("@/assets/images/jex/Jex-Diseñando.png")}
+            source={require("@/assets/images/jex/Jex-Sin-Eventos.webp")}
             style={styles.noEventsImage}
             resizeMode="contain"
           />
@@ -154,7 +154,7 @@ export default function QualiScreen() {
                         source={
                           worker.image
                             ? { uri: worker.image }
-                            : require("@/assets/images/jex/Jex-FotoPerfil.png")
+                            : require("@/assets/images/jex/Jex-FotoPerfil.webp")
                         }
                         style={styles.workerImage}
                         resizeMode="cover"

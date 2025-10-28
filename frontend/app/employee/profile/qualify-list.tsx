@@ -37,7 +37,7 @@ export default function SelectEventToQualify() {
     <LinearGradient colors={["#f8f6ff", "#ffffff"]} style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
         <Image
-          source={require("@/assets/images/jex/Jex-Busqueda-Disponibilidad.png")}
+          source={require("@/assets/images/jex/Jex-Busqueda-Disponibilidad.webp")}
           style={styles.headerImage}
         />
 

@@ -152,7 +152,7 @@ export default function ManipulateVacancyScreen() {
             source={
               job?.event_image_url && typeof job.event_image_url === 'string'
                 ? { uri: job.event_image_url }
-                : require('@/assets/images/jex/Jex-FotoPerfil.png')
+                : require('@/assets/images/jex/Jex-FotoPerfil.webp')
             }
             style={styles.logoWrapper}
           />

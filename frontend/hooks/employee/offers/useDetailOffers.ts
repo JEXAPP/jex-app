@@ -92,7 +92,7 @@ export const useDetailOffers = () => {
           eventImage:
           data?.event_image_url && typeof data.event_image_url === 'string'
             ? { uri: data.event_image_url }
-            : require('@/assets/images/jex/Jex-Evento-Default.png'),
+            : require('@/assets/images/jex/Jex-Evento-Default.webp'),
           expirationDate,
           expirationTime,
           location: vacancy?.event?.location ?? "Ubicación no definida",

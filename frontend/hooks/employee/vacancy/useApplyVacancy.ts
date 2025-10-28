@@ -107,7 +107,7 @@ export const useApplyVacancy = () => {
         deadline: formatFechaCorta(vacante.shifts[0]?.start_date),
         event_image_url: vacante.event.event_image_url,
         event_image_public_id: vacante.event.event_image_public_id,
-        mapImage: require('@/assets/images/maps.png'),
+        mapImage: require('@/assets/images/maps.webp'),
         rating: owner.average_rating ?? 0,
       });
 
@@ -115,7 +115,7 @@ export const useApplyVacancy = () => {
       const organizerImage =
         owner.profile_image && typeof owner.profile_image === "object" && owner.profile_image.url
           ? owner.profile_image.url
-          : require('@/assets/images/jex/Jex-FotoPerfil.png');
+          : require('@/assets/images/jex/Jex-FotoPerfil.webp');
 
 
       setOrganizer({
