@@ -25,7 +25,7 @@ class VacancyListService:
             vacancy__state__name=VacancyStates.ACTIVE.value,
             start_date__gte=today,
             vacancy__event__state__name=EventStates.PUBLISHED.value,
-        ).order_by('-payment', 'start_date')  # primero pago alto, luego más próximo
+        ).order_by('-payment', 'start_date')
 
         qs = Shift.objects.filter(
             id=Subquery(best_shift_per_event.values('id')[:1])
