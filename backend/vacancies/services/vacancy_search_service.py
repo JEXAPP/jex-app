@@ -3,7 +3,7 @@ from vacancies.models.vacancy import Vacancy
 from django.db.models import Q
 from unidecode import unidecode
 from django.db.models.functions import Lower
-
+from django.db.models import Max, Min
 
 
 class VacancySearchService:
@@ -15,7 +15,7 @@ class VacancySearchService:
         """
         return (
             Vacancy.objects
-            .select_related("event", "event__event_image","job_type", "state")
+            .select_related("event", "event__event_image", "job_type", "state")
             .prefetch_related("shifts")
             .filter(state__name=VacancyStates.ACTIVE.value)
         )
@@ -87,7 +87,25 @@ class VacancySearchService:
     def order_queryset(queryset, order_key):
         """
         Ordena el queryset según un campo permitido en ORDERING_MAP.
-        Por defecto, ordena por id.
+        Soporta agregación para campos relacionados (shifts__payment, shifts__start_date)
         """
-        order_field = ORDERING_MAP.get(order_key) if order_key else None
-        return queryset.order_by(order_field or "id")
+        order_field = ORDERING_MAP.get(order_key)
+        if not order_field:
+            return queryset.order_by("id")  # orden por defecto
+
+        # Ordenamiento por payment
+        if "payment" in order_field:
+            queryset = queryset.annotate(max_payment=Max("shifts__payment"))
+            if order_field.startswith("-"):
+                return queryset.order_by("-max_payment")
+            return queryset.order_by("max_payment")
+
+        # Ordenamiento por start_date
+        if "start_date" in order_field:
+            queryset = queryset.annotate(min_start=Min("shifts__start_date"))
+            if order_field.startswith("-"):
+                return queryset.order_by("-min_start")
+            return queryset.order_by("min_start")
+
+        # Ordenamiento por otros campos normales
+        return queryset.order_by(order_field)
