@@ -158,10 +158,13 @@ class EventSerializer(serializers.ModelSerializer):
     state = EventStateSerializer()
     event_image_public_id = serializers.SerializerMethodField()
     event_image_url = serializers.SerializerMethodField()
+    address = serializers.CharField(source='location')
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'description', 'owner', 'category', 'state', 'event_image_public_id', 'event_image_url']
+        fields = ['id', 'name', 'description', 'owner', 'category', 'state', 'event_image_public_id', 'event_image_url', 'address', 'latitude', 'longitude']
 
     def get_event_image_public_id(self, obj):
         event_image = getattr(obj, 'event_image', None)
