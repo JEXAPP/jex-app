@@ -72,14 +72,7 @@ export const useDetailOffers = () => {
         const shift = data?.application?.shift;
         const vacancy = shift?.vacancy;
 
-        // Calcula vencimiento restando 3 días a la fecha de inicio
-        let expirationDate = "";
-        if (shift?.start_date) {
-          const [d, m, y] = shift.start_date.split("/").map(Number);
-          const start = new Date(y, m - 1, d);
-          start.setDate(start.getDate() - 3);
-          expirationDate = formatDate(start);
-        }
+        const expirationDate = data?.expiration_date
 
         const mapped: Offer = {
           id: data?.id ?? 0,
@@ -89,7 +82,10 @@ export const useDetailOffers = () => {
           startTime: shift?.start_time ?? "",
           endTime: shift?.end_time ?? "",
           company: vacancy?.event?.name ?? "Evento sin nombre",
-          eventImage: require("@/assets/images/jex/Jex-Evento-Default.png"),
+          eventImage:
+          data?.event_image_url && typeof data.event_image_url === 'string'
+            ? { uri: data.event_image_url }
+            : require('@/assets/images/jex/Jex-Evento-Default.png'),
           expirationDate,
           expirationTime: "00:00",
           location: vacancy?.event?.location ?? "Ubicación no definida",

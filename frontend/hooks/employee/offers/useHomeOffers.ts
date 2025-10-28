@@ -78,14 +78,7 @@ export const useHomeOffers = () => {
           const shift = item?.application?.shift;
           const vacancy = shift?.vacancy;
 
-          // Calcula fecha de vencimiento restando 3 días a la fecha de inicio
-          let expirationDate = '';
-          if (shift?.start_date) {
-            const [d, m, y] = shift.start_date.split('/').map(Number);
-            const start = new Date(y, m - 1, d);
-            start.setDate(start.getDate() - 3);
-            expirationDate = formatDate(start);
-          }
+          const expirationDate = data?.expiration_date
 
           return {
             id:
@@ -97,9 +90,11 @@ export const useHomeOffers = () => {
             startTime: shift?.start_time ?? '',
             endTime: shift?.end_time ?? '',
             company: vacancy?.event?.name ?? 'Evento sin nombre',
-            eventImage: vacancy?.event?.image
-              ? { uri: vacancy.event.image }
+           eventImage:
+            item?.event_image_url && typeof item.event_image_url === 'string'
+              ? { uri: item.event_image_url }
               : require('@/assets/images/jex/Jex-Evento-Default.png'),
+
             expirationDate,
             expirationTime: '00:00',
             location: vacancy?.event?.location ?? '',

@@ -77,21 +77,21 @@ export const useApplyVacancy = () => {
         rating: 4.0,
       });
 
-      // ✅ Se maneja la imagen del organizador con fallback
+      // ✅ Manejo correcto de imagen del organizador
       const organizerImage =
-        owner.profile_image && typeof owner.profile_image === "string"
-          ? owner.profile_image
-          : null;
+        owner.profile_image && typeof owner.profile_image === "object" && owner.profile_image.url
+          ? owner.profile_image.url
+          : require('@/assets/images/jex/Jex-FotoPerfil.png');
+
 
       setOrganizer({
         name: owner.company_name || owner.email || '-',
         reviews: owner.rating_count ?? 0,
         rating: owner.average_rating ?? 0,
         jexTime: '1 año',
-        image: organizerImage
-          ? organizerImage
-          : require('@/assets/images/jex/Jex-FotoPerfil.png'), // fallback local
+        image: organizerImage,
       });
+
 
       // === Agrupar shifts por día ===
       const grupos = new Map<string, Shift>();
