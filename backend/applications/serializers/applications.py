@@ -5,6 +5,8 @@ from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from notifications.constants import NotificationTypes
 from notifications.services.send_notification import send_notification
 from rating.utils import get_user_average_rating, get_user_rating_count
+from user_auth.serializers.employee import ViewEmployeeEducationSerializer, ViewEmployeeWorkExperienceSerializer
+from user_auth.serializers.language import EmployeeLanguageSerializer
 from user_auth.utils import get_city_locality, calculate_age
 from vacancies.constants import VacancyStates
 from applications.errors.application_messages import ALREADY_APPLIED_SHIFTS, EMPLOYEE_PROFILE_NOT_FOUND, NOT_PERMISSION_APPLICATION, NOT_PERMISSION_APPLICATION
@@ -124,11 +126,13 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
     approximate_location = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     rating_count = serializers.SerializerMethodField()
+    work_experiences = ViewEmployeeWorkExperienceSerializer(source='employee.work_experiences', many=True)
+    educations = ViewEmployeeEducationSerializer(source='employee.educations', many=True)
+    languages = EmployeeLanguageSerializer(source='employee.languages', many=True)
 
     class Meta:
         model = Application
-        fields = ["current_shift", "shifts", "profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count"]
-
+        fields = ["current_shift", "shifts", "profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count", "work_experiences", "educations", "languages"]
     def get_profile_image(self, obj):
         return obj.employee.user.profile_image.url if obj.employee.user.profile_image else None
 

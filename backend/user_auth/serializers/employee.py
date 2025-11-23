@@ -5,6 +5,7 @@ from eventos.formatters.date_time import CustomDateField
 from rating.utils import get_user_average_rating, get_user_rating_count
 from user_auth.models.education_certification import EducationCertification
 from user_auth.models.work_experience import WorkExperience
+from user_auth.serializers.language import EmployeeLanguageSerializer
 from vacancies.formatters.date_time import CustomTimeField
 from vacancies.models.job_types import JobType
 from vacancies.serializers.job_types import ListJobTypesSerializer
@@ -297,36 +298,6 @@ class EmployeeEducationSerializer(serializers.ModelSerializer):
         return EducationCertification.objects.create(employee=employee, **validated_data)
     
 
-class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
-    profile_image = serializers.SerializerMethodField()
-    name = serializers.SerializerMethodField()
-    age = serializers.SerializerMethodField()
-    approximate_location = serializers.SerializerMethodField()
-    average_rating = serializers.SerializerMethodField()
-    rating_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = EmployeeProfile
-        fields = ["profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count"]
-
-    def get_profile_image(self, obj):
-        return obj.user.profile_image.url if obj.user.profile_image else None
-
-    def get_name(self, obj):
-        return f"{obj.user.first_name} {obj.user.last_name}"
-
-    def get_age(self, obj):
-        return calculate_age(obj.birth_date)
-
-    def get_approximate_location(self, obj):
-        return get_city_locality(obj.address)
-    
-    def get_average_rating(self, obj):
-        return get_user_average_rating(obj.user)
-
-    def get_rating_count(self, obj):
-        return get_user_rating_count(obj.user)
-
 class EmployeeProfileSearchSerializer(serializers.ModelSerializer):
     employee_id = serializers.IntegerField(source="id")
     profile_image = serializers.SerializerMethodField()
@@ -444,3 +415,35 @@ class ViewEmployeeProfileDescriptionSerializer(serializers.ModelSerializer):
 
     def get_profile_image_url(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
+
+class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
+    profile_image = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    age = serializers.SerializerMethodField()
+    approximate_location = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
+    work_experiences = ViewEmployeeWorkExperienceSerializer(many=True)
+    educations = ViewEmployeeEducationSerializer(many=True)
+    languages = EmployeeLanguageSerializer(many=True)
+
+    class Meta:
+        model = EmployeeProfile
+        fields = ["profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count", "work_experiences", "educations", "languages"]
+    def get_profile_image(self, obj):
+        return obj.user.profile_image.url if obj.user.profile_image else None
+
+    def get_name(self, obj):
+        return f"{obj.user.first_name} {obj.user.last_name}"
+
+    def get_age(self, obj):
+        return calculate_age(obj.birth_date)
+
+    def get_approximate_location(self, obj):
+        return get_city_locality(obj.address)
+    
+    def get_average_rating(self, obj):
+        return get_user_average_rating(obj.user)
+
+    def get_rating_count(self, obj):
+        return get_user_rating_count(obj.user)
