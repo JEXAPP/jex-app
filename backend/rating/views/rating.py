@@ -11,6 +11,7 @@ from user_auth.permissions import IsInGroup
 from user_auth.constants import EMPLOYER_ROLE, EMPLOYEE_ROLE
 
 from rating.serializers.rating import (
+    EmployeeRatingDetailSerializer,
     ViewRatingsSerializer,
     ListEmployerEventsSerializer,
     SingleEmployerRatingSerializer,
@@ -290,5 +291,14 @@ class BulkCreateEmployerRatingView(APIView):
                 for behavior in affected_behaviors:
                     behavior.update_average_rating()
 
+class EmployeeRatingDetailView(ListAPIView):
+    serializer_class = EmployeeRatingDetailSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
 
+    def get_queryset(self):
+        user_employee_id = self.kwargs.get('user_id')
+        return Rating.objects.filter(
+            behavior__user_id=user_employee_id
+        ).select_related('rater', 'behavior')
 

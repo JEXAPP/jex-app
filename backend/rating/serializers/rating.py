@@ -245,3 +245,36 @@ class SingleEmployerRatingSerializer(serializers.Serializer):
         data['event_obj'] = event_obj
 
         return data
+
+
+class EmployeeRatingDetailSerializer(serializers.ModelSerializer):
+    company_name = serializers.SerializerMethodField()
+    reviewerImageUrl = serializers.SerializerMethodField()
+    score = serializers.FloatField(source='rating')
+    comment = serializers.CharField(source='comments')
+    job_date = serializers.DateTimeField(source='event.start_date')
+    createdAt = serializers.DateTimeField(source='date')
+
+    class Meta:
+        model = Rating
+        fields = [
+            'id',
+            'company_name',
+            'reviewerImageUrl',
+            'score',
+            'comment',
+            'createdAt',
+        ]
+
+    def get_company_name(self, obj):
+        owner_user = obj.event.owner
+        try:
+            employer_profile = owner_user.employer_profile
+            return employer_profile.company_name
+        except EmployerProfile.DoesNotExist:
+            return None
+
+    def get_reviewerImageUrl(self, obj):
+        image = getattr(obj.rater, 'profile_image', None)
+        return image.url if image else None
+

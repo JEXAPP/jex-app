@@ -1,6 +1,6 @@
 from django.urls import path
 from rating.views.penalty import CreatePenaltyView, ListPenaltyCategoriesView
-from rating.views.rating import BulkCreateRatingView, ViewRatings, ListEmployersEventsView, BulkCreateEmployerRatingView
+from rating.views.rating import BulkCreateRatingView, EmployeeRatingDetailView, ViewRatings, ListEmployersEventsView, BulkCreateEmployerRatingView
 
 urlpatterns = [
     path('rate/', BulkCreateRatingView.as_view(), name='bulk-realize-rating'),
@@ -9,5 +9,5 @@ urlpatterns = [
     path('rate-employer/', BulkCreateEmployerRatingView.as_view(), name='bulk-realize-employer-rating'),
     path('penalty/categories/', ListPenaltyCategoriesView.as_view(), name='list-penalty-categories'),
     path('penalty/create/', CreatePenaltyView.as_view(), name='create-penalty'),
-
+    path('employee/<int:user_id>/ratings/', EmployeeRatingDetailView.as_view(), name='employee-rating-detail'),
 ]

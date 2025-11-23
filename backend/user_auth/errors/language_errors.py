@@ -1,0 +1,1 @@
+PROFILE_NOT_FOUND = "Perfil de empleado no encontrado."

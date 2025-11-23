@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from user_auth.views.employee import CompleteEmployeeSocialView, EmployeeEducationView, EmployeeInterestsView, EmployeeProfileDescriptionView, EmployeeRegisterView, EmployeeValidateMailView, EmployeeWorkExperienceView, ViewEmployeeEducation, ViewEmployeeInterests, ViewEmployeeProfileDescription, ViewEmployeeWorkExperience
 from user_auth.views.employer import CompleteEmployerSocialView, EmployerProfileDescriptionView, EmployerRegisterView
+from user_auth.views.language import EmployeeLanguagesBulkUpdateView, EmployeeLanguagesView, LanguageLevelsView, LanguagesListView
 from user_auth.views.password_reset import PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
 from user_auth.views.phone_verification import SendPhoneVerificationCodeView, VerifyPhoneCodeView
 from user_auth.views.user import UserProfileView
@@ -33,4 +34,8 @@ urlpatterns = [
     path('employee/view-education/', ViewEmployeeEducation.as_view(), name='view-employee-education'),
     path('employee/view-interests/', ViewEmployeeInterests.as_view(), name='view-employee-interests'),
     path('employee/view-profile-description/', ViewEmployeeProfileDescription.as_view(), name='view-employee-profile-description'),
+    path('employee/languages/', EmployeeLanguagesView.as_view(), name='employee-languages'),
+    path('language-levels/', LanguageLevelsView.as_view(), name='language-levels'),
+    path('languages/', LanguagesListView.as_view(), name='languages-list'),
+    path('employee/language/', EmployeeLanguagesBulkUpdateView.as_view(), name='employee-language-detail'),
 ]
