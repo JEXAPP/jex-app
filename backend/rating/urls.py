@@ -9,5 +9,5 @@ urlpatterns = [
     path('rate-employer/', BulkCreateEmployerRatingView.as_view(), name='bulk-realize-employer-rating'),
     path('penalty/categories/', ListPenaltyCategoriesView.as_view(), name='list-penalty-categories'),
     path('penalty/create/', CreatePenaltyView.as_view(), name='create-penalty'),
-    path('employee/<int:user_id>/ratings/', EmployeeRatingDetailView.as_view(), name='employee-rating-detail'),
+    path('employee/ratings/', EmployeeRatingDetailView.as_view(), name='employee-rating-detail'),
 ]

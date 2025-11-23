@@ -294,10 +294,10 @@ class BulkCreateEmployerRatingView(APIView):
 class EmployeeRatingDetailView(ListAPIView):
     serializer_class = EmployeeRatingDetailSerializer
     permission_classes = [IsAuthenticated, IsInGroup]
-    required_groups = [EMPLOYEE_ROLE, EMPLOYER_ROLE]
+    required_groups = [EMPLOYEE_ROLE]
 
     def get_queryset(self):
-        user_employee_id = self.kwargs.get('user_id')
+        user_employee_id = self.request.user.id
         return Rating.objects.filter(
             behavior__user_id=user_employee_id
         ).select_related('rater', 'behavior')
