@@ -5,6 +5,7 @@ from eventos.formatters.date_time import CustomDateField
 from rating.utils import get_user_average_rating, get_user_rating_count
 from user_auth.models.education_certification import EducationCertification
 from user_auth.models.work_experience import WorkExperience
+from user_auth.serializers.language import EmployeeLanguageSerializer
 from vacancies.formatters.date_time import CustomTimeField
 from vacancies.models.job_types import JobType
 from vacancies.serializers.job_types import ListJobTypesSerializer
@@ -424,10 +425,11 @@ class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
     rating_count = serializers.SerializerMethodField()
     work_experiences = ViewEmployeeWorkExperienceSerializer(many=True)
     educations = ViewEmployeeEducationSerializer(many=True)
+    languages = EmployeeLanguageSerializer(many=True)
 
     class Meta:
         model = EmployeeProfile
-        fields = ["profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count", "work_experiences", "educations"]
+        fields = ["profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count", "work_experiences", "educations", "languages"]
     def get_profile_image(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
 
