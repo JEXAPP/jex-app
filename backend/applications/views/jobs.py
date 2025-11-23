@@ -7,7 +7,7 @@ from eventos.constants import EventStates
 from eventos.models.event import Event
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.permissions import IsInGroup
-from applications.serializers.jobs import EmployeeAcceptedEventsSerializer, EmployeeForSearchSerializer
+from applications.serializers.jobs import EmployeeAcceptedEventsSerializer, EmployeeForSearchSerializer, EmployeeJobsHistorySerializer
 
 class EmployeeJobsView(ListAPIView):
     serializer_class = EmployeeForSearchSerializer
@@ -49,3 +49,32 @@ class ListAcceptedEventsByEmployeeView(ListAPIView):
             vacancies__shifts__selected_offers__state=accepted_state,
             state__name__in=event_states_accepted,
         ).distinct()
+
+class EmployeeJobsHistoryView(ListAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+    serializer_class = EmployeeJobsHistorySerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        employee_profile = getattr(user, "employee_profile", None)
+
+        if not employee_profile:
+            return Offer.objects.none()
+
+        completed_state = OfferState.objects.filter(
+            name=OfferStates.COMPLETED.value
+        ).first()
+
+        qs = Offer.objects.filter(
+            employee=employee_profile,
+            state=completed_state
+        ).select_related(
+            "selected_shift",
+            "selected_shift__vacancy",
+            "selected_shift__vacancy__event",
+            "selected_shift__vacancy__job_type",
+            "employer",
+        ).order_by("-updated_at")
+
+        return qs
