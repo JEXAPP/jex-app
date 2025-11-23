@@ -255,8 +255,8 @@ class EmployeeRatingDetailSerializer(serializers.ModelSerializer):
     job_type = serializers.SerializerMethodField()
     score = serializers.FloatField(source='rating')
     comment = serializers.CharField(source='comments')
-    job_date = serializers.SerializerMethodField()
-    createdAt = serializers.DateTimeField(source='date')
+    job_date = CustomDateField(source='get_job_date', read_only=True)
+    createdAt = CustomDateField(source='date', read_only=True)
 
     class Meta:
         model = Rating
