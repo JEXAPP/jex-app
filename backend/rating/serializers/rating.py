@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from applications.constants import OfferStates
+from applications.models.offer_state import OfferState
 from rating.models import Rating, Behavior
 from rating.models.users_connections import UserConnection
 from user_auth.models import CustomUser
@@ -245,3 +247,87 @@ class SingleEmployerRatingSerializer(serializers.Serializer):
         data['event_obj'] = event_obj
 
         return data
+
+
+class EmployeeRatingDetailSerializer(serializers.ModelSerializer):
+    company_name = serializers.SerializerMethodField()
+    reviewerImageUrl = serializers.SerializerMethodField()
+    job_type = serializers.SerializerMethodField()
+    score = serializers.FloatField(source='rating')
+    comment = serializers.CharField(source='comments')
+    job_date = CustomDateField(source='get_job_date', read_only=True)
+    createdAt = CustomDateField(source='date', read_only=True)
+
+    class Meta:
+        model = Rating
+        fields = [
+            'id',
+            'company_name',
+            'reviewerImageUrl',
+            'job_type',
+            'score',
+            'comment',
+            'job_date',
+            'createdAt',
+        ]
+
+    def get_company_name(self, obj):
+        owner_user = obj.event.owner
+        try:
+            employer_profile = owner_user.employer_profile
+            return employer_profile.company_name
+        except EmployerProfile.DoesNotExist:
+            return None
+        
+    def _get_offer_for_rating(self, obj):
+        # Cache offers per-rating to avoid duplicate queries when both
+        # get_job_type and get_job_date are called.
+        if not hasattr(self, "_offer_cache"):
+            self._offer_cache = {}
+
+        if obj.id in self._offer_cache:
+            return self._offer_cache[obj.id]
+
+        state_names = [
+            OfferStates.ACCEPTED.value,
+            OfferStates.COMPLETED.value,
+            OfferStates.NOT_SHOWN.value,
+        ]
+
+        employee_profile = getattr(obj.behavior.user, "employee_profile", None)
+        if not employee_profile:
+            self._offer_cache[obj.id] = None
+            return None
+
+        offer = (
+            Offer.objects
+            .select_related("selected_shift__vacancy")
+            .filter(
+                selected_shift__vacancy__event=obj.event,
+                employee__id=employee_profile.id,
+                state__name__in=state_names,
+            )
+            .first()
+        )
+
+        self._offer_cache[obj.id] = offer
+        return offer
+
+    def get_job_type(self, obj):
+        offer = self._get_offer_for_rating(obj)
+        return get_job_type_display(offer.selected_shift.vacancy) if offer else None
+
+    def get_job_date(self, obj):
+        # Usar el start_date del selected_shift de la primera oferta encontrada
+        offer = self._get_offer_for_rating(obj)
+        if not offer:
+            return None
+
+        shift = getattr(offer, "selected_shift", None)
+        return getattr(shift, "start_date", None)
+
+
+    def get_reviewerImageUrl(self, obj):
+        image = getattr(obj.rater, 'profile_image', None)
+        return image.url if image else None
+

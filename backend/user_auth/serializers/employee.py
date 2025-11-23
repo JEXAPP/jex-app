@@ -404,11 +404,13 @@ class ViewEmployeeInterestsSerializer(serializers.ModelSerializer):
 
 class ViewEmployeeProfileDescriptionSerializer(serializers.ModelSerializer):
     profile_image_url = serializers.SerializerMethodField()
-    description = serializers.CharField()    
+    description = serializers.CharField()
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
 
     class Meta:
         model = EmployeeProfile
-        fields = ['description','profile_image_url']
+        fields = ['description', 'profile_image_url', 'first_name', 'last_name', 'dni', 'birth_date']
 
     def get_profile_image_url(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
