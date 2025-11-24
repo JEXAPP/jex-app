@@ -97,6 +97,8 @@ class PenalizedUserSerializer(serializers.ModelSerializer):
 class PenaltySerializer(serializers.ModelSerializer):
     penalized_user = serializers.SerializerMethodField()
     event_info = serializers.SerializerMethodField()
+    penalty_state = serializers.CharField(source='penalty_state.name')
+    penalty_type = serializers.CharField(source='penalty_type.name')
 
     class Meta:
         model = Penalty
