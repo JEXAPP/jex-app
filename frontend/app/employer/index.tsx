@@ -38,21 +38,17 @@ export default function AdminPanelScreen() {
         <View style={styles.headerRow}>
           <Text style={styles.title}>Eventos</Text>
           <IconButton
-            sizeButton={24}
-            sizeContent={22}
+            sizeButton={28}
             styles={iconButtonStyles1}
             onPress={goToCreateEvent}
-            content="add"
+            icon={iconos.plus(20, Colors.white)}
             backgroundColor={Colors.gray2}
-            contentColor={Colors.white}
           />
           <View style={{marginLeft: 100}}>
             <IconButton
-              sizeContent={40}
               styles={iconButtonStyles1}
               onPress={goToNotifications}
-              content="notifications-circle-sharp"
-              contentColor={Colors.violet4}
+              icon={iconos.notification(40, Colors.violet4)}
             />
           </View>
         </View>
@@ -120,7 +116,7 @@ export default function AdminPanelScreen() {
       {
         Borrador: ["Vacantes", "Editar Evento"],
         Publicado: ["Vacantes", "Contratación Tardía"],
-        "En Curso": ["Asistencia"],
+        "En curso": ["Asistencia"],
         Finalizado: ["Calificaciones", "Reportes"],
       }[currentEvent.estado?.name] ?? [];
 
@@ -155,17 +151,15 @@ export default function AdminPanelScreen() {
             sizeContent={22}
             styles={iconButtonStyles1}
             onPress={goToCreateEvent}
-            content="add"
+            icon={iconos.plus(22, Colors.white)}
             backgroundColor={Colors.gray2}
-            contentColor={Colors.white}
           />
           <View style={{marginLeft: 100}}>
             <IconButton
-              sizeContent={40}
               styles={iconButtonStyles1}
+              sizeContent={40}
               onPress={goToNotifications}
-              content="notifications-circle-sharp"
-              contentColor={Colors.violet4}
+              icon={iconos.notification(40, Colors.violet4)}
             />
           </View>
         </View>

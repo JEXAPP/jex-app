@@ -1,3 +1,4 @@
+// src/hooks/employer/profile/useProfileEmployer.ts
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { clearTokens } from "@/services/internal/api";
@@ -15,20 +16,21 @@ export const useProfile = () => {
     ratingCount: number;
   } | null>(null);
 
-  // 👉 cargar datos del empleador
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const data = await requestBackend(`/api/auth/user/profile/`, null, "GET");
 
         if (data) {
+          const ratingNumber =
+            data.rating !== null && data.rating !== undefined
+              ? Number(data.rating)
+              : 0;
+
           setUser({
             name: data.user_name ?? "Usuario",
             image: data.image_url ?? null,
-            rating:
-              data.rating !== null && data.rating !== undefined
-                ? Number(data.rating.toFixed(1))
-                : 0,
+            rating: ratingNumber,
             ratingCount: data.rating_count ?? 0,
           });
         }
@@ -47,8 +49,30 @@ export const useProfile = () => {
     console.log("REFRESH:", refresh);
   };
 
+  // Navegaciones (ajustá paths si los tuyos son otros)
+  const goToProfileDetails = () => {
+   // router.push("/employer/profile/details");
+  };
+
+  const goToRatingsScreen = () => {
+    router.push("/employer/profile/employer-ratings");
+  };
+
+  const goToEventsHistory = () => {
+    router.push("/employer/profile/events-history");
+  };
+
   const options = [
-    { label: "Legal", icon: "file-text" }, // se abre desde ProfileScreen con loadTerms
+    {
+      label: "Editar perfil",
+      icon: "user",
+      onPress: goToProfileDetails,
+    },
+    {
+      label: "Legal",
+      icon: "file-text",
+      // el onPress se maneja en la pantalla para abrir términos
+    },
   ];
 
   const handleLogout = async () => {
@@ -72,5 +96,8 @@ export const useProfile = () => {
     user,
     options,
     handleLogout,
+    goToProfileDetails,
+    goToRatingsScreen,
+    goToEventsHistory,
   };
 };

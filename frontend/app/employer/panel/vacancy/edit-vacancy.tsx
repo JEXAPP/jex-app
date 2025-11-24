@@ -75,11 +75,9 @@ export default function EditVacancyScreen() {
                 <Text style={styles.subtitulo}> Vacante </Text>
                 <View style={styles.subtitleButtons}>
                   <IconButton
-                    sizeContent={25}
                     styles={iconButtonStyles1}
                     onPress={toggleVacancy}
-                    content={expandedVacancy ? 'folder-open' : 'folder'}
-                    contentColor={Colors.violet4}
+                    icon={expandedVacancy ? iconos.carpeta_abierta(25, Colors.violet4) : iconos.carpeta_cerrada(25, Colors.violet4)}
                   />
                 </View>
               </View>
@@ -133,11 +131,9 @@ export default function EditVacancyScreen() {
                         styles={{ input: { ...inputStyles1.input }, inputContainer: { ...inputStyles1.inputContainer, width: 270, paddingVertical: 5 } }}
                       />
                       <IconButton
-                        sizeContent={25}
                         styles={iconButtonStyles1}
                         onPress={() => eliminarRequerimiento(requirementIndex)}
-                        content="trash"
-                        contentColor={Colors.gray2}
+                        icon={iconos.trash(25, Colors.gray2)}
                       />
                     </View>
                   ))}
@@ -147,11 +143,9 @@ export default function EditVacancyScreen() {
                       <View style={styles.shiftTitleRow}>
                         <Text style={styles.turnoTitulo}>{`Turno ${turnoIndex + 1}`}</Text>
                         <IconButton
-                          sizeContent={25}
                           styles={iconButtonStyles1}
                           onPress={() => toggleShift(turnoIndex)}
-                          content={expandedShift === turnoIndex ? 'folder-open' : 'folder'}
-                          contentColor={Colors.white}
+                          icon={expandedShift === turnoIndex ? iconos.carpeta_abierta(25, Colors.white) : iconos.carpeta_cerrada(25, Colors.white)}
                         />
                       </View>
 

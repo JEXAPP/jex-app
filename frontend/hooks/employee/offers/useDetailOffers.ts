@@ -26,6 +26,9 @@ export const useDetailOffers = () => {
   const [locationAddress, setLocationAddress] = useState<string | null>(null);
   const [locationCoords, setLocationCoords] = useState<Coords | null>(null);
 
+  const [isMpAssociated, setIsMpAssociated] = useState<boolean>(true);
+  const [showMpModal, setShowMpModal] = useState(false);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
@@ -50,7 +53,7 @@ export const useDetailOffers = () => {
         }, 3000);
       });
     }
-  }, [showMatch]);
+  }, []);
 
   const formatNumber = (value: string | number) => {
     const num = Number(value);
@@ -71,15 +74,19 @@ export const useDetailOffers = () => {
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const data = await requestBackend(`/api/applications/offers/${id}/detail/`, null, "GET");
+        const data = await requestBackend(
+          `/api/applications/offers/${id}/detail/`,
+          null,
+          "GET"
+        );
         if (!mounted) return;
 
         const shift = data?.application?.shift ?? data?.shift;
         const vacancy = shift?.vacancy;
         const ev = vacancy?.event ?? {};
 
-        const expirationDate = data?.expiration_date ?? '';
-        const expirationTime = data?.expiration_time ?? '';
+        const expirationDate = data?.expiration_date ?? "";
+        const expirationTime = data?.expiration_time ?? "";
 
         const mapped: Offer = {
           id: data?.id ?? 0,
@@ -90,22 +97,27 @@ export const useDetailOffers = () => {
           endTime: shift?.end_time ?? "",
           company: vacancy?.event?.name ?? "Evento sin nombre",
           eventImage:
-          data?.event_image_url && typeof data.event_image_url === 'string'
-            ? { uri: data.event_image_url }
-            : require('@/assets/images/jex/Jex-Evento-Default.webp'),
+            data?.event_image_url && typeof data.event_image_url === "string"
+              ? { uri: data.event_image_url }
+              : require("@/assets/images/jex/Jex-Evento-Default.webp"),
           expirationDate,
           expirationTime,
           location: vacancy?.event?.location ?? "Ubicación no definida",
-          requirements: vacancy?.requirements?.map((r: any) => r.description) ?? [],
+          requirements:
+            vacancy?.requirements?.map((r: any) => r.description) ?? [],
           comments: data?.additional_comments ?? "-",
         };
 
         setOffer(mapped);
 
         const topLevelAddr: string | null =
-          typeof data?.address === "string" && data.address.trim().length > 0 ? data.address.trim() : null;
+          typeof data?.address === "string" && data.address.trim().length > 0
+            ? data.address.trim()
+            : null;
         const eventAddr: string | null =
-          typeof ev?.location === "string" && ev.location.trim().length > 0 ? ev.location.trim() : null;
+          typeof ev?.location === "string" && ev.location.trim().length > 0
+            ? ev.location.trim()
+            : null;
 
         const topLat = toNum(data?.latitude);
         const topLng = toNum(data?.longitude);
@@ -120,6 +132,8 @@ export const useDetailOffers = () => {
             ? { latitude: evLat, longitude: evLng }
             : null
         );
+
+        setIsMpAssociated(Boolean(data?.is_mp_associated));
       } catch (e) {
         console.log("Error al traer detalle de oferta:", e);
       } finally {
@@ -131,13 +145,17 @@ export const useDetailOffers = () => {
     return () => {
       mounted = false;
     };
-  }, [id]);
+  }, []);
 
   const decideOffer = async (rejected: boolean, onAccepted?: () => void) => {
     if (rejected) setShowRejected(true);
     try {
       const body = { rejected };
-      await requestBackend(`/api/applications/offers/${id}/decide/`, body, "POST");
+      await requestBackend(
+        `/api/applications/offers/${id}/decide/`,
+        body,
+        "POST"
+      );
       if (!rejected && onAccepted) onAccepted();
     } catch (err) {
       console.log("Error al decidir la oferta:", err);
@@ -165,6 +183,13 @@ export const useDetailOffers = () => {
     await handleReject();
   };
 
+  const openMpModal = () => setShowMpModal(true);
+  const closeMpModal = () => setShowMpModal(false);
+  const goToAssociateMp = () => {
+    setShowMpModal(false);
+    router.push("/employee/profile/settings/associate-mp");
+  };
+
   return {
     offer,
     loading,
@@ -184,5 +209,11 @@ export const useDetailOffers = () => {
 
     locationAddress,
     locationCoords,
+
+    isMpAssociated,
+    showMpModal,
+    openMpModal,
+    closeMpModal,
+    goToAssociateMp,
   };
 };

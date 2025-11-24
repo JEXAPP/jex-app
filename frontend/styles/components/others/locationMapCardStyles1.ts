@@ -9,7 +9,7 @@ export const locationMapCardStyles1 = StyleSheet.create({
     gap: 12,
   },
   mapWrapper: {
-    width: 80,
+    width: 100,
     height: 70,
     borderRadius: Borders.soft,
     overflow: 'hidden',
@@ -27,11 +27,6 @@ export const locationMapCardStyles1 = StyleSheet.create({
     paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 2,
     minHeight: 48,
   },
   infoIcon: {
@@ -40,7 +35,7 @@ export const locationMapCardStyles1 = StyleSheet.create({
   infoText: {
     flex: 1,
     color: Colors.gray3,
-    fontFamily: 'interRegular',
+    fontFamily: 'interMediumItalic',
     fontSize: 14,
   },
 });

@@ -93,6 +93,12 @@ export function getApi(): AxiosInstance {
 
   // Inserta el access en cada request
   api.interceptors.request.use(async (cfg) => {
+    // Si el request marcó explícitamente que NO use auth, no agrego token
+    if ((cfg as any).useAuth === false) {
+      if (cfg.headers) delete (cfg.headers as any).Authorization;
+      return cfg;
+    }
+
     const token = await getAccess();
     if (token) {
       if ((cfg.headers as any)?.set) {

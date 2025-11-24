@@ -1,80 +1,47 @@
-import { Text, TouchableOpacity, View, Image } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button/Button';
+import { SelectableTag } from '@/components/button/SelectableTags';
 import { iconos } from '@/constants/iconos';
 import { useStepThree } from '@/hooks/auth/additional-info/useStepThree';
 import { stepThreeAdditionalInfoStyles as styles } from '@/styles/app/auth/additional-info/stepThreeStyles';
-import { buttonStyles1 } from '@/styles/components/button/buttonStyles/buttonStyles1';
+import { selectableTagStyles2 } from '@/styles/components/button/selectableTagsStyles/selectableTagsStyles2';
 import { Colors } from '@/themes/colors';
-import { buttonStyles5 } from '@/styles/components/button/buttonStyles/buttonStyles5';
 import { ClickWindow } from '@/components/window/ClickWindow';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
+import { buttonStyles5 } from '@/styles/components/button/buttonStyles/buttonStyles5';
 
-export default function OnboardingMercadoPagoScreen() {
+export default function OnboardingInterestsScreen() {
   const {
-    // estado MP
-    status, busy, info, 
-
-    // nav
     omitir, siguiente,
-
-    // acciones
-    vincular, reintentarVerificacion,
-
-    // feedback
-    showError, errorMessage, closeError,
+    intereses, interesesSeleccionados, handleToggleIntereses,
+    loading, showError, errorMessage, closeError,
   } = useStepThree();
-
-  const linked = status === 'linked';
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      {/* Header: Stepper + Omitir */}
       <View style={styles.header}>
-          <Text style={styles.title}>Vinculá con Mercado Pago</Text>         
+          <Text style={styles.title}>Personalizá tu Algoritmo</Text>         
       </View>
 
-      {/* Cuerpo */}
-      <View style={styles.body}>
+      {/* Body */}
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <Text style={styles.subtitle}>Elegí hasta 3 intereses para mejorar tus coincidencias</Text>
 
-        {!linked && (
-          <View style={styles.card}>
-            <Image
-                source={require("@/assets/images/jex/Jex-Mercado-Pago.webp")}
-                style={styles.image}
-                resizeMode="contain"
-              />
+        <View style={styles.tagsContainer}>
+          {intereses.map((interes) => (
+            <SelectableTag
+              key={interes.id}
+              title={interes.name}
+              selected={interesesSeleccionados.includes(interes.id)}
+              onPress={() => handleToggleIntereses(interes.id)}
+              styles={selectableTagStyles2}
+            />
+          ))}
+        </View>
 
-            <Text style={styles.cardText}>
-              Para recibir pagos, necesitás vincular tu cuenta de Mercado Pago.
-            </Text>
-
-          </View>
-        )}
-
-        <Button
-          texto="Vincular con Mercado Pago"
-          onPress={vincular}
-          styles={{...buttonStyles1, boton: {...buttonStyles1.boton, borderRadius: 50}}}
-          loading={busy || status === 'opening'}
-        />
-
-        <Button 
-          onPress={reintentarVerificacion} 
-          disabled={busy}
-          styles={{boton:{...buttonStyles5.boton, width: 200, alignItems: 'flex-start'}, texto:{...buttonStyles5.texto, ...styles.helpLinkText}}} 
-          texto="Ya autoricé, verificar ahora"
-        />
-
-        {linked && info && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Cuenta vinculada</Text>
-            <Text style={styles.cardLine}>
-              Usuario: {info.nickname ?? info.email ?? info.mp_user_id}
-            </Text>
-            <Text style={styles.cardMuted}>ID: {info.mp_user_id}</Text>
-          </View>
-        )}
-      </View>
+      </ScrollView>
 
       {/* Footer: Siguiente */}
       <View style={styles.footer}>
@@ -99,7 +66,6 @@ export default function OnboardingMercadoPagoScreen() {
         icono={iconos.error_outline(30, Colors.white)}
         buttonText='Entendido'
       />
-
     </SafeAreaView>
   );
 }

@@ -16,11 +16,14 @@ import { getStreamClient } from '@/services/stream/streamClient';
 import { threadStyles as s } from '@/styles/app/employer/chats/threadStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
+import { DateSeparator as JexDateSeparator } from '@/components/chats/DateSeparator';
 
 function parseCid(cid: string) {
   const i = cid.indexOf(':');
   return i === -1 ? { type: '', id: '' } : { type: cid.slice(0, i), id: cid.slice(i + 1) };
 }
+
+const JexMessageList = (props: any) => <MessageList {...props} />;
 
 export default function AnnouncementThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
@@ -32,7 +35,11 @@ export default function AnnouncementThreadScreen() {
   const [error, setError] = useState<string | null>(null);
 
   const client = useMemo<StreamChatType | null>(() => {
-    try { return getStreamClient(); } catch { return null; }
+    try {
+      return getStreamClient();
+    } catch {
+      return null;
+    }
   }, []);
 
   useEffect(() => {
@@ -56,8 +63,14 @@ export default function AnnouncementThreadScreen() {
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [client, cid]);
+
+  const CustomDateSeparator = (props: any) => (
+    <JexDateSeparator date={props?.date} />
+  );
 
   if (!client) {
     return (
@@ -68,6 +81,7 @@ export default function AnnouncementThreadScreen() {
       </SafeAreaView>
     );
   }
+
   if (!cid) {
     return (
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
@@ -97,7 +111,6 @@ export default function AnnouncementThreadScreen() {
           {!loading && !error && channel && (
             <StreamChannelUI channel={channel} keyboardVerticalOffset={0}>
               <>
-                {/* Header */}
                 <View style={s.header}>
                   <TouchableOpacity onPress={() => router.back()} style={s.backButton}>
                     <Ionicons name="chevron-back-outline" size={26} color={Colors.violet4} />
@@ -117,16 +130,17 @@ export default function AnnouncementThreadScreen() {
                 </View>
 
                 <View style={{ flex: 1 }}>
-                  <MessageList
+                  <JexMessageList
                     TypingIndicator={TypingIndicator}
                     ScrollToBottomButton={ScrollToBottomButton}
                     inverted={false}
+                    DateSeparator={CustomDateSeparator}
                   />
                 </View>
-                <View style={{ marginBottom:0}}>
-                  <MessageInput/>
+
+                <View style={{ marginBottom: 0 }}>
+                  <MessageInput />
                 </View>
-                
               </>
             </StreamChannelUI>
           )}

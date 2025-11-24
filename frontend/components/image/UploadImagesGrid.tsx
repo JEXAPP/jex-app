@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
 import { IconButton } from '@/components/button/IconButton'; // ajustá el path si varía
 import { uploadImagesGridStyles1 as styles } from '@/styles/components/image/uploadImagesGridStyles1';
+import { iconos } from '@/constants/iconos';
 
 type UploadableImage = {
   uri: string;
@@ -126,11 +127,10 @@ export const UploadImagesGrid: React.FC<Props> = ({
           <View style={styles.trashBtnWrapper}>
             <IconButton
               onPress={() => removeAt(idx)}
-              content="trash"
+              icon={iconos.trash(14, Colors.gray2)}
               sizeContent={14}
               sizeButton={26}
               backgroundColor="rgba(0,0,0,0.5)"
-              contentColor={Colors.white}
               styles={{
                 button: styles.trashBtn,
                 text: styles.trashText,

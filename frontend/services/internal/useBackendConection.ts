@@ -43,7 +43,7 @@ export default function useBackendConection<T = any>() {
     endpoint: string,
     payload: any = undefined,
     method: Method = 'GET',
-    customConfig: RequestConfig = {}
+    customConfig: RequestConfig & { useAuth?: boolean } = {}
   ): Promise<T> => {
     const api = getApi();
     try {

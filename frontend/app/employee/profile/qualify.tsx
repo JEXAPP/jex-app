@@ -58,7 +58,7 @@ export default function QualifyScreen() {
 
                 <View style={{ flex: 1 }}>
                   <Text style={styles.name}>{organizer.name}</Text>
-                  <Text style={styles.event}>Evento: {organizer.event}</Text>
+                  <Text style={styles.event}>{organizer.event}</Text>
                   <Text style={styles.eventDetail}>
                     {organizer.date} • {organizer.time}
                   </Text>

@@ -1,5 +1,5 @@
+// src/app/employer/profile/index.tsx (o donde tengas este screen)
 import React, { useState } from "react";
-import { Colors } from "@/themes/colors";
 import {
   View,
   Text,
@@ -11,12 +11,27 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { profileStyles as styles } from "@/styles/app/employee/profile/profileStyles";
-import { useProfile } from "@/hooks/employer/profile/useProfileEmployer";
-import { termsAndConditionsText } from "@/assets/legal/terms_and_conditions";
 
-export default function ProfileScreen() {
-  const { user, options, handleLogout } = useProfile();
+import { Colors } from "@/themes/colors";
+import { termsAndConditionsText } from "@/assets/legal/terms_and_conditions";
+import { useProfile } from "@/hooks/employer/profile/useProfileEmployer";
+import { profileEmployerStyles as styles } from "@/styles/app/employer/profile/profileEmployerStyles";
+
+import RowButton from "@/components/button/RowButton";
+import { rowButtonStyles1 } from "@/styles/components/button/rowButton/rowButtonStyles1";
+import { iconos } from "@/constants/iconos";
+import { DotsLoader } from "@/components/others/DotsLoader";
+
+export default function EmployerProfileScreen() {
+  const {
+    user,
+    options,
+    handleLogout,
+    goToProfileDetails,
+    goToRatingsScreen,
+    goToEventsHistory,
+  } = useProfile();
+
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // modal terms
@@ -26,8 +41,15 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ActivityIndicator size="large" color="#000" />
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "flex-start",
+            alignItems: "center",
+            marginTop: 40,
+          }}
+        >
+          <DotsLoader />
         </View>
       </SafeAreaView>
     );
@@ -44,16 +66,25 @@ export default function ProfileScreen() {
     }
   };
 
-  const loadTerms = async () => {
+  const loadTerms = () => {
     setTermsContent(termsAndConditionsText);
     setTermsVisible(true);
   };
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-        {/* Header */}
-        <View style={styles.header}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 10 }}
+      >
+        <Text style={styles.title}>Perfil</Text>
+
+        {/* Card principal: foto + nombre (tappable para editar) */}
+        <TouchableOpacity
+          style={styles.profileCard}
+          activeOpacity={0.8}
+          onPress={goToProfileDetails}
+        >
           <Image
             source={
               user.image
@@ -63,52 +94,84 @@ export default function ProfileScreen() {
             style={styles.avatar}
           />
           <Text style={styles.name}>{user.name}</Text>
-        </View>
-
-        {/* Rating */}
-        <TouchableOpacity style={styles.ratingCard} activeOpacity={0.7}>
-          <View style={styles.ratingRow}>
-            <View style={styles.starsRow}>
-              {[...Array(5)].map((_, index) => {
-                const filled = index + 1 <= Math.floor(user.rating);
-                const half = user.rating - index >= 0.5 && user.rating - index < 1;
-                return (
-                  <Ionicons
-                    key={index}
-                    name={filled ? "star" : half ? "star-half" : "star-outline"}
-                    size={27}
-                    color="#ffd103ff"
-                    style={{ marginRight: 2 }}
-                  />
-                );
-              })}
-            </View>
-            <Text style={styles.ratingValue}>{user.rating?.toFixed(1) ?? "0.0"}</Text>
-          </View>
-          <Text style={styles.ratingComments}>
-            Promedio de Calificaciones Recibidas ({user.ratingCount})
-          </Text>
         </TouchableOpacity>
 
-        {/* Opciones */}
+        {/* Row de cards: calificaciones + historial de eventos */}
+        <View style={styles.summaryRow}>
+          {/* Calificaciones */}
+          <TouchableOpacity
+            style={styles.summaryCard}
+            activeOpacity={0.8}
+            onPress={goToRatingsScreen}
+          >
+            <Text style={styles.ratingValue}>
+              {user.rating != null ? user.rating.toFixed(1) : "0.0"}
+            </Text>
+
+            <View style={styles.ratingRow}>
+              <View style={styles.starsRow}>
+                {[...Array(5)].map((_, index) => {
+                  const score = user.rating ?? 0;
+                  const filled = index + 1 <= Math.floor(score);
+                  const half = score - index >= 0.5 && score - index < 1;
+
+                  return (
+                    <Ionicons
+                      key={index}
+                      name={filled ? "star" : half ? "star-half" : "star-outline"}
+                      size={25}
+                      color={Colors.violet4}
+                      style={{ marginRight: 2 }}
+                    />
+                  );
+                })}
+              </View>
+            </View>
+
+            <Text style={styles.summaryCardSubtitle}>
+              Promedio de calificaciones ({user.ratingCount})
+            </Text>
+          </TouchableOpacity>
+
+          {/* Historial de eventos */}
+          <TouchableOpacity
+            style={styles.summaryCard2}
+            activeOpacity={0.8}
+            onPress={goToEventsHistory}
+          >
+            <View style={styles.historyIconWrapper}>
+              {iconos.work_history(30, Colors.violet4)}
+            </View>
+            <Text style={styles.summaryCardSubtitleCentered}>
+              Consultá tu historial de eventos
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Opciones (Editar perfil + Legal) */}
         <View style={styles.optionsContainer}>
-          {options.map((opt, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={styles.optionRow}
-              activeOpacity={0.7}
-              onPress={opt.label === "Legal" ? loadTerms : (opt as any).onPress}
-            >
+          {options.map((opt, idx) => {
+            const iconElement = (
               <Feather
-                name={opt.icon as React.ComponentProps<typeof Feather>["name"]}
+                name={opt.icon as any}
                 size={22}
-                color="#444"
-                style={styles.optionIcon}
+                color={Colors.gray3}
               />
-              <Text style={styles.optionLabel}>{opt.label}</Text>
-              <Feather name="chevron-right" size={20} color="#aaa" />
-            </TouchableOpacity>
-          ))}
+            );
+
+            const handlePress =
+              opt.label === "Legal" ? loadTerms : opt.onPress ?? (() => {});
+
+            return (
+              <RowButton
+                key={`${opt.label}-${idx}`}
+                title={opt.label}
+                icon={iconElement}
+                onPress={handlePress}
+                styles={rowButtonStyles1}
+              />
+            );
+          })}
         </View>
       </ScrollView>
 
@@ -120,28 +183,41 @@ export default function ProfileScreen() {
           onPress={onLogoutPress}
           disabled={isLoggingOut}
         >
-          <Feather name="log-out" size={22} color="#444" style={styles.optionIcon} />
+          {iconos.logout(28, Colors.gray3)}
           <Text style={styles.logoutText}>Cerrar Sesión</Text>
-          {isLoggingOut && <ActivityIndicator size="small" color="#444" style={{ marginLeft: 10 }} />}
+          {isLoggingOut && (
+            <ActivityIndicator
+              size="small"
+              color="#444"
+              style={{ marginLeft: 10 }}
+            />
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* Modal de Términos */}
+      {/* Modal de Términos (igual que empleado) */}
       <Modal visible={termsVisible} animationType="slide" transparent>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center" }}>
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            justifyContent: "center",
+          }}
+        >
           <View
             style={{
               backgroundColor: "#fff",
               margin: 20,
               borderRadius: 12,
-              padding: 18,
+              paddingVertical: 18,
               maxHeight: "82%",
             }}
           >
             <Text
               style={{
                 fontSize: 22,
-                fontWeight: "700",
+                fontFamily: "interBold",
+                marginLeft: 20,
                 marginBottom: 8,
                 color: Colors.violet3,
               }}
@@ -149,7 +225,7 @@ export default function ProfileScreen() {
               Términos y Condiciones
             </Text>
 
-            <ScrollView style={{ marginBottom: 12 }}>
+            <ScrollView style={{ marginBottom: 12, paddingHorizontal: 20 }}>
               {termsContent.split(/\n(?=\d+\.)/).map((section, index) => {
                 const match = section.match(/^(\d+\.\s*[^\n]*)\n?(.*)$/s);
                 const subtitle = match ? match[1].trim() : "";
@@ -160,7 +236,7 @@ export default function ProfileScreen() {
                     {subtitle.length > 0 && (
                       <Text
                         style={{
-                          fontWeight: "600",
+                          fontFamily: "interBold",
                           color: Colors.black,
                           fontSize: 16,
                           marginBottom: 4,
@@ -169,10 +245,12 @@ export default function ProfileScreen() {
                         {subtitle}
                       </Text>
                     )}
+
                     {body.length > 0 && (
                       <Text
                         style={{
                           fontSize: 14,
+                          fontFamily: "interRegular",
                           color: "#333",
                           lineHeight: 22,
                           textAlign: "justify",
@@ -186,7 +264,9 @@ export default function ProfileScreen() {
               })}
             </ScrollView>
 
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
+            <View
+              style={{ flexDirection: "row", justifyContent: "flex-end" }}
+            >
               <TouchableOpacity
                 onPress={() => setTermsVisible(false)}
                 style={{
@@ -198,18 +278,6 @@ export default function ProfileScreen() {
                 }}
               >
                 <Text>Cerrar</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setTermsVisible(false)}
-                style={{
-                  paddingVertical: 10,
-                  paddingHorizontal: 16,
-                  borderRadius: 8,
-                  backgroundColor: Colors.violet3,
-                }}
-              >
-                <Text style={{ color: "#fff" }}>Aceptar</Text>
               </TouchableOpacity>
             </View>
           </View>

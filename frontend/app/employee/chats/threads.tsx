@@ -1,4 +1,3 @@
-// app/employee/chats/threads.tsx
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -17,13 +16,15 @@ import { getStreamClient } from '@/services/stream/streamClient';
 import { threadStyles as s } from '@/styles/app/employer/chats/threadStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
-import { chatTypeTitle, cleanEventName } from '@/hooks/employee/chats/useStreamChat';
+import { chatTypeTitle } from '@/hooks/employee/chats/useStreamChat';
+import { DateSeparator as JexDateSeparator } from '@/components/chats/DateSeparator';
 
 function parseCid(cid: string) {
   const i = cid.indexOf(':');
   return i === -1 ? { type: '', id: '' } : { type: cid.slice(0, i), id: cid.slice(i + 1) };
 }
 
+const JexMessageList = (props: any) => <MessageList {...props} />;
 
 export default function EmployeeThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
@@ -63,8 +64,14 @@ export default function EmployeeThreadScreen() {
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [client, cid]);
+
+  const CustomDateSeparator = (props: any) => (
+    <JexDateSeparator date={props?.date} />
+  );
 
   if (!client) {
     return (
@@ -75,6 +82,7 @@ export default function EmployeeThreadScreen() {
       </SafeAreaView>
     );
   }
+
   if (!cid) {
     return (
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
@@ -127,25 +135,26 @@ export default function EmployeeThreadScreen() {
 
                 {isWorkers ? (
                   <View style={{ flex: 1 }}>
-                  <MessageList
-                    TypingIndicator={TypingIndicator}
-                    ScrollToBottomButton={ScrollToBottomButton}
-                  />
-                </View>
-                ) : 
-                <View style={{ flex: 1 }}>
-                  <MessageList
-                    TypingIndicator={TypingIndicator}
-                    ScrollToBottomButton={ScrollToBottomButton}
-                    inverted={false}
-                  />
-                </View>
-                }
+                    <JexMessageList
+                      TypingIndicator={TypingIndicator}
+                      ScrollToBottomButton={ScrollToBottomButton}
+                      DateSeparator={CustomDateSeparator}
+                    />
+                  </View>
+                ) : (
+                  <View style={{ flex: 1 }}>
+                    <JexMessageList
+                      TypingIndicator={TypingIndicator}
+                      ScrollToBottomButton={ScrollToBottomButton}
+                      inverted={false}
+                      DateSeparator={CustomDateSeparator}
+                    />
+                  </View>
+                )}
 
                 {isWorkers ? (
-                  <View  style={s.inputContainer}>
-                    <MessageInput 
-                   />
+                  <View style={s.inputContainer}>
+                    <MessageInput />
                   </View>
                 ) : null}
               </>

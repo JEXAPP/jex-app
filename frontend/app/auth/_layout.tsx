@@ -32,10 +32,6 @@ export default function AuthLayout() {
         options={{ ...transitionFade, headerShown: false }}
       />
       <Stack.Screen
-        name="additional-info/step-four"
-        options={{ ...transitionFade, headerShown: false }}
-      />
-      <Stack.Screen
         name="additional-info/step-employer"
         options={{ ...transitionFade, headerShown: false }}
       />

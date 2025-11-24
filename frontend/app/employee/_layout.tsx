@@ -30,7 +30,7 @@ export default function EmployeeLayout() {
           headerTransparent: true,
           headerTitle: "",
           headerLeft: () => (
-            <Pressable onPress={() => router.back()} style={{ paddingHorizontal: 16 }}>
+            <Pressable onPress={() => router.back()} style={{ paddingHorizontal: 10 }}>
               <Ionicons name="arrow-back" size={28} color={Colors.violet4} />
             </Pressable>
           ),
@@ -42,7 +42,9 @@ export default function EmployeeLayout() {
         <Stack.Screen name="jobs/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/thread" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="chats/threads" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="profile/index" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="profile/view-profile" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 
       {!hideFooter && <FooterNavEmployee basePath="/employee" />}

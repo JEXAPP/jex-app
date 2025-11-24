@@ -20,11 +20,6 @@ export const qualifyStyles = StyleSheet.create({
     borderRadius: 20,
     padding: 25,
     marginBottom: 20,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 5,
-    elevation: 3,
   },
   avatar: {
     width: 90,
@@ -33,15 +28,14 @@ export const qualifyStyles = StyleSheet.create({
     marginRight: 14,
   },
   name: {
-    fontSize: 22,
+    fontSize: 25,
     fontFamily: "interBold",
     color: Colors.violet4,
   },
   event: {
-    fontSize: 16,
-    fontFamily: "interBold",
-    color: Colors.gray3,
-    marginTop: 4,
+    fontSize: 18,
+    fontFamily: "interMediumItalic",
+    color: Colors.violet4,
   },
   eventDetail: {
     fontSize: 15,
@@ -52,14 +46,14 @@ export const qualifyStyles = StyleSheet.create({
 
   // Rol
   sectionTitle: {
-    fontSize: 22,
+    fontSize: 23,
     fontFamily: "interBold",
     marginBottom: 4,
     color: Colors.violet4,
   },
   question: {
     fontSize: 16,
-    fontFamily: "interMedium",
+    fontFamily: "interRegular",
     color: Colors.gray3,
     marginBottom: 14,
   },
@@ -71,9 +65,9 @@ export const qualifyStyles = StyleSheet.create({
     marginBottom: 14,
   },
   ratingValue: {
-    fontSize: 16,
+    fontSize: 20,
     marginLeft: 8,
-    fontFamily: "interMedium",
+    fontFamily: "interBold",
     color: Colors.violet4,
   },
 
@@ -90,7 +84,7 @@ commentLabel: {
 },
 commentInput: {
   borderWidth: 1,
-  borderColor: Colors.gray2,
+  borderColor: Colors.gray12,
   borderRadius: 14,
   paddingHorizontal: 12,
   paddingVertical: 10,
@@ -99,11 +93,11 @@ commentInput: {
   minHeight: 40,
   maxHeight: 120,
   textAlignVertical: "top",
-  backgroundColor: Colors.gray1,
+  backgroundColor: Colors.white,
 },
 commentCounter: {
   fontSize: 13,
-  fontFamily: "interMedium",
+  fontFamily: "interRegular",
   color: Colors.gray3,
   textAlign: "right",
   marginTop: 4,
@@ -112,19 +106,14 @@ commentCounter: {
 // Botón
 // Botón
 button: {
-  position: "absolute",    // 👈 fijo en pantalla
-  bottom: 20,              // 👈 separado del footer
-  alignSelf: "center",     // 👈 centrado horizontal
-  width: "50%",            // 👈 ancho controlado
+  position: "absolute",    
+  bottom: 20,              
+  alignSelf: "center",     
+  width: "50%",           
   borderRadius: 14,
   paddingVertical: 14,
   alignItems: "center",
-  backgroundColor: Colors.violet4,
-  shadowColor: Colors.black,
-  shadowOpacity: 0.15,
-  shadowOffset: { width: 0, height: 2 },
-  shadowRadius: 6,
-  elevation: 4,            // 👈 sombra en Android
+  backgroundColor: Colors.violet4,         
 },
 
   buttonOmit: {

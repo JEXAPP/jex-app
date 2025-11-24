@@ -1,6 +1,4 @@
 export const termsAndConditionsText = `
-TÉRMINOS Y CONDICIONES DE USO – JEX
-
 1. Introducción
 Estos Términos y Condiciones regulan el acceso y uso de la aplicación móvil JEX, desarrollada como plataforma digital para facilitar la conexión entre organizadores de eventos y trabajadores. Al utilizar la aplicación, el usuario acepta plenamente los presentes términos, así como cualquier política complementaria que JEX pudiera publicar en el futuro.
 

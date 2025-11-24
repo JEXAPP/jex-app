@@ -60,7 +60,7 @@ export const useQualify = () => {
       time: params.time,
       image: imageSource
         ? imageSource
-        : require("@/assets/images/jex/Jex-FotoPerfil.webp"), // ✅ fallback local
+        : require("@/assets/images/jex/Jex-FotoPerfil.webp"), 
     },
     role: params.jobType,
   };

@@ -1,3 +1,4 @@
+// src/app/employee/vacancy/apply.tsx (o ruta equivalente)
 import { Button } from '@/components/button/Button';
 import { SelectableTag } from '@/components/button/SelectableTags';
 import ImageOnline from '@/components/image/ImageOnline';
@@ -13,9 +14,22 @@ import { selectableTagStyles1 } from '@/styles/components/button/selectableTagsS
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
 import { Colors } from '@/themes/colors';
-import { Image, ScrollView, Text, View } from 'react-native';
+import { Image, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LocationMapCard from '@/components/others/LocationMapCard';
+import { Ionicons } from '@expo/vector-icons';
+import useBackendConection from '@/services/internal/useBackendConection';
+import React, { useState } from 'react';
+
+type EmployerRatingItem = {
+  id: string;
+  rating: number;
+  comments: string;
+  date: string;
+  eventName: string;
+  rater: string;
+  raterImage: string | null;
+};
 
 export default function ApplyVacancyScreen() {
   const {
@@ -36,10 +50,54 @@ export default function ApplyVacancyScreen() {
     allShiftsApplied,
     locationAddress,
     locationCoords,
-    goBack
+    goBack,
+    employerId,
   } = useApplyVacancy();
 
-  const stars = job?.rating ? Math.round(job.rating) : 0;
+  const { requestBackend } = useBackendConection();
+
+  // ⭐ Estado modal calificaciones del organizador
+  const [ratingsModalVisible, setRatingsModalVisible] = useState(false);
+  const [ratingsLoading, setRatingsLoading] = useState(false);
+  const [ratingsError, setRatingsError] = useState<string | null>(null);
+  const [ratings, setRatings] = useState<EmployerRatingItem[]>([]);
+
+  const loadOrganizerRatings = async () => {
+    if (!employerId) {
+      setRatingsError('No se pudo identificar al organizador.');
+      setRatingsModalVisible(true);
+      return;
+    }
+
+    try {
+      setRatingsModalVisible(true);
+      setRatingsLoading(true);
+      setRatingsError(null);
+
+      // Asumo endpoint del estilo /api/rating/employer/ratings/{id}/
+      const res = await requestBackend(
+        `/api/rating/employer/ratings/${employerId}/`,
+        null,
+        'GET'
+      );
+
+      const mapped: EmployerRatingItem[] = (res?.results ?? []).map((r: any, idx: number) => ({
+        id: String(idx),
+        rating: r.rating,
+        comments: r.comments,
+        date: r.date,
+        eventName: r.event_name,
+        rater: r.rater,
+        raterImage: r.rater_image ?? null,
+      }));
+
+      setRatings(mapped);
+    } catch (e: any) {
+      setRatingsError(e?.message || 'Error al cargar las calificaciones del organizador.');
+    } finally {
+      setRatingsLoading(false);
+    }
+  };
 
   if (!job || !organizer) {
     return (
@@ -114,7 +172,6 @@ export default function ApplyVacancyScreen() {
                             tag: {
                               ...selectableTagStyles1.tag,
                               borderColor: disabled ? Colors.gray3 : Colors.violet4,
-                              
                             },
                             tagText: {
                               ...selectableTagStyles1.tagText,
@@ -145,7 +202,11 @@ export default function ApplyVacancyScreen() {
 
           <Text style={styles.containerSubtitle}>Conocé al organizador</Text>
 
-          <View style={styles.organizerContainer}>
+          <TouchableOpacity
+            style={styles.organizerContainer}
+            activeOpacity={0.85}
+            onPress={loadOrganizerRatings}
+          >
             <View>
               <Image
                 source={require('@/assets/images/jex/Jex-FotoPerfil.webp')}
@@ -165,7 +226,8 @@ export default function ApplyVacancyScreen() {
 
               <View style={styles.organizerInfoItem}>
                 <Text style={styles.organizerInfoValue}>
-                  {Number(organizer.rating).toFixed(1)} <Text style={{ color: Colors.violet5 }}>★</Text>
+                  {Number(organizer.rating).toFixed(1)}{' '}
+                  <Text style={{ color: Colors.violet5 }}>★</Text>
                 </Text>
                 <Text style={styles.organizerInfoLabel}>Puntaje</Text>
               </View>
@@ -175,17 +237,17 @@ export default function ApplyVacancyScreen() {
                 <Text style={styles.organizerInfoLabel}>Años en Jex</Text>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
 
         </View>
-        </ScrollView>
+      </ScrollView>
 
       {/* Pie de postulación */}
       {allShiftsApplied ? (
         <View style={styles.applyBox}>
-            <Text style={styles.containerText3}>
-              Ya te postulaste a los turnos de esta vacante
-            </Text>
+          <Text style={styles.containerText3}>
+            Ya te postulaste a los turnos de esta vacante
+          </Text>
         </View>
       ) : (
         <View style={styles.applyBox}>
@@ -207,6 +269,97 @@ export default function ApplyVacancyScreen() {
           />
         </View>
       )}
+
+      {/* ✅ Modal de calificaciones del organizador */}
+      <Modal
+        visible={ratingsModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setRatingsModalVisible(false)}
+      >
+        <View style={styles.ratingsModalOverlay}>
+          <View style={styles.ratingsModalCard}>
+            <View style={styles.ratingsModalHeader}>
+              <Text style={styles.ratingsModalTitle}>Opiniones del organizador</Text>
+              <TouchableOpacity onPress={() => setRatingsModalVisible(false)}>
+                <Ionicons name="close" size={22} color={Colors.violet4} />
+              </TouchableOpacity>
+            </View>
+
+            {ratingsLoading ? (
+              <View style={styles.ratingsModalLoading}>
+                <DotsLoader />
+              </View>
+            ) : ratingsError ? (
+              <Text style={styles.ratingsModalError}>{ratingsError}</Text>
+            ) : ratings.length === 0 ? (
+              <Text style={styles.ratingsModalEmpty}>
+                Este organizador aún no tiene calificaciones.
+              </Text>
+            ) : (
+              <ScrollView
+                style={styles.ratingsModalList}
+                showsVerticalScrollIndicator={false}
+              >
+                {ratings.map((r) => (
+                  <View key={r.id} style={styles.ratingCard}>
+                    <View style={styles.ratingCardHeader}>
+                      <View style={styles.ratingCardHeaderLeft}>
+                        <ImageOnline
+                          imageUrl={r.raterImage ?? undefined}
+                          size={40}
+                          shape="circle"
+                          style={styles.ratingAvatar}
+                        />
+                        <Text style={styles.ratingRaterName}>{r.rater}</Text>
+                      </View>
+
+                      <View style={styles.ratingDatePill}>
+                        <Text style={styles.ratingDateText}>{r.date}</Text>
+                      </View>
+                    </View>
+
+                    <Text style={styles.ratingEventName}>{r.eventName}</Text>
+
+                    <View style={styles.ratingStarsRow}>
+                      <View style={styles.ratingStarsInner}>
+                        {[...Array(5)].map((_, idx) => {
+                          const filled = idx + 1 <= Math.floor(r.rating);
+                          const half =
+                            r.rating - idx >= 0.5 && r.rating - idx < 1;
+
+                          return (
+                            <Ionicons
+                              key={idx}
+                              name={
+                                filled
+                                  ? 'star'
+                                  : half
+                                  ? 'star-half'
+                                  : 'star-outline'
+                              }
+                              size={18}
+                              color="#ffd103ff"
+                              style={{ marginRight: 2 }}
+                            />
+                          );
+                        })}
+                      </View>
+                      <Text style={styles.ratingValueText}>
+                        {r.rating.toFixed(1)}
+                      </Text>
+                    </View>
+
+                    <View style={styles.ratingCommentBubble}>
+                      <Text style={styles.ratingCommentText}>{r.comments}</Text>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
 
       <TempWindow
         visible={showSuccess}

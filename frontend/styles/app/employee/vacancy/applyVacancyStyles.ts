@@ -1,3 +1,4 @@
+// src/styles/app/employee/vacancy/applyVacancyStyles.ts
 import { Borders } from '@/themes/borders';
 import { Colors } from '@/themes/colors';
 import { StyleSheet } from 'react-native';
@@ -217,4 +218,120 @@ export const applyVacancyStyles = StyleSheet.create({
     marginBottom: 4,
     alignSelf: 'center'
   },
-})
+
+  /* ==== MODAL CALIFICACIONES ORGANIZADOR ==== */
+  ratingsModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  ratingsModalCard: {
+    backgroundColor: Colors.gray1,
+    borderRadius: 20,
+    maxHeight: '80%',
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+  },
+  ratingsModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  ratingsModalTitle: {
+    fontSize: 20,
+    fontFamily: 'interBold',
+    color: Colors.violet4,
+  },
+  ratingsModalLoading: {
+    paddingVertical: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ratingsModalError: {
+    fontFamily: 'interMedium',
+    fontSize: 14,
+    color: Colors.violet4,
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  ratingsModalEmpty: {
+    fontFamily: 'interRegular',
+    fontSize: 14,
+    color: Colors.gray3,
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  ratingsModalList: {
+    marginTop: 8,
+  },
+
+  ratingCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  ratingCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  ratingCardHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratingAvatar: {
+    marginRight: 8,
+  },
+  ratingRaterName: {
+    fontFamily: 'interBold',
+    fontSize: 15,
+    color: Colors.violet4,
+  },
+  ratingDatePill: {
+    backgroundColor: Colors.gray1,
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  ratingDateText: {
+    fontFamily: 'interRegular',
+    fontSize: 11,
+    color: Colors.gray3,
+  },
+  ratingEventName: {
+    fontFamily: 'interMediumItalic',
+    fontSize: 14,
+    color: Colors.black,
+    marginBottom: 6,
+  },
+  ratingStarsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  ratingStarsInner: {
+    flexDirection: 'row',
+    marginRight: 6,
+  },
+  ratingValueText: {
+    fontFamily: 'interBold',
+    fontSize: 14,
+    color: Colors.gray3,
+  },
+  ratingCommentBubble: {
+    backgroundColor: '#f3f3f5',
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  ratingCommentText: {
+    fontFamily: 'interRegular',
+    fontSize: 14,
+    color: Colors.gray3,
+  },
+});

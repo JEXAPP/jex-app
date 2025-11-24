@@ -37,11 +37,10 @@ export default function HomeEmployeeScreen () {
           <Text style={styles.title}>Vacantes</Text>
           
           <IconButton
-            sizeContent={40}
             styles={iconButtonStyles1}
+            sizeContent={40}
             onPress={goToNotifications}
-            content="notifications-circle-sharp"
-            contentColor={Colors.violet4}
+            icon={iconos.notification(40, Colors.violet4)}
           />
           
         </View>

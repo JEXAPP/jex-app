@@ -23,7 +23,8 @@ export const detailOffersStyles = StyleSheet.create({
   card: { 
     backgroundColor: Colors.white, 
     borderRadius: 16, 
-    padding: 20 
+    padding: 20,
+    gap: 5 
   },
    card2: { 
     backgroundColor: Colors.white, 

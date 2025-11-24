@@ -308,9 +308,7 @@ export default function SearchEmployeesScreen() {
                 <View style={s.ratingControlRow}>
                   {ratingMin > 0 && (
                     <IconButton
-                      content="−"
-                      contentColor={Colors.violet4}
-                      sizeContent={22}
+                      icon={iconos.plus(25, Colors.violet4)}
                       onPress={decRating}
                       styles={iconButtonStyles1}
                       backgroundColor={Colors.gray12}
@@ -323,9 +321,7 @@ export default function SearchEmployeesScreen() {
 
                   {ratingMin < 5 && (
                     <IconButton
-                      content="+"
-                      contentColor={Colors.violet4}
-                      sizeContent={22}
+                      icon={iconos.plus(25, Colors.violet4)}
                       onPress={incRating}
                       styles={iconButtonStyles1}
                       backgroundColor={Colors.gray12}

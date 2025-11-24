@@ -62,7 +62,7 @@ export default function SelectEventToQualify() {
                     pathname: "/employee/profile/qualify",
                     params: {
                       employerId: item.employer_id,
-                      employerName: item.employer_full_name || item.company_name,
+                      employerName: item.company_name,
                       eventId: item.event_id,
                       eventName: item.event_name,
                       jobType: item.job_type,

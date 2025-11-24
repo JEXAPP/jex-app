@@ -1,3 +1,4 @@
+// src/hooks/employee/vacancy/useApplyVacancy.ts
 import { Job, Organizer, Requirement } from '@/constants/interfaces';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useDataTransformation } from '@/services/internal/useDataTransformation';
@@ -38,6 +39,9 @@ export const useApplyVacancy = () => {
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // 👉 NUEVO: id del empleador (organizador del evento)
+  const [employerId, setEmployerId] = useState<number | null>(null);
 
   useEffect(() => {
     validateToken('employee');
@@ -96,6 +100,9 @@ export const useApplyVacancy = () => {
 
       const owner = vacante.event.owner;
 
+      // 👉 guardamos el id del empleador para el modal de calificaciones
+      setEmployerId(owner.id ?? owner.owner_id ?? null);
+
       setJob({
         title: vacante.event.name,
         description: vacante.description,
@@ -117,7 +124,6 @@ export const useApplyVacancy = () => {
           ? owner.profile_image.url
           : require('@/assets/images/jex/Jex-FotoPerfil.webp');
 
-
       setOrganizer({
         name: owner.company_name || owner.email || '-',
         reviews: owner.rating_count ?? 0,
@@ -136,7 +142,6 @@ export const useApplyVacancy = () => {
         ev.number || ev.street_number,
         ev.locality || ev.city,
         ev.province || ev.state,
-        'Argentina',
       ];
 
       // solo strings no vacías
@@ -248,6 +253,7 @@ export const useApplyVacancy = () => {
     allShiftsApplied,
     locationAddress,
     locationCoords,
-    goBack
+    goBack,
+    employerId,      // 👉 NUEVO
   };
 };

@@ -32,10 +32,6 @@ export const listStyles = StyleSheet.create({
     paddingHorizontal: 25,
     marginBottom: 18,
     shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07,
-    shadowRadius: 5,
-    elevation: 3,
     borderLeftWidth: 4,
     borderLeftColor: Colors.violet4,
   },
@@ -65,7 +61,7 @@ export const listStyles = StyleSheet.create({
 
   eventDetail: {
     fontSize: 14,
-    fontFamily: "interRegular",
+    fontFamily: "interLightItalic",
     color: Colors.gray3,
     marginTop: 2,
   },
