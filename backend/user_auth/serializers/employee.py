@@ -377,23 +377,31 @@ class EmployeeInterestsSerializer(serializers.ModelSerializer):
 
 class ViewEmployeeWorkExperienceSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
+    image_id = serializers.SerializerMethodField()
 
     class Meta:
         model = WorkExperience
-        fields = ['id', 'title', 'company_or_event', 'start_date', 'end_date', 'description', 'image_url']
+        fields = ['id', 'title', 'company_or_event', 'start_date', 'end_date', 'description', 'image_url', 'image_id']
 
     def get_image_url(self, obj):
         return obj.image.url if obj.image else None
     
+    def get_image_id(self, obj):
+        return obj.image.public_id if obj.image else None
+    
 class ViewEmployeeEducationSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
+    image_id = serializers.SerializerMethodField()
 
     class Meta:
         model = EducationCertification
-        fields = ['id', 'institution', 'title', 'discipline', 'start_date', 'end_date', 'description', 'image_url']
-
+        fields = ['id', 'institution', 'title', 'discipline', 'start_date', 'end_date', 'description', 'image_url', 'image_id']
+    
     def get_image_url(self, obj):
         return obj.image.url if obj.image else None
+
+    def get_image_id(self, obj):
+        return obj.image.public_id if obj.image else None
 
 class ViewEmployeeInterestsSerializer(serializers.ModelSerializer):
     job_types = ListJobTypesSerializer(many=True)
@@ -454,7 +462,7 @@ class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
     def get_rating_count(self, obj):
         return get_user_rating_count(obj.user)
 
-class UpdateEmployeeProfileSerializer(serializers.Serializer):
+class UpdateEmployeeProfileDescriptionSerializer(serializers.Serializer):
     description = serializers.CharField(required=True)
     birth_date = CustomDateField(required=True)
     address = serializers.CharField(required=True)
@@ -469,8 +477,8 @@ class UpdateEmployeeProfileSerializer(serializers.Serializer):
         url = attrs.get("profile_image_url")
         img_id = attrs.get("profile_image_id")
 
-        # Si envía uno pero no el otro → error
         if (url is None) ^ (img_id is None):
+        # Si envía uno pero no el otro → error
             raise serializers.ValidationError(
                 "Debe enviar ambos campos de imagen o ambos en null."
             )
@@ -506,3 +514,90 @@ class UpdateEmployeeProfileSerializer(serializers.Serializer):
         instance.save()
         return instance
 
+class UpdateEmployeeEducationSerializer(serializers.ModelSerializer):
+    start_date = CustomDateField(required=True)
+    end_date = CustomDateField(required=True, allow_null=True)
+
+    image_url = serializers.URLField(required=True, allow_null=True)
+    image_id = serializers.CharField(required=True, allow_null=True)
+
+    class Meta:
+        model = EducationCertification
+        fields = [
+            'institution', 'title', 'discipline',
+            'start_date', 'end_date', 'description',
+            'image_url', 'image_id'
+        ]
+        extra_kwargs = {field: {"required": True} for field in fields}
+
+    def validate(self, attrs):
+        url, img_id = attrs.get('image_url'), attrs.get('image_id')
+        if (url and not img_id) or (img_id and not url):
+            raise serializers.ValidationError("Both 'image_url' and 'image_id' must be provided together.")
+        return attrs
+
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+
+        url = validated_data.pop('image_url', None)
+        img_id = validated_data.pop('image_id', None)
+
+        if url and img_id:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=img_id,
+                defaults={'url': url, 'type': ImageType.OTHER, 'uploaded_by': user}
+            )
+            instance.image = image_obj
+
+        elif url is None and img_id is None:
+            instance.image = None
+
+        for attr, val in validated_data.items():
+            setattr(instance, attr, val)
+
+        instance.save()
+        return instance
+
+class UpdateEmployeeWorkExperienceSerializer(serializers.ModelSerializer):
+    start_date = CustomDateField(required=True)
+    end_date = CustomDateField(required=True, allow_null=True)
+
+    image_url = serializers.URLField(required=True, allow_null=True)
+    image_id = serializers.CharField(required=True, allow_null=True)
+
+    class Meta:
+        model = WorkExperience
+        fields = [
+            'title', 'work_type', 'company_or_event',
+            'start_date', 'end_date', 'description',
+            'image_url', 'image_id'
+        ]
+        extra_kwargs = {field: {"required": True} for field in fields}
+
+    def validate(self, attrs):
+        url, img_id = attrs.get('image_url'), attrs.get('image_id')
+        if (url and not img_id) or (img_id and not url):
+            raise serializers.ValidationError("Both 'image_url' and 'image_id' must be provided together.")
+        return attrs
+
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+
+        url = validated_data.pop('image_url', None)
+        img_id = validated_data.pop('image_id', None)
+
+        if url and img_id:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=img_id,
+                defaults={'url': url, 'type': ImageType.OTHER, 'uploaded_by': user}
+            )
+            instance.image = image_obj
+
+        elif url is None and img_id is None:
+            instance.image = None
+
+        for attr, val in validated_data.items():
+            setattr(instance, attr, val)
+
+        instance.save()
+        return instance
