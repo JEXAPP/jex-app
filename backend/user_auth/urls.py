@@ -1,4 +1,5 @@
 from django.urls import path
+from user_auth.views.admin import AdminInfoView
 from user_auth.views.auth import EmailTokenObtainPairView, CustomGoogleLoginView, LogoutView
 from rest_framework_simplejwt.views import TokenRefreshView
 
@@ -38,4 +39,5 @@ urlpatterns = [
     path('language-levels/', LanguageLevelsView.as_view(), name='language-levels'),
     path('languages/', LanguagesListView.as_view(), name='languages-list'),
     path('employee/language/', EmployeeLanguagesBulkUpdateView.as_view(), name='employee-language-detail'),
+    path('admin/info', AdminInfoView.as_view(), name='admin-info'),
 ]
