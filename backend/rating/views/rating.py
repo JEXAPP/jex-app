@@ -4,14 +4,18 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 
+from config.pagination import CustomPagination
 from notifications.constants import NotificationTypes
 from notifications.services.send_notification import send_notification
 from rating.models.users_connections import UserConnection
+from user_auth.models.employee import EmployeeProfile
 from user_auth.permissions import IsInGroup
 from user_auth.constants import EMPLOYER_ROLE, EMPLOYEE_ROLE
 
 from rating.serializers.rating import (
     EmployeeRatingDetailSerializer,
+    ListRatingsEmployeeSerializer,
+    ListRatingsEmployerSerializer,
     ViewRatingsSerializer,
     ListEmployerEventsSerializer,
     SingleEmployerRatingSerializer,
@@ -301,4 +305,39 @@ class EmployeeRatingDetailView(ListAPIView):
         return Rating.objects.filter(
             behavior__user_id=user_employee_id
         ).select_related('rater', 'behavior')
+    
+class ListRatingsEmployeeView(ListAPIView):
+    serializer_class = ListRatingsEmployeeSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        employee_id = self.kwargs.get("employee_id")
+
+        employee_user = EmployeeProfile.objects.get(id=employee_id).user
+
+        return Rating.objects.filter(
+            behavior__user=employee_user 
+        ).select_related(
+            "event", "rater", "behavior"
+        ).order_by("-date")
+
+
+class ListRatingsEmployerView(ListAPIView):
+    serializer_class = ListRatingsEmployerSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        employer_id = self.kwargs.get("employer_id")
+
+        employer_user = CustomUser.objects.get(id=employer_id)
+
+        return Rating.objects.filter(
+            behavior__user=employer_user
+        ).select_related(
+            "event", "rater", "behavior"
+        ).order_by("-date")
 

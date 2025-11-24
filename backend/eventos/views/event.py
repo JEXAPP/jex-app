@@ -6,7 +6,7 @@ from eventos.constants import EventStates
 from eventos.errors.events_messages import ESTADO_DELETED_NO_CONFIGURADO, EVENT_NOT_FOUND, NO_EDITAR_EVENTO_PUBLICADO, NO_PERMISSION_EVENT, STATE_UPDATED_SUCCESS
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
-from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, EventReportSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsEmployeeSerializer, ListEventsWithVacanciesSerializer, UpdateEventStateSerializer,ListEventsEmployeeSerializer
+from eventos.serializers.event import CreateEventSerializer, CreateEventResponseSerializer, EventReportSerializer, ListActiveEventsSerializer, ListEventDetailSerializer, ListEventVacanciesSerializer, ListEventsByEmployerSerializer, ListEventsEmployeeSerializer, ListEventsWithVacanciesSerializer, ListHistoryEventsViewSerializer, UpdateEventStateSerializer,ListEventsEmployeeSerializer
 from rating.models.rating import Rating
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.permissions import IsInGroup
@@ -273,4 +273,21 @@ class ReportEventView(APIView):
         serializer = EventReportSerializer(event)
         return Response(serializer.data)
 
-        
+class ListHistoryEventsView(ListAPIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    serializer_class = ListHistoryEventsViewSerializer
+    historical_states = [
+        EventStates.CANCELLED.value,
+        EventStates.FINALIZED.value,
+    ]
+
+    def get_queryset(self):
+        user = self.request.user
+        return (
+            Event.objects
+            .filter(
+                owner=user,
+                state__name__in=self.historical_states
+            )
+        )
