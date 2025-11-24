@@ -14,6 +14,7 @@ from user_auth.constants import EMPLOYER_ROLE, EMPLOYEE_ROLE
 
 from rating.serializers.rating import (
     EmployeeRatingDetailSerializer,
+    EmployerRatingDetailSerializer,
     ListRatingsEmployeeSerializer,
     ListRatingsEmployerSerializer,
     ViewRatingsSerializer,
@@ -305,6 +306,24 @@ class EmployeeRatingDetailView(ListAPIView):
         return Rating.objects.filter(
             behavior__user_id=user_employee_id
         ).select_related('rater', 'behavior')
+    
+class EmployerRatingDetailView(ListAPIView):
+    serializer_class = EmployerRatingDetailSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        employer_user = self.request.user
+        events_hosted = Event.objects.filter(
+            owner_id=employer_user.id
+        ).values_list("id", flat=True)
+        return Rating.objects.filter(
+            event_id__in=events_hosted,
+            rater__role="employee"
+        ).select_related(
+            "event", "rater", "behavior"
+        ).order_by("-date")
     
 class ListRatingsEmployeeView(ListAPIView):
     serializer_class = ListRatingsEmployeeSerializer
