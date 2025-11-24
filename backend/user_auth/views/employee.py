@@ -4,9 +4,11 @@ from rest_framework.views import APIView
 from rest_framework.exceptions import ValidationError
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.errors.user_errors_messages import EMAIL_REQUIRED, EMPLOYEE_PROFILE_NOT_FOUND
+from user_auth.models.education_certification import EducationCertification
 from user_auth.models.employee import EmployeeProfile
+from user_auth.models.work_experience import WorkExperience
 from user_auth.permissions import IsInGroup
-from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, EmployeeAdditionalInfoSerializer, EmployeeEducationSerializer, EmployeeInterestsSerializer, EmployeeProfileDescriptionSerializer, EmployeeRegisterSerializer, EmployeeWorkExperienceSerializer, UpdateEmployeeProfileSerializer, ViewEmployeeEducationSerializer, ViewEmployeeInterestsSerializer, ViewEmployeeProfileDescriptionSerializer, ViewEmployeeWorkExperienceSerializer
+from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, EmployeeAdditionalInfoSerializer, EmployeeEducationSerializer, EmployeeInterestsSerializer, EmployeeProfileDescriptionSerializer, EmployeeRegisterSerializer, EmployeeWorkExperienceSerializer, UpdateEmployeeEducationSerializer, UpdateEmployeeProfileDescriptionSerializer, UpdateEmployeeWorkExperienceSerializer, ViewEmployeeEducationSerializer, ViewEmployeeInterestsSerializer, ViewEmployeeProfileDescriptionSerializer, ViewEmployeeWorkExperienceSerializer
 from user_auth.models.user import CustomUser
 from rest_framework import serializers
 from django.db import transaction
@@ -197,14 +199,14 @@ class ViewEmployeeProfileDescription(APIView):
         serializer = ViewEmployeeProfileDescriptionSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class UpdateEmployeeProfileView(APIView):
+class UpdateEmployeeProfileDescriptionView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYEE_ROLE]
 
     def put(self, request):
         profile = request.user.employee_profile
 
-        serializer = UpdateEmployeeProfileSerializer(
+        serializer = UpdateEmployeeProfileDescriptionSerializer(
             instance=profile,
             data=request.data,
             context={'user': request.user}
@@ -214,3 +216,43 @@ class UpdateEmployeeProfileView(APIView):
         serializer.save()
 
         return Response({"message": "Perfil actualizado correctamente"})
+
+class UpdateEmployeeEducationView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def put(self, request, pk):
+        try:
+            education = EducationCertification.objects.get(pk=pk, employee=request.user.employee_profile)
+        except EducationCertification.DoesNotExist:
+            return Response({"error": "Educacion no encontrada"}, status=404)
+
+        serializer = UpdateEmployeeEducationSerializer(
+            education,
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({"message": "Educación actualizada correctamente"}, status=200)
+    
+class UpdateEmployeeWorkExperienceView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def put(self, request, pk):
+        try:
+            work_experience = WorkExperience.objects.get(pk=pk, employee=request.user.employee_profile)
+        except WorkExperience.DoesNotExist:
+            return Response({"error": "Experiencia laboral no encontrada"}, status=404)
+
+        serializer = UpdateEmployeeWorkExperienceSerializer(
+            work_experience,
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({"message": "Experiencia laboral actualizada correctamente"}, status=200)

@@ -3,7 +3,7 @@ from user_auth.views.admin import AdminInfoView
 from user_auth.views.auth import EmailTokenObtainPairView, CustomGoogleLoginView, LogoutView
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from user_auth.views.employee import CompleteEmployeeSocialView, EmployeeEducationView, EmployeeInterestsView, EmployeeProfileDescriptionView, EmployeeRegisterView, EmployeeValidateMailView, EmployeeWorkExperienceView, ViewEmployeeEducation, ViewEmployeeInterests, ViewEmployeeProfileDescription, ViewEmployeeWorkExperience
+from user_auth.views.employee import CompleteEmployeeSocialView, EmployeeEducationView, EmployeeInterestsView, EmployeeProfileDescriptionView, EmployeeRegisterView, EmployeeValidateMailView, EmployeeWorkExperienceView, UpdateEmployeeEducationView, UpdateEmployeeProfileDescriptionView, UpdateEmployeeWorkExperienceView, ViewEmployeeEducation, ViewEmployeeInterests, ViewEmployeeProfileDescription, ViewEmployeeWorkExperience
 from user_auth.views.employer import CompleteEmployerSocialView, EmployerProfileDescriptionView, EmployerRegisterView, UpdateEmployerProfileDescriptionView, ViewEmployerProfileDescription
 from user_auth.views.language import EmployeeLanguagesBulkUpdateView, EmployeeLanguagesView, LanguageLevelsView, LanguagesListView
 from user_auth.views.password_reset import PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
@@ -43,4 +43,7 @@ urlpatterns = [
     path('view-mail-and-phone/', ViewMailAndPhone.as_view(), name='view-mail-and-phone'),
     path('admin/info', AdminInfoView.as_view(), name='admin-info'),
     path('employer/update-profile-description/', UpdateEmployerProfileDescriptionView.as_view(), name='update-employer-profile-description'),
+    path('employee/update-profile-description/', UpdateEmployeeProfileDescriptionView.as_view(), name='update-employee-profile-description'),
+    path('employee/update-education/<int:pk>/', UpdateEmployeeEducationView.as_view(), name='update-employee-education'),
+    path('employee/update-work-experience/<int:pk>/', UpdateEmployeeWorkExperienceView.as_view(), name='update-employee-work-experience'),
 ]
