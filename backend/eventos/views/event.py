@@ -278,7 +278,6 @@ class ListHistoryEventsView(ListAPIView):
     required_groups = [EMPLOYER_ROLE]
     serializer_class = ListHistoryEventsViewSerializer
     historical_states = [
-        EventStates.CANCELLED.value,
         EventStates.FINALIZED.value,
     ]
 
