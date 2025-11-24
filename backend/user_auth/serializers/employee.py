@@ -405,6 +405,7 @@ class ViewEmployeeInterestsSerializer(serializers.ModelSerializer):
 
 class ViewEmployeeProfileDescriptionSerializer(serializers.ModelSerializer):
     profile_image_url = serializers.SerializerMethodField()
+    profile_image_id = serializers.SerializerMethodField()
     description = serializers.CharField()
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
@@ -412,10 +413,13 @@ class ViewEmployeeProfileDescriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmployeeProfile
-        fields = ['description', 'profile_image_url', 'first_name', 'last_name', 'dni', 'birth_date', 'address']
+        fields = ['description', 'profile_image_id', 'profile_image_url', 'first_name', 'last_name', 'dni', 'birth_date', 'address']
 
     def get_profile_image_url(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
+    
+    def get_profile_image_id(self, obj):
+        return obj.user.profile_image.public_id if obj.user.profile_image else None
 
 class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
     profile_image = serializers.SerializerMethodField()
@@ -449,3 +453,56 @@ class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
 
     def get_rating_count(self, obj):
         return get_user_rating_count(obj.user)
+
+class UpdateEmployeeProfileSerializer(serializers.Serializer):
+    description = serializers.CharField(required=True)
+    birth_date = CustomDateField(required=True)
+    address = serializers.CharField(required=True)
+
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
+
+    profile_image_url = serializers.CharField(required=True, allow_null=True)
+    profile_image_id = serializers.CharField(required=True, allow_null=True)
+
+    def validate(self, attrs):
+        url = attrs.get("profile_image_url")
+        img_id = attrs.get("profile_image_id")
+
+        # Si envía uno pero no el otro → error
+        if (url is None) ^ (img_id is None):
+            raise serializers.ValidationError(
+                "Debe enviar ambos campos de imagen o ambos en null."
+            )
+        
+        return attrs
+
+    def update(self, instance, validated_data):
+        user = instance.user
+
+        image_url = validated_data.pop('profile_image_url')
+        image_id = validated_data.pop('profile_image_id')
+
+        if image_url is None and image_id is None:
+            user.profile_image = None
+        else:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=image_id,
+                defaults={
+                    'url': image_url,
+                    'type': ImageType.PROFILE,
+                    'uploaded_by': self.context['user']
+                }
+            )
+            user.profile_image = image_obj
+
+        user.first_name = validated_data.pop('first_name')
+        user.last_name = validated_data.pop('last_name')
+        user.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
+
