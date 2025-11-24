@@ -456,7 +456,6 @@ class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
 
 class UpdateEmployeeProfileSerializer(serializers.Serializer):
     description = serializers.CharField(required=True)
-    dni = serializers.CharField(required=True)
     birth_date = CustomDateField(required=True)
     address = serializers.CharField(required=True)
 
