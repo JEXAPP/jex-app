@@ -19,5 +19,8 @@ class EmployeeLanguageSerializer(serializers.ModelSerializer):
 class EmployeeLanguageCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeeLanguage
-        fields = ['language', 'level', 'notes']
+        fields = ['language', 'level', 'notes', 'employee']
+        extra_kwargs = {
+            'employee': {'read_only': True}
+        }
 

@@ -11,7 +11,7 @@ from payments.models.payment_state import PaymentState
 from payments.models.payments import Payment
 from payments.serializers.payments import GeneratePaymentLinkSerializer, PaymentCallbackSerializer
 from payments.services.mercado_pago_service import MercadoPagoService
-from user_auth.constants import EMPLOYER_ROLE
+from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from decimal import Decimal
 import hmac
 import hashlib
@@ -22,53 +22,77 @@ from rest_framework import status, views
 from rest_framework.response import Response
 import logging
 
-logger = logging.getLogger(__name__)
+from user_auth.permissions import IsInGroup
+from urllib.parse import urlencode
 
+logger = logging.getLogger(__name__)
 
 class MercadoPagoOAuthCallbackView(views.APIView):
     """
     Endpoint que recibe el `code` y el `state` de Mercado Pago y guarda los tokens
-    asociados al usuario correspondiente.
+    asociados al usuario correspondiente. Redirige a la app con el estado del flujo.
     """
     permission_classes = []
 
     def get(self, request, *args, **kwargs):
+
         code = request.query_params.get("code")
         state = request.query_params.get("state")
+        base_redirect = "jex://employee/profile"
+
+        # helper para construir redirect con query string
+        def redirect_with(params):
+            qs = urlencode(params)
+            response = HttpResponse(status=302)
+            response["Location"] = f"{base_redirect}?{qs}"
+            return response
 
         if not code or not state:
-            return Response(MISSING_MP_CODE, status=status.HTTP_400_BAD_REQUEST)
+            return redirect_with({"status": "error", "reason": "missing_code_or_state"})
 
         # Decodificar el JWT temporal para obtener el usuario
         try:
             user = MercadoPagoService.decode_oauth_state(state)
         except Exception as e:
-            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+            return redirect_with({
+                "status": "error",
+                "reason": "invalid_state",
+                "detail": str(e)
+            })
 
         # Intercambiar el code por tokens de Mercado Pago
         try:
             token_data = MercadoPagoService.exchange_code_for_tokens(code)
         except Exception as e:
-            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+            return redirect_with({
+                "status": "error",
+                "reason": "token_exchange_failed",
+                "detail": str(e)
+            })
 
         # Crear o actualizar la cuenta de Mercado Pago asociada al usuario
-        account, _ = MercadoPagoAccount.objects.update_or_create(
-            user=user,
-            defaults={
-                "mp_user_id": token_data.get("user_id"),
-                "access_token": token_data.get("access_token"),
-                "refresh_token": token_data.get("refresh_token"),
-                "public_key": token_data.get("public_key"),
-                "live_mode": token_data.get("live_mode"),
-                "expires_in": token_data.get("expires_in"),
-                "scope": token_data.get("scope"),
-            },
-        )
+        try:
+            account, _ = MercadoPagoAccount.objects.update_or_create(
+                user=user,
+                defaults={
+                    "mp_user_id": token_data.get("user_id"),
+                    "access_token": token_data.get("access_token"),
+                    "refresh_token": token_data.get("refresh_token"),
+                    "public_key": token_data.get("public_key"),
+                    "live_mode": token_data.get("live_mode"),
+                    "expires_in": token_data.get("expires_in"),
+                    "scope": token_data.get("scope"),
+                },
+            )
+        except Exception as e:
+            return redirect_with({
+                "status": "error",
+                "reason": "db_error",
+                "detail": str(e)
+            })
 
-        redirect_url = f"jex://auth/additional-info/step-four?status=success&user_id={user.id}"
-        response = HttpResponse(status=302)
-        response['Location'] = redirect_url
-        return response
+        # Éxito: devolver status=success (incluye user_id si se desea)
+        return redirect_with({"status": "success", "user_id": user.id})
     
 
 class GenerateMPStateView(views.APIView):
@@ -319,3 +343,14 @@ class MercadoPagoWebhookView(views.APIView):
             "payment_status": payment_state,
             "payment_status_message": friendly_status
         }, status=status.HTTP_200_OK)
+    
+
+class MercadoPagoAccountAssociatedView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        has_account = hasattr(user, "mercado_pago_account")
+        return Response({"has_account": has_account}, status=status.HTTP_200_OK)
+    
