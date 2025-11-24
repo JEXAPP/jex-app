@@ -6,7 +6,7 @@ from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.errors.user_errors_messages import EMAIL_REQUIRED, EMPLOYEE_PROFILE_NOT_FOUND
 from user_auth.models.employee import EmployeeProfile
 from user_auth.permissions import IsInGroup
-from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, EmployeeAdditionalInfoSerializer, EmployeeEducationSerializer, EmployeeInterestsSerializer, EmployeeProfileDescriptionSerializer, EmployeeRegisterSerializer, EmployeeWorkExperienceSerializer, ViewEmployeeEducationSerializer, ViewEmployeeInterestsSerializer, ViewEmployeeProfileDescriptionSerializer, ViewEmployeeWorkExperienceSerializer
+from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, EmployeeAdditionalInfoSerializer, EmployeeEducationSerializer, EmployeeInterestsSerializer, EmployeeProfileDescriptionSerializer, EmployeeRegisterSerializer, EmployeeWorkExperienceSerializer, UpdateEmployeeProfileSerializer, ViewEmployeeEducationSerializer, ViewEmployeeInterestsSerializer, ViewEmployeeProfileDescriptionSerializer, ViewEmployeeWorkExperienceSerializer
 from user_auth.models.user import CustomUser
 from rest_framework import serializers
 from django.db import transaction
@@ -196,3 +196,21 @@ class ViewEmployeeProfileDescription(APIView):
 
         serializer = ViewEmployeeProfileDescriptionSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class UpdateEmployeeProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def put(self, request):
+        profile = request.user.employee_profile
+
+        serializer = UpdateEmployeeProfileSerializer(
+            instance=profile,
+            data=request.data,
+            context={'user': request.user}
+        )
+
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({"message": "Perfil actualizado correctamente"})
