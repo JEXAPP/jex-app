@@ -4,9 +4,11 @@ from django.conf import settings
 import jwt
 import requests
 from typing import Optional
+from payments.constants import APP_FEE_PERCENT, MP_FEE_PERCENT
 from user_auth.models.user import CustomUser
 
 class MercadoPagoService:
+
     @staticmethod
     def exchange_code_for_tokens(code: str) -> dict:
         data = {
@@ -94,8 +96,8 @@ class MercadoPagoService:
             "Content-Type": "application/json",
         }
 
-        mp_fee_percent = Decimal("0.0653")
-        app_fee_percent = Decimal("0.0347")
+        mp_fee_percent = Decimal(str(MP_FEE_PERCENT))
+        app_fee_percent = Decimal(str(APP_FEE_PERCENT))
 
         total_amount = amount / (Decimal("1") - (mp_fee_percent + app_fee_percent))
 
