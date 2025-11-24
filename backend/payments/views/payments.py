@@ -357,7 +357,7 @@ class MercadoPagoAccountAssociatedView(views.APIView):
 
 class MercadoPagoFeeDetailsView(views.APIView):
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
-    required_groups = [EMPLOYEE_ROLE]
+    required_groups = [EMPLOYER_ROLE]
 
     def get(self, request, *args, **kwargs):
         mp_fee_percent = MP_FEE_PERCENT
