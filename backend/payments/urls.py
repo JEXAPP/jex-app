@@ -1,7 +1,7 @@
 
 
 from django.urls import path
-from payments.views.payments import GenerateMPStateView, GeneratePaymentLinkView, MercadoPagoOAuthCallbackView, MercadoPagoWebhookView, PaymentCallbackView
+from payments.views.payments import GenerateMPStateView, GeneratePaymentLinkView, MercadoPagoAccountAssociatedView, MercadoPagoOAuthCallbackView, MercadoPagoWebhookView, PaymentCallbackView
 
 
 urlpatterns = [
@@ -12,5 +12,6 @@ urlpatterns = [
     path("failure/", PaymentCallbackView.as_view(), name="payment-failure"),
     path("pending/", PaymentCallbackView.as_view(), name="payment-pending"),
     path("mercadopago/webhook/", MercadoPagoWebhookView.as_view(), name="mercadopago-webhook"),
+    path("mercadopago/associated/", MercadoPagoAccountAssociatedView.as_view(), name="mercadopago-associated"),
 
 ]
