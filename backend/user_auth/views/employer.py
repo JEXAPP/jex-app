@@ -63,24 +63,15 @@ class ViewEmployerProfileDescription(APIView):
         serializer = ViewEmployerProfileDescriptionSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-class ViewEmployerProfileDescription(APIView):
+class UpdateEmployerProfileDescriptionView(APIView):
     permission_classes = [permissions.IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
-
-    def get(self, request):
-        try:
-            profile = request.user.employer_profile
-        except EmployerProfile.DoesNotExist:
-            return Response({"detail": "Perfil de empleador no encontrado."}, status=404)
-
-        serializer = ViewEmployerProfileDescriptionSerializer(profile)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def put(self, request):
         try:
             profile = request.user.employer_profile
         except EmployerProfile.DoesNotExist:
-            return Response({"detail": "Perfil de empleador no encontrado."}, status=404)
+            return Response("Perfil de empleador no encontrado.", status=404)
 
         serializer = UpdateEmployerProfileSerializer(
             profile,
