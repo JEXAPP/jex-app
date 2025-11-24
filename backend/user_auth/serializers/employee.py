@@ -411,7 +411,7 @@ class ViewEmployeeProfileDescriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmployeeProfile
-        fields = ['description', 'profile_image_url', 'first_name', 'last_name', 'dni', 'birth_date']
+        fields = ['description', 'profile_image_url', 'first_name', 'last_name', 'dni', 'birth_date', 'address']
 
     def get_profile_image_url(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
@@ -429,7 +429,8 @@ class EmployeeForOfferSearchSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmployeeProfile
-        fields = ["profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count", "work_experiences", "educations", "languages"]
+        fields = ["id","profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count", "work_experiences", "educations", "languages"]
+        
     def get_profile_image(self, obj):
         return obj.user.profile_image.url if obj.user.profile_image else None
 

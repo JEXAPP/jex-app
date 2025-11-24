@@ -331,3 +331,58 @@ class EmployeeRatingDetailSerializer(serializers.ModelSerializer):
         image = getattr(obj.rater, 'profile_image', None)
         return image.url if image else None
 
+class ListRatingsEmployeeSerializer(serializers.ModelSerializer):
+    event_name = serializers.CharField(source="event.name")
+    rater = serializers.SerializerMethodField()
+    rater_image = serializers.SerializerMethodField()
+    date = CustomDateField()
+
+
+    class Meta:
+        model = Rating
+        fields = [
+            "rating",
+            "comments",
+            "date",
+            "event_name",
+            "rater",
+            "rater_image"
+        ]
+
+    def get_rater(self, obj):
+        try:
+            return obj.rater.employer_profile.company_name
+        except EmployerProfile.DoesNotExist:
+            return None
+
+    def get_rater_image(self, obj):
+        if obj.rater.profile_image:
+            return obj.rater.profile_image.url
+        return None
+    
+
+class ListRatingsEmployerSerializer(serializers.ModelSerializer):
+    event_name = serializers.CharField(source="event.name")
+    rater = serializers.SerializerMethodField()
+    rater_image = serializers.SerializerMethodField()
+    date = CustomDateField()
+
+    class Meta:
+        model = Rating
+        fields = [
+            "rating",
+            "comments",
+            "date",
+            "event_name",
+            "rater",
+            "rater_image"
+        ]
+
+    def get_rater(self, obj):
+        user = obj.rater
+        return f"{user.first_name} {user.last_name}".strip()
+
+    def get_rater_image(self, obj):
+        if obj.rater.profile_image:
+            return obj.rater.profile_image.url
+        return None

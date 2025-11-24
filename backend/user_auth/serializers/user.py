@@ -36,3 +36,11 @@ class UserPublicProfileSerializer(serializers.ModelSerializer):
     
     def get_image_url(self, obj):
         return obj.profile_image.url if obj.profile_image else None
+    
+class ViewMailAndPhoneSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField()
+    phone = serializers.CharField(allow_null=True)
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'phone']

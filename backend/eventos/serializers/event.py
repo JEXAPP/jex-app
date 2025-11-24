@@ -470,3 +470,15 @@ class EventReportSerializer(serializers.ModelSerializer):
         return EmployeeReportSerializer(
             offers, many=True, context={"event": obj}
         ).data
+
+class ListHistoryEventsViewSerializer(serializers.ModelSerializer):
+
+    event_image = serializers.SerializerMethodField()
+    class Meta:
+        model = Event
+        fields = ['id', 'name', 'description', 'event_image', 'start_date', 'end_date']
+
+    def get_event_image(self, obj):
+        if obj.event_image:
+            return obj.event_image.url
+        return None

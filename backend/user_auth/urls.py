@@ -7,7 +7,7 @@ from user_auth.views.employer import CompleteEmployerSocialView, EmployerProfile
 from user_auth.views.language import EmployeeLanguagesBulkUpdateView, EmployeeLanguagesView, LanguageLevelsView, LanguagesListView
 from user_auth.views.password_reset import PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
 from user_auth.views.phone_verification import SendPhoneVerificationCodeView, VerifyPhoneCodeView
-from user_auth.views.user import UserProfileView
+from user_auth.views.user import UserProfileView, ViewMailAndPhone
     
 urlpatterns = [
     path('register/employer/', EmployerRegisterView.as_view(), name='register-employer'),
@@ -38,4 +38,5 @@ urlpatterns = [
     path('language-levels/', LanguageLevelsView.as_view(), name='language-levels'),
     path('languages/', LanguagesListView.as_view(), name='languages-list'),
     path('employee/language/', EmployeeLanguagesBulkUpdateView.as_view(), name='employee-language-detail'),
+    path('view-mail-and-phone/', ViewMailAndPhone.as_view(), name='view-mail-and-phone'),
 ]
