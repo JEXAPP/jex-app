@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from user_auth.constants import EMPLOYER_ROLE
 from user_auth.models.employer import EmployerProfile
 from user_auth.permissions import IsInGroup
-from user_auth.serializers.employer import CompleteEmployerSocialSerializer, EmployerProfileDescriptionSerializer, EmployerRegisterSerializer, ViewEmployerProfileDescriptionSerializer
+from user_auth.serializers.employer import CompleteEmployerSocialSerializer, EmployerProfileDescriptionSerializer, EmployerRegisterSerializer, UpdateEmployerProfileSerializer, ViewEmployerProfileDescriptionSerializer
 
 class EmployerRegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -62,3 +62,27 @@ class ViewEmployerProfileDescription(APIView):
 
         serializer = ViewEmployerProfileDescriptionSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class UpdateEmployerProfileDescriptionView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def put(self, request):
+        try:
+            profile = request.user.employer_profile
+        except EmployerProfile.DoesNotExist:
+            return Response("Perfil de empleador no encontrado.", status=404)
+
+        serializer = UpdateEmployerProfileSerializer(
+            profile,
+            data=request.data,
+            partial=False,
+            context={'user': request.user}
+        )
+
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+
+        serializer.save()
+
+        return Response({"detail": "Perfil actualizado correctamente."}, status=200)
