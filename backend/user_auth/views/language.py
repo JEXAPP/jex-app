@@ -68,10 +68,9 @@ class EmployeeLanguagesBulkUpdateView(APIView):
         created = []
         errors = []
         for lang in languages_data:
-            lang['employee'] = profile.id
             serializer = EmployeeLanguageCreateSerializer(data=lang)
             if serializer.is_valid():
-                serializer.save()
+                serializer.save(employee=profile)
                 created.append(serializer.data)
             else:
                 errors.append(serializer.errors)
