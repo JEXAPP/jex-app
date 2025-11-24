@@ -4,7 +4,7 @@ from django.shortcuts import redirect
 import requests
 from rest_framework import status, permissions, views
 from rest_framework.response import Response
-from payments.constants import PaymentStates
+from payments.constants import APP_FEE_PERCENT, MP_FEE_PERCENT, PaymentStates
 from payments.errors.mercado_pago import INVALID_SIGNATURE, NO_VALID_PAYMENT, PAYMENT_NOT_FOUND, MISSING_MP_CODE, PAYMENT_NOT_FOUND, NO_VALID_PAYMENT
 from payments.models.mercado_pago import MercadoPagoAccount
 from payments.models.payment_state import PaymentState
@@ -354,3 +354,18 @@ class MercadoPagoAccountAssociatedView(views.APIView):
         has_account = hasattr(user, "mercado_pago_account")
         return Response({"has_account": has_account}, status=status.HTTP_200_OK)
     
+
+class MercadoPagoFeeDetailsView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def get(self, request, *args, **kwargs):
+        mp_fee_percent = MP_FEE_PERCENT
+        app_fee_percent = APP_FEE_PERCENT
+        total_fee_percent = mp_fee_percent + app_fee_percent
+        return Response({
+            "total_fee_percent": round(total_fee_percent * 100, 2),
+            "mp_fee_percent": round(mp_fee_percent * 100, 2),
+            "app_fee_percent": round(app_fee_percent * 100, 2)
+        }, status=status.HTTP_200_OK)
+        
