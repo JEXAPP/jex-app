@@ -315,6 +315,7 @@ class EmployeeRatingDetailSerializer(serializers.ModelSerializer):
 
     def get_job_type(self, obj):
         offer = self._get_offer_for_rating(obj)
+        print(offer)
         return get_job_type_display(offer.selected_shift.vacancy) if offer else None
 
     def get_job_date(self, obj):
@@ -330,4 +331,137 @@ class EmployeeRatingDetailSerializer(serializers.ModelSerializer):
     def get_reviewerImageUrl(self, obj):
         image = getattr(obj.rater, 'profile_image', None)
         return image.url if image else None
+    
+class EmployerRatingDetailSerializer(serializers.ModelSerializer):
+    employee_name = serializers.SerializerMethodField()
+    employee_image_url = serializers.SerializerMethodField()
+    event_name = serializers.CharField(source="event.name")
+    job_type = serializers.SerializerMethodField()
+    score = serializers.FloatField(source='rating')
+    comment = serializers.CharField(source='comments')
+    job_date = CustomDateField(source='get_job_date', read_only=True)
+    created_at = CustomDateField(source='date', read_only=True)
 
+    class Meta:
+        model = Rating
+        fields = [
+            "id",
+            "employee_name",
+            "employee_image_url",
+            "event_name",
+            "job_type",
+            "score",
+            "comment",
+            "job_date",
+            "created_at"
+        ]
+
+    def get_employee_name(self, obj):
+        user = obj.rater
+        return f"{user.first_name} {user.last_name}".strip()
+
+    def get_employee_image_url(self, obj):
+        user = obj.rater
+        image = getattr(user, "profile_image", None)
+        return image.url if image else None
+
+    def _get_offer_for_rating(self, obj):
+        if not hasattr(self, "_offer_cache"):
+            self._offer_cache = {}
+
+        if obj.id in self._offer_cache:
+            return self._offer_cache[obj.id]
+
+        state_names = [
+            OfferStates.ACCEPTED.value,
+            OfferStates.COMPLETED.value,
+            OfferStates.NOT_SHOWN.value,
+        ]
+
+        # El empleado es el que calificó → rater
+        employee_profile = getattr(obj.rater, "employee_profile", None)
+        if not employee_profile:
+            self._offer_cache[obj.id] = None
+            return None
+
+        offer = (
+            Offer.objects
+            .select_related("selected_shift__vacancy")
+            .filter(
+                selected_shift__vacancy__event=obj.event,
+                employee_id=employee_profile.id,
+                state__name__in=state_names,
+            )
+            .first()
+        )
+
+        self._offer_cache[obj.id] = offer
+        return offer
+
+    def get_job_type(self, obj):
+        offer = self._get_offer_for_rating(obj)
+        return get_job_type_display(offer.selected_shift.vacancy) if offer else None
+
+    def get_job_date(self, obj):
+        offer = self._get_offer_for_rating(obj)
+        if not offer:
+            return None
+
+        shift = getattr(offer, "selected_shift", None)
+        return getattr(shift, "start_date", None)
+
+class ListRatingsEmployeeSerializer(serializers.ModelSerializer):
+    event_name = serializers.CharField(source="event.name")
+    rater = serializers.SerializerMethodField()
+    rater_image = serializers.SerializerMethodField()
+    date = CustomDateField()
+
+
+    class Meta:
+        model = Rating
+        fields = [
+            "rating",
+            "comments",
+            "date",
+            "event_name",
+            "rater",
+            "rater_image"
+        ]
+
+    def get_rater(self, obj):
+        try:
+            return obj.rater.employer_profile.company_name
+        except EmployerProfile.DoesNotExist:
+            return None
+
+    def get_rater_image(self, obj):
+        if obj.rater.profile_image:
+            return obj.rater.profile_image.url
+        return None
+    
+
+class ListRatingsEmployerSerializer(serializers.ModelSerializer):
+    event_name = serializers.CharField(source="event.name")
+    rater = serializers.SerializerMethodField()
+    rater_image = serializers.SerializerMethodField()
+    date = CustomDateField()
+
+    class Meta:
+        model = Rating
+        fields = [
+            "rating",
+            "comments",
+            "date",
+            "event_name",
+            "rater",
+            "rater_image"
+        ]
+
+    def get_rater(self, obj):
+        user = obj.rater
+        return f"{user.first_name} {user.last_name}".strip()
+
+    def get_rater_image(self, obj):
+        if obj.rater.profile_image:
+            return obj.rater.profile_image.url
+        return None

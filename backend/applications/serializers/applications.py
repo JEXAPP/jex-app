@@ -117,6 +117,7 @@ class ApplicationCreateSerializer(serializers.Serializer):
 
 
 class ApplicationDetailSerializer(serializers.ModelSerializer):
+    employee_id = serializers.IntegerField(source="employee.id")
     current_shift = ShiftForApplicationSerializer(source='shift', read_only=True)
     shifts = serializers.SerializerMethodField()
     profile_image = serializers.SerializerMethodField()
@@ -132,7 +133,8 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Application
-        fields = ["current_shift", "shifts", "profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count", "work_experiences", "educations", "languages"]
+        fields = ["employee_id", "current_shift", "shifts", "profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count", "work_experiences", "educations", "languages"]
+    
     def get_profile_image(self, obj):
         return obj.employee.user.profile_image.url if obj.employee.user.profile_image else None
 
