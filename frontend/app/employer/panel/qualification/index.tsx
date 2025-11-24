@@ -19,6 +19,11 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import ImageWindow from "@/components/window/ImageWindow";
+import { TempWindow } from "@/components/window/TempWindow";
+import { iconos } from "@/constants/iconos";
+import { tempWindowStyles1 } from "@/styles/components/window/tempWindowStyles1";
+import { ClickWindow } from "@/components/window/ClickWindow";
+import { clickWindowStyles1 } from "@/styles/components/window/clickWindowStyles1";
 
 export default function QualiScreen() {
   const router = useRouter();
@@ -36,6 +41,11 @@ export default function QualiScreen() {
     totalCount,
     handleSanction,
     loading,
+    showError,
+    errorMessage,
+    showSuccess,
+    closeError,
+    closeSuccess,
   } = useQuali();
 
   const [keyboardHeight, setKeyboardHeight] = useState(40);
@@ -362,6 +372,23 @@ export default function QualiScreen() {
         }
         buttonText="Aceptar"
         onClose={() => setShowAttendanceModal(false)}
+      />
+      <TempWindow
+        visible={showSuccess}
+        icono={iconos.exito(40, Colors.white)}
+        onClose={closeSuccess}
+        styles={tempWindowStyles1}
+        duration={2000}
+      />
+
+      <ClickWindow
+        title="Error"
+        visible={showError}
+        message={errorMessage}
+        onClose={closeError}
+        styles={clickWindowStyles1}
+        icono={iconos.error_outline(30, Colors.white)}
+        buttonText="Entendido"
       />
     </SafeAreaView>
   );

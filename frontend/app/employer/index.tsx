@@ -9,7 +9,6 @@ import { useAdminPanel } from "@/hooks/employer/useAdminPanel";
 import { adminPanelStyles as styles } from "@/styles/app/employer/adminPanelStyles";
 import HomeEventsSkeleton from "@/constants/skeletons/employer/homeEventsSkeleton";
 
-
 export default function AdminPanelScreen() {
   const {
     loading,
@@ -26,6 +25,7 @@ export default function AdminPanelScreen() {
     goToQualifications,
     goToReports,
     getOrderedButtons,
+    hasNewNotifications, // NUEVO
   } = useAdminPanel();
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -37,6 +37,7 @@ export default function AdminPanelScreen() {
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Eventos</Text>
+
           <IconButton
             sizeButton={28}
             styles={iconButtonStyles1}
@@ -44,12 +45,16 @@ export default function AdminPanelScreen() {
             icon={iconos.plus(20, Colors.white)}
             backgroundColor={Colors.gray2}
           />
-          <View style={{marginLeft: 100}}>
-            <IconButton
-              styles={iconButtonStyles1}
-              onPress={goToNotifications}
-              icon={iconos.notification(40, Colors.violet4)}
-            />
+
+          <View style={{ marginLeft: 100 }}>
+            <View style={styles.notificationIconWrapper}>
+              <IconButton
+                styles={iconButtonStyles1}
+                onPress={goToNotifications}
+                icon={iconos.notification(40, Colors.violet4)}
+              />
+              {hasNewNotifications && <View style={styles.notificationDot} />}
+            </View>
           </View>
         </View>
 
@@ -146,6 +151,7 @@ export default function AdminPanelScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Eventos</Text>
+
           <IconButton
             sizeButton={24}
             sizeContent={22}
@@ -154,13 +160,17 @@ export default function AdminPanelScreen() {
             icon={iconos.plus(22, Colors.white)}
             backgroundColor={Colors.gray2}
           />
-          <View style={{marginLeft: 100}}>
-            <IconButton
-              styles={iconButtonStyles1}
-              sizeContent={40}
-              onPress={goToNotifications}
-              icon={iconos.notification(40, Colors.violet4)}
-            />
+
+          <View style={{ marginLeft: 100 }}>
+            <View style={styles.notificationIconWrapper}>
+              <IconButton
+                styles={iconButtonStyles1}
+                sizeContent={40}
+                onPress={goToNotifications}
+                icon={iconos.notification(40, Colors.violet4)}
+              />
+              {hasNewNotifications && <View style={styles.notificationDot} />}
+            </View>
           </View>
         </View>
 
@@ -195,7 +205,6 @@ export default function AdminPanelScreen() {
         <View style={styles.cardsContainer}>
           {orderedButtons.map(renderButton)}
         </View>
-
       </ScrollView>
 
       <Modal visible={modalVisible} animationType="fade" transparent>

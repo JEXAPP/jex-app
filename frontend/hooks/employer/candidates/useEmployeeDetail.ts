@@ -326,12 +326,22 @@ export const useEmployeeDetail = (p: Params) => {
   const goBack = () => router.back();
 
   const onGenerateOffer = () => {
-    const userId = (data?.employee_id ?? p.id) as string | number;
+    let targetId: string | number;
+
+    if (p.source === 'application') {
+      // Para postulaciones: seguir usando el ID del turno/aplicación
+      const shiftId = data?.applied_shift_ids?.[0] ?? p.id;
+      targetId = shiftId as string | number;
+    } else {
+      // Para búsqueda: usar el ID del empleado
+      targetId = (data?.employee_id ?? p.id) as string | number;
+    }
+
     router.push({
       pathname: '/employer/candidates/offer',
       params: {
         source: p.source,
-        id: String(userId),
+        id: String(targetId),
         ...(p.source === 'search' && p.vacancyId
           ? { vacancyId: String(p.vacancyId) }
           : {}),

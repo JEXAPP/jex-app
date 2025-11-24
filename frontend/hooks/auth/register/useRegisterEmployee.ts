@@ -1,3 +1,4 @@
+// hooks/auth/register/useRegisterEmployee.ts
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useDataValidation } from '@/services/internal/useDataValidation';
 import { obtenerCoordenadasDesdeDireccion } from '@/services/external/sugerencias/useGeoRefAr';
@@ -25,6 +26,9 @@ export const useRegisterEmployee = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [continuarHabilitado, setContinuarHabilitado] = useState(false);
+
+  // nuevo: aceptación de términos
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleUbicacion = (texto: string, coord: { lat: number; lng: number } | null) => {
     setUbicacion(texto);
@@ -55,9 +59,16 @@ export const useRegisterEmployee = () => {
   };
 
   useEffect(() => {
-    const habilitado = nombre && apellido && dni && ubicacion && fechaNacimiento != null;
+    const habilitado =
+      nombre &&
+      apellido &&
+      dni &&
+      ubicacion &&
+      fechaNacimiento != null &&
+      termsAccepted; // incluye aceptación de términos
+
     setContinuarHabilitado(Boolean(habilitado));
-  }, [nombre, apellido, dni, ubicacion, fechaNacimiento]);
+  }, [nombre, apellido, dni, ubicacion, fechaNacimiento, termsAccepted]);
 
   const validarCampos = () => {
     if (!nombre || !apellido || !ubicacion) {
@@ -90,6 +101,11 @@ export const useRegisterEmployee = () => {
       setShowError(true);
       return false;
     }
+    if (!termsAccepted) {
+      setErrorMessage('Debés aceptar los Términos y Condiciones para registrarte');
+      setShowError(true);
+      return false;
+    }
     return true;
   };
 
@@ -107,7 +123,6 @@ export const useRegisterEmployee = () => {
       registroPrevio.password = password;
     }
 
-    // --- Obtener coordenadas si no hay ---
     let lat = coords?.lat ?? null;
     let lng = coords?.lng ?? null;
     if ((!lat || !lng) && ubicacion) {
@@ -186,5 +201,7 @@ export const useRegisterEmployee = () => {
     ubicacion,
     handleUbicacion,
     desdeGoogle,
+    termsAccepted,
+    setTermsAccepted,
   };
 };

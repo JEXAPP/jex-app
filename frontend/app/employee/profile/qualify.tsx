@@ -16,14 +16,18 @@ import { Colors } from "@/themes/colors";
 import { qualifyStyles as styles } from "@/styles/app/employee/profile/qualifyStyles";
 import { useQualify } from "@/hooks/employee/profile/useQualify";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { TempWindow } from "@/components/window/TempWindow";
+import { ClickWindow } from "@/components/window/ClickWindow";
+import { clickWindowStyles1 } from "@/styles/components/window/clickWindowStyles1";
+import { tempWindowStyles1 } from "@/styles/components/window/tempWindowStyles1";
+import { iconos } from "@/constants/iconos";
 
 export default function QualifyScreen() {
-  const { organizer, role, rating, comment, setComment, handleRating, handleSubmit } =
+  const { organizer, role, rating, comment, setComment, handleRating, handleSubmit,  } =
     useQualify();
 
   const [inputHeight, setInputHeight] = useState(40);
 
-  // 👉 función para cerrar teclado solo si el toque NO es en un input
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
@@ -38,7 +42,7 @@ export default function QualifyScreen() {
         extraScrollHeight={Platform.OS === "ios" ? 20 : 100}
         keyboardShouldPersistTaps="handled"
       >
-        {/* 👉 envolvemos todo pero excluimos el card y el input */}
+        {/* envolvemos todo pero excluimos el card y el input */}
         <TouchableWithoutFeedback onPress={dismissKeyboard} accessible={false}>
           <View style={{ flex: 1 }}>
             {/* Título */}
@@ -137,6 +141,7 @@ export default function QualifyScreen() {
           {rating === 0 ? "Omitir" : "Enviar Calificacion"}
         </Text>
       </TouchableOpacity>
+      
     </SafeAreaView>
   );
 }

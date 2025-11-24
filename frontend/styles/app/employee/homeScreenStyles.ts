@@ -12,22 +12,41 @@ export const homeScreenEmployeeStyles = StyleSheet.create({
     fontSize: 50,
     fontFamily: 'titulos',
     color: Colors.violet4,
-    marginBottom: 5
+    marginBottom: 5,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
     gap: 110,
-    marginBottom: 5
+    marginBottom: 5,
   },
+
+  // NUEVO: wrapper para el botón de notificaciones
+  notificationIconWrapper: {
+    position: 'relative',
+  },
+
+  // NUEVO: puntito rojo indicador de nuevas notificaciones
+  notificationDot: {
+    position: 'absolute',
+    top: 35,
+    right: 5,
+    width: 15,
+    height: 15,
+    borderRadius: 15,
+    backgroundColor: Colors.red,
+    borderWidth: 2,
+    borderColor: Colors.gray1, // para separar del fondo del header
+  },
+
   adsWrapper: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 15,
     marginTop: 25,
-    gap: 20
+    gap: 20,
   },
   jexBanner: {
     width: 100,

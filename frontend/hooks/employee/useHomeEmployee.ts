@@ -6,13 +6,17 @@ import { useEffect, useState } from 'react';
 
 export const useHomeEmployee = () => {
   const router = useRouter();
-  const { requestBackend} = useBackendConection();
-  const { validateToken } = useTokenValidations()
-  const [loadingComienzo, setLoadingComienzo] = useState<boolean>(true)
+  const { requestBackend } = useBackendConection();
+  const { validateToken } = useTokenValidations();
+
+  const [loadingComienzo, setLoadingComienzo] = useState<boolean>(true);
   const [soonVacancies, setSoonVacancies] = useState<Vacancy[]>([]);
   const [interestVacancies, setInterestVacancies] = useState<Vacancy[]>([]);
   const [nearVacancies, setNearVacancies] = useState<Vacancy[]>([]);
   const [errorVacancies, setErrorVacancies] = useState<string | null>(null);
+
+  // NUEVO: estado para saber si hay nuevas notificaciones
+  const [hasNewNotifications, setHasNewNotifications] = useState<boolean>(false);
 
   const fetchVacancies = async () => {
     try {
@@ -22,19 +26,39 @@ export const useHomeEmployee = () => {
         requestBackend('/api/vacancies/list/?category=nearby', null, 'GET'),
       ]);
 
-      setSoonVacancies(soon?.results);
-      setInterestVacancies(interests?.results);
-      setNearVacancies(near?.results);
-      setLoadingComienzo(false)
-
+      setSoonVacancies(soon?.results || []);
+      setInterestVacancies(interests?.results || []);
+      setNearVacancies(near?.results || []);
+      setLoadingComienzo(false);
     } catch (err) {
       console.log('Error al obtener vacantes:', err);
       setErrorVacancies('No se pudieron cargar las vacantes');
-  }};
+      setLoadingComienzo(false);
+    }
+  };
+
+  // NUEVO: consultar si hay nuevas notificaciones
+  const fetchHasNewNotifications = async () => {
+    try {
+      const response = await requestBackend(
+        '/api/notifications/are-new-notifications/',
+        null,
+        'GET',
+      );
+
+      // el endpoint devuelve: { "message": true/false }
+      if (typeof response?.message === 'boolean') {
+        setHasNewNotifications(response.message);
+      }
+    } catch (err) {
+      console.log('Error al consultar nuevas notificaciones:', err);
+    }
+  };
 
   useEffect(() => {
-    validateToken('employee')
+    validateToken('employee');
     fetchVacancies();
+    fetchHasNewNotifications();
   }, []);
 
   // Función al presionar la tarjeta de una vacante 
@@ -42,19 +66,41 @@ export const useHomeEmployee = () => {
     router.push(`./employee/vacancy/apply-vacancy?id=${vacancy.vacancy_id}`);
   };
 
-
   // Funciones al presionar los títulos 
-  const goToSoonList = () => router.push('/employee/vacancy/extend-vacancy?category=soon');
-  const goToInterestList = () => router.push('/employee/vacancy/extend-vacancy?category=interests');
-  const goToNearList = () => router.push('/employee/vacancy/extend-vacancy?category=nearby');
-  const goToSearchVacancy = () => router.push('/employee/vacancy/search-vacancy')
+  const goToSoonList = () =>
+    router.push('/employee/vacancy/extend-vacancy?category=soon');
+  const goToInterestList = () =>
+    router.push('/employee/vacancy/extend-vacancy?category=interests');
+  const goToNearList = () =>
+    router.push('/employee/vacancy/extend-vacancy?category=nearby');
+  const goToSearchVacancy = () =>
+    router.push('/employee/vacancy/search-vacancy');
 
-  const goToNotifications = () => router.push('/employee/vacancy/notifications')
+  // NUEVO: al ir a notificaciones, apagamos el puntito
+  const goToNotifications = () => {
+    setHasNewNotifications(false);
+    router.push('/employee/vacancy/notifications');
+  };
 
   const sections = [
-    { title: 'Según tus intereses', data: interestVacancies, onPressTitle: goToInterestList, showArrow: true },
-    { title: 'Próximos eventos',   data: soonVacancies,     onPressTitle: goToSoonList,     showArrow: true },
-    { title: 'Cerca tuyo',         data: nearVacancies,     onPressTitle: goToNearList,     showArrow: true },
+    {
+      title: 'Según tus intereses',
+      data: interestVacancies,
+      onPressTitle: goToInterestList,
+      showArrow: true,
+    },
+    {
+      title: 'Próximos eventos',
+      data: soonVacancies,
+      onPressTitle: goToSoonList,
+      showArrow: true,
+    },
+    {
+      title: 'Cerca tuyo',
+      data: nearVacancies,
+      onPressTitle: goToNearList,
+      showArrow: true,
+    },
   ];
 
   return {
@@ -63,6 +109,7 @@ export const useHomeEmployee = () => {
     errorVacancies,
     goToSearchVacancy,
     goToVacancyDetails,
-    goToNotifications
+    goToNotifications,
+    hasNewNotifications, // NUEVO
   };
 };

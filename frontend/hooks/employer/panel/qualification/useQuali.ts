@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
-import { Alert } from "react-native";
 import useBackendConection from "@/services/internal/useBackendConection";
 
 type Worker = {
@@ -10,7 +9,7 @@ type Worker = {
   linked: boolean;
   penalized: boolean;
   image: string | null;
-  hasShown: boolean; // ✅ nuevo campo
+  hasShown: boolean;
 };
 
 type RatingData = {
@@ -28,6 +27,19 @@ export const useQuali = () => {
   const [ratings, setRatings] = useState<Record<string, RatingData>>({});
   const [workersState, setWorkersState] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  const closeError = () => {
+    setShowError(false);
+    setErrorMessage("");
+  };
+
+  const closeSuccess = () => {
+    setShowSuccess(false);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -73,12 +85,15 @@ export const useQuali = () => {
           linked: emp.is_linked,
           penalized: emp.is_penalized,
           image: emp.image ?? null,
-          hasShown: emp.has_shown ?? false, // ✅ se guarda el nuevo campo
+          hasShown: emp.has_shown ?? false,
         }));
         setWorkersState(mapped);
+      } else {
+        setWorkersState([]);
       }
     } catch (err) {
       console.log("Error cargando empleados:", err);
+      setWorkersState([]);
     } finally {
       setLoading(false);
     }
@@ -91,7 +106,10 @@ export const useQuali = () => {
   }, [eventId]);
 
   const workers = useMemo(
-    () => workersState.filter((w) => w.role === selectedRole),
+    () =>
+      workersState.filter(
+        (w) => w.role === selectedRole && !w.hasShown
+      ),
     [selectedRole, workersState]
   );
 
@@ -136,18 +154,28 @@ export const useQuali = () => {
       .filter((entry) => entry.rating !== null);
 
     if (dataToSend.length === 0) {
-      Alert.alert("Aviso", "No seleccionaste ninguna calificación.");
+      setErrorMessage("No seleccionaste ninguna calificación.");
+      setShowError(true);
       return;
     }
 
     try {
       await requestBackend("/api/rating/rate/", dataToSend, "POST");
-      Alert.alert("Calificaciones Enviadas");
-      fetchWorkers();
-      fetchRoles();
-    } catch (err) {
-      console.log("❌ Error enviando calificaciones:", err);
-      Alert.alert("Error", "No se pudieron enviar las calificaciones.");
+
+      // limpiar ratings y recargar datos para que no quede la misma calificación disponible
+      setRatings({});
+      await fetchWorkers();
+      await fetchRoles();
+
+      setShowSuccess(true);
+    } catch (err: any) {
+      console.log("Error enviando calificaciones:", err);
+      const backendMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        "No se pudieron enviar las calificaciones.";
+      setErrorMessage(backendMsg);
+      setShowError(true);
     }
   };
 
@@ -172,5 +200,10 @@ export const useQuali = () => {
     ratedCount,
     totalCount,
     loading,
+    showError,
+    errorMessage,
+    showSuccess,
+    closeError,
+    closeSuccess,
   };
 };
