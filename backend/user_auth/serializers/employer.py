@@ -123,3 +123,16 @@ class EmployerProfileDescriptionSerializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
+
+
+class ViewEmployerProfileDescriptionSerializer(serializers.ModelSerializer):
+    profile_image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = EmployerProfile
+        fields = ['id', 'company_name', 'description', 'profile_image_url']
+
+    def get_profile_image_url(self, obj):
+        if obj.user.profile_image:
+            return obj.user.profile_image.url
+        return None
