@@ -127,12 +127,70 @@ class EmployerProfileDescriptionSerializer(serializers.ModelSerializer):
 
 class ViewEmployerProfileDescriptionSerializer(serializers.ModelSerializer):
     profile_image_url = serializers.SerializerMethodField()
+    profile_image_id = serializers.SerializerMethodField()
 
     class Meta:
         model = EmployerProfile
-        fields = ['id', 'company_name', 'description', 'profile_image_url']
+        fields = ['id', 'company_name', 'description', 'profile_image_url', 'profile_image_id']
 
     def get_profile_image_url(self, obj):
         if obj.user.profile_image:
             return obj.user.profile_image.url
         return None
+
+    def get_profile_image_id(self, obj):
+        if obj.user.profile_image:
+            return obj.user.profile_image.public_id
+        return None
+    
+
+class UpdateEmployerProfileSerializer(serializers.ModelSerializer):
+    profile_image_url = serializers.CharField(allow_null=True, required=False)
+    profile_image_id = serializers.CharField(allow_null=True, required=False)
+
+    class Meta:
+        model = EmployerProfile
+        fields = ['company_name', 'description', 'profile_image_url', 'profile_image_id']
+
+    def validate(self, data):
+        image_url = data.get('profile_image_url')
+        image_id = data.get('profile_image_id')
+
+        # Si el front manda cualquier cosa, debe mandar ambos
+        if (image_url and not image_id) or (image_id and not image_url):
+            raise serializers.ValidationError("Both profile_image_url and profile_image_id are required.")
+        
+        return data
+
+    def update(self, instance, validated_data):
+        user = self.context['user']
+
+        # Obtener campos de imagen
+        image_url = validated_data.pop('profile_image_url', None)
+        image_id = validated_data.pop('profile_image_id', None)
+
+        # Si se envía imagen nueva
+        if image_url and image_id:
+            image_obj, _ = Image.objects.update_or_create(
+                public_id=image_id,
+                defaults={
+                    'url': image_url,
+                    'type': ImageType.PROFILE,
+                    'uploaded_by': user,
+                }
+            )
+            user.profile_image = image_obj
+            user.save()
+
+        # Si envían ambos como null → borrar imagen
+        elif image_url is None and image_id is None:
+            user.profile_image = None
+            user.save()
+
+        # Actualizar el employer profile
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        return instance

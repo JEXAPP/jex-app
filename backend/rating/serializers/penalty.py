@@ -86,11 +86,17 @@ class CreatePenaltySerializer(serializers.Serializer):
             penalty_type=penalty_type
         )
         return penalty
+  
+class PenalizedUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['first_name', 'last_name', 'phone', 'email']
 
 
 # Serializer para respuesta de penalización
 class PenaltySerializer(serializers.ModelSerializer):
     penalized_user = serializers.SerializerMethodField()
+    event_info = serializers.SerializerMethodField()
 
     class Meta:
         model = Penalty
@@ -98,7 +104,7 @@ class PenaltySerializer(serializers.ModelSerializer):
             'id',
             'penalized_user',
             'punisher',
-            'event',
+            'event_info',
             'comments',
             'penalty_state',
             'penalty_type',
@@ -106,4 +112,13 @@ class PenaltySerializer(serializers.ModelSerializer):
         ]
 
     def get_penalized_user(self, obj):
-        return obj.behavior.user.id
+        user = obj.behavior.user
+        return PenalizedUserSerializer(user).data
+
+    def get_event_info(self, obj):
+        event = obj.event
+        image_url = event.event_image.url if event.event_image else None
+        return {
+            'name': event.name,
+            'image': image_url
+        }
