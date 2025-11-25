@@ -477,7 +477,7 @@ class OfferDetailSerializer(serializers.ModelSerializer):
     
     def get_is_mp_associated(self, obj):
             try:
-                return obj.employer.user.mercado_pago_account is not None
+                return obj.employee.user.mercado_pago_account is not None
             except AttributeError:
                 return False
 
