@@ -381,7 +381,7 @@ class ViewEmployeeWorkExperienceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WorkExperience
-        fields = ['id', 'title', 'company_or_event', 'start_date', 'end_date', 'description', 'image_url', 'image_id']
+        fields = ['id', 'title', 'company_or_event', 'start_date', 'work_type','end_date', 'description', 'image_url', 'image_id']
 
     def get_image_url(self, obj):
         return obj.image.url if obj.image else None
