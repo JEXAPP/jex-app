@@ -10,13 +10,27 @@ export const useQualify = () => {
   const [comment, setComment] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
+  const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
+
   const handleRating = (val: number) => {
     setRating(val);
     if (val === 0) setComment("");
   };
 
   const handleSubmit = async () => {
-    if (!params.employerId || !params.eventId) return;
+    if (!params.employerId || !params.eventId) {
+      setErrorMessage("Faltan datos para calificar al organizador.");
+      setShowError(true);
+      return;
+    }
+
+    if (rating <= 0) {
+      setErrorMessage("Debés elegir al menos una estrella para calificar.");
+      setShowError(true);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -31,16 +45,34 @@ export const useQualify = () => {
 
       await requestBackend("/api/rating/rate-employer/", body, "POST");
 
-      console.log("✅ Calificación enviada:", body);
-      router.back();
-    } catch (err) {
-      console.error("❌ Error al enviar calificación:", err);
+      // limpiamos estado local
+      setRating(0);
+      setComment("");
+      setShowSuccess(true);
+    } catch (err: any) {
+      console.error("Error al enviar calificación:", err);
+      const backendMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        "No se pudo enviar la calificación.";
+      setErrorMessage(backendMsg);
+      setShowError(true);
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ se usa la imagen proveniente del backend o fallback local
+  const closeSuccess = () => {
+    setShowSuccess(false);
+    // volvemos a la pantalla anterior (lista de eventos / historial, etc.)
+    router.back();
+  };
+
+  const closeError = () => {
+    setShowError(false);
+    setErrorMessage("");
+  };
+
   const imageSource =
     typeof params.imageUrl === "string" && params.imageUrl.length > 0
       ? params.imageUrl
@@ -53,6 +85,11 @@ export const useQualify = () => {
     handleRating,
     handleSubmit,
     setComment,
+    showError,
+    errorMessage,
+    showSuccess,
+    closeError,
+    closeSuccess,
     organizer: {
       name: params.employerName,
       event: params.eventName,
@@ -60,7 +97,7 @@ export const useQualify = () => {
       time: params.time,
       image: imageSource
         ? imageSource
-        : require("@/assets/images/jex/Jex-FotoPerfil.webp"), 
+        : require("@/assets/images/jex/Jex-FotoPerfil.webp"),
     },
     role: params.jobType,
   };

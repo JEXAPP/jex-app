@@ -40,7 +40,7 @@ export const useApplyVacancy = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // 👉 NUEVO: id del empleador (organizador del evento)
+  // NUEVO: id del empleador (organizador del evento)
   const [employerId, setEmployerId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -100,7 +100,7 @@ export const useApplyVacancy = () => {
 
       const owner = vacante.event.owner;
 
-      // 👉 guardamos el id del empleador para el modal de calificaciones
+      // guardamos el id del empleador para el modal de calificaciones
       setEmployerId(owner.id ?? owner.owner_id ?? null);
 
       setJob({
@@ -118,7 +118,7 @@ export const useApplyVacancy = () => {
         rating: owner.average_rating ?? 0,
       });
 
-      // ✅ Manejo correcto de imagen del organizador
+      // Manejo correcto de imagen del organizador
       const organizerImage =
         owner.profile_image && typeof owner.profile_image === "object" && owner.profile_image.url
           ? owner.profile_image.url
@@ -129,7 +129,7 @@ export const useApplyVacancy = () => {
         reviews: owner.rating_count ?? 0,
         rating: owner.average_rating ?? 0,
         jexTime: '1 año',
-        image: organizerImage,
+        image: owner.profile_image.url,
       });
 
       // ===== Ubicación segura (evita [object Object]) =====
@@ -254,6 +254,6 @@ export const useApplyVacancy = () => {
     locationAddress,
     locationCoords,
     goBack,
-    employerId,      // 👉 NUEVO
+    employerId,      
   };
 };

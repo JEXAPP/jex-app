@@ -191,7 +191,7 @@ export default function CreateEventScreen() {
               <View style={styles.button}>
 
                 <Button
-                  texto="Validar"
+                  texto="Crear Evento"
                   onPress={handleCrearEvento}
                   styles={continuarHabilitado ? buttonStyles1 : buttonStyles4}
                   disabled={!continuarHabilitado}

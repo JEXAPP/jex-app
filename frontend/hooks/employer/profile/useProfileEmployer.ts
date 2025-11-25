@@ -51,7 +51,7 @@ export const useProfile = () => {
 
   // Navegaciones (ajustá paths si los tuyos son otros)
   const goToProfileDetails = () => {
-   // router.push("/employer/profile/details");
+   router.push("/employer/profile/view-profile");
   };
 
   const goToRatingsScreen = () => {
@@ -61,17 +61,20 @@ export const useProfile = () => {
   const goToEventsHistory = () => {
     router.push("/employer/profile/events-history");
   };
+  
+  const goToEditProfile = () => {
+    router.push("/employer/profile/edit-basic")
+  }
 
   const options = [
     {
       label: "Editar perfil",
       icon: "user",
-      onPress: goToProfileDetails,
+      onPress: goToEditProfile,
     },
     {
       label: "Legal",
       icon: "file-text",
-      // el onPress se maneja en la pantalla para abrir términos
     },
   ];
 

@@ -146,7 +146,7 @@ export default function EmployeeThreadScreen() {
                     <JexMessageList
                       TypingIndicator={TypingIndicator}
                       ScrollToBottomButton={ScrollToBottomButton}
-                      inverted={false}
+                      inverted={true}
                       DateSeparator={CustomDateSeparator}
                     />
                   </View>

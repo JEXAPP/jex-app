@@ -23,14 +23,39 @@ import { tempWindowStyles1 } from "@/styles/components/window/tempWindowStyles1"
 import { iconos } from "@/constants/iconos";
 
 export default function QualifyScreen() {
-  const { organizer, role, rating, comment, setComment, handleRating, handleSubmit,  } =
-    useQualify();
+  const {
+    organizer,
+    role,
+    rating,
+    comment,
+    setComment,
+    handleRating,
+    handleSubmit,
+    loading,
+    showError,
+    errorMessage,
+    showSuccess,
+    closeError,
+    closeSuccess,
+  } = useQualify();
 
   const [inputHeight, setInputHeight] = useState(40);
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();
   };
+
+  const handleButtonPress = () => {
+    if (rating === 0) {
+      // Omitir: simplemente volver atrás
+      closeSuccess(); // si querés volver directo, o router.back() acá
+      return;
+    }
+    if (!loading) handleSubmit();
+  };
+
+  const buttonLabel =
+    rating === 0 ? "Omitir" : loading ? "Enviando..." : "Enviar Calificacion";
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
@@ -42,24 +67,21 @@ export default function QualifyScreen() {
         extraScrollHeight={Platform.OS === "ios" ? 20 : 100}
         keyboardShouldPersistTaps="handled"
       >
-        {/* envolvemos todo pero excluimos el card y el input */}
         <TouchableWithoutFeedback onPress={dismissKeyboard} accessible={false}>
           <View style={{ flex: 1 }}>
-            {/* Título */}
             <Text style={styles.title}>Calificar Organizador</Text>
 
             {/* Card Organizador */}
             <View style={styles.card}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
-               <Image
-              source={
-                typeof organizer.image === "number"
-                  ? organizer.image // imagen local (require)
-                  : { uri: organizer.image } // URL desde backend
-              }
-              style={styles.avatar}
-            />
-
+                <Image
+                  source={
+                    typeof organizer.image === "number"
+                      ? organizer.image
+                      : { uri: organizer.image }
+                  }
+                  style={styles.avatar}
+                />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.name}>{organizer.name}</Text>
                   <Text style={styles.event}>{organizer.event}</Text>
@@ -90,7 +112,9 @@ export default function QualifyScreen() {
                   disabled={rating === 0}
                   onPress={() => handleRating(0)}
                 >
-                  <Text style={styles.ratingValue}>({rating.toFixed(1)})</Text>
+                  <Text style={styles.ratingValue}>
+                    ({rating.toFixed(1)})
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -130,7 +154,8 @@ export default function QualifyScreen() {
           styles.button,
           rating === 0 ? styles.buttonOmit : styles.buttonSubmit,
         ]}
-        onPress={rating === 0 ? () => console.log("⏭ Omitido") : handleSubmit}
+        onPress={handleButtonPress}
+        disabled={loading}
       >
         <Text
           style={[
@@ -138,10 +163,29 @@ export default function QualifyScreen() {
             rating === 0 ? styles.buttonTextOmit : styles.buttonTextSubmit,
           ]}
         >
-          {rating === 0 ? "Omitir" : "Enviar Calificacion"}
+          {buttonLabel}
         </Text>
       </TouchableOpacity>
-      
+
+      {/* Ventana de éxito */}
+      <TempWindow
+        visible={showSuccess}
+        icono={iconos.exito(40, Colors.white)}
+        onClose={closeSuccess}
+        styles={tempWindowStyles1}
+        duration={2000}
+      />
+
+      {/* Ventana de error */}
+      <ClickWindow
+        title="Error"
+        visible={showError}
+        message={errorMessage}
+        onClose={closeError}
+        styles={clickWindowStyles1}
+        icono={iconos.error_outline(30, Colors.white)}
+        buttonText="Entendido"
+      />
     </SafeAreaView>
   );
 }

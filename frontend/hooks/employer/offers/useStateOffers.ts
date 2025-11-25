@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
 
-export type OfferStatus = "Pendiente" | "Aceptada" | "Rechazada" | "Vencida";
+export type OfferStatus = "Pendiente" | "Aceptada" | "Rechazada" | "Vencida" | "A Pagar";
 export type FilterSimple = "Pendiente" | "Aceptadas" | "Otro";
 export type PaymentState = "NOT_PAYED" | "APPROVED" | "PENDING" | "FAILURE";
 
@@ -14,6 +14,7 @@ export type Event = {
   id: number;
   name: string;
   state: EventState;
+  all_payed: boolean;
 };
 
 export type Offer = {
@@ -31,7 +32,6 @@ export type Offer = {
   eventId: number;
   imageUrl: string;
   imageId: string;
-  // 🔹 NUEVO
   payment_state: PaymentState;
 };
 
@@ -40,6 +40,8 @@ const backendStateToStatus: Record<string, OfferStatus> = {
   ACCEPTED: "Aceptada",
   REJECTED: "Rechazada",
   EXPIRED: "Vencida",
+  COMPLETED: "A Pagar",
+  Completed: "A Pagar",
 };
 
 const eventStateOrder: Record<string, number> = {
@@ -64,25 +66,30 @@ export const useStateOffers = () => {
   const [loading, setLoading] = useState(false);
   const [loadingEvents, setLoadingEvents] = useState(false);
 
-  // feedback para el botón de pago (por item)
   const [creatingPaymentId, setCreatingPaymentId] = useState<number | null>(null);
 
   const currentEvent: Event | null = events[currentEventIndex] ?? null;
 
-  // Traer eventos del empleador
   useEffect(() => {
     const fetchEvents = async () => {
       setLoadingEvents(true);
       try {
         const data = await requestBackend("/api/events/by-employer/", null, "GET");
         if (Array.isArray(data)) {
-          const normalized: Event[] = data.map((e: any) => ({
+          const filteredRaw = data.filter((e: any) => {
+            const stateName = e.state?.name ?? "Publicado";
+            if (stateName !== "Finalizado") return true;
+            return e.all_payed === false;
+          });
+
+          const normalized: Event[] = filteredRaw.map((e: any) => ({
             id: e.id,
             name: e.name,
             state: {
               id: e.state?.id ?? 0,
               name: e.state?.name ?? "Publicado",
             },
+            all_payed: Boolean(e.all_payed),
           }));
 
           normalized.sort((a, b) => {
@@ -103,37 +110,59 @@ export const useStateOffers = () => {
     fetchEvents();
   }, []);
 
-  // Traer ofertas por evento + filtro
   useEffect(() => {
     const fetchOffers = async () => {
       if (!currentEvent) return;
       setLoading(true);
       try {
-        const stateIds = filterToBackendIds[filter];
+        const isFinalized = currentEvent.state.name === "Finalizado";
+
+        let stateIds: number[];
+        if (isFinalized) {
+          stateIds = [6]; // COMPLETED -> "A Pagar"
+        } else {
+          stateIds = filterToBackendIds[filter];
+        }
+
         const requests = stateIds.map((sid) =>
-          requestBackend(`/api/applications/offers/${currentEvent.id}/state/${sid}/`, null, "GET")
+          requestBackend(
+            `/api/applications/offers/${currentEvent.id}/state/${sid}/`,
+            null,
+            "GET"
+          )
         );
         const results = await Promise.all(requests);
         const all = results.flat().filter(Boolean);
 
-        const normalized: Offer[] = all.map((item: any) => ({
-          id: item?.id ?? 0,
-          employeeName: `${item?.employee_name ?? ""} ${item?.employee_lastname ?? ""}`.trim(),
-          employeeImage: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
-          role: item?.job_type ?? "Sin rol",
-          salary: new Intl.NumberFormat("es-AR").format(item?.shift?.payment ?? 0),
-          fechaInicio: item?.shift?.start_date ?? "",
-          horaInicio: item?.shift?.start_time ?? "",
-          horaFin: item?.shift?.end_time ?? "",
-          expiryDate: item?.expiration_date ?? "",
-          expiryTime: item?.expiration_time ?? "",
-          status: backendStateToStatus[item?.offer_state?.name] ?? "Pendiente",
-          eventId: currentEvent.id,
-          imageUrl: item?.profile_image_url,
-          imageId: item?.profile_image_id,
-          // 🔹 toma el valor tal cual viene; default NOT_PAYED
-          payment_state: (item?.payment_state as PaymentState) ?? "NOT_PAYED",
-        }));
+        const normalized: Offer[] = all.map((item: any) => {
+          const backendName = item?.offer_state?.name;
+
+          const status: OfferStatus = isFinalized
+            ? "A Pagar"
+            : backendStateToStatus[backendName] ?? "Pendiente";
+
+          return {
+            id: item?.id ?? 0,
+            employeeName: `${item?.employee_name ?? ""} ${
+              item?.employee_lastname ?? ""
+            }`.trim(),
+            employeeImage: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
+            role: item?.job_type ?? "Sin rol",
+            salary: new Intl.NumberFormat("es-AR").format(
+              item?.shift?.payment ?? 0
+            ),
+            fechaInicio: item?.shift?.start_date ?? "",
+            horaInicio: item?.shift?.start_time ?? "",
+            horaFin: item?.shift?.end_time ?? "",
+            expiryDate: item?.expiration_date ?? "",
+            expiryTime: item?.expiration_time ?? "",
+            status,
+            eventId: currentEvent.id,
+            imageUrl: item?.profile_image,
+            imageId: item?.profile_image_id,
+            payment_state: (item?.payment_state as PaymentState) ?? "NOT_PAYED",
+          };
+        });
 
         normalized.sort(
           (a, b) =>
@@ -166,20 +195,17 @@ export const useStateOffers = () => {
     }
   };
 
-  // Crear pago y devolver link (no abre navegador acá)
   const createPaymentLink = async (
     offerId: number
   ): Promise<{ url: string; paymentId?: number }> => {
     setCreatingPaymentId(offerId);
     try {
-      // Preferentemente POST; si tu backend expone GET, ajustá aquí
       let data: any = await requestBackend(
         `/api/payments/mercadopago/payments/${offerId}/`,
         null,
         "POST"
       );
 
-      // Fallback a GET si no vino objeto
       if (!data || typeof data !== "object") {
         data = await requestBackend(
           `/api/payments/mercadopago/payments/${offerId}/`,
@@ -188,7 +214,6 @@ export const useStateOffers = () => {
         );
       }
 
-      // Soporte para múltiples formatos de respuesta
       const url =
         data?.payment_url ||
         data?.init_point ||
@@ -222,8 +247,6 @@ export const useStateOffers = () => {
     events,
     loading,
     loadingEvents,
-
-    // pago
     creatingPaymentId,
     createPaymentLink,
   };

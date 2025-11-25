@@ -459,7 +459,7 @@ export default function EmployeeDetailScreen() {
           />
         )}
         <Button
-          texto="Me interesa"
+          texto="Ofertar"
           onPress={onGenerateOffer}
           styles={{ boton: s.btnPrimary, texto: s.btnPrimaryText } as any}
         />

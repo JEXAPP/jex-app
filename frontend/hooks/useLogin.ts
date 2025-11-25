@@ -181,7 +181,7 @@ export const useLogin = () => {
   };
 
   const handleNavigateToRegister = () => {
-    router.push('/auth/register/employer');
+    router.push('/auth/register?google=0');
   };
 
   const handlePasswordForgot = () => router.push('/auth/reset-password');

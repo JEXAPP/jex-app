@@ -32,28 +32,8 @@ export const useDetailOffers = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
-  useEffect(() => {
-    if (showMatch) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-          easing: Easing.out(Easing.ease),
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 5,
-          tension: 80,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setTimeout(() => {
-          router.replace("/employee/offers");
-        }, 3000);
-      });
-    }
-  }, []);
+  // Para poder limpiar el timeout si hiciera falta
+  const matchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const formatNumber = (value: string | number) => {
     const num = Number(value);
@@ -144,10 +124,49 @@ export const useDetailOffers = () => {
     if (id) fetchDetail();
     return () => {
       mounted = false;
+      if (matchTimeoutRef.current) {
+        clearTimeout(matchTimeoutRef.current);
+      }
     };
-  }, []);
+  }, [id, requestBackend]);
 
-  const decideOffer = async (rejected: boolean, onAccepted?: () => void) => {
+  /**
+   * Arranca la animación de match y programa la navegación,
+   * TODO esto SIN useEffect dependiente de showMatch.
+   */
+  const startMatchFlow = () => {
+    setShowMatch(true);
+
+    fadeAnim.setValue(0);
+    scaleAnim.setValue(0.8);
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.ease),
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 5,
+        tension: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    if (matchTimeoutRef.current) {
+      clearTimeout(matchTimeoutRef.current);
+    }
+    matchTimeoutRef.current = setTimeout(() => {
+      router.replace("/employee/offers");
+    }, 3000);
+  };
+
+  /**
+   * Devuelve true/false según si el decide salió bien.
+   */
+  const decideOffer = async (rejected: boolean): Promise<boolean> => {
     if (rejected) setShowRejected(true);
     try {
       const body = { rejected };
@@ -156,20 +175,33 @@ export const useDetailOffers = () => {
         body,
         "POST"
       );
-      if (!rejected && onAccepted) onAccepted();
+      return true;
     } catch (err) {
       console.log("Error al decidir la oferta:", err);
       if (rejected) setShowRejected(false);
       alert("No se pudo procesar la decisión.");
+      return false;
     }
   };
 
-  const handleAccept = (onAccepted: () => void) => {
+  /**
+   * Aceptar oferta: hace el POST y si sale bien dispara animación + redirect.
+   * El onAccepted queda opcional por si querés cerrar modales desde el render.
+   */
+  const handleAccept = (onAccepted?: () => void) => {
     setAccepting(true);
-    decideOffer(false, onAccepted).finally(() => setAccepting(false));
+    decideOffer(false)
+      .then((ok) => {
+        if (!ok) return;
+        if (onAccepted) onAccepted();
+        startMatchFlow();
+      })
+      .finally(() => setAccepting(false));
   };
 
-  const handleReject = () => decideOffer(true);
+  const handleReject = () => {
+    return decideOffer(true);
+  };
 
   const closeRejected = () => {
     setShowRejected(false);
@@ -201,7 +233,7 @@ export const useDetailOffers = () => {
     showMatch,
     fadeAnim,
     scaleAnim,
-    setShowMatch,
+    setShowMatch, // lo dejo por compatibilidad, pero ya no depende de useEffect
     confirmRejectVisible,
     openConfirmReject,
     closeConfirmReject,

@@ -208,8 +208,10 @@ export default function ApplyVacancyScreen() {
             onPress={loadOrganizerRatings}
           >
             <View>
-              <Image
-                source={require('@/assets/images/jex/Jex-FotoPerfil.webp')}
+              <ImageOnline
+                imageUrl={organizer.image}
+                size={60}
+                shape="square"
                 style={styles.logoWrapper}
               />
 
@@ -227,15 +229,11 @@ export default function ApplyVacancyScreen() {
               <View style={styles.organizerInfoItem}>
                 <Text style={styles.organizerInfoValue}>
                   {Number(organizer.rating).toFixed(1)}{' '}
-                  <Text style={{ color: Colors.violet5 }}>★</Text>
+                  <Text style={{ color: Colors.violet4 }}>★</Text>
                 </Text>
                 <Text style={styles.organizerInfoLabel}>Puntaje</Text>
               </View>
 
-              <View style={styles.organizerInfoItem}>
-                <Text style={styles.organizerInfoValue}>{organizer.jexTime.split(' ')[0]}</Text>
-                <Text style={styles.organizerInfoLabel}>Años en Jex</Text>
-              </View>
             </View>
           </TouchableOpacity>
 

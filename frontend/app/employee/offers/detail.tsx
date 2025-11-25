@@ -112,7 +112,7 @@ export default function OfferDetailsScreen() {
                       openMpModal();
                       return;
                     }
-                    handleAccept(() => setShowMatch(true));
+                    handleAccept();
                   }}
                   styles={{
                     texto: buttonStyles1.texto,

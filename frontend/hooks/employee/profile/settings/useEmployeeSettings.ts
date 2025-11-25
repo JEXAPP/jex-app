@@ -11,8 +11,7 @@ export type SettingOption = {
 
 export const useProfileSettings = () => {
   const goToEditProfile = () => {
-    // router.push("/employee/profile/edit-profile");
-    console.log("Ir a: Editá tu perfil");
+    router.push("/employee/profile/edit-profile-employee");
   };
 
   const goToEditInterests = () => {

@@ -94,7 +94,7 @@ export default function ViewMyPublicProfileScreen() {
         {/* Botón editar */}
         <View style={{ ...s.editButtonTop, marginTop: 30 }}>
           <IconButton
-            onPress={() => console.log("EDITAR PERFIL")}
+            onPress={() => router.push('/employee/profile/edit-profile-employee')}
             sizeButton={28}
             backgroundColor="transparent"
             icon={iconos.edit(25, Colors.white)}

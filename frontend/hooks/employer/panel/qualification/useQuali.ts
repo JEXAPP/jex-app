@@ -108,7 +108,7 @@ export const useQuali = () => {
   const workers = useMemo(
     () =>
       workersState.filter(
-        (w) => w.role === selectedRole && !w.hasShown
+        (w) => w.role === selectedRole
       ),
     [selectedRole, workersState]
   );

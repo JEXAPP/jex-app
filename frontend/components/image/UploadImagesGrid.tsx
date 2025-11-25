@@ -4,38 +4,53 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
 import { Colors } from '@/themes/colors';
-import { IconButton } from '@/components/button/IconButton'; // ajustá el path si varía
+import { IconButton } from '@/components/button/IconButton';
 import { uploadImagesGridStyles1 as styles } from '@/styles/components/image/uploadImagesGridStyles1';
 import { iconos } from '@/constants/iconos';
 
-type UploadableImage = {
+export type UploadableImage = {
   uri: string;
   name: string;
   type: string;
 };
 
 type Item = {
-  uri: string;                 // siempre hay URI de preview
-  file: UploadableImage | null; // null si vino “precargada” por URL
+  uri: string;                      // siempre hay URI de preview
+  file: UploadableImage | null;     // null si vino “precargada” por URL
+  existingId?: string | number | null; // id del backend si es imagen vieja
+};
+
+type ExistingImage = {
+  id: string | number;
+  url: string;
 };
 
 type Props = {
-  /** Máximo de imágenes permitidas */
-  max?: number;                // default 6
-  /** Tamaño del thumbnail (cuadrado) en px */
-  thumbSize?: number;          // default 96
-  /** Forma del thumbnail */
-  shape?: 'square' | 'circle'; // default 'square'
-  /** Callback principal: arrays alineados (mismo orden/longitud) */
-  onChange: (files: (UploadableImage | null)[], uris: string[]) => void;
-  /** (Opcional) Callback de compatibilidad con UploadImage: último cambio */
-  onChangeLast?: (file: UploadableImage | null, uri: string | null) => void;
-  /** Lista inicial de URLs (por ejemplo, ya guardadas en Cloudinary) */
-  initialUrls?: string[];
-  /** Llamado cuando se intenta superar el límite */
-  onLimitReached?: () => void;
+  max?: number;
+  thumbSize?: number;
+  shape?: 'square' | 'circle';
 
-  /** Estilos opcionales del contenedor principal */
+  /**
+   * Callback principal:
+   * - files: solo las nuevas tienen UploadableImage, las viejas vienen como null
+   * - uris: todas las URIs actuales (viejas + nuevas)
+   * - existingIds: ids de backend alineados al array (null si es nueva)
+   */
+  onChange: (
+    files: (UploadableImage | null)[],
+    uris: string[],
+    existingIds?: (string | number | null)[]
+  ) => void;
+
+  onChangeLast?: (file: UploadableImage | null, uri: string | null) => void;
+
+  /** Compatibilidad: solo URLs iniciales sin id */
+  initialUrls?: string[];
+
+  /** Imágenes iniciales con id+url traídas del backend */
+  initialExisting?: ExistingImage[];
+
+  onLimitReached?: () => void;
   containerStyle?: any;
 };
 
@@ -46,27 +61,52 @@ export const UploadImagesGrid: React.FC<Props> = ({
   onChange,
   onChangeLast,
   initialUrls = [],
+  initialExisting = [],
   onLimitReached,
   containerStyle,
 }) => {
-  const [items, setItems] = useState<Item[]>(
-    (initialUrls ?? []).map((u) => ({ uri: u, file: null }))
-  );
+  const [items, setItems] = useState<Item[]>(() => {
+    if (initialExisting && initialExisting.length > 0) {
+      return initialExisting.map((img) => ({
+        uri: img.url,
+        file: null,
+        existingId: img.id,
+      }));
+    }
+    return (initialUrls ?? []).map((u) => ({
+      uri: u,
+      file: null,
+      existingId: null,
+    }));
+  });
 
   const isMax = items.length >= max;
 
   const borderRadiusStyle = useMemo(
-    () => (shape === 'circle' ? { borderRadius: thumbSize } : { borderRadius: 10 }),
+    () =>
+      shape === 'circle'
+        ? { borderRadius: thumbSize }
+        : { borderRadius: 10 },
     [shape, thumbSize]
   );
 
-  const emitChange = (next: Item[], last?: { file: UploadableImage | null; uri: string | null }) => {
+  const emitChange = (
+    next: Item[],
+    last?: { file: UploadableImage | null; uri: string | null }
+  ) => {
     setItems(next);
-    onChange(
-      next.map((i) => i.file),
-      next.map((i) => i.uri)
+
+    const filesArray = next.map((i) => i.file);
+    const urisArray = next.map((i) => i.uri);
+    const existingIdsArray = next.map((i) =>
+      typeof i.existingId === 'undefined' ? null : i.existingId
     );
-    if (onChangeLast) onChangeLast(last?.file ?? null, last?.uri ?? null);
+
+    onChange(filesArray, urisArray, existingIdsArray);
+
+    if (onChangeLast) {
+      onChangeLast(last?.file ?? null, last?.uri ?? null);
+    }
   };
 
   const pickImage = async () => {
@@ -82,9 +122,8 @@ export const UploadImagesGrid: React.FC<Props> = ({
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
-        aspect: [1, 1],   // si querés no forzar 1:1, cambiá esto
+        aspect: [1, 1],
         quality: 0.8,
-        // allowsMultipleSelection: false  // agregás 1 por vez
       });
 
       if (!result.canceled) {
@@ -93,7 +132,7 @@ export const UploadImagesGrid: React.FC<Props> = ({
         const type = getMimeType(uri);
         const file: UploadableImage = { uri, name, type };
 
-        const next = [...items, { uri, file }];
+        const next = [...items, { uri, file, existingId: null }];
         emitChange(next, { file, uri });
       }
     } catch (e) {
@@ -108,7 +147,6 @@ export const UploadImagesGrid: React.FC<Props> = ({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {/* Thumbnails existentes */}
       {items.map((it, idx) => (
         <View
           key={`${it.uri}-${idx}`}
@@ -119,11 +157,14 @@ export const UploadImagesGrid: React.FC<Props> = ({
         >
           <Image
             source={{ uri: it.uri }}
-            style={[styles.thumbImage, { width: thumbSize, height: thumbSize }, borderRadiusStyle]}
+            style={[
+              styles.thumbImage,
+              { width: thumbSize, height: thumbSize },
+              borderRadiusStyle,
+            ]}
             resizeMode="cover"
           />
 
-          {/* Botón eliminar (abajo-izquierda) */}
           <View style={styles.trashBtnWrapper}>
             <IconButton
               onPress={() => removeAt(idx)}
@@ -141,7 +182,6 @@ export const UploadImagesGrid: React.FC<Props> = ({
         </View>
       ))}
 
-      {/* Botón Agregar (se reubica al final del flujo con wrap) */}
       <Pressable
         onPress={pickImage}
         disabled={isMax}
@@ -155,7 +195,9 @@ export const UploadImagesGrid: React.FC<Props> = ({
         accessibilityLabel={isMax ? 'Límite alcanzado' : 'Agregar foto'}
       >
         <Ionicons name="image" size={22} color={Colors.gray3} />
-        <Text style={styles.addText}>{isMax ? 'Límite' : 'Agregar foto'}</Text>
+        <Text style={styles.addText}>
+          {isMax ? 'Límite' : 'Agregar foto'}
+        </Text>
       </Pressable>
     </View>
   );

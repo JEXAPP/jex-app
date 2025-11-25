@@ -43,7 +43,8 @@ export default function StateOffersScreen() {
     createPaymentLink,
   } = useStateOffers();
 
-  const { payment_status } = useLocalSearchParams<{ payment_status?: string }>();
+  const { payment_status } =
+    useLocalSearchParams<{ payment_status?: string }>();
   const [showInfo, setShowInfo] = useState(false);
 
   const statusContent = useMemo(() => {
@@ -160,7 +161,9 @@ export default function StateOffersScreen() {
             }}
             disabled={creatingPaymentId === offerId}
           >
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+            >
               <Ionicons name="card" size={16} color="#fff" />
               <Text style={{ color: "#fff", fontWeight: "600" }}>
                 {creatingPaymentId === offerId ? "Abriendo..." : "Pagar"}
@@ -202,7 +205,9 @@ export default function StateOffersScreen() {
       <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
         <Text style={styles.title}>Ofertas</Text>
         <View style={styles.noEventsContainer}>
-          <Text style={styles.noEventsTitle}>Aún no has creado ningún evento</Text>
+          <Text style={styles.noEventsTitle}>
+            Aún no has creado ningún evento
+          </Text>
           <Image
             source={require("@/assets/images/jex/Jex-Sin-Eventos.webp")}
             style={styles.noEventsImage}
@@ -248,11 +253,12 @@ export default function StateOffersScreen() {
           const badgeStyle =
             item.status === "Pendiente"
               ? styles.statusPendiente
-              : item.status === "Aceptada"
+              : item.status === "Aceptada" || item.status === "A Pagar"
               ? styles.statusAceptada
               : styles.statusRechazada;
 
-          const badgeText = item.status === "Vencida" ? "Vencida" : item.status;
+          const badgeText =
+            item.status === "Vencida" ? "Vencida" : item.status;
 
           return (
             <View style={styles.offerCard}>
@@ -272,7 +278,9 @@ export default function StateOffersScreen() {
                 <View style={styles.column}>
                   <Text style={styles.employeeName}>{item.employeeName}</Text>
                   <View style={styles.salaryPill}>
-                    <Text style={styles.salaryText}>{item.salary} ARS</Text>
+                    <Text style={styles.salaryText}>
+                      {item.salary} ARS
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -280,14 +288,21 @@ export default function StateOffersScreen() {
               <Text style={styles.roleText}>{item.role}</Text>
 
               <View style={styles.datePill}>
-                <Ionicons name="calendar" size={14} color={Colors.gray3} />
+                <Ionicons
+                  name="calendar-outline"
+                  size={14}
+                  color={Colors.gray3}
+                />
                 <Text style={styles.date}>
-                  {`${item.fechaInicio}      ${item.horaInicio} - ${item.horaFin}`}
+                  {`Turno: ${item.fechaInicio}      ${item.horaInicio} - ${item.horaFin}`}
                 </Text>
               </View>
 
-              {item.status === "Aceptada" && (
-                <PaymentControl offerId={item.id} paymentState={item.payment_state} />
+              {(item.status === "Aceptada" || item.status === "A Pagar") && (
+                <PaymentControl
+                  offerId={item.id}
+                  paymentState={item.payment_state}
+                />
               )}
             </View>
           );
@@ -319,24 +334,35 @@ export default function StateOffersScreen() {
             </View>
 
             <View style={styles.tagsRow}>
-              <SelectableTag
-                title="Pendiente"
-                selected={filter === "Pendiente"}
-                onPress={() => setFilter("Pendiente")}
-                styles={selectableTagStyles2}
-              />
-              <SelectableTag
-                title="Aceptadas"
-                selected={filter === "Aceptadas"}
-                onPress={() => setFilter("Aceptadas")}
-                styles={selectableTagStyles2}
-              />
-              <SelectableTag
-                title="Otro"
-                selected={filter === "Otro"}
-                onPress={() => setFilter("Otro")}
-                styles={selectableTagStyles2}
-              />
+              {currentEvent?.state.name === "Finalizado" ? (
+                <SelectableTag
+                  title="A Pagar"
+                  selected
+                  onPress={() => {}}
+                  styles={selectableTagStyles2}
+                />
+              ) : (
+                <>
+                  <SelectableTag
+                    title="Pendiente"
+                    selected={filter === "Pendiente"}
+                    onPress={() => setFilter("Pendiente")}
+                    styles={selectableTagStyles2}
+                  />
+                  <SelectableTag
+                    title="Aceptadas"
+                    selected={filter === "Aceptadas"}
+                    onPress={() => setFilter("Aceptadas")}
+                    styles={selectableTagStyles2}
+                  />
+                  <SelectableTag
+                    title="Otro"
+                    selected={filter === "Otro"}
+                    onPress={() => setFilter("Otro")}
+                    styles={selectableTagStyles2}
+                  />
+                </>
+              )}
             </View>
 
             {loading && <DotsLoader />}

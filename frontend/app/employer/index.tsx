@@ -49,6 +49,7 @@ export default function AdminPanelScreen() {
           <View style={{ marginLeft: 100 }}>
             <View style={styles.notificationIconWrapper}>
               <IconButton
+                sizeContent={40}
                 styles={iconButtonStyles1}
                 onPress={goToNotifications}
                 icon={iconos.notification(40, Colors.violet4)}
@@ -89,11 +90,11 @@ export default function AdminPanelScreen() {
       icon: iconos.asistencia(22, Colors.violet4),
       action: () => goToAttendance(currentEvent.id),
     },
-    {
-      label: "Contratación Tardía",
-      icon: iconos.reloj(22, Colors.violet4),
-      action: null,
-    },
+    // {
+    //   label: "Contratación Tardía",
+    //   icon: iconos.reloj(22, Colors.violet4),
+    //   action: null,
+    // },
     {
       label: "Calificaciones",
       icon: iconos.estrella(22, Colors.violet4),
