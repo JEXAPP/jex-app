@@ -182,9 +182,25 @@ class ListActiveEventsSerializer(serializers.ModelSerializer):
 class ListEventsByEmployerSerializer(serializers.ModelSerializer):
     
     state = EventStateSerializer()
+    all_payed = serializers.SerializerMethodField()
+
     class Meta:
         model = Event
-        fields = ['id', 'name', 'state']
+        fields = ['id', 'name', 'state', 'all_payed']
+
+    def get_all_payed(self, event):
+        payments = Payment.objects.filter(
+            offer__selected_shift__vacancy__event=event
+        )
+
+        if not payments.exists():
+            return False
+
+        approved_count = payments.filter(
+            state__name=PaymentStates.APPROVED.value
+        ).count()
+
+        return approved_count == payments.count()
 
 
 class ListEventDetailSerializer(serializers.ModelSerializer):
