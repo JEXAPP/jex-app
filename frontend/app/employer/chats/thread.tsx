@@ -1,7 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { StreamChat as StreamChatType } from 'stream-chat';
 import {
   OverlayProvider,
@@ -12,11 +19,13 @@ import {
   TypingIndicator,
   ScrollToBottomButton,
 } from 'stream-chat-expo';
+
 import { getStreamClient } from '@/services/stream/streamClient';
 import { threadStyles as s } from '@/styles/app/employer/chats/threadStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
 import { DateSeparator as JexDateSeparator } from '@/components/chats/DateSeparator';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 function parseCid(cid: string) {
   const i = cid.indexOf(':');
@@ -29,6 +38,7 @@ export default function AnnouncementThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
   const cid = cidParam ?? '';
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [channel, setChannel] = useState<any>(null);
@@ -74,7 +84,7 @@ export default function AnnouncementThreadScreen() {
 
   if (!client) {
     return (
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={s.container} edges={['top', 'bottom', 'left', 'right']}>
         <View style={{ padding: 16 }}>
           <Text style={{ fontSize: 16 }}>No se pudo inicializar el chat.</Text>
         </View>
@@ -84,7 +94,7 @@ export default function AnnouncementThreadScreen() {
 
   if (!cid) {
     return (
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={s.container} edges={['top', 'bottom', 'left', 'right']}>
         <View style={{ padding: 16 }}>
           <Text style={{ fontSize: 16 }}>Canal no especificado.</Text>
         </View>
@@ -93,13 +103,11 @@ export default function AnnouncementThreadScreen() {
   }
 
   return (
-    <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={s.container} edges={['top', 'bottom', 'left', 'right']}>
       <OverlayProvider>
         <StreamChatUI client={client}>
           {loading && (
-            <View style={{ padding: 16 }}>
-              <Text>Cargando chat…</Text>
-            </View>
+            <DotsLoader/>
           )}
 
           {!loading && error && (
@@ -109,38 +117,60 @@ export default function AnnouncementThreadScreen() {
           )}
 
           {!loading && !error && channel && (
-            <StreamChannelUI channel={channel} keyboardVerticalOffset={0}>
+            <StreamChannelUI channel={channel}>
               <>
+                {/* HEADER */}
                 <View style={s.header}>
-                  <TouchableOpacity onPress={() => router.back()} style={s.backButton}>
-                    <Ionicons name="chevron-back-outline" size={26} color={Colors.violet4} />
+                  <TouchableOpacity
+                    onPress={() => router.push('/employer/chats')}
+                    style={s.backButton}
+                  >
+                    <Ionicons
+                      name="chevron-back-outline"
+                      size={26}
+                      color={Colors.violet4}
+                    />
                   </TouchableOpacity>
 
                   <View style={s.headerAvatar}>
                     <Image
                       source={require('@/assets/images/jex/Jex-Foro-Grupal.webp')}
-                      style={{ width: 28, height: 28, resizeMode: 'contain' }}
+                      style={s.avatarImg}
                     />
                   </View>
 
                   <View style={s.headerTitleWrap}>
                     <Text style={s.headerTitle}>Foro Grupal</Text>
-                    <Text style={s.headerSubtitle}>Anunciá lo que quieras a tus empleados.</Text>
+                    <Text style={s.headerSubtitle}>
+                      Anunciá lo que quieras a tus empleados.
+                    </Text>
                   </View>
                 </View>
 
-                <View style={{ flex: 1 }}>
-                  <JexMessageList
-                    TypingIndicator={TypingIndicator}
-                    ScrollToBottomButton={ScrollToBottomButton}
-                    inverted={false}
-                    DateSeparator={CustomDateSeparator}
-                  />
-                </View>
+                {/* CHAT + INPUT */}
+                <KeyboardAvoidingView
+                  style={s.chatWrapper}
+                  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                  keyboardVerticalOffset={0}
+                >
+                  <View style={s.messagesWrapper}>
+                    <JexMessageList
+                      TypingIndicator={TypingIndicator}
+                      ScrollToBottomButton={ScrollToBottomButton}
+                      inverted={true}
+                      DateSeparator={CustomDateSeparator}
+                    />
+                  </View>
 
-                <View style={{ marginBottom: 0 }}>
-                  <MessageInput />
-                </View>
+                  <View
+                    style={[
+                      s.inputContainer,
+                      { paddingBottom: insets.bottom || 8 },
+                    ]}
+                  >
+                    <MessageInput />
+                  </View>
+                </KeyboardAvoidingView>
               </>
             </StreamChannelUI>
           )}

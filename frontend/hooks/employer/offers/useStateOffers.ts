@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
 
-export type OfferStatus = "Pendiente" | "Aceptada" | "Rechazada" | "Vencida" | "A Pagar";
+export type OfferStatus =
+  | "Pendiente"
+  | "Aceptada"
+  | "Rechazada"
+  | "Vencida"
+  | "A Pagar";
+
 export type FilterSimple = "Pendiente" | "Aceptadas" | "Otro";
 export type PaymentState = "NOT_PAYED" | "APPROVED" | "PENDING" | "FAILURE";
 
@@ -22,7 +28,7 @@ export type Offer = {
   employeeName: string;
   employeeImage: any;
   role: string;
-  salary: string;        // ya formateado
+  salary: string;        // monto mostrado (con comisión)
   fechaInicio: string;   // dd/MM/yyyy
   horaInicio: string;    // HH:mm
   horaFin: string;       // HH:mm
@@ -33,6 +39,12 @@ export type Offer = {
   imageUrl: string;
   imageId: string;
   payment_state: PaymentState;
+};
+
+type FeeDetails = {
+  total_fee_percent?: number | string;
+  mp_fee_percent?: number | string;
+  app_fee_percent?: number | string;
 };
 
 const backendStateToStatus: Record<string, OfferStatus> = {
@@ -66,15 +78,25 @@ export const useStateOffers = () => {
   const [loading, setLoading] = useState(false);
   const [loadingEvents, setLoadingEvents] = useState(false);
 
-  const [creatingPaymentId, setCreatingPaymentId] = useState<number | null>(null);
+  const [creatingPaymentId, setCreatingPaymentId] = useState<number | null>(
+    null
+  );
+
+  // porcentaje total de comisión que vamos a aplicar
+  const [feePercent, setFeePercent] = useState<number | null>(null);
 
   const currentEvent: Event | null = events[currentEventIndex] ?? null;
 
+  // --- Traer eventos ---
   useEffect(() => {
     const fetchEvents = async () => {
       setLoadingEvents(true);
       try {
-        const data = await requestBackend("/api/events/by-employer/", null, "GET");
+        const data = await requestBackend(
+          "/api/events/by-employer/",
+          null,
+          "GET"
+        );
         if (Array.isArray(data)) {
           const filteredRaw = data.filter((e: any) => {
             const stateName = e.state?.name ?? "Publicado";
@@ -110,9 +132,48 @@ export const useStateOffers = () => {
     fetchEvents();
   }, []);
 
+  // --- Traer fee de MP / App ---
   useEffect(() => {
+    const fetchFeeDetails = async () => {
+      try {
+        const data = (await requestBackend(
+          "/api/payments/mercadopago/fee-details/",
+          null,
+          "GET"
+        )) as FeeDetails;
+
+        // Intentamos usar total_fee_percent directo
+        let percent = data?.total_fee_percent;
+        let n = percent !== undefined ? Number(percent) : NaN;
+
+        // Si no vino o es NaN, sumamos mp + app
+        if (!Number.isFinite(n)) {
+          const mp = Number(data?.mp_fee_percent ?? 0);
+          const app = Number(data?.app_fee_percent ?? 0);
+          n = mp + app;
+        }
+
+        if (!Number.isFinite(n)) {
+          n = 0;
+        }
+
+        setFeePercent(n);
+      } catch (err) {
+        console.error("Error al traer fee details:", err);
+        // fallback: sin comisión si falla el endpoint
+        setFeePercent(0);
+      }
+    };
+
+    fetchFeeDetails();
+  }, []);
+
+  // --- Traer ofertas del evento seleccionado ---
+  useEffect(() => {
+    // Hasta no saber la fee, no traemos ofertas (o las traeríamos sin comisión)
+    if (!currentEvent || feePercent === null) return;
+
     const fetchOffers = async () => {
-      if (!currentEvent) return;
       setLoading(true);
       try {
         const isFinalized = currentEvent.state.name === "Finalizado";
@@ -141,6 +202,10 @@ export const useStateOffers = () => {
             ? "A Pagar"
             : backendStateToStatus[backendName] ?? "Pendiente";
 
+          const basePayment = Number(item?.shift?.payment ?? 0);
+          const factor = 1 + (feePercent ?? 0) / 100;
+          const totalWithFee = basePayment * factor;
+
           return {
             id: item?.id ?? 0,
             employeeName: `${item?.employee_name ?? ""} ${
@@ -148,9 +213,8 @@ export const useStateOffers = () => {
             }`.trim(),
             employeeImage: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
             role: item?.job_type ?? "Sin rol",
-            salary: new Intl.NumberFormat("es-AR").format(
-              item?.shift?.payment ?? 0
-            ),
+            // monto mostrado: base + comisión
+            salary: new Intl.NumberFormat("es-AR").format(totalWithFee),
             fechaInicio: item?.shift?.start_date ?? "",
             horaInicio: item?.shift?.start_time ?? "",
             horaFin: item?.shift?.end_time ?? "",
@@ -179,7 +243,7 @@ export const useStateOffers = () => {
     };
 
     fetchOffers();
-  }, [currentEvent, filter]);
+  }, [currentEvent, filter, feePercent]);
 
   const goNextEvent = () => {
     if (currentEventIndex < events.length - 1) {
@@ -249,5 +313,6 @@ export const useStateOffers = () => {
     loadingEvents,
     creatingPaymentId,
     createPaymentLink,
+    feePercent, // por si querés mostrarlo en UI
   };
 };

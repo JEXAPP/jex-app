@@ -51,6 +51,7 @@ export const adminDashboardStyles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     marginBottom: 18,
+    alignItems: 'center'
   },
   chartCard: {
     flex: 1,
@@ -58,8 +59,9 @@ export const adminDashboardStyles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 12,
     paddingTop: 20,
-    paddingBottom: 40,
-    alignItems: 'center'
+    paddingBottom: 20,
+    paddingHorizontal: 12,
+    justifyContent: 'center'
   },
   chartTitle: {
     fontSize: 20,
@@ -73,6 +75,33 @@ export const adminDashboardStyles = StyleSheet.create({
     fontFamily: 'interRegular',
     color: Colors.gray3,
     marginTop: 10,
+    textAlign: 'center',
+  },
+  // Pie + leyenda
+  pieRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  legendContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 6,
+  },
+  legendLabel: {
+    fontSize: 12,
+    fontFamily: 'interRegular',
+    color: Colors.gray3,
   },
   pieCenterNumber: {
     fontSize: 18,
@@ -172,12 +201,70 @@ export const adminDashboardStyles = StyleSheet.create({
     fontFamily: 'interBold',
     color: Colors.black,
   },
-  complaintContext: {
+
+  // NUEVO: contacto penalizado
+  contactRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
     marginTop: 4,
-    fontSize: 13,
-    fontFamily: 'interRegular',
+  },
+  contactColumn: {
+    flex: 1,
+  },
+  contactLabel: {
+    fontSize: 11,
+    fontFamily: 'interMedium',
     color: Colors.gray3,
   },
+  contactValue: {
+    fontSize: 13,
+    fontFamily: 'interRegular',
+    color: Colors.black,
+  },
+
+  // NUEVO: evento (imagen + texto)
+  eventRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  eventImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    marginRight: 10,
+    backgroundColor: Colors.gray1,
+  },
+  eventInfoColumn: {
+    flex: 1,
+  },
+  eventLabel: {
+    fontSize: 11,
+    fontFamily: 'interMedium',
+    color: Colors.gray3,
+    marginBottom: 2,
+  },
+  eventName: {
+    fontSize: 14,
+    fontFamily: 'interBold',
+    color: Colors.black,
+  },
+  eventContext: {
+    fontSize: 12,
+    fontFamily: 'interRegular',
+    color: Colors.gray3,
+    marginTop: 2,
+  },
+
+  // NUEVO: comentarios
+  complaintComments: {
+    marginTop: 6,
+    fontSize: 13,
+    fontFamily: 'interItalic',
+    color: Colors.gray3,
+  },
+
   // Logout
   logoutContainer: {
     borderTopWidth: 1,
@@ -185,16 +272,16 @@ export const adminDashboardStyles = StyleSheet.create({
     paddingTop: 10,
     marginHorizontal: 5,
     marginBottom: 30,
-    marginTop: 40
+    marginTop: 40,
   },
   logoutRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 14,
   },
   logoutText: {
     fontSize: 17,
-    fontFamily: "interBold",
+    fontFamily: 'interBold',
     color: Colors.gray3,
     marginLeft: 10,
   },

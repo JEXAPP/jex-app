@@ -117,41 +117,43 @@ async function placesAutocomplete(body: any): Promise<PlacesAutocompleteSuggesti
 export async function buscarLocalidades(
   provinciaId: string,
   q: string,
-  sessionToken?: string
+  _sessionToken?: string   // lo dejamos por compatibilidad, pero no se usa
 ): Promise<Sugerencia[]> {
-  if (q.trim().length < 2) return [];
+  const query = q.trim();
+  if (!provinciaId || query.length < 2) return [];
 
-  let provinciaNombre: string | undefined;
-  if (provinciaId) {
-    await cargarProvincias();
-    provinciaNombre = provinciaNombreDeId(provinciaId);
-  }
+  // Nos aseguramos de tener nombre de provincia por si lo querés guardar en placeId
+  await cargarProvincias();
+  const provinciaNombre = provinciaNombreDeId(provinciaId) ?? '';
 
-  const input = provinciaNombre
-    ? `${q}, ${provinciaNombre}, Argentina`
-    : `${q}, Argentina`;
-
-  const suggs = await placesAutocomplete({
-    input,
-    includedPrimaryTypes: ['locality'],
-    languageCode: 'es',
-    regionCode: 'AR',
-    sessionToken,
-    locationRestriction: { rectangle: AR_BBOX },
+  const { data } = await axios.get(`${GEOREF}/localidades`, {
+    params: {
+      provincia: provinciaId,         // id de GeoRef que ya usás en provincias
+      nombre: query,                  // texto que escribe el usuario
+      campos: 'id,nombre,provincia',  // lo mínimo necesario
+      max: 20,
+      orden: 'nombre',
+    },
+    timeout: 6000,
   });
 
-  const mapped = suggs
-    .map((s) => s.placePrediction)
-    .filter((p): p is NonNullable<typeof p> => !!p && !!p.placeId)
-    .map((p) => {
-      const main = p.structuredFormat?.mainText?.text?.trim() || '';
-      const placeId = p.placeId!;
-      return {
-        descripcion: main,
-        placeId: `gpid:${placeId}|type:locality|locName:${main}|provName:${provinciaNombre ?? ''}`,
-      } as Sugerencia;
-    });
+  const localidades = (data?.localidades ?? []) as Array<{
+    id: string;
+    nombre: string;
+    provincia?: { id: string; nombre: string };
+  }>;
 
+  const mapped: Sugerencia[] = localidades.map((loc) => {
+    const nombreLoc = (loc.nombre ?? '').trim();
+    const provName = (loc.provincia?.nombre ?? provinciaNombre).trim();
+
+    return {
+      descripcion: nombreLoc, // lo que se muestra en el dropdown
+      placeId: `loc:${loc.id}|type:localidad_georef|locName:${nombreLoc}|provName:${provName}`,
+    };
+  });
+
+  // Evitamos duplicados por nombre (por las dudas)
   return uniqueBy(mapped, (x) => stripAccents(x.descripcion.toLowerCase()));
 }
 

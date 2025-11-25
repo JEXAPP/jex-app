@@ -1,4 +1,3 @@
-// hooks/admin/useAdminDashboard.ts
 import { useEffect, useMemo, useState } from 'react';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { disconnectStream } from '@/services/stream/streamClient';
@@ -16,7 +15,18 @@ export interface Complaint {
   reason: string;          // motivo (comentario o label del tipo)
   status: ComplaintStatus; // label de estado ("Pendiente", "Activa", etc.)
   created_at: string;      // fecha formateada
-  context?: string;        // info adicional (ej: nombre del evento)
+  context?: string;        // info adicional (ej: "Evento: X")
+
+  // NUEVO: datos de contacto del penalizado
+  penalized_phone?: string;
+  penalized_email?: string;
+
+  // NUEVO: datos del evento
+  event_name?: string;
+  event_image?: string;
+
+  // NUEVO: comentarios crudos del backend
+  comments?: string;
 }
 
 // Lo que devuelve el backend
@@ -68,7 +78,7 @@ const mapPenaltyStateToStatus = (state?: number): ComplaintStatus => {
     case 2:
       return 'Levantada';
     default:
-      return `Estado ${state ?? ''}`.trim();
+      return `${state ?? ''}`.trim();
   }
 };
 
@@ -92,7 +102,8 @@ export const useAdminDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [rawInfo, setRawInfo] = useState<AdminInfoResponse | null>(null);
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState<ComplaintStatus | 'all'>('all');
+  const [selectedStatusFilter, setSelectedStatusFilter] =
+    useState<ComplaintStatus | 'all'>('all');
 
   useEffect(() => {
     const fetchAdminInfo = async () => {
@@ -133,7 +144,18 @@ export const useAdminDashboard = () => {
             reason: reasonLabel,
             status: statusLabel,
             created_at: formatDate(p.penalty_date),
-            context: eventInfo?.name ? `Evento: ${eventInfo.name}` : undefined,
+            context: undefined,
+
+            // NUEVO: contacto del penalizado
+            penalized_phone: penalized.phone,
+            penalized_email: penalized.email,
+
+            // NUEVO: info del evento
+            event_name: eventInfo?.name,
+            event_image: eventInfo?.image,
+
+            // NUEVO: comentarios completos
+            comments: undefined,
           };
         });
 
@@ -168,16 +190,13 @@ export const useAdminDashboard = () => {
   }, [complaints]);
 
   const totalComplaints =
-    rawInfo?.total_complaints ??
-    complaints.length;
+    rawInfo?.total_complaints ?? complaints.length;
 
   const pendingComplaints =
-    rawInfo?.pending_complaints ??
-    (countsByStatus['Pendiente'] || 0);
+    rawInfo?.pending_complaints ?? (countsByStatus['Pendiente'] || 0);
 
   const resolvedComplaints =
-    rawInfo?.resolved_complaints ??
-    (countsByStatus['Levantada'] || 0);
+    rawInfo?.resolved_complaints ?? (countsByStatus['Levantada'] || 0);
 
   const pieStatusData = useMemo(
     () =>

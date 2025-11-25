@@ -9,11 +9,23 @@ import { router } from 'expo-router';
 import { Dropdown, DropdownOption } from '@/components/picker/DropDown';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 export default function ChatScreen() {
-  const { options, selectedEventId, selectEvent, loading: loadingEvents, error: errorEvents } = useChat();
-  const { loading: loadingChannels, error: errorChannels, items, hasChannels } =
-    useStreamChannels(selectedEventId || undefined);
+  const {
+    options,
+    selectedEventId,
+    selectEvent,
+    loading: loadingEvents,
+    error: errorEvents,
+  } = useChat();
+
+  const {
+    loading: loadingChannels,
+    error: errorChannels,
+    items,
+    hasChannels,
+  } = useStreamChannels(selectedEventId || undefined);
 
   const error = errorEvents ?? errorChannels ?? null;
   const isLoadingAny = loadingEvents || loadingChannels;
@@ -65,18 +77,18 @@ export default function ChatScreen() {
         </>
       )}
 
-      {isLoadingAny && <Text style={s.statusText}>Cargando chats…</Text>}
+      {isLoadingAny && <DotsLoader/>}
       {!isLoadingAny && error && <Text style={s.errorText}>Error: {error}</Text>}
     </View>
   );
 
-    const renderItem = ({ item }: { item: (typeof items)[number] }) => (
+  const renderItem = ({ item }: { item: (typeof items)[number] }) => (
     <ChatListItem
       title={item.chatTitle ?? 'Chat'}
       subtitle={item.subtitle}
       onPress={() => {
         router.push({
-          pathname: '/employee/chats/threads',
+          pathname: '/employer/chats/thread',   // ✅ ahora va al thread de EMPLOYER
           params: { cid: item.id },
         });
       }}

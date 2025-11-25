@@ -15,10 +15,9 @@ export default function EmployerLayoutRoot() {
   // Ocultar footer en pantalla de chat
   const hideFooter = pathname.startsWith('/employer/chats/thread');
 
-  // ▶️ Pantallas donde querés fondo violeta en la parte superior
   const isDetail =
     pathname.startsWith('/employer/profile/view-profile') ||
-    pathname.startsWith('/employer/candidates/') ||
+    pathname.startsWith('/employer/candidates/detail') ||
     pathname.startsWith('/employer/offers/') // agregá las que quieras
 
   const bg = isDetail ? Colors.violet4 : Colors.gray1;
@@ -57,6 +56,7 @@ export default function EmployerLayoutRoot() {
       >
         <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="candidates" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="candidates/search" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/thread" options={{ ...transitionFade, headerShown: false }} />
