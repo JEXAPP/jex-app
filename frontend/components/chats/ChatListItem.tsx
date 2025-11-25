@@ -1,65 +1,122 @@
-import React from "react";
-import {View, Text, Image, Pressable, ImageSourcePropType } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { ChatItemListStyles as styles } from "@/styles/components/chats/chatItemListStyles"
-import { Colors } from "@/themes/colors";
+// components/chats/ChatListItem.tsx
+import React from 'react';
+import {
+  View,
+  Text,
+  Image,
+  Pressable,
+  StyleSheet,
+  ImageSourcePropType,
+} from 'react-native';
+import { Colors } from '@/themes/colors';
 
 type Props = {
   title: string;
-  subtitle?: string;
-  onPress?: () => void;
-  leftIcon?: React.ReactNode;
+  subtitle?: string | null;
   leftImageSource?: ImageSourcePropType;
-  avatarBg?: string;
-  testID?: string;
+  onPress: () => void;
+  hasUnread?: boolean;
+  unreadCount?: number;
 };
 
-export default function ChatListItem({
+const ChatListItem: React.FC<Props> = ({
   title,
   subtitle,
-  onPress,
-  leftIcon,
   leftImageSource,
-  avatarBg = "#F2ECF7",
-  testID,
-}: Props) {
+  onPress,
+  hasUnread = false,
+  unreadCount = 0,
+}) => {
+  const showBadge = hasUnread && unreadCount > 0;
+
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.container,
-        pressed && { opacity: 0.9, transform: [{ scale: 0.998 }] },
-      ]}
-      accessibilityRole="button"
-      accessibilityLabel={`${title}. ${subtitle ?? ""}`}
-      testID={testID}
-    >
+    <Pressable onPress={onPress} style={[styles.container,
+            hasUnread && { backgroundColor: Colors.violet1 },]}>
+      {leftImageSource && (
+        <View style={styles.avatarWrapper}>
+          <Image source={leftImageSource} style={styles.avatar} />
+        </View>
+      )}
 
-      <View style={[styles.avatar, { backgroundColor: avatarBg }]}>
-        {leftIcon ? (
-          <View style={styles.iconWrapper}>{leftIcon}</View>
-        ) : leftImageSource ? (
-          <Image source={leftImageSource} style={styles.avatarImg} />
-        ) : (
-          <Text style={styles.avatarText}>
-            {title?.trim()?.charAt(0)?.toUpperCase() ?? "?"}
-          </Text>
-        )}
-      </View>
-
-      <View style={styles.texts}>
-        <Text numberOfLines={1} style={styles.title}>
+      <View style={styles.textWrapper}>
+        <Text
+          style={[
+            styles.title,
+            hasUnread && { color: Colors.violet3 },
+          ]}
+          numberOfLines={1}
+        >
           {title}
         </Text>
-        {!!subtitle && (
-          <Text numberOfLines={2} style={styles.subtitle}>
+        {subtitle ? (
+          <Text style={styles.subtitle} numberOfLines={1}>
             {subtitle}
           </Text>
-        )}
+        ) : null}
       </View>
 
-      <Ionicons name="chevron-forward-outline" size={22} color={Colors.violet4} />
+      {showBadge && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </Text>
+        </View>
+      )}
     </Pressable>
   );
-}
+};
 
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 10,
+  },
+  avatarWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    overflow: 'hidden',
+    marginRight: 10,
+  },
+  avatar: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  textWrapper: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 20,
+    fontFamily: 'interBold',
+    color: Colors.black || '#222222',
+  },
+  subtitle: {
+    marginTop: 2,
+    fontFamily:'interLightItalic',
+    fontSize: 15,
+    color: '#666666',
+  },
+  badge: {
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: Colors.violet3,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    marginLeft: 8,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontFamily: 'interBold'
+  },
+});
+
+export default ChatListItem;

@@ -128,7 +128,7 @@ export const useDetailOffers = () => {
         clearTimeout(matchTimeoutRef.current);
       }
     };
-  }, [id, requestBackend]);
+  }, []);
 
   /**
    * Arranca la animación de match y programa la navegación,

@@ -1,4 +1,4 @@
-// styles/app/employer/chats/threadStyles.ts
+// styles/app/employee/chats/threadStyles.ts
 import { StyleSheet } from 'react-native';
 import { Colors } from '@/themes/colors';
 

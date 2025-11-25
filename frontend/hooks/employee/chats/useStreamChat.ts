@@ -5,40 +5,39 @@ import type { Channel } from 'stream-chat';
 import type { ImageSourcePropType } from 'react-native';
 
 type MinimalChannelData = {
-  name?: string;           // "Foro Grupal - NombreEvento" o "NombreEvento"
+  name?: string;
   event_id?: string | number;
-  kind?: string;           // opcional si el back lo setea
+  kind?: string;
   [key: string]: any;
 };
 
 const AVATAR_FORO: ImageSourcePropType =
   require('@/assets/images/jex/Jex-Foro-Grupal.webp');
 const AVATAR_TRAB: ImageSourcePropType =
-  require('@/assets/images/jex/Jex-Chat-Trabajadores.webp');
+  require('@/assets/images/jex/Jex-Evento-Default.webp');
 
 export type UiChannelItem = {
-  id: string;                 // channel cid
-  // Para la UI:
-  eventId: string | null;     // id del evento
-  eventTitle: string | null;  // nombre del evento (limpio)
-  chatTitle: string;          // "Foro Grupal" | "Trabajadores" | "Chat"
-  subtitle: string;           // último mensaje o copy auxiliar
+  id: string;
+  eventId: string | null;
+  eventTitle: string | null;
+  chatTitle: string;
+  subtitle: string;
   isAnnouncements: boolean;
   isWorkers: boolean;
   lastMessageText: string | null;
-  avatar: ImageSourcePropType; // 👈 avatar ya resuelto para la UI
+  avatar: ImageSourcePropType;
+  unreadCount: number;
+  hasUnread: boolean;
   raw: Channel;
 };
 
-// Limpia el nombre del evento quitando el prefijo "Foro Grupal - "
 export function cleanEventName(name?: string | null) {
   if (!name) return null;
   return name.replace(/^Foro\s*Grupal\s*-\s*/i, '').trim();
 }
 
-// Devuelve el título del chat según el tipo
 export function chatTypeTitle(ch?: Channel | null) {
-  if (!ch) return 'Chat'; // fallback seguro
+  if (!ch) return 'Chat';
   const d = (ch.data || {}) as MinimalChannelData;
   const isAnnouncements = ch.type === 'announcements' || d?.kind === 'announcements';
   const isWorkers       = ch.type === 'messaging'     || d?.kind === 'messaging';
@@ -118,8 +117,40 @@ export function useStreamChannels(selectedEventId?: string) {
           ? (lastText || 'Foro del evento')
           : (lastText || 'Chat de trabajadores');
 
-        // 👇 avatar resuelto en el hook (Metro ve ambos requires)
         const avatar = isWorkers ? AVATAR_TRAB : AVATAR_FORO;
+
+        // ----- NO LEÍDOS -----
+        let unreadCount = 0;
+        let hasUnread = false;
+
+        try {
+          const rawReads = (ch.state as any)?.read;
+
+          let readsArray: any[] = [];
+
+          if (Array.isArray(rawReads)) {
+            // caso respuesta cruda del backend (array)
+            readsArray = rawReads;
+          } else if (rawReads && typeof rawReads === 'object') {
+            // caso cliente JS: diccionario { [userId]: readInfo }
+            readsArray = Object.values(rawReads);
+          }
+
+          const myRead =
+            userId && Array.isArray(readsArray)
+              ? readsArray.find(
+                  (r) =>
+                    r.user?.id === userId ||
+                    r.user_id === userId
+                )
+              : null;
+
+          unreadCount = myRead?.unread_messages ?? 0;
+          hasUnread = unreadCount > 0;
+        } catch {
+          unreadCount = 0;
+          hasUnread = false;
+        }
 
         return {
           id: ch.cid,
@@ -131,10 +162,12 @@ export function useStreamChannels(selectedEventId?: string) {
           isWorkers,
           lastMessageText: lastText,
           avatar,
+          unreadCount,
+          hasUnread,
           raw: ch,
         };
       });
-  }, [channels]);
+  }, [channels, userId]);
 
   const hasChannels = items.length > 0;
   return { loading, error, items, channels, hasChannels };

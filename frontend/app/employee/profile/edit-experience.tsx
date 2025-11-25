@@ -63,9 +63,10 @@ export default function EditExperienceScreen() {
     formErrorExp,
     saveAll,
     goBack,
-    showSuccess, 
+    showSuccess,
     closeSuccess,
     empresaWrapStyleZ,
+    editIdxExp,
   } = useEditExperience();
 
   const [showError, setShowError] = useState(false);
@@ -212,7 +213,6 @@ export default function EditExperienceScreen() {
         </View>
 
         <View style={styles.footer}>
-
           <Button
             texto={saving ? "Guardando..." : "Guardar cambios"}
             onPress={handleSaveAll}
@@ -353,11 +353,24 @@ export default function EditExperienceScreen() {
 
                 {/* Imágenes */}
                 <UploadImagesGrid
+                  key={editIdxExp !== null ? `edit-${editIdxExp}` : "new"}
                   max={3}
                   thumbSize={90}
                   shape="square"
-                  onChange={(files, uris) =>
-                    setExpFormField("fotos", { files, uris })
+                  initialExisting={
+                    expForm.fotosUris.length
+                      ? expForm.fotosUris.map((url, idx) => ({
+                          id: expForm.fotosExistingIds?.[idx] ?? null,
+                          url,
+                        }))
+                      : []
+                  }
+                  onChange={(files, uris, existingIds) =>
+                    setExpFormField("fotos", {
+                      files,
+                      uris,
+                      existingIds: existingIds ?? [],
+                    })
                   }
                 />
 

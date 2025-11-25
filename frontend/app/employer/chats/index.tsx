@@ -70,15 +70,17 @@ export default function ChatScreen() {
     </View>
   );
 
-  const renderItem = ({ item }: { item: (typeof items)[number] }) => (
+    const renderItem = ({ item }: { item: (typeof items)[number] }) => (
     <ChatListItem
-      title={item.chatTitle}      // "Foro Grupal"
-      subtitle={item.subtitle}    // último mensaje o copy
+      title={item.chatTitle ?? 'Chat'}
+      subtitle={item.subtitle}
       onPress={() => {
-        router.push({ pathname: '/employer/chats/thread', params: { cid: item.id } });
+        router.push({
+          pathname: '/employee/chats/threads',
+          params: { cid: item.id },
+        });
       }}
-      leftImageSource={item.avatar} // Jex-Foro-Grupal
-      avatarBg="#EEE7F4"
+      leftImageSource={item.avatar}
     />
   );
 

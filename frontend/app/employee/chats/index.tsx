@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import { Dropdown, DropdownOption } from '@/components/picker/DropDown';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 export default function ChatScreen() {
   const {
@@ -71,25 +72,27 @@ export default function ChatScreen() {
         </>
       )}
 
-      {isLoadingAny && <Text style={s.statusText}>Cargando chats…</Text>}
+      {isLoadingAny && <DotsLoader/>}
       {!isLoadingAny && error && <Text style={s.errorText}>Error: {error}</Text>}
     </View>
   );
 
  // fallback
 const renderItem = ({ item }: { item: (typeof items)[number] }) => (
-      <ChatListItem
-        title={item.chatTitle ?? 'Chat'}       // "Foro Grupal" | "Trabajadores" | "Chat"
-        subtitle={item.subtitle}               // último mensaje o copy auxiliar
-        onPress={() => {
-          router.push({
-            pathname: '/employee/chats/threads',
-            params: { cid: item.id },
-          });
-        }}
-        leftImageSource={item.avatar}
-      />
-    );
+  <ChatListItem
+    title={item.chatTitle ?? 'Chat'}
+    subtitle={item.subtitle}
+    onPress={() => {
+      router.push({
+        pathname: '/employee/chats/threads',
+        params: { cid: item.id },
+      });
+    }}
+    leftImageSource={item.avatar}
+    hasUnread={item.hasUnread}
+    unreadCount={item.unreadCount}
+  />
+);
 
   return (
     <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>

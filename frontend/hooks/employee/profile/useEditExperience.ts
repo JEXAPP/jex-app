@@ -3,13 +3,12 @@ import { useEffect, useRef, useState } from "react";
 
 import useBackendConection from "@/services/internal/useBackendConection";
 import { useUploadImageServ } from "@/services/external/cloudinary/useUploadImage";
-import {
-  suggestCargosESCO,
-} from "@/services/external/sugerencias/useSuggestSources";
+import { suggestCargosESCO } from "@/services/external/sugerencias/useSuggestSources";
 
-type UploadableImage = { uri: string; name: string; type: string };
+export type UploadableImage = { uri: string; name: string; type: string };
 
 export type Experiencia = {
+  id: number | null;
   cargo: string;
   tipoTrabajo: string;
   empresa: string;
@@ -18,6 +17,9 @@ export type Experiencia = {
   descripcion: string;
   fotosUris: string[];
   fotosFiles: (UploadableImage | null)[];
+  existingImgIds: (string | number | null)[];
+  isNew: boolean;
+  dirty: boolean;
 };
 
 type SugItem = { descripcion: string; placeId: string };
@@ -30,23 +32,40 @@ const isDate = (d: Date | null) => d instanceof Date && !isNaN(d.getTime());
 const startLEEnd = (a: Date, b: Date) => a.getTime() <= b.getTime();
 
 const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+
+// salida al backend: siempre DD/MM/YYYY
 const toDDMMYYYY = (d: Date | null): string | null =>
   d ? `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}` : null;
 
-const fromYYYYMMDD = (s: string | null | undefined): Date | null => {
+// parseo flexible de lo que venga del backend: DD/MM/YYYY o YYYY-MM-DD
+const parseBackendDate = (s: string | null | undefined): Date | null => {
   if (!s) return null;
-  const [year, month, day] = s.split("-").map((p) => parseInt(p, 10));
-  if (!year || !month || !day) return null;
-  const d = new Date(year, month - 1, day);
-  return isNaN(d.getTime()) ? null : d;
+
+  if (s.includes("/")) {
+    const [day, month, year] = s.split("/").map((p) => parseInt(p, 10));
+    if (!year || !month || !day) return null;
+    const d = new Date(year, month - 1, day);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  if (s.includes("-")) {
+    const [year, month, day] = s.split("-").map((p) => parseInt(p, 10));
+    if (!year || !month || !day) return null;
+    const d = new Date(year, month - 1, day);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  return null;
 };
 
 export const useEditExperience = () => {
   const router = useRouter();
   const { requestBackend } = useBackendConection();
   const { uploadImage } = useUploadImageServ();
+
   const [showSuccess, setShowSuccess] = useState(false);
   const [experiencias, setExperiencias] = useState<Experiencia[]>([]);
+  const [deletedExperiencias, setDeletedExperiencias] = useState<Experiencia[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
 
@@ -62,6 +81,7 @@ export const useEditExperience = () => {
     descripcion: string;
     fotosUris: string[];
     fotosFiles: (UploadableImage | null)[];
+    fotosExistingIds: (string | number | null)[];
   }>({
     cargo: "",
     tipoTrabajo: "",
@@ -69,6 +89,7 @@ export const useEditExperience = () => {
     descripcion: "",
     fotosUris: [],
     fotosFiles: [],
+    fotosExistingIds: [],
   });
 
   const [fechaInicioExp, setFechaInicioExp] = useState<Date | null>(null);
@@ -109,14 +130,18 @@ export const useEditExperience = () => {
         }
 
         const mapped: Experiencia[] = res.map((item: any) => ({
+          id: item.id ?? null,
           cargo: item.title ?? "",
           tipoTrabajo: item.work_type ?? "",
           empresa: item.company_or_event ?? "",
-          fechaInicio: fromYYYYMMDD(item.start_date),
-          fechaFin: fromYYYYMMDD(item.end_date),
+          fechaInicio: parseBackendDate(item.start_date),
+          fechaFin: parseBackendDate(item.end_date),
           descripcion: item.description ?? "",
           fotosUris: item.image_url ? [item.image_url] : [],
-          fotosFiles: [], // no tenemos el file, solo la URL
+          fotosFiles: [],
+          existingImgIds: item.image_id ? [item.image_id] : [],
+          isNew: false,
+          dirty: false,
         }));
 
         setExperiencias(mapped);
@@ -152,6 +177,7 @@ export const useEditExperience = () => {
       descripcion: "",
       fotosUris: [],
       fotosFiles: [],
+      fotosExistingIds: [],
     });
     setFechaInicioExp(null);
     setFechaFinExp(null);
@@ -160,7 +186,12 @@ export const useEditExperience = () => {
 
   const setExpFormField = (k: string, v: any) => {
     if (k === "fotos") {
-      setExpForm((p) => ({ ...p, fotosFiles: v.files, fotosUris: v.uris }));
+      setExpForm((p) => ({
+        ...p,
+        fotosFiles: v.files,
+        fotosUris: v.uris,
+        fotosExistingIds: v.existingIds ?? [],
+      }));
     } else {
       setExpForm((p) => ({ ...p, [k]: v }));
     }
@@ -201,23 +232,43 @@ export const useEditExperience = () => {
   const guardarExpLocal = (): boolean => {
     if (!validarExp()) return false;
 
-    const item: Experiencia = {
-      cargo: expForm.cargo.trim(),
-      tipoTrabajo: expForm.tipoTrabajo.trim(),
-      empresa: expForm.empresa.trim(),
-      fechaInicio: fechaInicioExp,
-      fechaFin: fechaFinExp,
-      descripcion: expForm.descripcion.trim(),
-      fotosUris: expForm.fotosUris,
-      fotosFiles: expForm.fotosFiles,
-    };
-
     if (editIdxExp !== null) {
+      const prev = experiencias[editIdxExp];
+      if (!prev) return false;
+
+      const updated: Experiencia = {
+        ...prev,
+        cargo: expForm.cargo.trim(),
+        tipoTrabajo: expForm.tipoTrabajo.trim(),
+        empresa: expForm.empresa.trim(),
+        fechaInicio: fechaInicioExp,
+        fechaFin: fechaFinExp,
+        descripcion: expForm.descripcion.trim(),
+        fotosUris: expForm.fotosUris,
+        fotosFiles: expForm.fotosFiles,
+        existingImgIds: expForm.fotosExistingIds,
+        dirty: true,
+      };
+
       const next = [...experiencias];
-      next[editIdxExp] = item;
+      next[editIdxExp] = updated;
       setExperiencias(next);
     } else {
-      setExperiencias((prev) => [...prev, item]);
+      const nueva: Experiencia = {
+        id: null,
+        cargo: expForm.cargo.trim(),
+        tipoTrabajo: expForm.tipoTrabajo.trim(),
+        empresa: expForm.empresa.trim(),
+        fechaInicio: fechaInicioExp,
+        fechaFin: fechaFinExp,
+        descripcion: expForm.descripcion.trim(),
+        fotosUris: expForm.fotosUris,
+        fotosFiles: expForm.fotosFiles,
+        existingImgIds: expForm.fotosExistingIds,
+        isNew: true,
+        dirty: true,
+      };
+      setExperiencias((prev) => [...prev, nueva]);
     }
 
     cerrarModalExp();
@@ -226,6 +277,8 @@ export const useEditExperience = () => {
 
   const editarExp = (idx: number) => {
     const e = experiencias[idx];
+    if (!e) return;
+
     setExpForm({
       cargo: e.cargo,
       tipoTrabajo: e.tipoTrabajo,
@@ -233,6 +286,7 @@ export const useEditExperience = () => {
       descripcion: e.descripcion,
       fotosUris: e.fotosUris,
       fotosFiles: e.fotosFiles,
+      fotosExistingIds: e.existingImgIds,
     });
     setFechaInicioExp(e.fechaInicio);
     setFechaFinExp(e.fechaFin);
@@ -242,7 +296,13 @@ export const useEditExperience = () => {
   };
 
   const eliminarExp = (idx: number) => {
-    setExperiencias((prev) => prev.filter((_, i) => i !== idx));
+    setExperiencias((prev) => {
+      const toDelete = prev[idx];
+      if (toDelete && !toDelete.isNew && toDelete.id != null) {
+        setDeletedExperiencias((prevDel) => [...prevDel, toDelete]);
+      }
+      return prev.filter((_, i) => i !== idx);
+    });
   };
 
   // ---- sugerencias ESCO ----
@@ -259,11 +319,57 @@ export const useEditExperience = () => {
       if (!txt?.trim()) return setCargoSug([]);
       try {
         const rows = await suggestCargosESCO(txt, { limit: 8 });
-        setCargoSug(rows.map((r: any) => ({ descripcion: r.label, placeId: r.id })));
+        setCargoSug(
+          rows.map((r: any) => ({ descripcion: r.label, placeId: r.id }))
+        );
       } catch (e) {
         console.log("Error buscando cargos ESCO:", e);
       }
     }, DEBOUNCE_MS);
+  };
+
+  // construir payload de una experiencia (PUT/POST)
+  const buildExperiencePayload = async (e: Experiencia) => {
+    let image_url: string | null = null;
+    let image_id: string | null = null;
+
+    const firstUri = e.fotosUris?.[0] ?? null;
+    const firstFile = e.fotosFiles?.[0] ?? null;
+    const firstExistingId = e.existingImgIds?.[0] ?? null;
+
+    if (!firstUri) {
+      // no hay imagen => borrar en el backend
+      image_url = null;
+      image_id = null;
+    } else if (firstFile) {
+      try {
+        const res: any = await uploadImage(firstFile.uri, "work-experiences-docs");
+        image_url = res?.image_url ?? res?.secure_url ?? res?.url ?? null;
+        image_id = res?.image_id ?? res?.public_id ?? null;
+      } catch (err) {
+        console.log("Error subiendo imagen experiencia:", err);
+        image_url = null;
+        image_id = null;
+      }
+    } else {
+      image_url = firstUri;
+      image_id =
+        typeof firstExistingId === "string" || typeof firstExistingId === "number"
+          ? String(firstExistingId)
+          : null;
+    }
+
+    return {
+      // mapeo igual que antes
+      title: e.cargo,
+      work_type: e.tipoTrabajo,
+      company_or_event: e.empresa,
+      start_date: toDDMMYYYY(e.fechaInicio),
+      end_date: toDDMMYYYY(e.fechaFin),
+      description: e.descripcion || null,
+      image_url,
+      image_id,
+    };
   };
 
   // ---- guardar cambios en backend ----
@@ -271,47 +377,43 @@ export const useEditExperience = () => {
     try {
       setSaving(true);
 
-      const payload = await Promise.all(
-        experiencias.map(async (e) => {
-          let image_url: string | null = null;
-          let image_id: string | null = null;
+      // 1) "Eliminar" experiencias existentes marcadas (mandando todo null)
+      for (const exp of deletedExperiencias) {
+        if (!exp.id) continue;
+        const url = `/api/auth/employee/update-work-experience/${exp.id}/`;
+        await requestBackend(
+          url,
+          {
+            title: null,
+            work_type: null,
+            company_or_event: null,
+            start_date: null,
+            end_date: null,
+            description: null,
+            image_url: null,
+            image_id: null,
+          },
+          "PUT"
+        );
+      }
 
-          const firstUri = e.fotosUris?.[0] ?? null;
-          if (firstUri) {
-            if (firstUri.startsWith("http")) {
-              // ya es una URL remota
-              image_url = firstUri;
-            } else {
-              // es una imagen local => subir a Cloudinary
-              const res: any = await uploadImage(
-                firstUri,
-                "work-experiences-docs"
-              );
-              image_url =
-                res?.image_url ?? res?.secure_url ?? res?.url ?? null;
-              image_id = res?.image_id ?? res?.public_id ?? null;
-            }
-          }
+      // 2) Crear nuevas y actualizar modificadas
+      for (const e of experiencias) {
+        const body = await buildExperiencePayload(e);
 
-          return {
-            title: e.cargo,
-            work_type: e.tipoTrabajo,
-            company_or_event: e.empresa,
-            start_date: toDDMMYYYY(e.fechaInicio),
-            end_date: toDDMMYYYY(e.fechaFin),
-            description: e.descripcion || null,
-            image_url,
-            image_id,
-          };
-        })
-      );
+        if (e.isNew) {
+          await requestBackend(
+            "/api/auth/employee/work-experience/",
+            body,
+            "POST"
+          );
+        } else if (e.dirty && e.id != null) {
+          const url = `/api/auth/employee/update-work-experience/${e.id}/`;
+          await requestBackend(url, body, "PUT");
+        }
+      }
 
-      // Acá uso PUT para actualizar. Si tu backend espera POST, solo cambiá el método.
-      await requestBackend(
-        "/api/auth/employee/update-work-experience/",
-        payload,
-        "PUT"
-      );
+      setDeletedExperiencias([]);
       setShowSuccess(true);
       return true;
     } catch (e) {
@@ -319,15 +421,13 @@ export const useEditExperience = () => {
       return false;
     } finally {
       setSaving(false);
-      
     }
   };
 
   const closeSuccess = () => {
-      setShowSuccess(false);
-      // volvemos a la pantalla anterior (lista de eventos / historial, etc.)
-      router.back();
-    };
+    setShowSuccess(false);
+    router.back();
+  };
 
   const goBack = () => {
     router.back();
@@ -370,7 +470,8 @@ export const useEditExperience = () => {
     // guardar global
     saveAll,
     goBack,
-    showSuccess, 
-    closeSuccess
+    showSuccess,
+    closeSuccess,
+    editIdxExp,
   };
 };

@@ -2,7 +2,7 @@ import { useGoogleAuthRequest } from '@/services/external/google/useGoogleAuthRe
 import { usePushNotifications } from '@/services/internal/notifications/usePushNotifications';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { getToken, setToken } from '@/services/internal/useTokenStorage';
-import { connectStream, getStreamClient } from '@/services/stream/streamClient';
+import { connectStream } from '@/services/stream/streamClient';
 import { useRouter } from 'expo-router';
 import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react';
@@ -36,6 +36,43 @@ export const useLogin = () => {
     const refresh = data?.refresh || data?.refresh_token;
     if (access) await setToken('access', access);
     if (refresh) await setToken('refresh', refresh);
+  };
+
+  const ensureStreamConnected = async () => {
+    try {
+      await connectStream(requestBackend);
+    } catch (e) {
+      console.log('No se pudo conectar a Stream:', e);
+    }
+  };
+
+  const handleLoginToken = async () => {
+    try {
+      const accessToken = await getToken('access');
+      if (!accessToken) throw new Error('No access token');
+
+      await ensureStreamConnected();
+
+      const decoded = jwtDecode<DecodedToken>(accessToken);
+      const role = decoded.role;
+      const isSuperuser = !!decoded.is_superuser;
+
+      if (isSuperuser) {
+        router.replace('/admin');
+        return;
+      }
+
+      if (role === 'employee') {
+        router.replace('/employee');
+      } else if (role === 'employer') {
+        router.replace('/employer');
+      } else {
+        router.replace('/auth/register/type-user');
+      }
+    } catch (error) {
+      console.log('Token inválido:', error);
+      router.replace('/');
+    }
   };
 
   const handleGoogle = async () => {
@@ -105,16 +142,6 @@ export const useLogin = () => {
     }
   };
 
-  const ensureStreamConnected = async () => {
-    try {
-      await connectStream();
-      const client = getStreamClient();
-      void client;
-    } catch (e) {
-      console.log('No se pudo conectar a Stream:', e);
-    }
-  };
-
   const handleLogin = async () => {
     if (!email || !password) {
       setErrorMessage('Todos los campos son obligatorios');
@@ -148,35 +175,6 @@ export const useLogin = () => {
       setShowError(true);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleLoginToken = async () => {
-    try {
-      const accessToken = await getToken('access');
-      if (!accessToken) throw new Error('No access token');
-
-      await ensureStreamConnected();
-
-      const decoded = jwtDecode<DecodedToken>(accessToken);
-      const role = decoded.role;
-      const isSuperuser = !!decoded.is_superuser;
-
-      if (isSuperuser) {
-        router.replace('/admin');
-        return;
-      }
-
-      if (role === 'employee') {
-        router.replace('/employee');
-      } else if (role === 'employer') {
-        router.replace('/employer');
-      } else {
-        router.replace('/auth/register/type-user');
-      }
-    } catch (error) {
-      console.log('Token inválido:', error);
-      router.replace('/');
     }
   };
 

@@ -64,6 +64,7 @@ export default function EditEducationScreen() {
     goBack,
     showSuccess,
     closeSuccess,
+    editIdxEdu,
   } = useEditEducation();
 
   const [showError, setShowError] = useState(false);
@@ -356,11 +357,24 @@ export default function EditEducationScreen() {
 
                 {/* Imágenes de certificados */}
                 <UploadImagesGrid
+                  key={editIdxEdu !== null ? `edit-${editIdxEdu}` : "new"}
                   max={3}
                   thumbSize={90}
                   shape="square"
-                  onChange={(files, uris) =>
-                    setEduFormField("fotos", { files, uris })
+                  initialExisting={
+                    eduForm.fotosUris.length
+                      ? eduForm.fotosUris.map((url, idx) => ({
+                          id: eduForm.fotosExistingIds?.[idx] ?? null,
+                          url,
+                        }))
+                      : []
+                  }
+                  onChange={(files, uris, existingIds) =>
+                    setEduFormField("fotos", {
+                      files,
+                      uris,
+                      existingIds: existingIds ?? [],
+                    })
                   }
                 />
 

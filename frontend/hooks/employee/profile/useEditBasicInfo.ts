@@ -82,7 +82,8 @@ export const useEditBasicInfo = () => {
   const [aboutMe, setAboutMe] = useState("");
   const [profileImageFile, setProfileImageFile] =
     useState<UploadableImage | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null); // 👈 url vieja
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageId, setImageId] = useState<string | null>(null); // <- id viejo
 
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -110,7 +111,6 @@ export const useEditBasicInfo = () => {
         setBirthDate(parseBirthDate(res.birth_date));
         setAboutMe(res.description ?? "");
 
-        // dirección + coords (si el backend los expone)
         if (res.address) setAddress(res.address);
         if (res.latitude != null && res.longitude != null) {
           const latNum = Number(res.latitude);
@@ -120,9 +120,11 @@ export const useEditBasicInfo = () => {
           }
         }
 
-        // url de imagen previa
         if (res.profile_image_url) {
           setImageUrl(res.profile_image_url);
+        }
+        if (res.profile_image_id) {
+          setImageId(String(res.profile_image_id));
         }
       } catch (e) {
         console.log("Error cargando perfil básico:", e);
@@ -230,20 +232,24 @@ export const useEditBasicInfo = () => {
         }
       }
 
-      // por defecto, mantenemos la URL de la imagen vieja si no se sube una nueva
+      const dniNum = dni.replace(/\./g, "");
+
       const payload: any = {
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        dni: dni.replace(/\./g, ""),
+        description: aboutMe.trim() !== "" ? aboutMe.trim() : null,
         birth_date: formatearFecha(birthDate!),
         address: address.trim(),
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        profile_image_url: imageUrl,
+        profile_image_id: imageId, // <- si no subís nueva, va el id viejo
+
+        // extras que ya mandabas
+        dni: dniNum,
         latitude: lat,
         longitude: lng,
-        description: aboutMe.trim() !== "" ? aboutMe.trim() : null,
-        profile_image_url: imageUrl, // 👈 si no hay upload, se conserva
-        profile_image_id: null,
       };
 
+      // si el usuario cambió la foto, subimos y pisamos url + id
       if (profileImageFile) {
         const upload: any = await uploadImage(
           profileImageFile.uri,
@@ -255,14 +261,11 @@ export const useEditBasicInfo = () => {
           upload?.image_id ?? upload?.public_id ?? null;
       }
 
-      // 👉 Endpoint real (lo dejás comentado hasta que lo quieras usar)
-      // await requestBackend(
-      //   "/api/auth/employee/profile-description/",
-      //   payload,
-      //   "PUT"
-      // );
-
-      console.log("Payload listo para enviar:", payload);
+      await requestBackend(
+        "/api/auth/employee/profile-description/",
+        payload,
+        "PUT"
+      );
 
       setShowSuccess(true);
       return true;
@@ -306,7 +309,7 @@ export const useEditBasicInfo = () => {
     handleAddress,
     setAboutMe,
     setProfileImageFile,
-    imageUrl,      // 👈 para el UploadImage
+    imageUrl,
 
     loading,
     saving,

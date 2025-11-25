@@ -1,4 +1,4 @@
-    // hooks/employer/profile/edit/useEditEmployerBasicInfo.ts
+// hooks/employer/profile/edit/useEditEmployerBasicInfo.ts
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 
@@ -21,6 +21,7 @@ export const useEditEmployerBasicInfo = () => {
   const [companyName, setCompanyName] = useState("");
   const [description, setDescription] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageId, setImageId] = useState<string | null>(null);
   const [profileImageFile, setProfileImageFile] =
     useState<UploadableImage | null>(null);
 
@@ -49,8 +50,12 @@ export const useEditEmployerBasicInfo = () => {
 
         setCompanyName(res.company_name ?? "");
         setDescription(res.description ?? "");
+
         if (res.profile_image_url) {
           setImageUrl(res.profile_image_url);
+        }
+        if (res.profile_image_id) {
+          setImageId(String(res.profile_image_id));
         }
       } catch (e) {
         console.log("Error cargando perfil de empleador:", e);
@@ -91,14 +96,14 @@ export const useEditEmployerBasicInfo = () => {
       const payload: any = {
         company_name: companyName.trim(),
         description: description.trim() !== "" ? description.trim() : null,
-        profile_image_url: imageUrl, // mantenemos la imagen previa si no se actualiza
-        profile_image_id: null,
+        profile_image_url: imageUrl,
+        profile_image_id: imageId,
       };
 
       if (profileImageFile) {
         const upload: any = await uploadImage(
           profileImageFile.uri,
-          "user-profiles-images" // podés cambiarlo si tenés carpeta específica para empleadores
+          "user-profiles-images" // o carpeta específica para empleadores si la tenés
         );
         payload.profile_image_url =
           upload?.image_url ?? upload?.secure_url ?? upload?.url ?? null;
@@ -106,14 +111,11 @@ export const useEditEmployerBasicInfo = () => {
           upload?.image_id ?? upload?.public_id ?? null;
       }
 
-      // 👉 Endpoint real de actualización (dejado comentado a pedido tuyo)
-      // await requestBackend(
-      //   "/api/auth/employer/profile-description/",
-      //   payload,
-      //   "PUT"
-      // );
-
-      console.log("Payload listo para actualizar empleador:", payload);
+      await requestBackend(
+        "/api/auth/employer/update-profile-description/",
+        payload,
+        "PUT"
+      );
 
       setShowSuccess(true);
       return true;
@@ -130,7 +132,7 @@ export const useEditEmployerBasicInfo = () => {
   };
 
   const goBack = () => {
-    router.back();
+    router.push('/employer/profile/view-profile');
   };
 
   const closeError = () => {
@@ -140,7 +142,7 @@ export const useEditEmployerBasicInfo = () => {
 
   const closeSuccess = () => {
     setShowSuccess(false);
-    router.back();
+    router.push('/employer/profile');
   };
 
   return {

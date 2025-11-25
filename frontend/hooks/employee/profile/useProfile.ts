@@ -183,7 +183,7 @@ export const useProfile = () => {
 
       try {
         await disconnectStream();
-        console.log("Desconectado de Stream correctamente");
+        console.log("Stream desconectado correctamente");
       } catch (err) {
         console.warn("Error al desconectar Stream:", err);
       }
@@ -191,7 +191,6 @@ export const useProfile = () => {
       console.warn("Error general al cerrar sesión:", e.message);
     } finally {
       await clearTokens();
-      await debugTokens();
       router.replace("/");
     }
   };

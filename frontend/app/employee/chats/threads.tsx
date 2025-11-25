@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Platform, KeyboardAvoidingView } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import type { StreamChat as StreamChatType } from 'stream-chat';
 import {
   OverlayProvider,
@@ -12,12 +12,14 @@ import {
   TypingIndicator,
   ScrollToBottomButton,
 } from 'stream-chat-expo';
+
 import { getStreamClient } from '@/services/stream/streamClient';
-import { threadStyles as s } from '@/styles/app/employer/chats/threadStyles';
+import { threadStyles as s } from '@/styles/app/employee/chats/threadStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
 import { chatTypeTitle } from '@/hooks/employee/chats/useStreamChat';
 import { DateSeparator as JexDateSeparator } from '@/components/chats/DateSeparator';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 function parseCid(cid: string) {
   const i = cid.indexOf(':');
@@ -30,6 +32,7 @@ export default function EmployeeThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
   const cid = cidParam ?? '';
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [loading, setLoading] = useState(true);
   const [channel, setChannel] = useState<any>(null);
@@ -75,7 +78,7 @@ export default function EmployeeThreadScreen() {
 
   if (!client) {
     return (
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
         <View style={{ padding: 16 }}>
           <Text style={{ fontSize: 16 }}>No se pudo inicializar el chat.</Text>
         </View>
@@ -85,7 +88,7 @@ export default function EmployeeThreadScreen() {
 
   if (!cid) {
     return (
-      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom', 'left', 'right']}>
         <View style={{ padding: 16 }}>
           <Text style={{ fontSize: 16 }}>Canal no especificado.</Text>
         </View>
@@ -98,65 +101,63 @@ export default function EmployeeThreadScreen() {
     channel?.type === 'messaging' || channel?.data?.kind === 'messaging';
 
   return (
-    <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={s.container} edges={['top', 'bottom', 'left', 'right']}>
       <OverlayProvider>
         <StreamChatUI client={client as any}>
           {loading && (
-            <View style={{ padding: 16 }}>
-              <Text>Cargando chat…</Text>
-            </View>
+            <DotsLoader/>
           )}
 
           {!loading && error && (
-            <View style={{ padding: 16 }}>
-              <Text style={{ color: 'red' }}>Error: {error}</Text>
-            </View>
+            <Text style={{ padding: 16, color: 'red' }}>Error: {error}</Text>
           )}
 
           {!loading && !error && channel && (
-            <StreamChannelUI channel={channel}>
-              <>
-                <View style={s.header}>
-                  <TouchableOpacity onPress={() => router.back()} style={s.backButton}>
-                    <Ionicons name="chevron-back-outline" size={26} color={Colors.violet4} />
-                  </TouchableOpacity>
+             <StreamChannelUI
+                channel={channel}
+                hideStickyDateHeader={true}
+              >
+                <>
+                  {/* HEADER */}
+                  <View style={s.header}>
+                    <TouchableOpacity onPress={() => router.push('/employee/chats')} style={s.backButton}>
+                      <Ionicons name="chevron-back-outline" size={26} color={Colors.violet4} />
+                    </TouchableOpacity>
 
-                  <View style={s.headerAvatar}>
-                    <Image
-                      source={require('@/assets/images/jex/Jex-Foro-Grupal.webp')}
-                      style={s.avatarImg}
-                    />
+                    <View style={s.headerAvatar}>
+                      <Image
+                        source={require('@/assets/images/jex/Jex-Evento-Default.webp')}
+                        style={s.avatarImg}
+                      />
+                    </View>
+
+                    <View style={s.headerTitleWrap}>
+                      <Text style={s.headerTitle}>{headerTitle}</Text>
+                    </View>
                   </View>
 
-                  <View style={s.headerTitleWrap}>
-                    <Text style={s.headerTitle}>{headerTitle}</Text>
-                  </View>
-                </View>
-
-                {isWorkers ? (
+                {/* CUERPO DEL CHAT */}
+                <KeyboardAvoidingView
+                  style={{ flex: 1 }}
+                  behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                  // similar a employer ThreadScreen
+                  keyboardVerticalOffset={10} 
+                >
                   <View style={{ flex: 1 }}>
                     <JexMessageList
                       TypingIndicator={TypingIndicator}
                       ScrollToBottomButton={ScrollToBottomButton}
+                      inverted={true}   // Foro invertido, workers normal
                       DateSeparator={CustomDateSeparator}
                     />
                   </View>
-                ) : (
-                  <View style={{ flex: 1 }}>
-                    <JexMessageList
-                      TypingIndicator={TypingIndicator}
-                      ScrollToBottomButton={ScrollToBottomButton}
-                      inverted={true}
-                      DateSeparator={CustomDateSeparator}
-                    />
-                  </View>
-                )}
 
-                {isWorkers ? (
-                  <View style={s.inputContainer}>
-                    <MessageInput />
-                  </View>
-                ) : null}
+                  {isWorkers && (
+                    <View style={[s.inputContainer, { paddingBottom: insets.bottom }]}>
+                      <MessageInput />
+                    </View>
+                  )}
+                </KeyboardAvoidingView>
               </>
             </StreamChannelUI>
           )}

@@ -8,9 +8,10 @@ import {
   suggestUniversidadesHipolabs,
 } from "@/services/external/sugerencias/useSuggestSources";
 
-type UploadableImage = { uri: string; name: string; type: string };
+export type UploadableImage = { uri: string; name: string; type: string };
 
 export type Educacion = {
+  id: number | null;
   institucion: string;
   titulo: string;
   disciplina: string;
@@ -19,6 +20,9 @@ export type Educacion = {
   descripcion: string;
   fotosUris: string[];
   fotosFiles: (UploadableImage | null)[];
+  existingImgIds: (string | number | null)[];
+  isNew: boolean;
+  dirty: boolean;
 };
 
 type SugItem = { descripcion: string; placeId: string };
@@ -30,23 +34,44 @@ const isDate = (d: Date | null) => d instanceof Date && !isNaN(d.getTime());
 const startLEEnd = (a: Date, b: Date) => a.getTime() <= b.getTime();
 
 const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-const toDDMMYYYY = (d: Date | null): string | null =>
-  d ? `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}` : null;
 
-const fromYYYYMMDD = (s: string | null | undefined): Date | null => {
+// Formato que espera el backend en input: DD/MM/YYYY
+const toDDMMYYYY = (d: Date | null): string | null =>
+  d
+    ? `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`
+    : null;
+
+// Parseo flexible para lo que devuelve el backend: DD/MM/YYYY o YYYY-MM-DD
+const parseBackendDate = (s: string | null | undefined): Date | null => {
   if (!s) return null;
-  const [year, month, day] = s.split("-").map((p) => parseInt(p, 10));
-  if (!year || !month || !day) return null;
-  const d = new Date(year, month - 1, day);
-  return isNaN(d.getTime()) ? null : d;
+
+  // DD/MM/YYYY
+  if (s.includes("/")) {
+    const [day, month, year] = s.split("/").map((p) => parseInt(p, 10));
+    if (!year || !month || !day) return null;
+    const d = new Date(year, month - 1, day);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // YYYY-MM-DD
+  if (s.includes("-")) {
+    const [year, month, day] = s.split("-").map((p) => parseInt(p, 10));
+    if (!year || !month || !day) return null;
+    const d = new Date(year, month - 1, day);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  return null;
 };
 
 export const useEditEducation = () => {
   const router = useRouter();
   const { requestBackend } = useBackendConection();
   const { uploadImage } = useUploadImageServ();
+
   const [showSuccess, setShowSuccess] = useState(false);
   const [estudios, setEstudios] = useState<Educacion[]>([]);
+  const [deletedEstudios, setDeletedEstudios] = useState<Educacion[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
 
@@ -61,6 +86,7 @@ export const useEditEducation = () => {
     descripcion: string;
     fotosUris: string[];
     fotosFiles: (UploadableImage | null)[];
+    fotosExistingIds: (string | number | null)[];
   }>({
     institucion: "",
     titulo: "",
@@ -68,12 +94,13 @@ export const useEditEducation = () => {
     descripcion: "",
     fotosUris: [],
     fotosFiles: [],
+    fotosExistingIds: [],
   });
 
   const [fechaInicioEdu, setFechaInicioEdu] = useState<Date | null>(null);
   const [fechaFinEdu, setFechaFinEdu] = useState<Date | null>(null);
 
-  // cargar estudios
+  // cargar estudios desde backend
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -90,14 +117,18 @@ export const useEditEducation = () => {
         }
 
         const mapped: Educacion[] = res.map((item: any) => ({
+          id: item.id ?? null,
           institucion: item.institution ?? "",
           titulo: item.title ?? "",
           disciplina: item.discipline ?? "",
-          fechaInicio: fromYYYYMMDD(item.start_date),
-          fechaFin: fromYYYYMMDD(item.end_date),
+          fechaInicio: parseBackendDate(item.start_date),
+          fechaFin: parseBackendDate(item.end_date),
           descripcion: item.description ?? "",
           fotosUris: item.image_url ? [item.image_url] : [],
           fotosFiles: [],
+          existingImgIds: item.image_id ? [item.image_id] : [],
+          isNew: false,
+          dirty: false,
         }));
 
         setEstudios(mapped);
@@ -133,6 +164,7 @@ export const useEditEducation = () => {
       descripcion: "",
       fotosUris: [],
       fotosFiles: [],
+      fotosExistingIds: [],
     });
     setFechaInicioEdu(null);
     setFechaFinEdu(null);
@@ -141,7 +173,12 @@ export const useEditEducation = () => {
 
   const setEduFormField = (k: string, v: any) => {
     if (k === "fotos") {
-      setEduForm((p) => ({ ...p, fotosFiles: v.files, fotosUris: v.uris }));
+      setEduForm((p) => ({
+        ...p,
+        fotosFiles: v.files,
+        fotosUris: v.uris,
+        fotosExistingIds: v.existingIds ?? [],
+      }));
     } else {
       setEduForm((p) => ({ ...p, [k]: v }));
     }
@@ -181,23 +218,43 @@ export const useEditEducation = () => {
   const guardarEduLocal = (): boolean => {
     if (!validarEdu()) return false;
 
-    const item: Educacion = {
-      institucion: eduForm.institucion.trim(),
-      titulo: eduForm.titulo.trim(),
-      disciplina: eduForm.disciplina.trim(),
-      fechaInicio: fechaInicioEdu,
-      fechaFin: fechaFinEdu,
-      descripcion: eduForm.descripcion.trim(),
-      fotosUris: eduForm.fotosUris,
-      fotosFiles: eduForm.fotosFiles,
-    };
-
     if (editIdxEdu !== null) {
+      const prev = estudios[editIdxEdu];
+      if (!prev) return false;
+
+      const updated: Educacion = {
+        ...prev,
+        institucion: eduForm.institucion.trim(),
+        titulo: eduForm.titulo.trim(),
+        disciplina: eduForm.disciplina.trim(),
+        fechaInicio: fechaInicioEdu,
+        fechaFin: fechaFinEdu,
+        descripcion: eduForm.descripcion.trim(),
+        fotosUris: eduForm.fotosUris,
+        fotosFiles: eduForm.fotosFiles,
+        existingImgIds: eduForm.fotosExistingIds,
+        dirty: true,
+      };
+
       const next = [...estudios];
-      next[editIdxEdu] = item;
+      next[editIdxEdu] = updated;
       setEstudios(next);
     } else {
-      setEstudios((prev) => [...prev, item]);
+      const nuevo: Educacion = {
+        id: null,
+        institucion: eduForm.institucion.trim(),
+        titulo: eduForm.titulo.trim(),
+        disciplina: eduForm.disciplina.trim(),
+        fechaInicio: fechaInicioEdu,
+        fechaFin: fechaFinEdu,
+        descripcion: eduForm.descripcion.trim(),
+        fotosUris: eduForm.fotosUris,
+        fotosFiles: eduForm.fotosFiles,
+        existingImgIds: eduForm.fotosExistingIds,
+        isNew: true,
+        dirty: true,
+      };
+      setEstudios((prev) => [...prev, nuevo]);
     }
 
     cerrarModalEdu();
@@ -206,6 +263,8 @@ export const useEditEducation = () => {
 
   const editarEdu = (idx: number) => {
     const e = estudios[idx];
+    if (!e) return;
+
     setEduForm({
       institucion: e.institucion,
       titulo: e.titulo,
@@ -213,6 +272,7 @@ export const useEditEducation = () => {
       descripcion: e.descripcion,
       fotosUris: e.fotosUris,
       fotosFiles: e.fotosFiles,
+      fotosExistingIds: e.existingImgIds,
     });
     setFechaInicioEdu(e.fechaInicio);
     setFechaFinEdu(e.fechaFin);
@@ -222,7 +282,13 @@ export const useEditEducation = () => {
   };
 
   const eliminarEdu = (idx: number) => {
-    setEstudios((prev) => prev.filter((_, i) => i !== idx));
+    setEstudios((prev) => {
+      const toDelete = prev[idx];
+      if (toDelete && !toDelete.isNew && toDelete.id != null) {
+        setDeletedEstudios((prevDel) => [...prevDel, toDelete]);
+      }
+      return prev.filter((_, i) => i !== idx);
+    });
   };
 
   // sugerencias
@@ -269,49 +335,92 @@ export const useEditEducation = () => {
     }, DEBOUNCE_MS);
   };
 
+  // construir payload de una educación (PUT/POST)
+  const buildEducationPayload = async (s: Educacion) => {
+    let image_url: string | null = null;
+    let image_id: string | null = null;
+
+    const firstUri = s.fotosUris?.[0] ?? null;
+    const firstFile = s.fotosFiles?.[0] ?? null;
+    const firstExistingId = s.existingImgIds?.[0] ?? null;
+
+    if (!firstUri) {
+      image_url = null;
+      image_id = null;
+    } else if (firstFile) {
+      try {
+        const res: any = await uploadImage(firstFile.uri, "certificates-docs");
+        image_url = res?.image_url ?? res?.secure_url ?? res?.url ?? null;
+        image_id = res?.image_id ?? res?.public_id ?? null;
+      } catch (e) {
+        console.log("Error subiendo imagen educación:", e);
+        image_url = null;
+        image_id = null;
+      }
+    } else {
+      image_url = firstUri;
+      image_id =
+        typeof firstExistingId === "string" || typeof firstExistingId === "number"
+          ? String(firstExistingId)
+          : null;
+    }
+
+    return {
+      institution: s.institucion || null,
+      title: s.titulo || null,
+      discipline: s.disciplina || null,
+      start_date: toDDMMYYYY(s.fechaInicio),
+      end_date: toDDMMYYYY(s.fechaFin),
+      description: s.descripcion || null,
+      image_url,
+      image_id,
+    };
+  };
+
   // guardar en backend
   const saveAll = async (): Promise<boolean> => {
     try {
       setSaving(true);
 
-      const payload = await Promise.all(
-        estudios.map(async (s) => {
-          let image_url: string | null = null;
-          let image_id: string | null = null;
+      // eliminar registros existentes marcados (mandando todo null)
+      for (const edu of deletedEstudios) {
+        if (!edu.id) continue;
+        const url = `/api/auth/employee/update-education/${edu.id}/`;
+        await requestBackend(
+          url,
+          {
+            institution: null,
+            title: null,
+            discipline: null,
+            start_date: null,
+            end_date: null,
+            description: null,
+            image_url: null,
+            image_id: null,
+          },
+          "PUT"
+        );
+      }
 
-          const firstUri = s.fotosUris?.[0] ?? null;
-          if (firstUri) {
-            if (firstUri.startsWith("http")) {
-              image_url = firstUri;
-            } else {
-              const res: any = await uploadImage(
-                firstUri,
-                "certificates-docs"
-              );
-              image_url =
-                res?.image_url ?? res?.secure_url ?? res?.url ?? null;
-              image_id = res?.image_id ?? res?.public_id ?? null;
-            }
-          }
+      // crear nuevos y actualizar modificados
+      for (const s of estudios) {
+        const body = await buildEducationPayload(s);
 
-          return {
-            institution: s.institucion,
-            title: s.titulo,
-            discipline: s.disciplina,
-            start_date: toDDMMYYYY(s.fechaInicio),
-            end_date: toDDMMYYYY(s.fechaFin),
-            description: s.descripcion || null,
-            image_url,
-            image_id,
-          };
-        })
-      );
+        if (s.isNew) {
+          await requestBackend(
+            "/api/auth/employee/education/",
+            body,
+            "POST"
+          );
+        } else if (s.dirty && s.id != null) {
+          const url = `/api/auth/employee/update-education/${s.id}/`;
+          await requestBackend(url, body, "PUT");
+        }
+      }
 
-      await requestBackend("/api/auth/employee/update-education/", payload, "PUT");
-      
-      setShowSuccess(true)
+      setDeletedEstudios([]);
+      setShowSuccess(true);
       return true;
-      
     } catch (e) {
       console.log("Error guardando educación:", e);
       return false;
@@ -334,10 +443,10 @@ export const useEditEducation = () => {
     loading,
     saving,
 
-    // modal/form
     eduModalAbierto,
     abrirModalEdu,
     cerrarModalEdu,
+
     eduForm,
     setEduFormField,
     fechaInicioEdu,
@@ -347,11 +456,9 @@ export const useEditEducation = () => {
     formErrorEdu,
     guardarEduLocal,
 
-    // list actions
     editarEdu,
     eliminarEdu,
 
-    // sugerencias
     instSug,
     onChangeInst,
     clearInstSug,
@@ -359,10 +466,10 @@ export const useEditEducation = () => {
     onChangeDisc,
     clearDiscSug,
 
-    // guardar global
     saveAll,
     goBack,
     showSuccess,
     closeSuccess,
+    editIdxEdu,
   };
 };

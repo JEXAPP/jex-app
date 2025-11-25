@@ -16,6 +16,7 @@ import { Colors } from '@/themes/colors';
 import { getStreamClient } from '@/services/stream/streamClient';
 import { threadStyles as s } from '@/styles/app/employer/chats/threadStyles';
 import { DateSeparator as JexDateSeparator } from '@/components/chats/DateSeparator';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 function parseCid(cid: string) {
   const i = cid.indexOf(':');
@@ -77,13 +78,13 @@ export default function ThreadScreen() {
     <SafeAreaView style={s.container} edges={['top', 'left', 'right', 'bottom']}>
       <OverlayProvider>
         <StreamChatUI client={client}>
-          {loading && <Text style={{ padding: 16 }}>Cargando chat…</Text>}
+          {loading && <DotsLoader/>}
           {!loading && error && <Text style={{ color: 'red', padding: 16 }}>{error}</Text>}
           {!loading && !error && channel && (
             <StreamChannelUI channel={channel}>
               <>
                 <View style={s.header}>
-                  <TouchableOpacity onPress={() => router.back()} style={s.backButton}>
+                  <TouchableOpacity onPress={() => router.push('/employee/chats')} style={s.backButton}>
                     <Ionicons name="chevron-back-outline" size={26} color={Colors.violet4} />
                   </TouchableOpacity>
                   <View style={s.headerAvatar}>
