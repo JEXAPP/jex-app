@@ -342,7 +342,7 @@ class MercadoPagoWebhookView(views.APIView):
             "message": "Pago actualizado vía webhook",
             "payment_status": payment_state,
             "payment_status_message": friendly_status,
-            "comprobante": mp_payment_id
+            "payment_id": mp_payment_id
         }, status=status.HTTP_200_OK)
     
 
