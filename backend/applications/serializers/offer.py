@@ -508,6 +508,7 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
     expiration_date = CustomDateField(required=False)
     expiration_time = CustomTimeField(required=False)
     payment_state = serializers.SerializerMethodField()
+    payment_mp_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -521,7 +522,8 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
             "offer_state",
             "expiration_date",
             "expiration_time",
-            "payment_state"
+            "payment_state",
+            "payment_mp_id"
         ]
 
     def get_profile_image(self, obj):
@@ -536,6 +538,13 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
         if payment and payment.state:
             return payment.state.name
         return "NOT_PAYED"
+  
+    def get_payment_mp_id(self, obj):
+        payment = Payment.objects.filter(offer=obj, employee=obj.employee.user).first()
+        if payment and payment.state:
+            return payment.mp_payment_id
+        return "El pago no está completo"
+
 
 
 
