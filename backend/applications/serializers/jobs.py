@@ -71,7 +71,7 @@ class EmployeeJobsHistorySerializer(serializers.ModelSerializer):
     start_date = CustomDateField(source="selected_shift.start_date")
     start_time = CustomTimeField(source="selected_shift.start_time")
     payment_amount = serializers.FloatField(source="selected_shift.payment")
-
+    payment_mp_id = serializers.SerializerMethodField()
 
     company_name = serializers.CharField(source="employer.company_name")
 
@@ -91,6 +91,7 @@ class EmployeeJobsHistorySerializer(serializers.ModelSerializer):
             "start_time",
             "job_type",
             "payment_amount",
+            "payment_mp_id",
             "payment_date",
             "company_name",
             "employer_image_url",
@@ -113,6 +114,19 @@ class EmployeeJobsHistorySerializer(serializers.ModelSerializer):
             return None
 
         return payment.updated_at.strftime("%d/%m/%Y")
+    
+    def get_payment_mp_id(self, obj):
+        payment = Payment.objects.filter(
+            offer=obj,
+            employee_id=obj.employee.user.id,
+            state__name=PaymentStates.APPROVED.value
+        ).order_by('-updated_at').first()
+
+        if not payment:
+            return "El pago no está completo"
+
+        return payment.mp_payment_id
+
 
 
     def get_stars(self, obj):
