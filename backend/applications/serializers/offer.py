@@ -53,6 +53,7 @@ class OfferCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = self.context['user']
         application_id = attrs.get('application_id')
+        active_offer_states = [OfferStates.PENDING.value, OfferStates.ACCEPTED.value]
 
         try:
             employer = EmployerProfile.objects.get(user=user)
@@ -85,8 +86,9 @@ class OfferCreateSerializer(serializers.ModelSerializer):
             shift = application.shift
             max_quantity = shift.quantity
             current_offers = Offer.objects.filter(
-                selected_shift=shift
-            ).exclude(state__name=OfferStates.REJECTED.value).count()
+                selected_shift=shift,
+                state__name__in=active_offer_states,
+            ).count()
 
             if current_offers >= max_quantity:
                 raise serializers.ValidationError(MAX_OFFERS_REACHED.format(max_quantity=max_quantity))
@@ -129,8 +131,9 @@ class OfferCreateSerializer(serializers.ModelSerializer):
 
                 max_quantity = shift.quantity
                 current_offers = Offer.objects.filter(
-                    selected_shift=shift
-                ).exclude(state__name=OfferStates.REJECTED.value).count()
+                    selected_shift=shift,
+                    state__name__in=active_offer_states,
+                ).count()
 
                 if current_offers >= max_quantity:
                     raise serializers.ValidationError(MAX_OFFERS_REACHED.format(max_quantity=max_quantity))
