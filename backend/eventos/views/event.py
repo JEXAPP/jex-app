@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from applications.constants import OfferStates
@@ -20,7 +22,7 @@ from applications.models import Offer
 
 from vacancies.constants import VacancyStates
 from vacancies.models.vacancy import Vacancy
-from django.db.models import Prefetch
+from django.db.models import F, Case, ExpressionWrapper, IntegerField, Prefetch, Value, When
 
 
 
@@ -190,13 +192,38 @@ class ListEventsByEmployerView(ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
+        today = date.today()
+
         return (
             Event.objects
             .filter(
                 owner=user,
                 state__name__in=self.active_states
             )
-            .only("id", "name", "state")
+            .annotate(
+
+                state_priority=Case(
+                    When(state__name=EventStates.IN_PROGRESS.value, then=Value(1)),
+                    When(state__name=EventStates.PUBLISHED.value, then=Value(2)),
+                    When(state__name=EventStates.DRAFT.value, then=Value(3)),
+                    When(state__name=EventStates.FINALIZED.value, then=Value(4)),
+                    output_field=IntegerField(),
+                ),
+
+                date_distance=abs(
+                    ExpressionWrapper(
+                        F("start_date") - today,
+                        output_field=IntegerField()
+                    )
+                )
+            )
+            .order_by(
+                "state_priority",
+
+                "date_distance",
+
+                F("end_date").desc()
+            )
         )
 
 class ListEventsWithVacanciesView(ListAPIView):
