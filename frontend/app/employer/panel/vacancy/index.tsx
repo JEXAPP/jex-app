@@ -121,7 +121,7 @@ export default function VacanciesScreen() {
               <TouchableOpacity
                 key={String(item.id)}
                 style={styles.vacancyCard}
-                onPress={() => goToVacancyDetail(item.id)}
+                onPress={() => goToVacancyDetail(item.id, currentEvent.id)}
               >
                 <View style={styles.vacancyInfo}>
                   <View style={styles.vacancyEstadoBadge}>

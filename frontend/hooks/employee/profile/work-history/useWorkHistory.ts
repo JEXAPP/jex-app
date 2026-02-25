@@ -6,14 +6,17 @@ export type WorkHistoryItem = {
 
   eventName: string;
   eventLogoUrl?: string | null;
-  eventDate: string;     // dd/mm/aaaa
+  eventDate: string; // dd/mm/aaaa
 
   roleName: string;
   amount: number;
-  currency: string;      // ARS
+  currency: string; // ARS
 
   doneAt: string | null; // dd/mm/aaaa o null (fecha de pago)
-  
+
+  paymentMpId: string | null;
+  isPaid: boolean;
+
   organizerName: string;
   organizerImageUrl?: string | null;
 
@@ -22,9 +25,16 @@ export type WorkHistoryItem = {
 };
 
 const parseDDMMYYYY = (str: string | null): Date => {
-  if (!str) return new Date(0); // para ordenar al final
+  if (!str) return new Date(0);
   const [dd, mm, yyyy] = str.split("/").map(Number);
   return new Date(yyyy, mm - 1, dd);
+};
+
+const isPaidFromMpId = (mpId: any) => {
+  if (!mpId) return false;
+  const v = String(mpId).trim();
+  if (!v) return false;
+  return v !== "El pago no está completo";
 };
 
 export const useWorkHistory = () => {
@@ -49,29 +59,36 @@ export const useWorkHistory = () => {
           return;
         }
 
-        const mapped: WorkHistoryItem[] = data.map((raw: any, i: number) => ({
-          id: `${raw.event_id}-${i}`,
-          eventName: raw.event_name ?? "Evento",
-          eventLogoUrl: raw.event_image_url ?? null,
-          eventDate: raw.start_date ?? "", // dd/mm/aaaa
+        const mapped: WorkHistoryItem[] = data.map((raw: any, i: number) => {
+          const mpId = raw.payment_mp_id ?? null;
+          const paid = isPaidFromMpId(mpId);
 
-          roleName: raw.job_type ?? "",
-          amount: Number(raw.payment_amount ?? 0),
-          currency: "ARS",
+          return {
+            id: `${raw.event_id}-${i}`,
+            eventName: raw.event_name ?? "Evento",
+            eventLogoUrl: raw.event_image_url ?? null,
+            eventDate: raw.start_date ?? "",
 
-          doneAt: raw.payment_date ?? null, // dd/mm/aaaa o null
+            roleName: raw.job_type ?? "",
+            amount: Number(raw.payment_amount ?? 0),
+            currency: "ARS",
 
-          organizerName: raw.company_name ?? "Organizador",
-          organizerImageUrl: raw.employer_image_url ?? null,
+            doneAt: raw.payment_date ?? null,
 
-          ratingScore:
-            raw.stars !== null && raw.stars !== undefined
-              ? Number(raw.stars)
-              : 0,
-          ratingComment: raw.comment ?? "",
-        }));
+            paymentMpId: mpId,
+            isPaid: paid,
 
-        // Ordenar por fecha de pago (doneAt) o fecha del evento si no hay pago
+            organizerName: raw.company_name ?? "Organizador",
+            organizerImageUrl: raw.employer_image_url ?? null,
+
+            ratingScore:
+              raw.stars !== null && raw.stars !== undefined
+                ? Number(raw.stars)
+                : 0,
+            ratingComment: raw.comment ?? "",
+          };
+        });
+
         const ordered = [...mapped].sort((a, b) => {
           const da = parseDDMMYYYY(a.doneAt || a.eventDate);
           const db = parseDDMMYYYY(b.doneAt || b.eventDate);
@@ -89,8 +106,5 @@ export const useWorkHistory = () => {
     fetchHistory();
   }, []);
 
-  return {
-    items,
-    loading,
-  };
+  return { items, loading };
 };

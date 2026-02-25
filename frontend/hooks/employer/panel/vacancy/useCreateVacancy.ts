@@ -251,22 +251,6 @@ export const useCreateVacancy = () => {
         (t[campo] as typeof valor) = valor;
       }
 
-      if (t.fechaInicio && t.fechaFin) {
-        if (t.fechaFin.getTime() < t.fechaInicio.getTime()) {
-          setErrorMessage('La fecha de fin debe ser mayor o igual a la fecha de inicio.');
-          setShowError(true);
-        }
-      }
-
-      if (t.horaInicio && t.horaFin) {
-        const [h1, m1] = t.horaInicio.split(':').map(Number);
-        const [h2, m2] = t.horaFin.split(':').map(Number);
-        if (h2 * 60 + m2 <= h1 * 60 + m1) {
-          setErrorMessage('El horario de fin debe ser mayor al horario de inicio.');
-          setShowError(true);
-        }
-      }
-
       turnos[iTur] = t;
       prev[iVac] = { ...v, turnos };
       return prev;
@@ -381,12 +365,43 @@ export const useCreateVacancy = () => {
       });
 
     const esValido =
-      vacantesLimpias.length > 0 && vacantesLimpias.every(v => v.turnos.every(turnoCompleto));
+      vacantesLimpias.length > 0 &&
+      vacantesLimpias.every(v => v.turnos.every(turnoCompleto));
 
     if (!esValido) {
-      setErrorMessage('Error al registrar las vacantes. \nPor favor completa todos los datos.');
+      setErrorMessage('Error al registrar las vacantes.\nPor favor completa todos los datos.');
       setShowError(true);
       return;
+    }
+
+    for (const v of vacantesLimpias) {
+      for (const t of v.turnos) {
+
+        if (t.fechaFin!.getTime() < t.fechaInicio!.getTime()) {
+          setErrorMessage('La fecha de fin debe ser mayor o igual a la fecha de inicio.');
+          setShowError(true);
+          return;
+        }
+
+        const mismoDia =
+          t.fechaInicio!.getTime() === t.fechaFin!.getTime();
+
+        if (mismoDia) {
+          const [h1, m1] = t.horaInicio.split(':').map(Number);
+          const [h2, m2] = t.horaFin.split(':').map(Number);
+
+          const inicioMin = h1 * 60 + m1;
+          const finMin = h2 * 60 + m2;
+
+          if (finMin <= inicioMin) {
+            setErrorMessage(
+              'Si el turno comienza y termina el mismo día, el horario de fin debe ser mayor al horario de inicio.'
+            );
+            setShowError(true);
+            return;
+          }
+        }
+      }
     }
 
     setLoading(true);

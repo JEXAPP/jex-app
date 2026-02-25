@@ -9,17 +9,16 @@ export const workHistoryStyles = StyleSheet.create({
     paddingTop: 16,
   },
 
-  // Header
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 18,
   },
   headerTitle: {
     fontSize: 40,
-    fontFamily: 'titulos',
+    fontFamily: "titulos",
     color: Colors.violet4,
-    alignSelf: 'center',
+    alignSelf: "center",
     marginLeft: 20,
     marginTop: 20,
   },
@@ -30,10 +29,8 @@ export const workHistoryStyles = StyleSheet.create({
     alignItems: "center",
   },
 
-  listContent: {
-  },
+  listContent: {},
 
-  // Card general
   card: {
     backgroundColor: "#fff",
     borderRadius: 26,
@@ -41,7 +38,6 @@ export const workHistoryStyles = StyleSheet.create({
     overflow: "hidden",
   },
 
-  // Header morado del card
   cardHeader: {
     backgroundColor: Colors.violet4,
     paddingHorizontal: 16,
@@ -108,7 +104,6 @@ export const workHistoryStyles = StyleSheet.create({
     color: "#f0e8ff",
   },
 
-  // Cuerpo blanco del card
   body: {
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -171,5 +166,58 @@ export const workHistoryStyles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "interRegular",
     color: Colors.gray3,
+  },
+
+  payBox: {
+    marginTop: 12,
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+
+  payBoxPaid: {
+    backgroundColor: "#d8fac7", 
+  },
+
+  payBoxPending: {
+    backgroundColor: "#d8fac7", 
+    opacity: 0.85,
+  },
+
+  payAmount: {
+    fontSize: 20,
+    fontFamily: "interBold",
+    color: "#2f6d24",
+  },
+
+  payStatus: {
+    marginTop: 2,
+    fontSize: 14,
+    fontFamily: "interLightItalic",
+    color: "#2f6d24",
+  },
+
+  receiptPill: {
+    marginTop: 12,
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    backgroundColor: "rgba(255,255,255,0.55)",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  receiptLabel: {
+    fontSize: 13,
+    fontFamily: "interMedium",
+    color: "#2f6d24",
+    marginRight: 8,
+  },
+
+  receiptValue: {
+    fontSize: 16,
+    fontFamily: "interBold",
+    color: "#2f6d24",
+    flexShrink: 1,
   },
 });

@@ -28,17 +28,18 @@ export type Offer = {
   employeeName: string;
   employeeImage: any;
   role: string;
-  salary: string;        // monto mostrado (con comisión)
-  fechaInicio: string;   // dd/MM/yyyy
-  horaInicio: string;    // HH:mm
-  horaFin: string;       // HH:mm
-  expiryDate: string;    // dd/MM/yyyy
-  expiryTime: string;    // HH:mm
+  salary: string;
+  fechaInicio: string;
+  horaInicio: string;
+  horaFin: string;
+  expiryDate: string;
+  expiryTime: string;
   status: OfferStatus;
   eventId: number;
   imageUrl: string;
   imageId: string;
   payment_state: PaymentState;
+  payment_mp_id?: string | null;
 };
 
 type FeeDetails = {
@@ -77,17 +78,11 @@ export const useStateOffers = () => {
   const [filter, setFilter] = useState<FilterSimple>("Aceptadas");
   const [loading, setLoading] = useState(false);
   const [loadingEvents, setLoadingEvents] = useState(false);
-
-  const [creatingPaymentId, setCreatingPaymentId] = useState<number | null>(
-    null
-  );
-
-  // porcentaje total de comisión que vamos a aplicar
+  const [creatingPaymentId, setCreatingPaymentId] = useState<number | null>(null);
   const [feePercent, setFeePercent] = useState<number | null>(null);
 
   const currentEvent: Event | null = events[currentEventIndex] ?? null;
 
-  // --- Traer eventos ---
   useEffect(() => {
     const fetchEvents = async () => {
       setLoadingEvents(true);
@@ -123,8 +118,6 @@ export const useStateOffers = () => {
 
           setEvents(normalized);
         }
-      } catch (err) {
-        console.error("Error al traer eventos:", err);
       } finally {
         setLoadingEvents(false);
       }
@@ -132,7 +125,6 @@ export const useStateOffers = () => {
     fetchEvents();
   }, []);
 
-  // --- Traer fee de MP / App ---
   useEffect(() => {
     const fetchFeeDetails = async () => {
       try {
@@ -142,25 +134,19 @@ export const useStateOffers = () => {
           "GET"
         )) as FeeDetails;
 
-        // Intentamos usar total_fee_percent directo
         let percent = data?.total_fee_percent;
         let n = percent !== undefined ? Number(percent) : NaN;
 
-        // Si no vino o es NaN, sumamos mp + app
         if (!Number.isFinite(n)) {
           const mp = Number(data?.mp_fee_percent ?? 0);
           const app = Number(data?.app_fee_percent ?? 0);
           n = mp + app;
         }
 
-        if (!Number.isFinite(n)) {
-          n = 0;
-        }
+        if (!Number.isFinite(n)) n = 0;
 
         setFeePercent(n);
-      } catch (err) {
-        console.error("Error al traer fee details:", err);
-        // fallback: sin comisión si falla el endpoint
+      } catch {
         setFeePercent(0);
       }
     };
@@ -168,9 +154,7 @@ export const useStateOffers = () => {
     fetchFeeDetails();
   }, []);
 
-  // --- Traer ofertas del evento seleccionado ---
   useEffect(() => {
-    // Hasta no saber la fee, no traemos ofertas (o las traeríamos sin comisión)
     if (!currentEvent || feePercent === null) return;
 
     const fetchOffers = async () => {
@@ -180,7 +164,7 @@ export const useStateOffers = () => {
 
         let stateIds: number[];
         if (isFinalized) {
-          stateIds = [6]; // COMPLETED -> "A Pagar"
+          stateIds = [6];
         } else {
           stateIds = filterToBackendIds[filter];
         }
@@ -197,7 +181,6 @@ export const useStateOffers = () => {
 
         const normalized: Offer[] = all.map((item: any) => {
           const backendName = item?.offer_state?.name;
-
           const status: OfferStatus = isFinalized
             ? "A Pagar"
             : backendStateToStatus[backendName] ?? "Pendiente";
@@ -213,7 +196,6 @@ export const useStateOffers = () => {
             }`.trim(),
             employeeImage: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
             role: item?.job_type ?? "Sin rol",
-            // monto mostrado: base + comisión
             salary: new Intl.NumberFormat("es-AR").format(totalWithFee),
             fechaInicio: item?.shift?.start_date ?? "",
             horaInicio: item?.shift?.start_time ?? "",
@@ -224,7 +206,9 @@ export const useStateOffers = () => {
             eventId: currentEvent.id,
             imageUrl: item?.profile_image,
             imageId: item?.profile_image_id,
-            payment_state: (item?.payment_state as PaymentState) ?? "NOT_PAYED",
+            payment_state:
+              (item?.payment_state as PaymentState) ?? "NOT_PAYED",
+            payment_mp_id: item?.payment_mp_id ?? null,
           };
         });
 
@@ -235,8 +219,6 @@ export const useStateOffers = () => {
         );
 
         setOffers(normalized);
-      } catch (err) {
-        console.error("Error al traer ofertas:", err);
       } finally {
         setLoading(false);
       }
@@ -313,6 +295,5 @@ export const useStateOffers = () => {
     loadingEvents,
     creatingPaymentId,
     createPaymentLink,
-    feePercent, // por si querés mostrarlo en UI
   };
 };

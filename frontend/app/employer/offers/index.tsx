@@ -22,6 +22,9 @@ import * as WebBrowser from "expo-web-browser";
 import { useLocalSearchParams } from "expo-router";
 import ImageWindow from "@/components/window/ImageWindow";
 import { useEffect, useMemo, useState } from "react";
+import * as Clipboard from "expo-clipboard";
+import { ClickWindow } from "@/components/window/ClickWindow";
+import { clickWindowStyles1 } from "@/styles/components/window/clickWindowStyles1";
 
 type StatusParam = "success" | "failure" | "pending";
 
@@ -43,9 +46,10 @@ export default function StateOffersScreen() {
     createPaymentLink,
   } = useStateOffers();
 
-  const { payment_status } =
-    useLocalSearchParams<{ payment_status?: string }>();
+  const { payment_status } = useLocalSearchParams<{ payment_status?: string }>();
   const [showInfo, setShowInfo] = useState(false);
+
+  const [receiptCopiedVisible, setReceiptCopiedVisible] = useState(false);
 
   const statusContent = useMemo(() => {
     const s = (payment_status ?? "").toLowerCase() as StatusParam | "";
@@ -85,117 +89,6 @@ export default function StateOffersScreen() {
       console.error("Error al iniciar pago MP:", err);
       Alert.alert("Error", err?.message ?? "No se pudo iniciar el pago.");
     }
-  };
-
-  const PaymentControl = ({
-    offerId,
-    paymentState,
-  }: {
-    offerId: number;
-    paymentState: "NOT_PAYED" | "APPROVED" | "PENDING" | "FAILURE";
-  }) => {
-    if (paymentState === "PENDING") {
-      return (
-        <View
-          style={{
-            marginTop: 12,
-            alignSelf: "flex-end",
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-            paddingVertical: 10,
-            paddingHorizontal: 16,
-            borderRadius: 12,
-            backgroundColor: "#EDEDED",
-          }}
-        >
-          <ActivityIndicator size="small" color={Colors.violet4} />
-          <Text style={{ fontWeight: "600", color: "#333" }}>Pendiente</Text>
-        </View>
-      );
-    }
-
-    if (paymentState === "APPROVED") {
-      return (
-        <View
-          style={{
-            marginTop: 12,
-            alignSelf: "flex-end",
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-            paddingVertical: 10,
-            paddingHorizontal: 16,
-            borderRadius: 12,
-            backgroundColor: "#D8F3DC",
-            opacity: 0.9,
-          }}
-        >
-          <Ionicons name="checkmark-circle" size={18} color="#1B5E20" />
-          <Text style={{ fontWeight: "700", color: "#1B5E20" }}>Pagado</Text>
-        </View>
-      );
-    }
-
-    if (paymentState === "FAILURE") {
-      return (
-        <View style={{ marginTop: 12, alignSelf: "stretch" }}>
-          <Text
-            style={{
-              color: "#D32F2F",
-              fontWeight: "600",
-              marginBottom: 8,
-            }}
-          >
-            Hubo un error en el pago, intenta devuelta
-          </Text>
-          <TouchableOpacity
-            onPress={() => handlePay(offerId)}
-            style={{
-              alignSelf: "flex-end",
-              backgroundColor: Colors.violet4,
-              paddingVertical: 10,
-              paddingHorizontal: 16,
-              borderRadius: 12,
-              opacity: creatingPaymentId === offerId ? 0.7 : 1,
-            }}
-            disabled={creatingPaymentId === offerId}
-          >
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
-              <Ionicons name="card" size={16} color="#fff" />
-              <Text style={{ color: "#fff", fontWeight: "600" }}>
-                {creatingPaymentId === offerId ? "Abriendo..." : "Pagar"}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      );
-    }
-
-    return (
-      <TouchableOpacity
-        onPress={() => handlePay(offerId)}
-        style={{
-          marginTop: 12,
-          alignSelf: "flex-end",
-          backgroundColor: Colors.violet4,
-          paddingVertical: 10,
-          paddingHorizontal: 16,
-          borderRadius: 12,
-          opacity: creatingPaymentId === offerId ? 0.7 : 1,
-        }}
-        disabled={creatingPaymentId === offerId}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          <Ionicons name="card" size={16} color="#fff" />
-          <Text style={{ color: "#fff", fontWeight: "600" }}>
-            {creatingPaymentId === offerId ? "Abriendo..." : "Pagar"}
-          </Text>
-        </View>
-      </TouchableOpacity>
-    );
   };
 
   if (loadingEvents) return <StateOffersSkeleton />;
@@ -244,6 +137,15 @@ export default function StateOffersScreen() {
         />
       )}
 
+      <ClickWindow
+        visible={receiptCopiedVisible}
+        title="Copiado"
+        message="El número de comprobante fue copiado al portapapeles."
+        buttonText="Aceptar"
+        onClose={() => setReceiptCopiedVisible(false)}
+        styles={clickWindowStyles1}
+      />
+
       <FlatList
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }}
@@ -257,8 +159,24 @@ export default function StateOffersScreen() {
               ? styles.statusAceptada
               : styles.statusRechazada;
 
-          const badgeText =
-            item.status === "Vencida" ? "Vencida" : item.status;
+          const badgeText = item.status === "Vencida" ? "Vencida" : item.status;
+
+          const canShowPayment =
+            item.status === "Aceptada" || item.status === "A Pagar";
+
+          const isApproved = item.payment_state === "APPROVED";
+          const isPending = item.payment_state === "PENDING";
+          const isFailure = item.payment_state === "FAILURE";
+          const isNotPayed = item.payment_state === "NOT_PAYED";
+
+          const showPayButton = canShowPayment && !isApproved && !isPending;
+
+          const copyReceipt = async () => {
+            const raw = item.payment_mp_id ? String(item.payment_mp_id).trim() : "";
+            if (!raw) return;
+            await Clipboard.setStringAsync(raw);
+            setReceiptCopiedVisible(true);
+          };
 
           return (
             <View style={styles.offerCard}>
@@ -272,37 +190,89 @@ export default function StateOffersScreen() {
                   imageId={item.imageId}
                   size={70}
                   shape="circle"
-                  style={{ marginRight: 10 }}
+                  style={styles.avatar}
                   fallback={require("@/assets/images/jex/Jex-Postulantes-Default.webp")}
                 />
-                <View style={styles.column}>
+                <View style={styles.headerInfo}>
                   <Text style={styles.employeeName}>{item.employeeName}</Text>
-                  <View style={styles.salaryPill}>
-                    <Text style={styles.salaryText}>
-                      {item.salary} ARS
-                    </Text>
-                  </View>
+                  <Text style={styles.roleText}>{item.role}</Text>
                 </View>
               </View>
 
-              <Text style={styles.roleText}>{item.role}</Text>
+              <View style={styles.turnContainer}>
+                <View style={styles.turnRow}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={16}
+                    color={Colors.gray3}
+                  />
+                  <Text style={styles.turnText}>{item.fechaInicio}</Text>
+                </View>
 
-              <View style={styles.datePill}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={14}
-                  color={Colors.gray3}
-                />
-                <Text style={styles.date}>
-                  {`Turno: ${item.fechaInicio}      ${item.horaInicio} - ${item.horaFin}`}
-                </Text>
+                <View style={styles.turnRow}>
+                  <Ionicons name="time-outline" size={16} color={Colors.gray3} />
+                  <Text style={styles.turnText}>
+                    {item.horaInicio} - {item.horaFin}
+                  </Text>
+                </View>
               </View>
 
-              {(item.status === "Aceptada" || item.status === "A Pagar") && (
-                <PaymentControl
-                  offerId={item.id}
-                  paymentState={item.payment_state}
-                />
+              {canShowPayment && (
+                <View style={styles.paymentBlock}>
+                  {isApproved ? (
+                    <>
+                      <Text style={styles.paymentAmountApproved}>
+                        {item.salary} ARS
+                      </Text>
+
+                      <Text style={styles.paymentDateText}>
+                        Realizado el pago el {item.fechaInicio} - {item.horaInicio}
+                      </Text>
+
+                      {!!item.payment_mp_id && (
+                        <TouchableOpacity
+                          style={styles.receiptBox}
+                          onPress={copyReceipt}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.receiptLabel}>
+                            Número Comprobante:
+                          </Text>
+                          <Text style={styles.receiptValue} numberOfLines={1}>
+                            {item.payment_mp_id}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </>
+                  ) : isPending ? (
+                    <View style={styles.pendingBox}>
+                      <ActivityIndicator size="small" color={Colors.violet4} />
+                      <Text style={styles.pendingText}>Pago pendiente</Text>
+                    </View>
+                  ) : (
+                    <View style={styles.payRow}>
+                      <Text style={styles.paymentAmountPending}>
+                        {item.salary} ARS
+                      </Text>
+
+                      <TouchableOpacity
+                        onPress={() => handlePay(item.id)}
+                        style={[
+                          styles.payButtonSmall,
+                          creatingPaymentId === item.id && { opacity: 0.7 },
+                        ]}
+                        disabled={creatingPaymentId === item.id}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.payButtonSmallText}>
+                          {creatingPaymentId === item.id
+                            ? "Abriendo..."
+                            : "Pagar"}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
               )}
             </View>
           );

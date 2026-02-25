@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { View, Text, Keyboard, TouchableWithoutFeedback, FlatList, Pressable } from 'react-native';
+import { View, Text, Keyboard, TouchableWithoutFeedback, FlatList, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChat } from '@/hooks/employee/chats/useChats';
 import { chatStyles as s } from '@/styles/app/employee/chats/chatStyles';
@@ -106,8 +106,13 @@ const renderItem = ({ item }: { item: (typeof items)[number] }) => (
             renderItem={renderItem}
             ListEmptyComponent={
               !isLoadingAny && !error && !hasChannels ? (
-                <View style={s.emptyContainer}>
-                  <Text style={s.emptyText}>Aún no hay chats para este evento</Text>
+                <View style={s.noChatsCard}>
+                  <Text style={s.noChatsTitle}>No tienes ningún chat disponible</Text>
+                  <Image
+                    source={require('@/assets/images/jex/Jex-Sin-Mensajes.webp')}
+                    style={s.noChatsImage}
+                    resizeMode="contain"
+                  />
                 </View>
               ) : null
             }

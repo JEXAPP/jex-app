@@ -70,4 +70,25 @@ export const chatStyles = StyleSheet.create({
     fontSize: 16,
     opacity: 0.7,
   },
+  noChatsCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 50,
+    height: 500
+  },
+  noChatsTitle: {
+    fontFamily: 'interBoldItalic',
+    fontSize: 22,
+    color: Colors.violet4,
+    marginBottom: 60,
+    textAlign: 'center'
+  },
+  noChatsImage: {
+    width: 250,
+    height: 250,
+    marginBottom: 70
+  },
 });

@@ -16,8 +16,9 @@ export const useManipulateVacancy = () => {
   const requestRef = useRef(requestBackend);
   useEffect(() => { requestRef.current = requestBackend; }, [requestBackend]);
 
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, eventId } = useLocalSearchParams<{ id?: string; eventId?: string }>();
   const vacanteId = Number(id ?? NaN);
+  const eventIdNum = Number(eventId ?? NaN);
 
   const [vacanteOculta, setVacanteOculta] = useState(false);
   const [alerta, setAlerta] = useState<null | 'Ocultar' | 'Mostrar' | 'Eliminar' | 'Publicar'>(null);
@@ -94,6 +95,7 @@ export const useManipulateVacancy = () => {
 
   const handlePublicar = () => {
     setPublicarDisabled(true); // se deshabilita inmediatamente
+    router.push(`/employer/panel/vacancy?id=${eventIdNum}`)
   };
 
   const permisos = useMemo(() => {

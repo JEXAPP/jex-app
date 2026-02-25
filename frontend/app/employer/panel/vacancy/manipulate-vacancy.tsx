@@ -128,7 +128,7 @@ export default function ManipulateVacancyScreen() {
           onCancelPress={() => setAlerta(null)}
           onClose={onConfirmEliminar}
           styles={clickWindowStyles1}
-          icono={<Ionicons name="alert" size={40} color={Colors.violet4} />}
+          icono={<Ionicons name="alert" size={40} color={Colors.white} />}
         />
 
         <ClickWindow
@@ -140,7 +140,7 @@ export default function ManipulateVacancyScreen() {
           onCancelPress={() => setAlerta(null)}
           onClose={onConfirmActivar}
           styles={clickWindowStyles1}
-          icono={<Ionicons name="alert" size={40} color={Colors.violet4} />}
+          icono={<Ionicons name="alert" size={40} color={Colors.white} />}
         />
       </View>
 

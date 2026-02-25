@@ -89,8 +89,8 @@ export const useVacancies = () => {
       `/employer/panel/vacancy/create-vacancy?id=${eventId}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&horaInicio=${horaInicio}&horaFin=${horaFin}`
     );
 
-  const goToVacancyDetail = (vacancyId: number) =>
-    router.push(`/employer/panel/vacancy/manipulate-vacancy?id=${vacancyId}`);
+  const goToVacancyDetail = (vacancyId: number, eventId: number) =>
+    router.push(`/employer/panel/vacancy/manipulate-vacancy?id=${vacancyId}&eventId=${eventId}`);
 
   const filteredVacantes = useMemo(() => {
     const q = search.toLowerCase();
