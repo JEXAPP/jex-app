@@ -1,9 +1,9 @@
 from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 from user_auth.constants import EMPLOYEE_ROLE
-from user_auth.errors.user_errors_messages import EMAIL_REQUIRED, EMPLOYEE_PROFILE_NOT_FOUND
+from user_auth.errors.user_errors_messages import EDUCATION_NOT_FOUND, EMAIL_REQUIRED, EMPLOYEE_PROFILE_NOT_FOUND, WORK_EXPERIENCE_NOT_FOUND
 from user_auth.models.education_certification import EducationCertification
 from user_auth.models.employee import EmployeeProfile
 from user_auth.models.work_experience import WorkExperience
@@ -256,3 +256,38 @@ class UpdateEmployeeWorkExperienceView(APIView):
         serializer.save()
 
         return Response({"message": "Experiencia laboral actualizada correctamente"}, status=200)
+
+class DeleteEmployeeWorkExperienceView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def delete(self, request, pk):
+        try:
+            work_experience = WorkExperience.objects.get(
+                pk=pk,
+                employee=request.user.employee_profile
+            )
+        except WorkExperience.DoesNotExist:
+            raise NotFound(WORK_EXPERIENCE_NOT_FOUND)
+
+        work_experience.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class DeleteEmployeeEducationView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def delete(self, request, pk):
+        try:
+            education = EducationCertification.objects.get(
+                pk=pk,
+                employee=request.user.employee_profile
+            )
+        except EducationCertification.DoesNotExist:
+            raise NotFound(EDUCATION_NOT_FOUND)
+
+
+        education.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
