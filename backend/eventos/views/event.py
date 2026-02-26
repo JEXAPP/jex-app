@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from payments.models.payments import Payment
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
 from applications.constants import OfferStates
 from applications.models.offer_state import OfferState
@@ -15,6 +16,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from applications.models import Offer
+from datetime import date
+from django.db.models import Case, DateField, When, Value, IntegerField, F, ExpressionWrapper, DurationField
+from django.db.models.functions import ExtractDay
+from django.db.models.functions import Abs
 
 
 
@@ -172,15 +177,11 @@ class DeleteEventView(APIView):
         return Response({"detail": "Evento eliminado correctamente."}, status=status.HTTP_200_OK)
 
 
-
-
 class ListEventsByEmployerView(ListAPIView):
-    """
-    Lista los eventos activos del empleador autenticado.
-    """
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]
     serializer_class = ListEventsByEmployerSerializer
+
     active_states = [
         EventStates.DRAFT.value,
         EventStates.PUBLISHED.value,
@@ -189,16 +190,46 @@ class ListEventsByEmployerView(ListAPIView):
     ]
 
     def get_queryset(self):
-        user = self.request.user
+        payments_prefetch = Prefetch(
+            "vacancies__shifts__selected_offers__payment_set",
+            queryset=Payment.objects.select_related("state"),
+        )
+
         return (
             Event.objects
             .filter(
-                owner=user,
+                owner=self.request.user,
                 state__name__in=self.active_states
             )
-            .only("id", "name", "state")
+            .select_related("state")
+            .prefetch_related(payments_prefetch)
+            .annotate(
+                state_priority=Case(
+                    When(state__name=EventStates.IN_PROGRESS.value, then=Value(1)),
+                    When(state__name=EventStates.PUBLISHED.value, then=Value(2)),
+                    When(state__name=EventStates.DRAFT.value, then=Value(3)),
+                    When(state__name=EventStates.FINALIZED.value, then=Value(4)),
+                    default=Value(99),
+                    output_field=IntegerField(),
+                ),
+                sort_date_asc=Case(
+                    When(state__name=EventStates.FINALIZED.value, then=Value(None)),
+                    default=F("start_date"),
+                    output_field=DateField(),
+                ),
+                sort_date_desc=Case(
+                    When(state__name=EventStates.FINALIZED.value, then=F("end_date")),
+                    default=Value(None),
+                    output_field=DateField(),
+                ),
+            )
+            .order_by(
+                "state_priority",
+                F("sort_date_asc").asc(nulls_last=True),
+                F("sort_date_desc").desc(nulls_last=True),
+            )
         )
-
+    
 class ListEventsWithVacanciesView(ListAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE]

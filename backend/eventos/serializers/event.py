@@ -180,7 +180,6 @@ class ListActiveEventsSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class ListEventsByEmployerSerializer(serializers.ModelSerializer):
-    
     state = EventStateSerializer()
     all_payed = serializers.SerializerMethodField()
 
@@ -189,18 +188,21 @@ class ListEventsByEmployerSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'state', 'all_payed']
 
     def get_all_payed(self, event):
-        payments = Payment.objects.filter(
-            offer__selected_shift__vacancy__event=event
-        )
+        payments = [
+            payment
+            for vacancy in event.vacancies.all()
+            for shift in vacancy.shifts.all()
+            for offer in shift.selected_offers.all()
+            for payment in offer.payment_set.all()
+        ]
 
-        if not payments.exists():
+        if not payments:
             return False
 
-        approved_count = payments.filter(
-            state__name=PaymentStates.APPROVED.value
-        ).count()
-
-        return approved_count == payments.count()
+        return all(
+            payment.state.name == PaymentStates.APPROVED.value
+            for payment in payments
+        )
 
 
 class ListEventDetailSerializer(serializers.ModelSerializer):
