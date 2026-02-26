@@ -3,7 +3,7 @@ from user_auth.views.admin import AdminInfoView
 from user_auth.views.auth import EmailTokenObtainPairView, CustomGoogleLoginView, LogoutView
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from user_auth.views.employee import CompleteEmployeeSocialView, EmployeeEducationView, EmployeeInterestsView, EmployeeProfileDescriptionView, EmployeeRegisterView, EmployeeValidateMailView, EmployeeWorkExperienceView, UpdateEmployeeEducationView, UpdateEmployeeProfileDescriptionView, UpdateEmployeeWorkExperienceView, ViewEmployeeEducation, ViewEmployeeInterests, ViewEmployeeProfileDescription, ViewEmployeeWorkExperience
+from user_auth.views.employee import CompleteEmployeeSocialView, DeleteEmployeeEducationView, DeleteEmployeeWorkExperienceView, EmployeeEducationView, EmployeeInterestsView, EmployeeProfileDescriptionView, EmployeeRegisterView, EmployeeValidateMailView, EmployeeWorkExperienceView, UpdateEmployeeEducationView, UpdateEmployeeProfileDescriptionView, UpdateEmployeeWorkExperienceView, ViewEmployeeEducation, ViewEmployeeInterests, ViewEmployeeProfileDescription, ViewEmployeeWorkExperience
 from user_auth.views.employer import CompleteEmployerSocialView, EmployerProfileDescriptionView, EmployerRegisterView, UpdateEmployerProfileDescriptionView, ViewEmployerProfileDescription
 from user_auth.views.language import EmployeeLanguagesBulkUpdateView, EmployeeLanguagesView, LanguageLevelsView, LanguagesListView
 from user_auth.views.password_reset import PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
@@ -46,4 +46,6 @@ urlpatterns = [
     path('employee/update-profile-description/', UpdateEmployeeProfileDescriptionView.as_view(), name='update-employee-profile-description'),
     path('employee/update-education/<int:pk>/', UpdateEmployeeEducationView.as_view(), name='update-employee-education'),
     path('employee/update-work-experience/<int:pk>/', UpdateEmployeeWorkExperienceView.as_view(), name='update-employee-work-experience'),
+    path('employee/delete-education/<int:pk>/', DeleteEmployeeEducationView.as_view(), name='delete-employee-education'),
+    path('employee/delete-work-experience/<int:pk>/', DeleteEmployeeWorkExperienceView.as_view(), name='delete-employee-work-experience')
 ]
