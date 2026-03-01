@@ -98,8 +98,6 @@ class OfferCreateSerializer(serializers.ModelSerializer):
             if Offer.objects.filter(
                 employee=application.employee,
                 employer=employer,
-                selected_shift=shift,
-                state__name__in=active_offer_states,
             ).exists():
                 raise serializers.ValidationError(OFFER_ALREADY_EXISTS)
 
