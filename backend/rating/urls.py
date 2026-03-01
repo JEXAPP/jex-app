@@ -1,5 +1,5 @@
 from django.urls import path
-from rating.views.penalty import CreatePenaltyView, ListPenaltyCategoriesView
+from rating.views.penalty import CreatePenaltyView, ListPenaltyCategoriesView, UpdatePenaltyStatusView
 from rating.views.rating import BulkCreateRatingView, EmployeeRatingDetailView, EmployerRatingDetailView, ListRatingsEmployeeView, ListRatingsEmployerView, ViewRatings, ListEmployersEventsView, BulkCreateEmployerRatingView
 
 urlpatterns = [
@@ -13,4 +13,5 @@ urlpatterns = [
     path('employer/ratings/', EmployerRatingDetailView.as_view(), name='employer-rating-detail'),
     path('employee/ratings/<int:employee_id>/', ListRatingsEmployeeView.as_view(), name='employee-rating-detail-by-id'),
     path('employer/ratings/<int:employer_id>/', ListRatingsEmployerView.as_view(), name='employer-rating-detail-by-id'),
+    path("penalty/update-state/<int:id>/", UpdatePenaltyStatusView.as_view(), name="change-penalty-state"),
 ]
