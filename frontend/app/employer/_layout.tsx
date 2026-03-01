@@ -18,7 +18,8 @@ export default function EmployerLayoutRoot() {
   const isDetail =
     pathname.startsWith('/employer/profile/view-profile') ||
     pathname.startsWith('/employer/candidates/detail') ||
-    pathname.startsWith('/employer/offers/') // agregá las que quieras
+    pathname.startsWith('/employer/offers/')  ||
+    pathname.startsWith('/employer/chats/thread');
 
   const bg = isDetail ? Colors.violet4 : Colors.gray1;
 
@@ -56,7 +57,7 @@ export default function EmployerLayoutRoot() {
       >
         <Stack.Screen name="index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="candidates" options={{ ...transitionFade, headerShown: false }} />
-        <Stack.Screen name="candidates/search" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="panel/vacancy/manipulate-vacancy" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="offers/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/index" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/thread" options={{ ...transitionFade, headerShown: false }} />

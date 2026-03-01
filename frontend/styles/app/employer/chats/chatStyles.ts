@@ -14,7 +14,7 @@ export const chatStyles = StyleSheet.create({
     paddingBottom: 8,
   },
   scroll: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 20,
   },
   titles: {
@@ -22,7 +22,6 @@ export const chatStyles = StyleSheet.create({
     lineHeight: 60,
     fontFamily: 'titulos',
     color: Colors.violet4,
-    marginHorizontal: 10,
     marginBottom: 10,
   },
   tagContainer: {
@@ -35,20 +34,19 @@ export const chatStyles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   dropdownAnchor: {
-    marginHorizontal: 16,
     marginTop: 8,
-    paddingVertical: 12,
+    paddingVertical: 18,
     paddingHorizontal: 14,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
     backgroundColor: '#fff',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    marginBottom: 10
   },
   dropdownAnchorText: {
     fontSize: 16,
+    fontFamily: 'interRegular',
     flex: 1,
   },
   statusText: {
@@ -69,5 +67,25 @@ export const chatStyles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     opacity: 0.7,
+  },
+  noChatsCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    height: 500
+  },
+  noChatsTitle: {
+    fontFamily: 'interBoldItalic',
+    fontSize: 20,
+    color: Colors.violet4,
+    textAlign: 'center'
+  },
+  noChatsImage: {
+    width: 300,
+    height: 200,
+    marginBottom: 60
   },
 });

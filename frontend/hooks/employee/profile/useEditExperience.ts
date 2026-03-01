@@ -380,37 +380,37 @@ export const useEditExperience = () => {
       // 1) "Eliminar" experiencias existentes marcadas (mandando todo null)
       for (const exp of deletedExperiencias) {
         if (!exp.id) continue;
-        const url = `/api/auth/employee/update-work-experience/${exp.id}/`;
-        await requestBackend(
-          url,
-          {
-            title: null,
-            work_type: null,
-            company_or_event: null,
-            start_date: null,
-            end_date: null,
-            description: null,
-            image_url: null,
-            image_id: null,
-          },
-          "PUT"
-        );
+        const url = `/api/auth/employee/delete-work-experience/${exp.id}/`;
+        await requestBackend(url,null,"DELETE");
       }
 
       // 2) Crear nuevas y actualizar modificadas
-      for (const e of experiencias) {
-        const body = await buildExperiencePayload(e);
 
-        if (e.isNew) {
-          await requestBackend(
-            "/api/auth/employee/work-experience/",
-            body,
-            "POST"
-          );
-        } else if (e.dirty && e.id != null) {
+      // Primero: actualizar las existentes modificadas
+      for (const e of experiencias) {
+        if (!e.isNew && e.dirty && e.id != null) {
+          const body = await buildExperiencePayload(e);
           const url = `/api/auth/employee/update-work-experience/${e.id}/`;
           await requestBackend(url, body, "PUT");
         }
+      }
+
+      // Después: crear nuevas en un solo POST como array
+      const nuevas = experiencias.filter(e => e.isNew);
+
+      if (nuevas.length > 0) {
+        const payloadArray = [];
+
+        for (const e of nuevas) {
+          const body = await buildExperiencePayload(e);
+          payloadArray.push(body);
+        }
+
+        await requestBackend(
+          "/api/auth/employee/work-experience/",
+          payloadArray, 
+          "POST"
+        );
       }
 
       setDeletedExperiencias([]);

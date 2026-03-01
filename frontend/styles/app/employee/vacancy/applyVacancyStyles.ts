@@ -245,7 +245,7 @@ export const applyVacancyStyles = StyleSheet.create({
     color: Colors.violet4,
   },
   ratingsModalLoading: {
-    paddingVertical: 20,
+    marginBottom: 200,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -103,8 +103,26 @@ export default function AnnouncementThreadScreen() {
   }
 
   return (
-    <SafeAreaView style={s.container} edges={['top', 'bottom', 'left', 'right']}>
-      <OverlayProvider>
+    <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+     <OverlayProvider 
+        value={{
+        style: {
+          inlineDateSeparator: {
+            container: {
+              backgroundColor: Colors.violet4,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 20
+            },
+            text: {
+              color: 'white',
+              fontFamily: 'interLightItalic',
+              fontSize: 11,
+            },
+          },
+        },
+      }}>
         <StreamChatUI client={client}>
           {loading && (
             <DotsLoader/>
@@ -117,7 +135,7 @@ export default function AnnouncementThreadScreen() {
           )}
 
           {!loading && !error && channel && (
-            <StreamChannelUI channel={channel}>
+            <StreamChannelUI channel={channel} hideStickyDateHeader={true} >
               <>
                 {/* HEADER */}
                 <View style={s.header}>
@@ -128,7 +146,7 @@ export default function AnnouncementThreadScreen() {
                     <Ionicons
                       name="chevron-back-outline"
                       size={26}
-                      color={Colors.violet4}
+                      color={Colors.white}
                     />
                   </TouchableOpacity>
 
@@ -165,10 +183,12 @@ export default function AnnouncementThreadScreen() {
                   <View
                     style={[
                       s.inputContainer,
-                      { paddingBottom: insets.bottom || 8 },
+                      { paddingBottom: 15 },
                     ]}
                   >
-                    <MessageInput />
+                    <MessageInput additionalTextInputProps={{
+                        placeholder: 'Escribí un mensaje...',
+                      }}/>
                   </View>
                 </KeyboardAvoidingView>
               </>

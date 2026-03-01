@@ -13,11 +13,9 @@ export const threadStyles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 12,
     paddingHorizontal: 16,
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.violet4,
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomColor: Colors.violet4,
-    borderBottomWidth: 1,
   },
   backButton: {
     width: 36,
@@ -48,12 +46,13 @@ export const threadStyles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    color: Colors.violet4,
+    color: Colors.white,
     fontFamily: 'titulos',
   },
   headerSubtitle: {
     fontSize: 12,
-    color: Colors.gray3,
+    fontFamily: 'interLightItalic',
+    color: Colors.white,
     marginTop: 2,
   },
 
@@ -73,11 +72,7 @@ export const threadStyles = StyleSheet.create({
 
   /* ---------------- INPUT ---------------- */
   inputContainer: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.violet4 + '33', // leve separador
     backgroundColor: Colors.white,
-    paddingHorizontal: 4,
-    paddingTop: 6,
   },
 
   /* ---------------- EMPTY STATE ---------------- */

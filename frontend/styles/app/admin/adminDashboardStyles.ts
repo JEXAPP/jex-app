@@ -83,21 +83,25 @@ export const adminDashboardStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+
   legendContainer: {
     flex: 1,
     marginLeft: 12,
   },
+
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 6,
   },
+
   legendDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
     marginRight: 6,
   },
+
   legendLabel: {
     fontSize: 12,
     fontFamily: 'interRegular',
@@ -284,5 +288,133 @@ export const adminDashboardStyles = StyleSheet.create({
     fontFamily: 'interBold',
     color: Colors.gray3,
     marginLeft: 10,
+  },
+  resolutionBubble: {
+    marginTop: 10,
+    backgroundColor: Colors.violet1, // violeta clarito
+    borderRadius: 14,
+    padding: 10,
+  },
+  resolutionTitle: {
+    fontSize: 13,
+    fontFamily: 'interBold',
+    color: Colors.violet4,
+    marginBottom: 6,
+  },
+  resolutionMeta: {
+    fontSize: 12,
+    fontFamily: 'interRegular',
+    color: Colors.gray3,
+    marginBottom: 6,
+  },
+  resolutionComment: {
+    fontSize: 13,
+    fontFamily: 'interItalic',
+    color: Colors.violet4,
+  },
+
+  resolveButton: {
+    alignSelf: 'flex-end',
+    backgroundColor: Colors.violet4,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  resolveButtonText: {
+    color: 'white',
+    fontFamily: 'interBold',
+    fontSize: 13,
+  },
+
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  modalCard: {
+    width: '100%',
+    backgroundColor: Colors.gray1,
+    borderRadius: 18,
+    padding: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: 'interBold',
+    color: Colors.violet4,
+    marginBottom: 12,
+  },
+  modalRow: {
+    flexDirection: 'row',
+    gap: 15,
+    marginBottom: 12,
+  },
+  modalChoice: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: Colors.gray3,
+    borderRadius: 14,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  modalChoiceActive: {
+    backgroundColor: Colors.violet4,
+    borderColor: Colors.violet4,
+  },
+  modalChoiceText: {
+    fontFamily: 'interBold',
+    color: Colors.gray3,
+  },
+  modalChoiceTextActive: {
+    color: 'white',
+  },
+  modalLabel: {
+    fontSize: 12,
+    fontFamily: 'interMedium',
+    color: Colors.gray3,
+    marginBottom: 6,
+  },
+  modalInputWrap: {
+    borderWidth: 1,
+    borderColor: Colors.gray12,
+    borderRadius: 14,
+    padding: 12,
+    minHeight: 44,
+    marginBottom: 14,
+  },
+  modalInput: {
+    fontFamily: 'interRegular',
+    color: Colors.black,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+    marginTop: 20
+  },
+  modalCancel: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.gray12,
+  },
+  modalCancelText: {
+    fontFamily: 'interBold',
+    color: Colors.gray3,
+  },
+  modalConfirm: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: Colors.violet4,
+  },
+  modalConfirmText: {
+    fontFamily: 'interBold',
+    color: 'white',
   },
 });

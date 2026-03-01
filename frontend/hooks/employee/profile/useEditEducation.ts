@@ -385,37 +385,35 @@ export const useEditEducation = () => {
       // eliminar registros existentes marcados (mandando todo null)
       for (const edu of deletedEstudios) {
         if (!edu.id) continue;
-        const url = `/api/auth/employee/update-education/${edu.id}/`;
-        await requestBackend(
-          url,
-          {
-            institution: null,
-            title: null,
-            discipline: null,
-            start_date: null,
-            end_date: null,
-            description: null,
-            image_url: null,
-            image_id: null,
-          },
-          "PUT"
-        );
+        const url = `/api/auth/employee/delete-education/${edu.id}/`;
+        await requestBackend(url,null,"DELETE");
       }
 
-      // crear nuevos y actualizar modificados
+      // Primero: actualizar existentes modificados
       for (const s of estudios) {
-        const body = await buildEducationPayload(s);
-
-        if (s.isNew) {
-          await requestBackend(
-            "/api/auth/employee/education/",
-            body,
-            "POST"
-          );
-        } else if (s.dirty && s.id != null) {
+        if (!s.isNew && s.dirty && s.id != null) {
+          const body = await buildEducationPayload(s);
           const url = `/api/auth/employee/update-education/${s.id}/`;
           await requestBackend(url, body, "PUT");
         }
+      }
+
+      // Después: crear nuevos en un solo POST como array
+      const nuevos = estudios.filter(s => s.isNew);
+
+      if (nuevos.length > 0) {
+        const payloadArray = [];
+
+        for (const s of nuevos) {
+          const body = await buildEducationPayload(s);
+          payloadArray.push(body);
+        }
+
+        await requestBackend(
+          "/api/auth/employee/education/",
+          payloadArray,
+          "POST"
+        );
       }
 
       setDeletedEstudios([]);

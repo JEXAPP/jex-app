@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import useBackendConection from '@/services/internal/useBackendConection';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 type EstadoNombre = 'Oculta' | 'Activa' | 'En Borrador' | 'Llena' | 'Vencida' | 'Eliminada';
 type EstadoDTO = { id: number; name: EstadoNombre };
@@ -94,8 +94,7 @@ export const useManipulateVacancy = () => {
   }, []);
 
   const handlePublicar = () => {
-    setPublicarDisabled(true); // se deshabilita inmediatamente
-    router.push(`/employer/panel/vacancy?id=${eventIdNum}`)
+    setPublicarDisabled(true); 
   };
 
   const permisos = useMemo(() => {
@@ -167,8 +166,8 @@ export const useManipulateVacancy = () => {
 
   const onConfirmEliminar = useCallback(async () => {
     const result = await cambiarEstadoVacante(vacanteId, 'Eliminada');
-    if (result === 'Eliminada') router.replace('/employer');
-  }, [cambiarEstadoVacante, vacanteId, router]);
+    if (result === 'Eliminada') router.replace(`/employer/panel/vacancy?id=${eventIdNum}`);
+  }, [cambiarEstadoVacante, vacanteId, router, eventIdNum]);
 
   const onIrAEditar = useCallback(() => {
     if (!Number.isFinite(vacanteId)) {
@@ -177,6 +176,10 @@ export const useManipulateVacancy = () => {
     }
     router.push(`/employer/panel/vacancy/edit-vacancy?id=${vacanteId}`);
   }, [router, vacanteId]);
+
+  const goBack = () => {
+    router.replace(`/employer/panel/vacancy?id=${eventIdNum}`);
+  }
 
   return {
     estadosVacante,
@@ -191,6 +194,7 @@ export const useManipulateVacancy = () => {
     onConfirmActivar,
     onIrAEditar,
     handlePublicar,
-    publicarDisabled
+    publicarDisabled,
+    goBack
   };
 };

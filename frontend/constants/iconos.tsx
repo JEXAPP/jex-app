@@ -67,7 +67,7 @@ export const iconos = {
     <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color} />
   ),
   cuidado: (size: number, color: string) => (
-    <Ionicons name="alert-circle" size={size} color={color} />
+    <Ionicons name="alert" size={size} color={color} />
   ),
   usuario_validado: (size: number, color: string) => (
     <MaterialCommunityIcons name="account-multiple-check" size={size} color={color} />
@@ -136,7 +136,7 @@ export const iconos = {
     <MaterialIcons name="work-history" size={size} color={color} />
   ),
   logout: (size: number, color: string) => (
-    <MaterialCommunityIcons name="logout" size={size} color={color} />
+    <Ionicons name="log-out-outline" size={size} color={color} />
   ),
   config_interests: (size: number, color: string) => (
     <Ionicons name="heart-circle-outline" size={size} color={color} />

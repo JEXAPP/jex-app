@@ -1,12 +1,19 @@
 import { Colors } from '@/themes/colors';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { StyleProp, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import {
+  StyleProp,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle
+} from 'react-native';
 
 interface SelectableTagProps {
   title: string;
   subtitle?: string;
-  iconName?: string; 
+  iconName?: string;
   selected: boolean;
   onPress: () => void;
   styles: {
@@ -33,36 +40,74 @@ export const SelectableTag = ({
 }: SelectableTagProps) => {
 
   if (disabled) return null;
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.tag, selected && styles.tagSelected]}
+  <TouchableOpacity
+    onPress={onPress}
+    style={[styles.tag, selected && styles.tagSelected]}
+  >
+    <View
+      style={[
+        styles.tagContent,
+        subtitle
+          ? {
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingHorizontal: 10
+            }
+          : null
+      ]}
     >
-      <View style={styles.tagContent}>
-        <View style={styles.labelRow}>
-          {iconName && (
-            <Ionicons
-              name={iconName as any}
-              size={16}
-              color={selected ? Colors.white : Colors.gray3}
-              style={{ marginRight: 4 }}
-            />
-          )}
-          <Text style={[styles.tagText, selected && styles.tagTextSelected]}>
-            {title}
-          </Text>
-        </View>
-        {subtitle && (
-          <Text
-            style={[
-              styles.tagSubtitle,
-              selected && styles.tagSubtitleSelected,
-            ]}
-          >
-            {subtitle}
-          </Text>
+      <View
+        style={[
+          styles.labelRow,
+          subtitle
+            ? { flexShrink: 1 }
+            : null
+        ]}
+      >
+        {iconName && (
+          <Ionicons
+            name={iconName as any}
+            size={16}
+            color={selected ? Colors.white : Colors.gray3}
+            style={{ marginRight: 4 }}
+          />
         )}
+
+        <Text
+          numberOfLines={subtitle ? 1 : undefined}
+          adjustsFontSizeToFit={!!subtitle}
+          minimumFontScale={0.7}
+          style={[
+            styles.tagText,
+            selected && styles.tagTextSelected,
+            subtitle ? { flexShrink: 1 } : null
+          ]}
+        >
+          {title}
+        </Text>
       </View>
-    </TouchableOpacity>
-  );
-};
+
+      {subtitle && (
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          style={[
+            styles.tagSubtitle,
+            selected && styles.tagSubtitleSelected,
+            {
+              textAlign: 'right',
+              flexShrink: 1
+            }
+          ]}
+        >
+          {subtitle}
+        </Text>
+      )}
+    </View>
+  </TouchableOpacity>
+);
+}

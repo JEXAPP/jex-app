@@ -76,12 +76,30 @@ export default function ThreadScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['top', 'left', 'right', 'bottom']}>
-      <OverlayProvider>
+      <OverlayProvider 
+        value={{
+        style: {
+          inlineDateSeparator: {
+            container: {
+              backgroundColor: Colors.violet4,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 20
+            },
+            text: {
+              color: 'white',
+              fontFamily: 'interLightItalic',
+              fontSize: 11,
+            },
+          },
+        },
+      }}>
         <StreamChatUI client={client}>
           {loading && <DotsLoader/>}
           {!loading && error && <Text style={{ color: 'red', padding: 16 }}>{error}</Text>}
           {!loading && !error && channel && (
-            <StreamChannelUI channel={channel}>
+            <StreamChannelUI channel={channel} hideStickyDateHeader={true} >
               <>
                 <View style={s.header}>
                   <TouchableOpacity onPress={() => router.push('/employee/chats')} style={s.backButton}>
@@ -114,7 +132,9 @@ export default function ThreadScreen() {
                   </View>
 
                   <View style={[s.inputContainer, { paddingBottom: insets.bottom }]}>
-                    <MessageInput />
+                    <MessageInput additionalTextInputProps={{
+                        placeholder: 'Escribí un mensaje...',
+                      }}/>
                   </View>
                 </KeyboardAvoidingView>
               </>

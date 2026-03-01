@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/themes/colors';
@@ -12,8 +12,11 @@ import { useDataTransformation } from '@/services/internal/useDataTransformation
 
 import ChooseCandidatesSkeleton from '@/constants/skeletons/employer/candidates/chooseCandidatesSkeleton';
 import { ApplicantsSquaresSkeleton } from '@/constants/skeletons/employer/candidates/applicantsSquaresSkeleton';
+
 export default function ChooseCandidatesScreen() {
   const [loadingScreen, setLoadingScreen] = useState(true);
+
+  const hook = useChooseCandidates();
 
   const {
     eventName,
@@ -28,33 +31,25 @@ export default function ChooseCandidatesScreen() {
     selectedShiftId,
     candidates,
     shiftInfo,
-
-    // ofertas (se cargan junto con horario y postulaciones)
     offersMade,
     offersMax,
     isFull,
-
-    // ui state
     rolePickerVisible,
     setRolePickerVisible,
     loadingEventVacancies,
     loadingApplications,
     error,
-
-    // vacíos
     hasNoEvents,
     currentEventHasNoVacancies,
     hasVacanciesButNoCandidates,
-
-    // acciones
     handlePrevEvent,
     handleNextEvent,
     handleSelectVacancy,
     handleSelectShift,
     openCandidateDetail,
-    // utils
     splitFirstSpace,
-  } = useChooseCandidates();
+    totalEvents
+  } = hook;
 
   const { formatFechaCorta } = useDataTransformation();
 
@@ -63,7 +58,6 @@ export default function ChooseCandidatesScreen() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 🔸 Skeleton de página completa durante: splash local o carga de eventos/vacantes
   if (loadingScreen || loadingEventVacancies) {
     return (
       <SafeAreaView style={{ flex: 1, backgroundColor: Colors.gray1 }}>
@@ -72,7 +66,6 @@ export default function ChooseCandidatesScreen() {
     );
   }
 
-  // 1) Sin eventos
   if (hasNoEvents) {
     return (
       <View style={s.container}>
@@ -89,7 +82,6 @@ export default function ChooseCandidatesScreen() {
     );
   }
 
-  // helper visual para fecha/hora del turno
   const renderShiftSchedule = () => {
     if (!shiftInfo) return null;
     const sameDay = shiftInfo.startDate === shiftInfo.endDate;
@@ -107,7 +99,6 @@ export default function ChooseCandidatesScreen() {
       );
     }
 
-    // días distintos → partir en el primer espacio
     const [w1a, w1b] = splitFirstSpace(formatFechaCorta(shiftInfo.startDate));
     const [w2a, w2b] = splitFirstSpace(formatFechaCorta(shiftInfo.endDate));
 
@@ -136,7 +127,6 @@ export default function ChooseCandidatesScreen() {
   return (
     <SafeAreaView style={s.container} edges={['left', 'right']}>
       <View>
-        {/* Header evento con flechas */}
         <View style={s.eventRow}>
           <View style={s.sideSlot}>
             {currentEventIndex > 0 ? (
@@ -154,16 +144,17 @@ export default function ChooseCandidatesScreen() {
           </View>
 
           <View style={s.sideSlot}>
-            <TouchableOpacity
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              onPress={handleNextEvent}
-            >
-              {iconos.flechaDerecha(24, Colors.violet4)}
-            </TouchableOpacity>
+            {currentEventIndex < totalEvents - 1 ? (
+              <TouchableOpacity
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                onPress={handleNextEvent}
+              >
+                {iconos.flechaDerecha(24, Colors.violet4)}
+              </TouchableOpacity>
+            ) : null}
           </View>
         </View>
 
-        {/* Dropdown de Rol (NO mostrar si no hay vacantes) */}
         {vacancies.length > 0 && (
           <>
             <TouchableOpacity
@@ -190,7 +181,6 @@ export default function ChooseCandidatesScreen() {
           </>
         )}
 
-        {/* Si el evento actual no tiene vacantes, mostrar vacío del evento */}
         {currentEventHasNoVacancies ? (
           <View style={s.emptyBox2}>
             <Text style={s.emptyTitle}>No hay vacantes activas</Text>
@@ -203,8 +193,7 @@ export default function ChooseCandidatesScreen() {
           </View>
         ) : (
           <>
-            {/* Tags de Turnos (solo si hay más de un turno) — no skeletonizar */}
-            {currentVacancy && shiftTags && (
+            {currentVacancy && shiftTags && shiftTags.length > 1 ? (
               <View style={s.tagsRow}>
                 {shiftTags.map((t) => {
                   const isSelected = selectedShiftId === t.id;
@@ -220,13 +209,11 @@ export default function ChooseCandidatesScreen() {
                   );
                 })}
               </View>
-            )}
+            ) : null}
 
-            {/* Info superior: horario + ofertas */}
             {currentVacancy && (
               <View style={s.topInfoRow}>
                 {renderShiftSchedule()}
-                {/* No mostrar nada mientras carga las ofertas */}
                 {offersMade !== null && offersMax !== null && (
                   <View style={s.offersCard}>
                     <Text style={s.offersMain}>
@@ -238,7 +225,6 @@ export default function ChooseCandidatesScreen() {
               </View>
             )}
 
-            {/* ⏳ Mientras cargan sólo postulaciones → Skeleton de cuadrados */}
             {loadingApplications && (
               <View style={{ paddingVertical: 8 }}>
                 <ApplicantsSquaresSkeleton />
@@ -247,7 +233,6 @@ export default function ChooseCandidatesScreen() {
 
             {!!error && <Text style={s.error}>{error}</Text>}
 
-            {/* Si el turno está lleno: NO mostrar solicitudes ni grilla */}
             {!loadingApplications && isFull ? (
               <View style={s.emptyBox3}>
                 <Text style={s.emptyTitle}>Turno Lleno</Text>
@@ -262,8 +247,7 @@ export default function ChooseCandidatesScreen() {
               </View>
             ) : (
               <>
-                {/* 🛈 Sin postulaciones (sólo cuando terminó de cargar) */}
-                {!loadingApplications && hasVacanciesButNoCandidates ? (
+                {hasVacanciesButNoCandidates ? (
                   <View style={s.emptyBox3}>
                     <Text style={s.emptyTitle}>No hay postulaciones</Text>
                     <Image
@@ -277,7 +261,6 @@ export default function ChooseCandidatesScreen() {
                   </View>
                 ) : null}
 
-                {/* 👇 Grilla de candidatos (nunca mientras está cargando) */}
                 {!loadingApplications && candidates.length > 0 && (
                   <FlatList
                     data={candidates}
@@ -307,31 +290,33 @@ export default function ChooseCandidatesScreen() {
                         </Text>
 
                         <View style={s.ratingRow}>
-                        {item.averageRating === null || item.ratingCount === 0 ? (
-                          <Text style={s.noRatingText}>Sin calificación</Text>
-                        ) : (
-                          <>
-                            <View style={s.starsRow}>
-                              {Array.from({ length: (() => {
-                                const avg = item.averageRating ?? 0;
-                                const decimal = avg % 1;
-                                const base = Math.floor(avg);
-                                const rounded = decimal >= 0.8 ? base + 1 : base;
-                                return Math.min(rounded, 5);
-                              })() }).map((_, i) => (
-                                <React.Fragment key={i}>
-                                  {iconos.full_star(14, Colors.violet3)}
-                                </React.Fragment>
-                              ))}
-                            </View>
-                            <View style={s.ratingPill}>
-                              <Text style={s.ratingText}>
-                                {item.averageRating?.toFixed(1)}
-                              </Text>
-                            </View>
-                          </>
-                        )}
-                      </View>
+                          {item.averageRating === null || item.ratingCount === 0 ? (
+                            <Text style={s.noRatingText}>Sin calificación</Text>
+                          ) : (
+                            <>
+                              <View style={s.starsRow}>
+                                {Array.from({
+                                  length: (() => {
+                                    const avg = item.averageRating ?? 0;
+                                    const decimal = avg % 1;
+                                    const base = Math.floor(avg);
+                                    const rounded = decimal >= 0.8 ? base + 1 : base;
+                                    return Math.min(rounded, 5);
+                                  })(),
+                                }).map((_, i) => (
+                                  <React.Fragment key={i}>
+                                    {iconos.full_star(14, Colors.violet3)}
+                                  </React.Fragment>
+                                ))}
+                              </View>
+                              <View style={s.ratingPill}>
+                                <Text style={s.ratingText}>
+                                  {item.averageRating?.toFixed(1)}
+                                </Text>
+                              </View>
+                            </>
+                          )}
+                        </View>
                       </TouchableOpacity>
                     )}
                   />

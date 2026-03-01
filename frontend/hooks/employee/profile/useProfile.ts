@@ -177,18 +177,20 @@ export const useProfile = () => {
       const refresh = await SecureStore.getItemAsync("refresh");
 
       if (refresh) {
-        await requestBackend("/api/auth/logout/", { refresh }, "POST");
-        console.log("Sesión cerrada en backend");
+        try {
+          await requestBackend("/api/auth/logout/", { refresh }, "POST");
+          console.log("Sesión cerrada en backend");
+        } catch (e) {
+          console.warn("Logout backend falló, pero seguimos:", e);
+        }
       }
 
       try {
         await disconnectStream();
-        console.log("Stream desconectado correctamente");
-      } catch (err) {
-        console.warn("Error al desconectar Stream:", err);
+      } catch (e) {
+        console.warn("Error al desconectar Stream:", e);
       }
-    } catch (e: any) {
-      console.warn("Error general al cerrar sesión:", e.message);
+
     } finally {
       await clearTokens();
       router.replace("/");

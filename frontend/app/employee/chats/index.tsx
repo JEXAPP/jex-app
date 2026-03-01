@@ -116,6 +116,17 @@ const renderItem = ({ item }: { item: (typeof items)[number] }) => (
                 </View>
               ) : null
             }
+            ListFooterComponent={
+              !isLoadingAny && !error && hasChannels ? (
+                <View style={{ marginTop: 80, alignItems: 'center'}}>
+                  <Image
+                    source={require('@/assets/images/jex/Jex-Chats-Empleador.webp')}
+                    style={{ width: 250, height: 250}}
+                    resizeMode="contain"
+                  />
+                </View>
+              ) : null
+            }
           />
         </View>
       </TouchableWithoutFeedback>

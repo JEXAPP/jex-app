@@ -472,7 +472,7 @@ export default function EmployeeDetailScreen() {
         message="Vas a rechazar esta postulación. Esta acción no puede deshacerse."
         buttonText="Rechazar"
         cancelButtonText="Cancelar"
-        icono={<Ionicons name="alert-circle" size={28} color={Colors.violet4} />}
+        icono={<Ionicons name="alert" size={28} color={Colors.white} />}
         onClose={confirmReject}
         onCancelPress={closeConfirmReject}
         styles={clickWindowStyles1}
@@ -519,7 +519,7 @@ export default function EmployeeDetailScreen() {
             </View>
 
             {ratingsLoading ? (
-              <View style={{ alignItems: 'center', marginTop: 20 }}>
+              <View style={{ justifyContent: 'center', marginBottom: 200 }}>
                 <DotsLoader />
               </View>
             ) : ratingsError ? (

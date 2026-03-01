@@ -10,7 +10,7 @@ import {
   MessageList,
   MessageInput,
   TypingIndicator,
-  ScrollToBottomButton,
+  ScrollToBottomButton
 } from 'stream-chat-expo';
 
 import { getStreamClient } from '@/services/stream/streamClient';
@@ -101,8 +101,26 @@ export default function EmployeeThreadScreen() {
     channel?.type === 'messaging' || channel?.data?.kind === 'messaging';
 
   return (
-    <SafeAreaView style={s.container} edges={['top', 'bottom', 'left', 'right']}>
-      <OverlayProvider>
+    <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+      <OverlayProvider 
+        value={{
+        style: {
+          inlineDateSeparator: {
+            container: {
+              backgroundColor: Colors.violet4,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 20
+            },
+            text: {
+              color: 'white',
+              fontFamily: 'interLightItalic',
+              fontSize: 11,
+            },
+          },
+        },
+      }}>
         <StreamChatUI client={client as any}>
           {loading && (
             <DotsLoader/>
@@ -116,12 +134,13 @@ export default function EmployeeThreadScreen() {
              <StreamChannelUI
                 channel={channel}
                 hideStickyDateHeader={true}
+                
               >
                 <>
                   {/* HEADER */}
                   <View style={s.header}>
                     <TouchableOpacity onPress={() => router.push('/employee/chats')} style={s.backButton}>
-                      <Ionicons name="chevron-back-outline" size={26} color={Colors.violet4} />
+                      <Ionicons name="chevron-back-outline" size={26} color={Colors.white} />
                     </TouchableOpacity>
 
                     <View style={s.headerAvatar}>
@@ -149,12 +168,15 @@ export default function EmployeeThreadScreen() {
                       ScrollToBottomButton={ScrollToBottomButton}
                       inverted={true}   // Foro invertido, workers normal
                       DateSeparator={CustomDateSeparator}
+                      
                     />
                   </View>
 
                   {isWorkers && (
-                    <View style={[s.inputContainer, { paddingBottom: insets.bottom }]}>
-                      <MessageInput />
+                    <View style={[s.inputContainer]}>
+                      <MessageInput additionalTextInputProps={{
+                        placeholder: 'Escribí un mensaje...',
+                      }}/>
                     </View>
                   )}
                 </KeyboardAvoidingView>

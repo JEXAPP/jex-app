@@ -279,6 +279,13 @@ export const stateOffersStyles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: "#F1F1F1",
   },
+  paymentBlockApproved: {
+    marginTop: 16,
+    borderRadius: 20,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    backgroundColor: "#e7fddc",
+  },
 
   payRow: {
     flexDirection: "row",

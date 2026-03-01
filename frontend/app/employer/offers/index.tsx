@@ -19,7 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { SelectableTag } from "@/components/button/SelectableTags";
 import { selectableTagStyles2 } from "@/styles/components/button/selectableTagsStyles/selectableTagsStyles2";
 import * as WebBrowser from "expo-web-browser";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import ImageWindow from "@/components/window/ImageWindow";
 import { useEffect, useMemo, useState } from "react";
 import * as Clipboard from "expo-clipboard";
@@ -45,6 +45,8 @@ export default function StateOffersScreen() {
     creatingPaymentId,
     createPaymentLink,
   } = useStateOffers();
+
+  const router = useRouter();
 
   const { payment_status } = useLocalSearchParams<{ payment_status?: string }>();
   const [showInfo, setShowInfo] = useState(false);
@@ -81,6 +83,10 @@ export default function StateOffersScreen() {
     setShowInfo(!!statusContent);
   }, [statusContent]);
 
+  const cerrarVentana = () => {
+    setShowInfo(false)
+  }
+
   const handlePay = async (offerId: number) => {
     try {
       const { url } = await createPaymentLink(offerId);
@@ -114,7 +120,7 @@ export default function StateOffersScreen() {
             title={statusContent.title}
             subtitle={statusContent.subtitle}
             buttonText="Entendido"
-            onClose={() => setShowInfo(false)}
+            onClose={cerrarVentana}
             imageSource={statusContent.image}
           />
         )}
@@ -218,7 +224,7 @@ export default function StateOffersScreen() {
               </View>
 
               {canShowPayment && (
-                <View style={styles.paymentBlock}>
+                <View style={isApproved ? styles.paymentBlockApproved : styles.paymentBlock}>
                   {isApproved ? (
                     <>
                       <Text style={styles.paymentAmountApproved}>

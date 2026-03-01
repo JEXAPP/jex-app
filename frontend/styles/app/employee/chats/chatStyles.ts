@@ -35,17 +35,15 @@ export const chatStyles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   dropdownAnchor: {
-    marginHorizontal: 16,
-    paddingVertical: 12,
+    marginTop: 8,
+    paddingVertical: 18,
     paddingHorizontal: 14,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
     backgroundColor: '#fff',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 5
+    marginBottom: 10
   },
   dropdownAnchorText: { 
     fontSize: 16, 

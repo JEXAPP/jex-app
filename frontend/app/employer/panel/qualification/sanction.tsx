@@ -5,7 +5,6 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  TextInput,
   ActivityIndicator,
 } from "react-native";
 import { useSanction } from "@/hooks/employer/panel/qualification/useSanction";
@@ -14,12 +13,15 @@ import * as React from "react";
 import { Colors } from "@/themes/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { ClickWindow } from "@/components/window/ClickWindow";
 import { TempWindow } from "@/components/window/TempWindow";
 import { clickWindowStyles1 } from "@/styles/components/window/clickWindowStyles1";
 import { tempWindowStyles1 } from "@/styles/components/window/tempWindowStyles1";
 import { iconos } from "@/constants/iconos";
+import { Input } from "@/components/input/Input";
+import { inputStyles1 } from "@/styles/components/input/inputStyles/inputStyles1";
+import { CharCounter } from "@/components/others/CharCounter";
+import { charCounterStyles1 } from "@/styles/components/others/charCounterStyles1";
 
 export default function SanctionScreen() {
   const router = useRouter();
@@ -38,8 +40,6 @@ export default function SanctionScreen() {
     customComment,
     setCustomComment,
     loading,
-
-    // modales
     showError,
     errorMessage,
     closeError,
@@ -55,76 +55,78 @@ export default function SanctionScreen() {
     );
   }
 
+  const handleSelect = (option: any) => {
+    if (selectedType?.id === option.id) {
+      goBackOption();
+      return;
+    }
+    selectOption(option);
+  };
+
   return (
-    <LinearGradient colors={["#ffffff", "#f9f9fb"]} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>Sanciones</Text>
-          <Text style={styles.subtitle}>
-            Seleccioná la falta que cometió el trabajador
-          </Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Sanciones</Text>
+        <Text style={styles.subtitle}>
+          Seleccioná la falta que cometió el trabajador
+        </Text>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.workerCard}>
+          <Image
+            source={
+              worker.image
+                ? { uri: worker.image }
+                : require("@/assets/images/jex/Jex-FotoPerfil.webp")
+            }
+            style={styles.workerImage}
+          />
+          <Text style={styles.workerName}>{worker.name}</Text>
+          <Text style={styles.workerRole}>{worker.role}</Text>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Card trabajador */}
-          <View style={styles.workerCard}>
-            <Image
-              source={
-                worker.image
-                  ? { uri: worker.image }
-                  : require("@/assets/images/jex/Jex-FotoPerfil.webp")
-              }
-              style={styles.workerImage}
-            />
+        {canGoBack && (
+          <TouchableOpacity
+            style={styles.goBackContainer}
+            onPress={goBackOption}
+          >
+            <Ionicons name="arrow-back" size={18} color={Colors.violet4} />
+            <Text style={styles.goBack}>Volver</Text>
+          </TouchableOpacity>
+        )}
 
-            <Text style={styles.workerName}>{worker.name}</Text>
-            <Text style={styles.workerRole}>{worker.role}</Text>
-          </View>
+        <View style={styles.optionsContainer}>
+          {currentOptions.map((option: any) => {
+            const isActive = selectedType?.id === option.id;
 
-          {/* Botón volver */}
-          {canGoBack && (
-            <TouchableOpacity
-              style={styles.goBackContainer}
-              onPress={goBackOption}
-            >
-              <Ionicons name="arrow-back" size={18} color={Colors.violet4} />
-              <Text style={styles.goBack}>Volver</Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Opciones */}
-          <View style={styles.optionsContainer}>
-            {currentOptions.map((option: any) => (
+            return (
               <TouchableOpacity
                 key={option.id}
                 style={[
                   styles.optionButton,
-                  selectedType?.id === option.id && styles.optionButtonActive,
+                  isActive && styles.optionButtonActive,
                 ]}
-                onPress={() => selectOption(option)}
+                onPress={() => handleSelect(option)}
               >
                 <Ionicons
                   name={option.icon || "alert-circle"}
                   size={22}
-                  color={
-                    selectedType?.id === option.id ? "#fff" : Colors.violet4
-                  }
+                  color={isActive ? "#fff" : Colors.violet4}
                   style={{ marginRight: 10 }}
                 />
                 <Text
                   style={[
                     styles.optionText,
-                    selectedType?.id === option.id &&
-                      styles.optionTextActive,
+                    isActive && styles.optionTextActive,
                   ]}
                 >
                   {option.name}
                 </Text>
-                {selectedType?.id === option.id && (
+                {isActive && (
                   <Ionicons
                     name="checkmark-circle"
                     size={22}
@@ -133,79 +135,98 @@ export default function SanctionScreen() {
                   />
                 )}
               </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Campo texto libre para "Otro" */}
-          {selectedCategory?.id === "otro" && (
-            <View style={{ marginTop: 20, width: "90%", alignSelf: "center" }}>
-              <Text
-                style={[
-                  styles.subtitle,
-                  { color: Colors.violet4, fontWeight: "600" },
-                ]}
-              >
-                Describe la sanción:
-              </Text>
-              <TextInput
-                value={customComment}
-                onChangeText={setCustomComment}
-                style={styles.commentInput}
-                placeholder="Escribe aquí..."
-                placeholderTextColor={Colors.gray2}
-                multiline
-              />
-            </View>
-          )}
-        </ScrollView>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[
-              styles.registerButton,
-              !selectedType && selectedCategory?.id !== "otro"
-                ? styles.registerButtonDisabled
-                : null,
-            ]}
-            disabled={
-              loading || (!selectedType && selectedCategory?.id !== "otro")
-            }
-            onPress={async () => {
-              const ok = await registerSanction();
-              if (ok) {
-                // Podés dejar el back o no, según prefieras
-                router.back();
-              }
-            }}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.registerButtonText}>Registrar sanción</Text>
-            )}
-          </TouchableOpacity>
+            );
+          })}
         </View>
 
-        {/* Modales de error / éxito */}
-        <ClickWindow
-          title="Error"
-          visible={showError}
-          message={errorMessage}
-          onClose={closeError}
-          styles={clickWindowStyles1}
-          icono={iconos.error_outline(30, Colors.white)}
-          buttonText="Entendido"
-        />
+        {selectedCategory?.id === "otro" && (
+          <View style={{ width: "100%", alignSelf: "center" }}>
+            <Text
+              style={[
+                styles.subtitle,
+                {
+                  color: Colors.violet4,
+                  fontFamily: "interSemiBold",
+                  fontSize: 17,
+                  marginBottom: 10,
+                },
+              ]}
+            >
+              Describe la sanción:
+            </Text>
 
-        <TempWindow
-          visible={showSuccess}
-          icono={iconos.exito(40, Colors.white)}
-          onClose={closeSuccess}
-          styles={tempWindowStyles1}
-          duration={2000}
-        />
-      </SafeAreaView>
-    </LinearGradient>
+            <Input
+              value={customComment}
+              onChangeText={setCustomComment}
+              placeholder="Escribe aquí..."
+              multiline
+              maxLength={1000}
+              numberOfLines={4}
+              styles={{
+                input: { ...inputStyles1.input },
+                inputContainer: {
+                  ...inputStyles1.inputContainer,
+                  height: 140,
+                  alignItems: "flex-start",
+                  paddingTop: 5,
+                },
+              }}
+            />
+
+            <CharCounter
+              current={customComment.length}
+              max={1000}
+              styles={charCounterStyles1}
+            />
+          </View>
+        )}
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[
+            styles.registerButton,
+            !selectedType && selectedCategory?.id !== "otro"
+              ? styles.registerButtonDisabled
+              : null,
+          ]}
+          disabled={
+            loading || (!selectedType && selectedCategory?.id !== "otro")
+          }
+          onPress={async () => {
+            const ok = await registerSanction();
+            if (ok) {
+              router.back();
+            }
+          }}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.registerButtonText}>
+              Registrar sanción
+            </Text>
+          )}
+        </TouchableOpacity>
+      </View>
+
+      <ClickWindow
+        title="Error"
+        visible={showError}
+        message={errorMessage}
+        onClose={closeError}
+        styles={clickWindowStyles1}
+        icono={iconos.error_outline(30, Colors.white)}
+        buttonText="Entendido"
+      />
+
+      <TempWindow
+        visible={showSuccess}
+        icono={iconos.exito(40, Colors.white)}
+        onClose={closeSuccess}
+        styles={tempWindowStyles1}
+        duration={2000}
+      />
+    </SafeAreaView>
   );
 }

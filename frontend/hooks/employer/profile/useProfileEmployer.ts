@@ -81,16 +81,24 @@ export const useProfile = () => {
   const handleLogout = async () => {
     try {
       const refresh = await SecureStore.getItemAsync("refresh");
+
       if (refresh) {
-        await requestBackend("/api/auth/logout/", { refresh }, "POST");
-        console.log("✅ Sesión cerrada en backend");
+        try {
+          await requestBackend("/api/auth/logout/", { refresh }, "POST");
+          console.log("Sesión cerrada en backend");
+        } catch (e) {
+          console.warn("Logout backend falló, pero seguimos:", e);
+        }
       }
-      await disconnectStream();
-    } catch (e: any) {
-      console.warn("⚠️ Error al cerrar sesión en backend:", e.message);
+
+      try {
+        await disconnectStream();
+      } catch (e) {
+        console.warn("Error al desconectar Stream:", e);
+      }
+
     } finally {
       await clearTokens();
-      await debugTokens();
       router.replace("/");
     }
   };

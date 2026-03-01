@@ -118,8 +118,13 @@ export default function EditExperienceScreen() {
         <View style={styles.card}>
           <ScrollView
             style={styles.cardScroll}
-            contentContainerStyle={styles.cardListContent}
+            contentContainerStyle={[
+              styles.cardListContent,
+              { flexGrow: 1 }
+            ]}
             showsVerticalScrollIndicator
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled
           >
             {loading && (
               <View style={styles.cardEmpty}>

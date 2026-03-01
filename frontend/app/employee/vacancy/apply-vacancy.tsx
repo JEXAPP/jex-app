@@ -179,6 +179,7 @@ export default function ApplyVacancyScreen() {
                             },
                             tagSubtitle: {
                               ...selectableTagStyles1.tagSubtitle,
+                              marginRight: 40,
                               color: disabled ? Colors.gray3 : selectableTagStyles1.tagSubtitle.color,
                             },
                           }}
@@ -268,7 +269,7 @@ export default function ApplyVacancyScreen() {
         </View>
       )}
 
-      {/* ✅ Modal de calificaciones del organizador */}
+      {/* Modal de calificaciones del organizador */}
       <Modal
         visible={ratingsModalVisible}
         animationType="fade"

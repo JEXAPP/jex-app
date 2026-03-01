@@ -265,7 +265,11 @@ export default function EventReportScreen() {
             key={e.employee_id}
             name={e.employee_name}
             role={e.job_type || 'Sin rol'}
-            rightText={`${e.rating.toFixed(1)} ★`}
+            rightText={
+              e.rating != null
+                ? `${e.rating.toFixed(1)} ★`
+                : 'Sin calificar'
+            }
             imageUrl={e.profile_image_url ?? undefined}
           />
         )}

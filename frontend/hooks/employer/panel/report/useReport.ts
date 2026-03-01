@@ -9,7 +9,7 @@ export type EmployeeItem = {
   employee_name: string;
   attendance: boolean;
   payment_status: PaymentStatus;
-  rating: number;
+  rating: number | null;
   profile_image_url: string | null;
   job_type: string | null;
 };
@@ -91,10 +91,13 @@ export const useEventReport = () => {
     const ratingBuckets = [0, 0, 0, 0, 0];
     let ratingSum = 0;
     employees.forEach(e => {
-      const r = Math.round(e.rating);
+      const safeRating = e.rating ?? 0;
+
+      const r = Math.round(safeRating);
       const idx = Math.min(Math.max(r, 1), 5) - 1;
+
       ratingBuckets[idx] += 1;
-      ratingSum += e.rating;
+      ratingSum += safeRating;
     });
     const avgRating = employees.length ? ratingSum / employees.length : 0;
 

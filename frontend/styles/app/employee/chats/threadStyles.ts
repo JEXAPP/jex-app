@@ -11,10 +11,8 @@ export const threadStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderColor: '#E8D1F8',
+    paddingVertical: 15,
+    backgroundColor: Colors.violet4,
   },
   backButton: {
     paddingRight: 4,
@@ -36,15 +34,11 @@ export const threadStyles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: Colors.violet4,
+    fontSize: 20,
+    fontFamily: 'interSemiBold',
+    color: Colors.white,
   },
   inputContainer: {
     backgroundColor: '#F3F3F3',
-    borderTopWidth: 1,
-    borderTopColor: '#E8D1F8',
-    paddingHorizontal: 4,
-    paddingBottom: 4,
   },
 });

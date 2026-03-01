@@ -13,7 +13,8 @@ export default function EmployeeLayout() {
   const insets = useSafeAreaInsets();
 
   const isDetail =
-      pathname?.startsWith('/employee/vacancy/apply-vacancy')
+      pathname?.startsWith('/employee/vacancy/apply-vacancy') ||
+      pathname?.startsWith('/employee/chats/thread')
   
   const bg = isDetail ? Colors.violet4 : Colors.gray1
 
