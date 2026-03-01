@@ -5,7 +5,8 @@ from rating.models.penalty import Penalty
 from rating.models.penalty_category import PenaltyCategory
 from rating.serializers.penalty import CreatePenaltySerializer, PenaltyCategorySerializer, PenaltySerializer, UpdatePenaltyStatusSerializer
 from user_auth.constants import EMPLOYER_ROLE
-
+from rest_framework.response import Response
+from rest_framework import status
 
 class ListPenaltyCategoriesView(ListAPIView):
     """
