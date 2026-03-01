@@ -11,6 +11,7 @@ from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from eventos.serializers.event import EventSerializer
 from notifications.constants import NotificationTypes
 from notifications.services.send_notification import send_notification
+from payments.constants import PaymentStates
 from payments.models.payments import Payment
 from rating.utils import get_user_average_rating, get_user_rating_count
 from user_auth.models.employee import EmployeeProfile
@@ -512,6 +513,7 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
     expiration_time = CustomTimeField(required=False)
     payment_state = serializers.SerializerMethodField()
     payment_mp_id = serializers.SerializerMethodField()
+    payment_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -547,6 +549,13 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
         if payment and payment.state:
             return payment.mp_payment_id
         return "El pago no está completo"
+    
+    def get_payment_date(self,  obj):
+        approved_state = PaymentStates.APPROVED
+        payment = Payment.objects.filter(offer=obj, employee=obj.employee.user).first()
+        if payment and payment.state == approved_state and self.updated_at:
+            return payment.updated_at.strftime('%d/%m/%Y')
+        return None
 
 
 
