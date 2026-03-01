@@ -2,15 +2,17 @@
 
 from eventos.models.event import Event
 from rating.constats import PenaltyStates
-from rating.errors.penalty_messages import BEHAVIOR_NOT_FOUND, EVENT_NOT_FOUND, PENALTY_TYPE_NOT_FOUND, USER_NOT_FOUND
+from rating.errors.penalty_messages import BEHAVIOR_NOT_FOUND, EVENT_NOT_FOUND, PENALTY_STATE_ALREADY_SET, PENALTY_TYPE_NOT_FOUND, STATE_PENALTY_NOT_ALLOWED, STATE_PENALTY_NOT_FOUND, USER_NOT_FOUND
 from rating.models.behavior import Behavior
 from rating.models.penalty import Penalty
 from rating.models.penalty_category import PenaltyCategory
+from rating.models.penalty_story_state import PenaltyStateHistory
 from rating.models.penalty_type import PenaltyType
 from rest_framework import serializers
 
 from rating.models.state_penalty import StatePenalty
 from user_auth.models.user import CustomUser
+from django.db import transaction
 
 
 
@@ -93,7 +95,6 @@ class PenalizedUserSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name', 'phone', 'email']
 
 
-# Serializer para respuesta de penalización
 class PenaltySerializer(serializers.ModelSerializer):
     penalized_user = serializers.SerializerMethodField()
     event_info = serializers.SerializerMethodField()
@@ -124,3 +125,45 @@ class PenaltySerializer(serializers.ModelSerializer):
             'name': event.name,
             'image': image_url
         }
+    
+class UpdatePenaltyStatusSerializer(serializers.Serializer):
+
+    state_id = serializers.IntegerField(required=True)
+    comment = serializers.CharField(required=False, allow_blank=True)
+
+    def validate_state_id(self, value):
+
+        try:
+            state_obj = StatePenalty.objects.get(pk=value)
+        except StatePenalty.DoesNotExist:
+            raise serializers.ValidationError(STATE_PENALTY_NOT_FOUND)
+
+        valid_states = [state.value for state in PenaltyStates]
+        if state_obj.name not in valid_states:
+            raise serializers.ValidationError(STATE_PENALTY_NOT_ALLOWED)
+
+        self.context["state_obj"] = state_obj
+        return value
+
+    def update(self, instance, validated_data):
+
+        request_user = self.context["request"].user
+        new_state = self.context["state_obj"]
+        comment = validated_data.get("comment", "")
+
+        if instance.penalty_state_id == new_state.id:
+            raise serializers.ValidationError(PENALTY_STATE_ALREADY_SET)
+
+        with transaction.atomic():
+
+            instance.penalty_state = new_state
+            instance.save(update_fields=["penalty_state"])
+
+            PenaltyStateHistory.objects.create(
+                penalty=instance,
+                state=new_state,
+                changed_by=request_user,
+                comment=comment
+            )
+
+        return instance
