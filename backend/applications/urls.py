@@ -1,10 +1,9 @@
 from django.urls import path
 from applications.views.applications import ApplicationCreateView, ApplicationDetailForOffer, ApplicationStatusRejectedUpdateView, ListApplicationsByShiftView, ApplicationDetailView
-from applications.views.attendance import AttendanceConfirmationView, AttendanceDetailByEvent, GenerateQRTokenView
-from applications.views.jobs import EmployeeJobsView, ListAcceptedEventsByEmployeeView
+from applications.views.attendance import AttendanceConfirmationView, AttendanceDetailByEvent, CheckAttendanceView, GenerateQRTokenView
+from applications.views.jobs import EmployeeJobsHistoryView, EmployeeJobsView, ListAcceptedEventsByEmployeeView
 from applications.views.jobs import EmployeeJobsView
 from applications.views.offer import  EmployeeSearchDetailView, EmployeeSearchView, ListOfferEmployeeShiftsView, ListOfferEventByState, OfferAcceptedDetailView, OfferCreateView, OfferConsultView, DecideOfferView, OfferDetailView
-
 
 
 urlpatterns = [
@@ -27,4 +26,6 @@ urlpatterns = [
     path('attendance/<offer_id>/generate-qr/', GenerateQRTokenView.as_view(), name='generate-qr-token'),
     path('attendance/details/<int:event_id>/', AttendanceDetailByEvent.as_view(), name='attendance-detail-by-event'),
     path('events/accepted/by-employee/', ListAcceptedEventsByEmployeeView.as_view(), name='list-accepted-events-by-employee'),
+    path('attendance/check/<int:offer_id>/', CheckAttendanceView.as_view(), name='attendance-check-offer'),
+    path('employee-jobs-history/', EmployeeJobsHistoryView.as_view(), name='employee-jobs-history'),
 ]

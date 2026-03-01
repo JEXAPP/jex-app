@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
 import { router } from 'expo-router';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
+import React from 'react';
 
 export const emptyHeader: NativeStackNavigationOptions = {
   headerShown: false,

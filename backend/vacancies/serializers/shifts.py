@@ -29,10 +29,23 @@ class ShiftSerializer(serializers.ModelSerializer):
     end_date = CustomDateField()
     start_time = CustomTimeField()
     end_time = CustomTimeField()
+    already_applied = serializers.SerializerMethodField()
 
     class Meta:
         model = Shift
-        fields = ['id', 'start_date', 'end_date', 'start_time', 'end_time', 'payment', 'quantity']
+        fields = ['id', 'start_date', 'end_date', 'start_time', 'end_time', 'payment', 'quantity', 'already_applied']
+
+    def get_already_applied(self, obj):
+        """
+        Devuelve True si el empleado actual ya tiene una aplicación para este shift.
+        """
+        user = self.context.get('request').user
+        try:
+            employee_profile = user.employee_profile
+        except AttributeError:
+            return False
+
+        return obj.applications.filter(employee=employee_profile).exists()
 
 class ShiftDetailForOfferByStateSerializer(serializers.ModelSerializer):
 

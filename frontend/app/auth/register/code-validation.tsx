@@ -28,7 +28,7 @@ export default function RegisterCodeValidationScreen() {
           <View style={styles.header}>
           
             <Image 
-              source={require('@/assets/images/jex/Jex-Registrandose.png')} 
+              source={require('@/assets/images/jex/Jex-Registrandose.webp')} 
               style={styles.image} 
             />
 

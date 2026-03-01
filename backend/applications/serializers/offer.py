@@ -6,12 +6,18 @@ from applications.models.applications import Application
 from applications.models.applications_states import ApplicationState
 from applications.models.offers import Offer
 from applications.utils import get_job_type_display
+from chats.services.stream_chat_service import sync_offer_chat
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from eventos.serializers.event import EventSerializer
+from notifications.constants import NotificationTypes
+from notifications.services.send_notification import send_notification
+from payments.models.payments import Payment
+from rating.utils import get_user_average_rating, get_user_rating_count
 from user_auth.models.employee import EmployeeProfile
 from user_auth.models.employer import EmployerProfile
 from rest_framework import serializers
 from django.utils import timezone
+from user_auth.models.user import CustomUser
 from vacancies.constants import VacancyStates
 from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
@@ -20,6 +26,9 @@ from applications.models.offers import OfferState
 from vacancies.models.requirements import Requirements
 from vacancies.models.vacancy_state import VacancyState
 from django.db.models import Sum
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class OfferCreateSerializer(serializers.ModelSerializer):
@@ -44,6 +53,7 @@ class OfferCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         user = self.context['user']
         application_id = attrs.get('application_id')
+        active_offer_states = [OfferStates.PENDING.value, OfferStates.ACCEPTED.value]
 
         try:
             employer = EmployerProfile.objects.get(user=user)
@@ -76,8 +86,9 @@ class OfferCreateSerializer(serializers.ModelSerializer):
             shift = application.shift
             max_quantity = shift.quantity
             current_offers = Offer.objects.filter(
-                selected_shift=shift
-            ).exclude(state__name=OfferStates.REJECTED.value).count()
+                selected_shift=shift,
+                state__name__in=active_offer_states,
+            ).count()
 
             if current_offers >= max_quantity:
                 raise serializers.ValidationError(MAX_OFFERS_REACHED.format(max_quantity=max_quantity))
@@ -120,13 +131,13 @@ class OfferCreateSerializer(serializers.ModelSerializer):
 
                 max_quantity = shift.quantity
                 current_offers = Offer.objects.filter(
-                    selected_shift=shift
-                ).exclude(state__name=OfferStates.REJECTED.value).count()
+                    selected_shift=shift,
+                    state__name__in=active_offer_states,
+                ).count()
 
                 if current_offers >= max_quantity:
                     raise serializers.ValidationError(MAX_OFFERS_REACHED.format(max_quantity=max_quantity))
 
-                # 🔹 Validar oferta repetida
                 if Offer.objects.filter(employee=employee, employer=employer, selected_shift=shift).exists():
                     raise serializers.ValidationError(OFFER_ALREADY_EXISTS)
 
@@ -164,6 +175,17 @@ class OfferCreateSerializer(serializers.ModelSerializer):
             offert_state = ApplicationState.objects.get(name=ApplicationStates.OFFERT.value)
             application.state = offert_state
             application.save(update_fields=['state'])
+
+        send_notification(
+            user=employee.user,
+            title="¡Recibiste una oferta!",
+            message="Recibiste una nueva oferta de trabajo",
+            notification_type_name=NotificationTypes.OFFERT.value,
+            data={
+                "employee_id": employee.id,
+                "offer_id": offers[0].id,
+            }
+        )
 
         return offers[0] if application else offers
 
@@ -226,7 +248,7 @@ class OfferConsultSerializer(serializers.ModelSerializer):
         ]
 
     def get_shift(self, obj):
-        # Si application_id es null, mostrar selected_shift
+       # Si application_id es null, mostrar selected_shift
         if obj.application_id is None:
             # Si existe selected_shift, devuélvelo serializado
             shift = getattr(obj, "selected_shift", None)
@@ -274,6 +296,8 @@ class OfferDecisionSerializer(serializers.Serializer):
                 pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
                 offer.application.state = pending_state
                 offer.application.save(update_fields=['state'])
+            
+            offer.save(update_fields=['state', 'rejection_reason'])
 
         else:
             offer.state = OfferState.objects.get(name=OfferStates.ACCEPTED.value)
@@ -283,6 +307,29 @@ class OfferDecisionSerializer(serializers.Serializer):
                 confirmed_state = ApplicationState.objects.get(name=ApplicationStates.CONFIRMED.value)
                 offer.application.state = confirmed_state
                 offer.application.save(update_fields=['state'])
+            
+            offer.save(update_fields=['state', 'rejection_reason'])
+
+            # ---- NUEVO: Rechazar ofertas conflictivas del mismo usuario ----
+            shift = offer.selected_shift
+            conflicting_offers = Offer.objects.filter(
+                employee=offer.employee,
+                state__name=OfferStates.PENDING.value,
+                selected_shift__start_time__lt=shift.end_time,
+                selected_shift__end_time__gt=shift.start_time
+            ).exclude(id=offer.id)
+
+            rejected_state = OfferState.objects.get(name=OfferStates.REJECTED.value)
+            for o in conflicting_offers:
+                o.state = rejected_state
+                o.rejection_reason = "Conflicto de horario con otra oferta aceptada"
+                if o.application:
+                    pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
+                    o.application.state = pending_state
+                    o.application.save(update_fields=['state'])
+                o.save(update_fields=['state', 'rejection_reason'])
+            
+            # -----------------------------------------------------------------
 
             vacancy = offer.selected_shift.vacancy
 
@@ -298,8 +345,27 @@ class OfferDecisionSerializer(serializers.Serializer):
                 filled_state = VacancyState.objects.get(name=VacancyStates.FILLED.value)
                 vacancy.state = filled_state
                 vacancy.save(update_fields=['state'])
+            
+            sync_offer_chat(offer)
 
-        offer.save()
+            try:
+                employer_user = vacancy.event.owner
+                event_name = vacancy.event.name
+
+                send_notification(
+                    user=employer_user,
+                    title="Oferta aceptada",
+                    message = f"El empleado {user.first_name} {user.last_name} aceptó la oferta para trabajar en '{event_name}'.",
+                    notification_type_name=NotificationTypes.OFFERT.value,
+                    data={
+                        "event_id": vacancy.event.id,
+                        "offer_id": offer.id
+                    }
+                )
+            except Exception as e:
+                logger.error(f"Error enviando notificación al empleador {getattr(offer, 'id', None)}: {e}")
+
+
         return offer
 
 class RequirementSerializer(serializers.ModelSerializer):
@@ -307,12 +373,32 @@ class RequirementSerializer(serializers.ModelSerializer):
         model = Requirements
         fields = ["id", "description"]
 
+class EventOwnerAvgSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomUser
+        fields = ["id", "full_name", "average_rating", "rating_count"]
+
+    def get_full_name(self, obj):
+        return f"{obj.first_name} {obj.last_name}".strip()
+    
+    def get_average_rating(self, obj):
+        return get_user_average_rating(obj)
+    
+    def get_rating_count(self, obj):
+        return get_user_rating_count(obj)
+    
+
+
 class EventDetailSerializer(serializers.ModelSerializer):
-    owner_username = serializers.CharField(source="owner.username", read_only=True)
+    owner = EventOwnerAvgSerializer()
 
     class Meta:
         model = Event
-        fields = ["id", "name", "location", "latitude", "longitude","owner_username"]
+        fields = ["id", "name", "location", "latitude", "longitude","owner"]
 
 class VacancyDetailSerializer(serializers.ModelSerializer):
     event = EventDetailSerializer()
@@ -356,16 +442,20 @@ class OfferDetailSerializer(serializers.ModelSerializer):
     event_image_url = serializers.SerializerMethodField()
     event_image_public_id = serializers.SerializerMethodField()
     shift = serializers.SerializerMethodField()
+    address = serializers.CharField(source="selected_shift.vacancy.event.location", read_only=True)
+    latitude = serializers.FloatField(source="selected_shift.vacancy.event.latitude", read_only=True)
+    longitude = serializers.FloatField(source="selected_shift.vacancy.event.longitude", read_only=True)
+    is_mp_associated = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
         fields = ["id", "expiration_date", "expiration_time", "additional_comments", "application", "shift", "event_image_url",
-            "event_image_public_id"]
+            "event_image_public_id", "address", "latitude", "longitude", "is_mp_associated" ]
 
 
 
     def get_shift(self, obj):
-        # Si application_id es null, mostrar selected_shift
+         # Si application_id es null, mostrar selected_shift
         if obj.application_id is None:
             # Si existe selected_shift, devuélvelo serializado
             shift = getattr(obj, "selected_shift", None)
@@ -387,6 +477,12 @@ class OfferDetailSerializer(serializers.ModelSerializer):
             if event_image:
                 return event_image.public_id
         return None
+    
+    def get_is_mp_associated(self, obj):
+            try:
+                return obj.employee.user.mercado_pago_account is not None
+            except AttributeError:
+                return False
 
 class OfferStateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -414,6 +510,8 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
 
     expiration_date = CustomDateField(required=False)
     expiration_time = CustomTimeField(required=False)
+    payment_state = serializers.SerializerMethodField()
+    payment_mp_id = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -427,6 +525,8 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
             "offer_state",
             "expiration_date",
             "expiration_time",
+            "payment_state",
+            "payment_mp_id"
         ]
 
     def get_profile_image(self, obj):
@@ -434,6 +534,23 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
     
     def get_job_type(self, obj):
         return get_job_type_display(obj.selected_shift.vacancy)
+    
+    def get_payment_state(self, obj):
+        # Intentamos obtener el Payment relacionado con esta oferta y empleado
+        payment = Payment.objects.filter(offer=obj, employee=obj.employee.user).first()
+        if payment and payment.state:
+            return payment.state.name
+        return "NOT_PAYED"
+  
+    def get_payment_mp_id(self, obj):
+        payment = Payment.objects.filter(offer=obj, employee=obj.employee.user).first()
+        if payment and payment.state:
+            return payment.mp_payment_id
+        return "El pago no está completo"
+
+
+
+
 
 
 class ShiftDetailOfferAcceptedSerializer(serializers.ModelSerializer):
@@ -442,6 +559,9 @@ class ShiftDetailOfferAcceptedSerializer(serializers.ModelSerializer):
     requirements = RequirementSerializer(source="vacancy.requirements", many=True, read_only=True)
     event_name = serializers.CharField(source="vacancy.event.name", read_only=True)
     event_location = serializers.CharField(source="vacancy.event.location", read_only=True)
+    address = serializers.CharField(source="vacancy.event.location", read_only=True)
+    latitude = serializers.FloatField(source="vacancy.event.latitude", read_only=True)
+    longitude = serializers.FloatField(source="vacancy.event.longitude", read_only=True)
 
     class Meta:
         model = Shift
@@ -456,6 +576,9 @@ class ShiftDetailOfferAcceptedSerializer(serializers.ModelSerializer):
             "requirements",
             "event_name",
             "event_location",
+            "address",
+            "latitude",
+            "longitude",
         ]
 
     def get_job_type(self, obj):

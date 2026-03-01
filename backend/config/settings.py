@@ -64,8 +64,10 @@ INSTALLED_APPS = [
     'vacancies',
     'applications',
     'notifications',
+    'chats',
     'allauth',
     'allauth.account',
+    
 
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
@@ -73,6 +75,8 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'media_utils',
+    'rating',
+    "payments",
 
 ]
 
@@ -114,7 +118,6 @@ DJRESTAUTH_TOKEN_SERIALIZER = "dj_rest_auth.serializers.JWTSerializer"
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
-
         'APP': {
             'client_id': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_CLIENT_ID'),
             'secret': os.getenv('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET'),
@@ -127,6 +130,9 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 #LOGIN_REDIRECT_URL = ''
 #LOGOUT_REDIRECT_URL = ''
 ROOT_URLCONF = 'config.urls'
+
+SOCIALACCOUNT_ADAPTER = "user_auth.adapters.CustomSocialAccountAdapter"
+
 
 # Email configuration
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -262,3 +268,46 @@ EXPO_PUSH_API_URL = os.getenv("EXPO_PUSH_API_URL")
 QR_JWT_SECRET = os.getenv("QR_JWT_SECRET")
 QR_JWT_ALGORITHM = os.getenv("QR_JWT_ALGORITHM", default="HS256")
 QR_JWT_EXP_MINUTES = int(os.getenv("QR_JWT_EXP_MINUTES", default=2))
+
+# Mercado PAGO
+
+MP_CLIENT_ID = os.getenv("MP_CLIENT_ID")
+MP_CLIENT_SECRET = os.getenv("MP_CLIENT_SECRET")
+MP_AUTH_REDIRECT_URI = os.getenv("MP_AUTH_REDIRECT_URI")
+MP_API_URL = os.getenv("MP_API_URL", default="https://api.mercadopago.com")
+MP_TOKEN_URL = os.getenv("MP_TOKEN_URL", default="https://api.mercadopago.com/oauth/token")
+JWT_MP_SECRET = os.getenv("JWT_MP_SECRET")
+MP_ACCESS_TOKEN = os.getenv('MP_ACCESS_TOKEN')
+MP_SUCCESS_URL = os.getenv('MP_SUCCESS_URL')
+MP_FAILURE_URL = os.getenv('MP_FAILURE_URL')
+MP_PENDING_URL = os.getenv('MP_PENDING_URL')
+MP_WEBHOOK_SECRET = os.getenv('MP_WEBHOOK_SECRET')
+MP_COLLECTION_ID = os.getenv('MP_COLLECTION_ID')
+
+# Stream CHAT
+
+STREAM_API_KEY = os.getenv('STREAM_API_KEY') 
+STREAM_API_SECRET = os.getenv('STREAM_API_SECRET')
+
+# LOGGING
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'ignore_warnings': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': lambda record: not record.getMessage().startswith('UserWarning'),
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['ignore_warnings'],
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}

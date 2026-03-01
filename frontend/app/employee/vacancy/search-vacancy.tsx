@@ -44,8 +44,11 @@ export default function SearchVacancyScreen() {
   }, [selectedFilter]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+  <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.title}>Búsqueda</Text>
+
         <View style={styles.container}>
           {/* Input de búsqueda */}
           <SearchInput
@@ -61,7 +64,6 @@ export default function SearchVacancyScreen() {
           />
 
           <View style={styles.secondRow}>
-
             {/* Filtros */}
             <View style={styles.tagsRow}>
               <SelectableTag
@@ -91,68 +93,59 @@ export default function SearchVacancyScreen() {
               defaultOption={selectedOrder}
               onSelect={(orderIndex) => handleChangeOrder(opciones[orderIndex - 1])}
             />
-
           </View>
 
           {isLoadingFirstPage && vacancies.length === 0 ? (
             <SearchVacancySkeleton />
           ) : (
-          <View style={[styles.results, { flex: 1 }]}>
-            {!isLoadingFirstPage && vacancies.length === 0 ? (
-              hasSearched ? (
-                <View style={styles.noVancancyCard}>
-  
-                  <Text style={styles.noVancancyTitle}>No se encontraron vacantes</Text>
-                  
-                  <Image
-                    source={require('@/assets/images/jex/Jex-Sin-Trabajo.png')}
-                    style={styles.noVancancyImage}
-                    resizeMode="contain"
-                  />
-                    
-                  <Text style={styles.noVancancySubtitle}>
-                    Seguí explorando para descubrir tu próximo trabajo
-                  </Text>
-  
-                </View>
+            <View style={[styles.results, { flex: 1 }]}>
+              {!isLoadingFirstPage && vacancies.length === 0 ? (
+                hasSearched ? (
+                  <View style={styles.noVancancyCard}>
+                    <Text style={styles.noVancancyTitle}>No se encontraron vacantes</Text>
+                    <Image
+                      source={require('@/assets/images/jex/Jex-Sin-Trabajo.webp')}
+                      style={styles.noVancancyImage}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.noVancancySubtitle}>
+                      Seguí explorando para descubrir tu próximo trabajo
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.noVancancyCard}>
+                    <Text style={styles.noVancancyTitle}>Explorá las vacantes disponibles</Text>
+                    <Image
+                      source={require('@/assets/images/jex/Jex-Sin-Eventos.webp')}
+                      style={styles.noVancancyImage}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.noVancancySubtitle}>
+                      Empezá a buscar y conectá con tu próximo evento
+                    </Text>
+                  </View>
+                )
               ) : (
-                <View style={styles.noVancancyCard}>
-  
-                  <Text style={styles.noVancancyTitle}>Explorá las vacantes disponibles</Text>
-                  
-                  <Image
-                    source={require('@/assets/images/jex/Jex-Sin-Eventos.png')}
-                    style={styles.noVancancyImage}
-                    resizeMode="contain"
-                  />
-                    
-                  <Text style={styles.noVancancySubtitle}>
-                    Empezá a buscar y conectá con tu próximo evento
-                  </Text>
-  
-                </View>
-              )
-            ) : (
-              <FlatList
-                data={vacancies}
-                keyExtractor={(item: Vacancy) => item.vacancy_id.toString()}
-                renderItem={({ item }: { item: Vacancy }) => (
-                  <ShowVacancy
-                    vacancy={item}
-                    orientation="horizontal"
-                    onPress={goToVacancyDetails}
-                  />
-                )}
-                contentContainerStyle={{ width: 393, alignItems: 'center' }}
-                onEndReached={handleLoadMore}
-                onEndReachedThreshold={0.5}
-                ListFooterComponent={isLoadingMore ? <SearchVacancySkeleton /> : null}
-              />
-            )}
-          </View>
-        )}
+                <FlatList
+                  data={vacancies}
+                  keyExtractor={(item: Vacancy) => item.vacancy_id.toString()}
+                  renderItem={({ item }: { item: Vacancy }) => (
+                    <ShowVacancy
+                      vacancy={item}
+                      orientation="horizontal"
+                      onPress={goToVacancyDetails}
+                    />
+                  )}
+                  contentContainerStyle={{ width: 393, alignItems: 'center' }}
+                  onEndReached={handleLoadMore}
+                  onEndReachedThreshold={0.5}
+                  ListFooterComponent={isLoadingMore ? <SearchVacancySkeleton /> : null}
+                />
+              )}
+            </View>
+          )}
         </View>
-      </TouchableWithoutFeedback>
-    </SafeAreaView>
-  );
-}
+      </View>
+    </TouchableWithoutFeedback>
+  </SafeAreaView>
+);}

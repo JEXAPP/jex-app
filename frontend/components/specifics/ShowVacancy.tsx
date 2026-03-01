@@ -1,11 +1,10 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; 
+import { useDataTransformation } from '@/services/internal/useDataTransformation';
 import { showVacancyStyles1 } from '@/styles/components/specifics/showVacancyStyles/showVacancyStyles1';
 import { showVacancyStyles2 } from '@/styles/components/specifics/showVacancyStyles/showVacancyStyles2';
 import { Colors } from '@/themes/colors';
-import { useDataTransformation } from '@/services/internal/useDataTransformation';
-import ImageOnline from '../others/ImageOnline';
+import { Ionicons } from '@expo/vector-icons';
+import { Text, TouchableOpacity, View } from 'react-native';
+import ImageOnline from '../image/ImageOnline';
 
 interface Vacancy {
   vacancy_id: number;

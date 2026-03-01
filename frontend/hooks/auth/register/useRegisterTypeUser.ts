@@ -1,29 +1,20 @@
 import { useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 export const useRegisterTypeUser = () => {
   const router = useRouter();
+  const params = useLocalSearchParams(); 
+  const desdeGoogle = params.google === '1';
 
-  // Estado que guarda la selección del usuario: 'Empleado' o 'Empleador'
   const [selected, setSelected] = useState<string | null>(null);
 
-  // Lógica al presionar "Continuar", redirige según el tipo de usuario seleccionado
   const handleContinue = () => {
-    if (selected === 'Empleado') {
-      router.push('/auth/register/employee');
-    } else {
-      router.push('/auth/register/employer'); 
-    }
+    const base = new URLSearchParams({ ...params as Record<string, string> }).toString();
+    if (selected === 'Empleado') router.push(`/auth/register/employee?${base}`);
+    else router.push(`/auth/register/employer?${base}`);
   };
 
-  // Habilita el botón de continuar solo si se seleccionó un tipo de usuario
-  const continuarHabilitado =
-    selected === 'Empleado' ? true : selected === 'Empleador';
+  const continuarHabilitado = selected === 'Empleado' ? true : selected === 'Empleador';
 
-  return {
-    selected,
-    setSelected,
-    handleContinue,
-    continuarHabilitado,
-  };
+  return { selected, setSelected, handleContinue, continuarHabilitado, desdeGoogle };
 };

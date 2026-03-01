@@ -2,19 +2,20 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
+    "baseUrl": ".",
     "paths": {
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "skipLibCheck": true
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts", 
-    "styles/app/login",
-    "env.d.ts", 
-    "babel.config.js"]
+    "expo-env.d.ts",
+    "env.d.ts",
+    ".expo/types/**/*.ts"
+  ]
 }

@@ -23,7 +23,6 @@ export const useHomeEmployee = () => {
       ]);
 
       setSoonVacancies(soon?.results);
-      console.log(soon.results)
       setInterestVacancies(interests?.results);
       setNearVacancies(near?.results);
       setLoadingComienzo(false)
@@ -50,6 +49,7 @@ export const useHomeEmployee = () => {
   const goToNearList = () => router.push('/employee/vacancy/extend-vacancy?category=nearby');
   const goToSearchVacancy = () => router.push('/employee/vacancy/search-vacancy')
 
+  const goToNotifications = () => router.push('/employee/vacancy/notifications')
 
   const sections = [
     { title: 'Según tus intereses', data: interestVacancies, onPressTitle: goToInterestList, showArrow: true },
@@ -63,5 +63,6 @@ export const useHomeEmployee = () => {
     errorVacancies,
     goToSearchVacancy,
     goToVacancyDetails,
+    goToNotifications
   };
 };

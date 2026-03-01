@@ -38,6 +38,8 @@ export const useVacancies = () => {
       try {
         const data = await requestBackend(`/api/vacancies/by-employer/${eventId}/`, null, "GET");
 
+        console.log(data.vacancies)
+
         if (data && Array.isArray(data.vacancies)) {
           const normalized: VacancyItem[] = data.vacancies.map((v: any) => ({
             id: v.id,

@@ -29,6 +29,8 @@ class Event(models.Model):
         blank=True,
         related_name='event_image'
     )
+    stream_announcements_channel_id = models.CharField(max_length=100, null=True, blank=True)
+    stream_workers_channel_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return self.name

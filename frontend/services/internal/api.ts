@@ -1,34 +1,29 @@
-import axios, {
-  AxiosError,
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosRequestHeaders,
-} from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import axios, {AxiosError,AxiosInstance,AxiosRequestConfig,AxiosRequestHeaders,} from 'axios';
 import { config } from '@/config';
 import { router } from 'expo-router';
+import {getToken as getStoredToken,setToken as setStoredToken,deleteToken as deleteStoredToken,} from '@/services/internal/useTokenStorage';
+export { clearTokens };
+
 
 let api: AxiosInstance | null = null;
 let refreshPromise: Promise<string | null> | null = null;
 
 async function getAccess() {
-  return SecureStore.getItemAsync('access');
+  return getStoredToken('access');
 }
 
 async function getRefresh() {
-  return SecureStore.getItemAsync('refresh');
+  return getStoredToken('refresh');
 }
 
 async function setTokens(access: string, refresh?: string) {
-  await SecureStore.setItemAsync('access', access);
-  if (refresh) {
-    await SecureStore.setItemAsync('refresh', refresh);
-  }
+  await setStoredToken('access', access);
+  if (refresh) await setStoredToken('refresh', refresh);
 }
 
 async function clearTokens() {
-  await SecureStore.deleteItemAsync('access');
-  await SecureStore.deleteItemAsync('refresh');
+  await deleteStoredToken('access');
+  await deleteStoredToken('refresh');
 }
 
 function withAuthHeader(
@@ -37,8 +32,8 @@ function withAuthHeader(
 ): AxiosRequestHeaders | any {
   if (!headers) return { Authorization: `Bearer ${token}` };
 
-  if (typeof headers.set === 'function') {
-    headers.set('Authorization', `Bearer ${token}`);
+  if (typeof (headers as any).set === 'function') {
+    (headers as any).set('Authorization', `Bearer ${token}`);
     return headers;
   }
 
@@ -61,17 +56,18 @@ export async function doRefresh(): Promise<string | null> {
         { refresh }
       );
 
-      // 👇 soporte para ambas variantes
+      // soporte para ambas variantes
       const newAccess = r.data?.access || r.data?.access_token;
       const newRefresh = r.data?.refresh || r.data?.refresh_token;
 
       if (!newAccess) return null;
 
       await setTokens(newAccess, newRefresh);
-    // 👇 muy importante, así todas las requests siguientes ya van con el token nuevo
-    if (api) {
-  api.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
-}
+
+      // muy importante: que lo siguiente ya salga con el token nuevo
+      if (api) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
+      }
 
       return newAccess;
     } catch (err) {
@@ -92,65 +88,59 @@ export function getApi(): AxiosInstance {
 
   api = axios.create({
     baseURL: config.apiBaseUrl,
-    timeout: 10000,
+    timeout: 100000,
   });
 
   // Inserta el access en cada request
   api.interceptors.request.use(async (cfg) => {
-  const token = await getAccess();
-  if (token) {
-
-    if ((cfg.headers as any)?.set) {
-      (cfg.headers as any).set('Authorization', `Bearer ${token}`);
+    const token = await getAccess();
+    if (token) {
+      if ((cfg.headers as any)?.set) {
+        (cfg.headers as any).set('Authorization', `Bearer ${token}`);
+      } else {
+        cfg.headers = {
+          ...(cfg.headers || {}),
+          Authorization: `Bearer ${token}`,
+        } as any;
+      }
     } else {
-      cfg.headers = {
-        ...(cfg.headers || {}),
-        Authorization: `Bearer ${token}`,
-      } as any;
+      console.log('[API] No token found (web/localStorage o nativo/SecureStore)');
     }
-  } else {
-    console.log('[API] No token found in SecureStore');
-  }
-
-  return cfg;
-});
-
+    return cfg;
+  });
 
   // Maneja el refresh si da 401
   api.interceptors.response.use(
-  (res) => res,
-  async (error: AxiosError) => {
-    const original = error.config as (AxiosRequestConfig & {
-      _retry?: boolean;
-    }) | undefined;
+    (res) => res,
+    async (error: AxiosError) => {
+      const original = error.config as (AxiosRequestConfig & {
+        _retry?: boolean;
+      }) | undefined;
 
-    if (error.response?.status === 401 && original && !original._retry) {
-      original._retry = true;
+      if (error.response?.status === 401 && original && !original._retry) {
+        original._retry = true;
 
-      const newAccess = await doRefresh();
-
-      if (newAccess) {
-        // Actualizo headers globales
-        api!.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
+        const newAccess = await doRefresh();
 
         if (newAccess) {
-  // Actualizo headers globales
-  api!.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
+          // Actualizo headers globales y de la request original
+          api!.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
+          original.headers = withAuthHeader(original.headers, newAccess);
 
   // 👇 Usamos el helper para que SIEMPRE se setee el header bien
   original.headers = withAuthHeader(original.headers, newAccess);
+
+  
 
   console.log('[RETRYING WITH TOKEN]', newAccess.slice(0, 20) + '...');
   console.log('[HEADERS]', original.headers);
   return api!.request(original);
 }
       }
+
+      throw error;
     }
-
-    throw error;
-  }
-);
-
+  );
 
   return api;
 }

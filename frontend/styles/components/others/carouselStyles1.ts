@@ -7,8 +7,8 @@ export const carouselStyles1 = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
-    width: 220,
-    height: 180,
+    width: 200,
+    height: 160,
     borderRadius: Borders.soft,
   },
   dotsContainer: {
@@ -26,8 +26,8 @@ export const carouselStyles1 = StyleSheet.create({
   },
   activeDot: {
     backgroundColor: Colors.violet4,
-    width: 10,
-    borderRadius: 5,
-    height: 10,
+    width: 9,
+    borderRadius: 9,
+    height: 9,
   },
 });

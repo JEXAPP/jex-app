@@ -1,11 +1,11 @@
 import { Button } from '@/components/button/Button';
 import { ButtonWithIcon } from '@/components/button/ButtonWithIcon';
+import { UploadImage } from '@/components/image/UploadImage';
 import { Input } from '@/components/input/Input';
 import { CharCounter } from '@/components/others/CharCounter';
-import { UploadImage } from '@/components/others/UploadImage';
 import DatePicker from '@/components/picker/DatePicker';
+import LocationAddressPicker from '@/components/picker/LocationPicker';
 import { Picker } from '@/components/picker/Picker';
-import Suggestions from '@/components/picker/Suggestions';
 import TimePicker from '@/components/picker/TimePicker';
 import { ClickWindow } from '@/components/window/ClickWindow';
 import { TempWindow } from '@/components/window/TempWindow';
@@ -20,18 +20,15 @@ import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1
 import { charCounterStyles1 } from '@/styles/components/others/charCounterStyles1';
 import { datePickerStyles1 } from '@/styles/components/picker/datePickerStyles1';
 import { pickerStyles1 } from '@/styles/components/picker/pickerStyles1';
-import { suggestionsStyles1 } from '@/styles/components/picker/suggestionsStyles/suggestionsStyles1';
 import { timePickerStyles1 } from '@/styles/components/picker/timePickerStyles1';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
 import { Colors } from '@/themes/colors';
-import React from 'react';
 import { Keyboard, ScrollView, Text, TouchableWithoutFeedback, View } from 'react-native';
 
 export default function EditEventScreen() {
   const {
     nombreEvento,
-    sugerencias,
     descripcionEvento,
     fechaInicioEvento,
     fechaFinEvento,
@@ -44,7 +41,6 @@ export default function EditEventScreen() {
     imageID,
     imageURL,
     setSelectedRubro,
-    seleccionarUbicacion,
     setNombreEvento,
     setDescripcionEvento,
     setFechaInicioEvento,
@@ -75,7 +71,7 @@ export default function EditEventScreen() {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
 
-        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" nestedScrollEnabled={true} >
 
           <View style={styles.header}>
 
@@ -86,15 +82,13 @@ export default function EditEventScreen() {
             initialImageUrl={imageURL} 
             shape="square"
             size={100}
-            defaultImage={require('@/assets/images/jex/Jex-Evento-Default.png')}
+            defaultImage={require('@/assets/images/jex/Jex-Evento-Default.webp')}
             onChange={(file, uri) => {
               setImagenFile(file)
             }}
           />
 
           </View>
-
-          
 
             <Input
               placeholder="Nombre del evento"
@@ -136,18 +130,15 @@ export default function EditEventScreen() {
               styles={pickerStyles1}
             />
 
-            <Suggestions
-              sugerencias={sugerencias}
-              onSeleccionar={seleccionarUbicacion}
-              styles={suggestionsStyles1}
-            />
-
-            <Input
+            <View style={styles.campoUbicacion} pointerEvents="box-none">
+              <LocationAddressPicker
               placeholder="Ubicación"
               value={ubicacionEvento}
-              onChangeText={handleUbicacion}
-              styles={inputStyles1}
+              onChange={(canonical, c) => {
+                handleUbicacion(canonical, c!);
+              }}
             />
+            </View>
 
             <View style={styles.row1}>
                 <DatePicker

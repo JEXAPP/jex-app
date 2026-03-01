@@ -4,6 +4,9 @@ from applications.models.applications_states import ApplicationState
 from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from notifications.constants import NotificationTypes
 from notifications.services.send_notification import send_notification
+from rating.utils import get_user_average_rating, get_user_rating_count
+from user_auth.serializers.employee import ViewEmployeeEducationSerializer, ViewEmployeeWorkExperienceSerializer
+from user_auth.serializers.language import EmployeeLanguageSerializer
 from user_auth.utils import get_city_locality, calculate_age
 from vacancies.constants import VacancyStates
 from applications.errors.application_messages import ALREADY_APPLIED_SHIFTS, EMPLOYEE_PROFILE_NOT_FOUND, NOT_PERMISSION_APPLICATION, NOT_PERMISSION_APPLICATION
@@ -69,7 +72,7 @@ class ApplicationCreateSerializer(serializers.Serializer):
 
         if already_applied_shifts:
             raise serializers.ValidationError(
-                ALREADY_APPLIED_SHIFTS.format(shifts=", ".join(map(str, already_applied_shifts)))
+                ALREADY_APPLIED_SHIFTS
             )
 
         return data
@@ -90,12 +93,23 @@ class ApplicationCreateSerializer(serializers.Serializer):
                 Application(employee=employee, shift_id=shift_id, state=pending_state)
                 for shift_id in shifts_ids
             ])
+        
+        application = Application.objects.filter(
+            employee=employee,
+            shift_id__in=shifts_ids
+        ).first()
 
         send_notification(
             user=employer,
-            title="Nueva postulación",
-            message="POSTULADO nomas",
-            notification_type_name=NotificationTypes.APPLICATION.value
+            title="Postulacion",
+            message="Has recibido una nueva postulacion.",
+            notification_type_name=NotificationTypes.APPLICATION.value,
+            data={
+                "application_id": application.id,
+                "vacancy_id": vacancy.id,
+                "employee_id": employee.id,
+                "shifts": shifts_ids
+            }
         )
 
         return True
@@ -103,6 +117,7 @@ class ApplicationCreateSerializer(serializers.Serializer):
 
 
 class ApplicationDetailSerializer(serializers.ModelSerializer):
+    employee_id = serializers.IntegerField(source="employee.id")
     current_shift = ShiftForApplicationSerializer(source='shift', read_only=True)
     shifts = serializers.SerializerMethodField()
     profile_image = serializers.SerializerMethodField()
@@ -110,11 +125,16 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
     description = serializers.CharField(source='employee.description')
     age = serializers.SerializerMethodField()
     approximate_location = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
+    work_experiences = ViewEmployeeWorkExperienceSerializer(source='employee.work_experiences', many=True)
+    educations = ViewEmployeeEducationSerializer(source='employee.educations', many=True)
+    languages = EmployeeLanguageSerializer(source='employee.languages', many=True)
 
     class Meta:
         model = Application
-        fields = ["current_shift", "shifts", "profile_image", "name", "description", "age", "approximate_location"]
-
+        fields = ["employee_id", "current_shift", "shifts", "profile_image", "name", "description", "age", "approximate_location", "average_rating", "rating_count", "work_experiences", "educations", "languages"]
+    
     def get_profile_image(self, obj):
         return obj.employee.user.profile_image.url if obj.employee.user.profile_image else None
 
@@ -136,6 +156,12 @@ class ApplicationDetailSerializer(serializers.ModelSerializer):
         vacancy_shifts = getattr(obj.shift.vacancy, "_prefetched_objects_cache", {}).get("shifts", obj.shift.vacancy.shifts.all())
         other_shifts = [s for s in vacancy_shifts if s.id != current_shift_id]
         return ShiftForApplicationSerializer(other_shifts, many=True).data
+    
+    def get_average_rating(self, obj):
+        return get_user_average_rating(obj.employee.user)
+    
+    def get_rating_count(self, obj):
+        return get_user_rating_count(obj.employee.user)
 
     def validate(self, attrs):
         user = self.context.get("user")
@@ -151,6 +177,8 @@ class ApplicationByShiftSerializer(serializers.ModelSerializer):
     employee_id = serializers.IntegerField(source="employee.user_id")
     full_name = serializers.SerializerMethodField()
     profile_image = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    rating_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Application
@@ -160,6 +188,8 @@ class ApplicationByShiftSerializer(serializers.ModelSerializer):
             "employee_id",
             "full_name",
             "profile_image",
+            "average_rating",
+            "rating_count",
         ]
 
     def get_full_name(self, obj):
@@ -168,6 +198,12 @@ class ApplicationByShiftSerializer(serializers.ModelSerializer):
     
     def get_profile_image(self, obj):
         return obj.employee.user.profile_image.url if obj.employee.user.profile_image else None
+    
+    def get_average_rating(self, obj):
+        return get_user_average_rating(obj.employee.user)
+
+    def get_rating_count(self, obj):
+        return get_user_rating_count(obj.employee.user)
 
 
 class ShiftWithApplicationsSerializer(serializers.ModelSerializer):

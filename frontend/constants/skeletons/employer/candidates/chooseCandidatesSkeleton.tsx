@@ -28,7 +28,7 @@ const SkeletonBox = ({w,h,br = 8,mt = 0,ml = 0,mr = 0,}: {w: number;h: number;br
     <View style={{ alignItems: 'center' }}>
       
       {/* 🔹 Header de evento con flechas */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', width: 350, marginTop: 20, marginBottom: 20 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', width: 350, marginBottom: 20 }}>
         
 
         <View style={{ flex: 1, alignItems: 'center' }}>

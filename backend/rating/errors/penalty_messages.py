@@ -1,0 +1,7 @@
+USER_NOT_FOUND = "El usuario penalizado no existe."
+EVENT_NOT_FOUND = "El evento especificado no existe."
+PENALTY_TYPE_NOT_FOUND = "El tipo de penalización no existe."
+BEHAVIOR_NOT_FOUND = "El usuario no tiene un registro de comportamiento asociado."
+STATE_PENALTY_NOT_FOUND = "El estado de penalización no existe."
+PENALTY_STATE_ALREADY_SET = "La sanción ya se encuentra en ese estado."
+STATE_PENALTY_NOT_ALLOWED = "No se permite cambiar a ese estado de penalización."

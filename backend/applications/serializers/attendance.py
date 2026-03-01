@@ -104,8 +104,6 @@ class GenerateQRTokenSerializer(serializers.Serializer):
         """
         offer_id = self.validated_data['offer_id']
         return Offer.objects.get(pk=offer_id)
-    
-
 
 class OfferByEventSerializer(serializers.ModelSerializer):
     employee_id = serializers.IntegerField(source="employee.user.id", read_only=True)

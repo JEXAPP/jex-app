@@ -74,7 +74,7 @@ export default function RegisterVacancyScreen() {
             <View style={styles.header}>
 
               <Image
-                source={require('@/assets/images/jex/Jex-Creando-Vacantes.png')}
+                source={require('@/assets/images/jex/Jex-Creando-Vacantes.webp')}
                 style={styles.image}
               />
 

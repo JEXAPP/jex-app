@@ -58,3 +58,12 @@ class SetNotificationAllReadView(APIView):
             {"message": f"Se marcaron {updated_count} notificaciones como leídas."},
             status=status.HTTP_200_OK
         )
+    
+class NewNotificationsAdviceView(APIView):
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE, EMPLOYER_ROLE]
+
+    def get(self, request):
+        user = request.user
+        has_new = user.notifications.filter(read=False).exists()
+        return Response({"message": has_new})

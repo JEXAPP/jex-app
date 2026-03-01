@@ -3,13 +3,14 @@ import { Colors } from '@/themes/colors';
 
 export const footerNavStyles1 = StyleSheet.create({
   container: {
-    backgroundColor: Colors.violet4,
+    backgroundColor: Colors.gray1,
     paddingHorizontal: 20,
     paddingTop: 15,
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-around',
     minHeight: 68,
+    elevation: 20
   },
   item: {
     alignItems: 'center',

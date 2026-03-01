@@ -69,7 +69,7 @@ export const useDetailOffers = () => {
         const data = await requestBackend(`/api/applications/offers/${id}/detail/`, null, "GET");
         if (!mounted) return;
 
-        const shift = data?.application?.shift;
+        const shift = data?.application?.shift ?? data?.shift;
         const vacancy = shift?.vacancy;
 
         // Calcula vencimiento restando 3 días a la fecha de inicio
@@ -89,9 +89,9 @@ export const useDetailOffers = () => {
           startTime: shift?.start_time ?? "",
           endTime: shift?.end_time ?? "",
           company: vacancy?.event?.name ?? "Evento sin nombre",
-          eventImage: require("@/assets/images/jex/Jex-Evento-Default.png"),
-          expirationDate,
-          expirationTime: "00:00",
+          eventImage: require("@/assets/images/jex/Jex-Evento-Default.webp"),
+          expirationDate: data.expiration_date,
+          expirationTime: data.expiration_time,
           location: vacancy?.event?.location ?? "Ubicación no definida",
           requirements: vacancy?.requirements?.map((r: any) => r.description) ?? [],
           comments: vacancy?.description ?? data?.additional_comments ?? "",

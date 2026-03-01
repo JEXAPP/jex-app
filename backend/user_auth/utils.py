@@ -1,5 +1,7 @@
 from datetime import date, timezone
+import json
 import random
+from user_auth.constants import LANGUAGES_PATH
 
 def generate_otp():
     return f"{random.randint(100000, 999999)}"
@@ -34,8 +36,11 @@ def get_city_locality(address):
     if not parts:
         return None
 
-    if len(parts) >= 3:
-        barrio = parts[-3]
-        provincia = parts[-2]
-        return f"{barrio}, {provincia}"
+    if len(parts) >= 2:
+        return f"{parts[-2]}, {parts[-1]}"
     return parts[0]
+
+
+def load_languages():
+    with open(LANGUAGES_PATH, encoding='utf-8') as f:
+        return json.load(f)

@@ -30,16 +30,16 @@ export const iconos = {
   flechaIzquierdaVolver: (size:number, color:string) => (
     <Ionicons name="arrow-back-outline" size={size} color={color} />),
   vacantes: (size: number, color: string) => (
-    <MaterialCommunityIcons name="briefcase-outline" size={size} color={color} />
+    <Ionicons name="bag" size={size} color={color} />
   ),
   asistencia: (size: number, color: string) => (
-    <MaterialIcons name="how-to-reg" size={size} color={color} />
+    <Ionicons name="qr-code" size={size} color={color} />
   ),
   estrella: (size: number, color: string) => (
-    <FontAwesome name="star" size={size} color={color} />
+    <Ionicons name="star" size={size} color={color} />
   ),
   reportes: (size: number, color: string) => (
-    <MaterialIcons name="insert-chart-outlined" size={size} color={color} />
+    <Ionicons name="stats-chart" size={size} color={color} />
   ),
   flechaDerecha: (size: number, color: string) => (
     <Ionicons name="chevron-forward" size={size} color={color} />
@@ -48,7 +48,7 @@ export const iconos = {
     <Ionicons name="chevron-down" size={size} color={color} />
   ),
   editar: (size: number, color: string) => (
-    <MaterialIcons name="edit" size={size} color={color} />
+    <Ionicons name="pencil" size={size} color={color} />
   ),
   mas: (size: number, color: string) => (
     <Ionicons name="add" size={size} color={color} />
@@ -69,7 +69,7 @@ export const iconos = {
     <Octicons name="check" size={size} color={color} />
   ),
   reloj: (size: number, color: string) => (
-    <Octicons name="clock" size={size} color={color} />
+    <Ionicons name="time" size={size} color={color} />
   ),
   error_outline: (size: number, color: string) => (
     <MaterialIcons name="error-outline" size={size} color={color} />
@@ -81,7 +81,7 @@ export const iconos = {
     <Ionicons name="search" size={size} color={color} />
   ),
   trash: (size:number, color:string) => (
-    <Ionicons name="trash" size={size} color={color} />
+    <Octicons name="trash" size={size} color={color} />
   ),
   full_star: (size: number, color: string, key?: React.Key) => (
     <MaterialIcons key={key} name="star" size={size} color={color} />
@@ -95,6 +95,15 @@ export const iconos = {
   location: (size:number, color:string) => (
     <MaterialIcons name="location-pin" size={size} color={color} />
   ),
+  notification: (size: number, color:string) => (
+    <Ionicons name="notifications" size={size} color={color} />
+  ),
+  portfolio: (size: number, color: string) => (
+    <Octicons name="briefcase" size={size} color={color} />
+  ), 
+  libro_abierto: (size:number, color: string) => (
+    <MaterialCommunityIcons name="book-open-variant-outline" size={size} color={color} />
+  ),
   // ==== Footer Nav Icons ====
   footer_home: (active: boolean, size: number, color: string) =>
     active ? (
@@ -105,29 +114,29 @@ export const iconos = {
 
   footer_inbox: (active: boolean, size: number, color: string) =>
     active ? (
-      <FontAwesome6 name="inbox" size={size} color={color} />
+      <Ionicons name="file-tray" size={size} color={color} />
     ) : (
-      <Octicons name="inbox" size={size} color={color} />
+      <Ionicons name="file-tray-outline" size={size} color={color} />
     ),
 
   footer_briefcase: (active: boolean, size: number, color: string) =>
     active ? (
-      <MaterialCommunityIcons name="briefcase" size={size} color={color} />
+      <Ionicons name="briefcase" size={size} color={color} />
     ) : (
-      <MaterialCommunityIcons name="briefcase-outline" size={size} color={color} />
+      <Ionicons name="briefcase-outline" size={size} color={color} />
     ),
 
   footer_chat: (active: boolean, size: number, color: string) =>
     active ? (
-      <MaterialIcons name="chat-bubble" size={size} color={color} />
+      <Ionicons name="chatbubbles" size={size} color={color} />
     ) : (
-      <MaterialIcons name="chat-bubble-outline" size={size} color={color} />
+      <Ionicons name="chatbubbles-outline" size={size} color={color} />
     ),
 
   footer_person: (active: boolean, size: number, color: string) =>
     active ? (
-      <Octicons name="person-fill" size={size} color={color} />
+      <Ionicons name="person" size={size} color={color} />
     ) : (
-      <Octicons name="person" size={size} color={color} />
+      <Ionicons name="person-outline" size={size} color={color} />
     ),
 };

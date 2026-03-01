@@ -30,4 +30,5 @@ class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token['email'] = user.email
         token['role'] = user.role
+        token['is_superuser'] = user.is_superuser
         return token

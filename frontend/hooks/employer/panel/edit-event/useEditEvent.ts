@@ -1,7 +1,6 @@
-import useGooglePlaces from '@/services/external/useGooglePlaces';
-import { useUploadImageServ } from '@/services/external/useUploadImage';
+import { useUploadImageServ } from '@/services/external/cloudinary/useUploadImage';
 import useBackendConection, { getApiErrorMessage } from '@/services/internal/useBackendConection';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard } from 'react-native';
 
@@ -50,14 +49,10 @@ export const useEditEvent = () => {
   const { id } = useLocalSearchParams();
   const eventIdStr = Array.isArray(id) ? id[0] : id;
   const eventIdNum = Number(eventIdStr);
-
   const { requestBackend } = useBackendConection();
   const [imagenFile, setImagenFile] = useState<UploadableImage | null>(null);
   const [showSkeleton, setShowSkeleton] = useState(true);
   const [loading, setLoading] = useState(false);
-
-  const { sugerencias, setSugerencias, buscarSugerencias, obtenerCoordenadas } = useGooglePlaces();
-
   const [nombreEvento, setNombreEvento] = useState('');
   const [ubicacionId, setUbicacionId] = useState('');
   const [descripcionEvento, setDescripcionEvento] = useState('');
@@ -68,7 +63,7 @@ export const useEditEvent = () => {
   const [imageID, setImageID] = useState<string | null>(null);
   const [horaInicio, setHoraInicio] = useState(''); // HH:mm
   const [horaFin, setHoraFin] = useState('');       // HH:mm
-
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [rubros, setRubros] = useState<Option[]>([]);
   const [selectedRubro, setSelectedRubro] = useState<Option | null>(null);
 
@@ -163,13 +158,7 @@ export const useEditEvent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventIdNum]);
 
-  // Ubicación
-  const handleUbicacion = (txt: string) => {
-    setUbicacionEvento(txt);
-    const was = originalLocationRef.current.location || '';
-    setLocationDirty(txt !== was);
-    buscarSugerencias(txt);
-  };
+  const handleUbicacion = (texto: string, coord: {lat: number, lng: number}) => { setUbicacionEvento(texto); setCoords(coord); };
 
   // Guardar
   const handleEditarEvento = async () => {
@@ -182,10 +171,9 @@ export const useEditEvent = () => {
         lng: originalLocationRef.current.long,
       };
       if (locationDirty && ubicacionId) {
-        const fetched = await obtenerCoordenadas(ubicacionId); // debe traer { lat, lng }
         coords = {
-          lat: typeof fetched?.lat === 'number' ? fetched.lat : coords.lat,
-          lng: typeof fetched?.lng === 'number' ? fetched.lng : coords.lng,
+          lat: coords.lat,
+          lng: coords.lng,
         };
       }
 
@@ -266,16 +254,8 @@ export const useEditEvent = () => {
   const closeError = () => setShowError(false);
   const closeSuccess = () => setShowSuccess(false);
 
-  const seleccionarUbicacion = (item: { descripcion: string; placeId: string }) => {
-    setUbicacionEvento(item.descripcion);
-    setUbicacionId(item.placeId);
-    setSugerencias([]);
-    Keyboard.dismiss();
-  };
-
   return {
     nombreEvento,
-    sugerencias,
     descripcionEvento,
     fechaInicioEvento,
     fechaFinEvento,
@@ -288,7 +268,6 @@ export const useEditEvent = () => {
     imageURL,
     setImagenFile,
     setSelectedRubro,
-    seleccionarUbicacion,
     setNombreEvento,
     setDescripcionEvento,
     setFechaInicioEvento,

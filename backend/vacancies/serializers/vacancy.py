@@ -62,22 +62,20 @@ class VacancySerializer(serializers.ModelSerializer):
         if not event or not shifts:
             return
 
-        event_start = datetime.combine(event.start_date, event.start_time)
-        event_end = datetime.combine(event.end_date, event.end_time)
-
         for i, shift in enumerate(shifts):
-            shift_start = datetime.combine(shift['start_date'], shift['start_time'])
-            shift_end = datetime.combine(shift['end_date'], shift['end_time'])
+            shift_start_date = shift['start_date']
+            shift_end_date = shift['end_date']
 
-            if shift_start < event_start or shift_end > event_end:
+            # Validación: que las fechas del turno estén dentro del rango del evento
+            if shift_start_date < event.start_date or shift_end_date > event.end_date:
                 raise serializers.ValidationError(
-                    SHIFTS_OUT_OF_EVENT.format(shift_number=i+1)
-                    )
+                    SHIFTS_OUT_OF_EVENT.format(shift_number=i + 1)
+                )
 
-            # Validación: inicio < fin
-            if shift_start >= shift_end:
+            # Validación básica: fecha de inicio <= fecha de fin
+            if shift_start_date > shift_end_date:
                 raise serializers.ValidationError(
-                    SHIFTS_START_AFTER_END.format(shift_number=i+1)
+                    SHIFTS_START_AFTER_END.format(shift_number=i + 1)
                 )
 
     def _validate_job_type(self, data):
