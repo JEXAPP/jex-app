@@ -1,5 +1,6 @@
 
 
+from eventos.formatters.date_time import CustomDateField
 from eventos.models.event import Event
 from rating.constats import PenaltyStates
 from rating.errors.penalty_messages import BEHAVIOR_NOT_FOUND, EVENT_NOT_FOUND, PENALTY_STATE_ALREADY_SET, PENALTY_TYPE_NOT_FOUND, STATE_PENALTY_NOT_ALLOWED, STATE_PENALTY_NOT_FOUND, USER_NOT_FOUND
@@ -13,6 +14,8 @@ from rest_framework import serializers
 from rating.models.state_penalty import StatePenalty
 from user_auth.models.user import CustomUser
 from django.db import transaction
+
+from vacancies.formatters.date_time import CustomTimeField
 
 
 
@@ -112,7 +115,7 @@ class PenaltySerializer(serializers.ModelSerializer):
             'penalty_state',
             'penalty_type',
             'penalty_date',
-        ]
+        ]   
 
     def get_penalized_user(self, obj):
         user = obj.behavior.user
@@ -167,3 +170,97 @@ class UpdatePenaltyStatusSerializer(serializers.Serializer):
             )
 
         return instance
+
+
+class AdminPenaltySerializer(serializers.ModelSerializer):
+
+    penalized_user = serializers.SerializerMethodField()
+    event_info = serializers.SerializerMethodField()
+
+    penalty_state = serializers.CharField(source="penalty_state.name")
+    penalty_type = serializers.CharField(source="penalty_type.name")
+
+    penalty_date = CustomDateField(read_only=True)
+    penalty_time = CustomTimeField(source="penalty_date", read_only=True)
+
+    close_date = serializers.SerializerMethodField()
+    close_time = serializers.SerializerMethodField()
+    state_changed_by = serializers.SerializerMethodField()
+    state_comment = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Penalty
+        fields = [
+            "id",
+            "penalized_user",
+            "punisher",
+            "event_info",
+            "comments",
+            "penalty_state",
+            "penalty_type",
+            "penalty_date",
+            "penalty_time",
+            "close_date",
+            "close_time",
+            "state_changed_by",
+            "state_comment",
+        ]
+
+
+    def _get_terminal_history(self, obj):
+
+        if hasattr(obj, "_terminal_history"):
+            return obj._terminal_history
+
+        terminal_states = {
+            PenaltyStates.ACCEPTED.value,
+            PenaltyStates.REJECTED.value,
+        }
+
+        for history in obj.state_history.all():
+            if history.state.name in terminal_states:
+                obj._terminal_history = history
+                return history
+
+        obj._terminal_history = None
+        return None
+
+
+    def get_penalized_user(self, obj):
+        return PenalizedUserSerializer(obj.behavior.user).data
+
+    def get_event_info(self, obj):
+        event = obj.event
+        return {
+            "name": event.name,
+            "image": event.event_image.url if event.event_image else None
+        }
+
+    def get_close_date(self, obj):
+        history = self._get_terminal_history(obj)
+        if not history:
+            return None
+        return CustomDateField().to_representation(history.changed_at.date())
+
+    def get_close_time(self, obj):
+        history = self._get_terminal_history(obj)
+        if not history:
+            return None
+        return CustomTimeField().to_representation(history.changed_at.time())
+
+    def get_state_changed_by(self, obj):
+        history = self._get_terminal_history(obj)
+        if not history or not history.changed_by:
+            return None
+        return {
+            "id": history.changed_by.id,
+            "email": history.changed_by.email,
+            "first_name": history.changed_by.first_name,
+            "last_name": history.changed_by.last_name,
+        }
+
+    def get_state_comment(self, obj):
+        history = self._get_terminal_history(obj)
+        if not history:
+            return None
+        return history.comment
