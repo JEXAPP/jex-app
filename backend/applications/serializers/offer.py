@@ -528,7 +528,8 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
             "expiration_date",
             "expiration_time",
             "payment_state",
-            "payment_mp_id"
+            "payment_mp_id",
+            "payment_date"
         ]
 
     def get_profile_image(self, obj):
