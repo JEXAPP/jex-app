@@ -294,8 +294,8 @@ class OfferDecisionSerializer(serializers.Serializer):
             offer.rejection_reason = self.validated_data.get('rejection_reason', '')
 
             if offer.application:
-                pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
-                offer.application.state = pending_state
+                rejected_state = ApplicationState.objects.get(name=ApplicationStates.REJECTED.value)
+                offer.application.state = rejected_state
                 offer.application.save(update_fields=['state'])
             
             offer.save(update_fields=['state', 'rejection_reason'])
@@ -325,8 +325,8 @@ class OfferDecisionSerializer(serializers.Serializer):
                 o.state = rejected_state
                 o.rejection_reason = "Conflicto de horario con otra oferta aceptada"
                 if o.application:
-                    pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
-                    o.application.state = pending_state
+                    rejected_state = ApplicationState.objects.get(name=ApplicationStates.REJECTED.value)
+                    o.application.state = rejected_state
                     o.application.save(update_fields=['state'])
                 o.save(update_fields=['state', 'rejection_reason'])
             
