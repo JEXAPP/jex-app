@@ -1,5 +1,6 @@
+from mercadopago.resources import Payment
 from rest_framework.generics import CreateAPIView, ListAPIView, GenericAPIView
-from applications.constants import OfferStates
+from applications.constants import OfferStates, PaymentFilter
 from applications.serializers.offer import OfferAcceptedDetailSerializer, OfferCreateSerializer, OfferConsultSerializer, OfferDecisionSerializer, OfferDetailSerializer, OfferEventByStateSerializer
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
@@ -7,6 +8,7 @@ from applications.models.offers import Offer
 from applications.services.employee_search_service import EmployeeSearchService
 from config.pagination import CustomPagination
 from eventos.models.event import Event
+from payments.constants import PaymentStates
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.models.employee import EmployeeProfile
 from user_auth.permissions import IsInGroup
@@ -20,7 +22,7 @@ from rest_framework.generics import RetrieveAPIView
 from user_auth.serializers.employee import EmployeeForOfferSearchSerializer, EmployeeProfileSearchSerializer, EmployeeSearchFilterSerializer
 from vacancies.models.shifts import Shift
 from vacancies.serializers.shifts import ListOfferEmployeeSerializer
-from django.db.models import Q
+from django.db.models import Q, Exists, OuterRef
 
 class OfferCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
@@ -89,20 +91,39 @@ class ListOfferEventByState(ListAPIView):
     def get_queryset(self):
         event_id = self.kwargs.get("event_id")
         state_id = self.kwargs.get("state_id")
+        payment_status = self.request.query_params.get("payment_status")
 
         event = get_object_or_404(Event, id=event_id)
 
-        return (
-            Offer.objects.filter(
-                selected_shift__vacancy__event=event,
-                state_id=state_id
+        queryset = Offer.objects.filter(
+            selected_shift__vacancy__event=event,
+            state_id=state_id
+        )
+
+        if payment_status:
+            payment_status = int(payment_status)
+
+            approved_payment_subquery = Payment.objects.filter(
+                offer=OuterRef("pk"),
+                employee=OuterRef("employee__user"),
+                state__name=PaymentStates.APPROVED.value
             )
-            .select_related(
-                "employee__user",
-                "selected_shift__vacancy__job_type",
-                "selected_shift__vacancy__event",
-                "state"
+
+            queryset = queryset.annotate(
+                has_paid=Exists(approved_payment_subquery)
             )
+
+            if payment_status == PaymentFilter.PAID:
+                queryset = queryset.filter(has_paid=True)
+
+            elif payment_status == PaymentFilter.UNPAID:
+                queryset = queryset.filter(has_paid=False)
+
+        return queryset.select_related(
+            "employee__user",
+            "selected_shift__vacancy__job_type",
+            "selected_shift__vacancy__event",
+            "state"
         )
 
 
