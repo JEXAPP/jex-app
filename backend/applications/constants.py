@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 class ApplicationStates(str, Enum):
     PENDING = "PENDING"
@@ -17,5 +17,9 @@ class OfferStates(str, Enum):
     COMPLETED = "COMPLETED"
     NOT_SHOWN = "NOT_SHOWN"
 
+class PaymentFilter(IntEnum):
+    UNPAID = 1
+    PAID = 2
+    
 ENABLE_ACTION="enable"
 DISABLE_ACTION="disable"
