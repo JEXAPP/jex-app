@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  ActivityIndicator,
   Animated,
   FlatList,
   Text,
@@ -8,7 +7,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "@/themes/colors";
 import { employeeRatingsStyles as styles } from "@/styles/app/employee/profile/rating/employeeRatingsStyles";
 import ImageOnline from "@/components/image/ImageOnline";
 import { EmployeeRating, useEmployeeRatings } from '@/hooks/employee/profile/rating/useEmployeeRatings';

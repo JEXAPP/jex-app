@@ -65,7 +65,7 @@ export const useQualify = () => {
   const closeSuccess = () => {
     setShowSuccess(false);
     // volvemos a la pantalla anterior (lista de eventos / historial, etc.)
-    router.back();
+    router.replace('/employee/profile/qualify-list');
   };
 
   const closeError = () => {

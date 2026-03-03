@@ -13,7 +13,7 @@ type EmployerToRate = {
   event_end_date: string;
   event_end_time: string;
   already_rated: boolean;
-  image_url: string | null; // ✅ nuevo atributo
+  image_url: string | null;
 };
 
 export const useQualifyList = () => {

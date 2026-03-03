@@ -5,8 +5,16 @@ export const listStyles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 20,
     position: "relative",
+  },
+  backBtnHero: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    marginBottom: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   headerImage: {

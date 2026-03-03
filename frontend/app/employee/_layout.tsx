@@ -45,6 +45,7 @@ export default function EmployeeLayout() {
         <Stack.Screen name="chats/thread" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="chats/threads" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="profile/index" options={{ ...transitionFade, headerShown: false }} />
+        <Stack.Screen name="profile/qualify-list" options={{ ...transitionFade, headerShown: false }} />
         <Stack.Screen name="profile/view-profile" options={{ ...transitionFade, headerShown: false }} />
       </Stack>
 

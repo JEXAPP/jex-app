@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
 
 export type OfferStatus =
@@ -6,10 +6,17 @@ export type OfferStatus =
   | "Aceptada"
   | "Rechazada"
   | "Vencida"
-  | "A Pagar";
+  | "A Pagar"
+  | "Pagado";
 
 export type FilterSimple = "Pendiente" | "Aceptadas" | "Otro";
-export type PaymentState = "NOT_PAYED" | "APPROVED" | "PENDING" | "FAILURE";
+export type FilterFinalized = "A_PAGAR" | "PAGADO";
+
+export type PaymentState =
+  | "NOT_PAYED"
+  | "APPROVED"
+  | "PENDING"
+  | "FAILURE";
 
 export type EventState = {
   id: number;
@@ -40,6 +47,7 @@ export type Offer = {
   imageId: string;
   payment_state: PaymentState;
   payment_mp_id?: string | null;
+  payment_date?: string | null;
 };
 
 type FeeDetails = {
@@ -57,12 +65,6 @@ const backendStateToStatus: Record<string, OfferStatus> = {
   Completed: "A Pagar",
 };
 
-const eventStateOrder: Record<string, number> = {
-  "En progreso": 1,
-  "Publicado": 2,
-  "Finalizado": 3,
-};
-
 const filterToBackendIds: Record<FilterSimple, number[]> = {
   Pendiente: [1],
   Aceptadas: [2],
@@ -76,9 +78,13 @@ export const useStateOffers = () => {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [filter, setFilter] = useState<FilterSimple>("Aceptadas");
+  const [finalizedFilter, setFinalizedFilter] =
+    useState<FilterFinalized>("A_PAGAR");
+
   const [loading, setLoading] = useState(false);
   const [loadingEvents, setLoadingEvents] = useState(false);
-  const [creatingPaymentId, setCreatingPaymentId] = useState<number | null>(null);
+  const [creatingPaymentId, setCreatingPaymentId] =
+    useState<number | null>(null);
   const [feePercent, setFeePercent] = useState<number | null>(null);
 
   const currentEvent: Event | null = events[currentEventIndex] ?? null;
@@ -92,14 +98,9 @@ export const useStateOffers = () => {
           null,
           "GET"
         );
-        if (Array.isArray(data)) {
-          const filteredRaw = data.filter((e: any) => {
-            const stateName = e.state?.name ?? "Publicado";
-            if (stateName !== "Finalizado") return true;
-            return e.all_payed === false;
-          });
 
-          const normalized: Event[] = filteredRaw.map((e: any) => ({
+        if (Array.isArray(data)) {
+          const normalized: Event[] = data.map((e: any) => ({
             id: e.id,
             name: e.name,
             state: {
@@ -109,19 +110,13 @@ export const useStateOffers = () => {
             all_payed: Boolean(e.all_payed),
           }));
 
-          normalized.sort((a, b) => {
-            const aOrder = eventStateOrder[a.state.name] ?? 99;
-            const bOrder = eventStateOrder[b.state.name] ?? 99;
-            if (aOrder !== bOrder) return aOrder - bOrder;
-            return a.name.localeCompare(b.name);
-          });
-
           setEvents(normalized);
         }
       } finally {
         setLoadingEvents(false);
       }
     };
+
     fetchEvents();
   }, []);
 
@@ -154,20 +149,29 @@ export const useStateOffers = () => {
     fetchFeeDetails();
   }, []);
 
-  useEffect(() => {
+  const fetchOffers = useCallback(async () => {
     if (!currentEvent || feePercent === null) return;
 
-    const fetchOffers = async () => {
-      setLoading(true);
-      try {
-        const isFinalized = currentEvent.state.name === "Finalizado";
+    setLoading(true);
+    try {
+      const isFinalized =
+        currentEvent.state.name === "Finalizado";
 
-        let stateIds: number[];
-        if (isFinalized) {
-          stateIds = [6];
-        } else {
-          stateIds = filterToBackendIds[filter];
-        }
+      let all: any[] = [];
+
+      if (isFinalized) {
+        const paymentStatus =
+          finalizedFilter === "A_PAGAR" ? 1 : 2;
+
+        const data = await requestBackend(
+          `/api/applications/offers/${currentEvent.id}/state/6/?payment_status=${paymentStatus}`,
+          null,
+          "GET"
+        );
+
+        all = Array.isArray(data) ? data : [];
+      } else {
+        const stateIds = filterToBackendIds[filter];
 
         const requests = stateIds.map((sid) =>
           requestBackend(
@@ -176,74 +180,63 @@ export const useStateOffers = () => {
             "GET"
           )
         );
+
         const results = await Promise.all(requests);
-        const all = results.flat().filter(Boolean);
-
-        const normalized: Offer[] = all.map((item: any) => {
-          const backendName = item?.offer_state?.name;
-          const status: OfferStatus = isFinalized
-            ? "A Pagar"
-            : backendStateToStatus[backendName] ?? "Pendiente";
-
-          const basePayment = Number(item?.shift?.payment ?? 0);
-          const factor = 1 + (feePercent ?? 0) / 100;
-          const totalWithFee = basePayment * factor;
-
-          return {
-            id: item?.id ?? 0,
-            employeeName: `${item?.employee_name ?? ""} ${
-              item?.employee_lastname ?? ""
-            }`.trim(),
-            employeeImage: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
-            role: item?.job_type ?? "Sin rol",
-            salary: new Intl.NumberFormat("es-AR").format(totalWithFee),
-            fechaInicio: item?.shift?.start_date ?? "",
-            horaInicio: item?.shift?.start_time ?? "",
-            horaFin: item?.shift?.end_time ?? "",
-            expiryDate: item?.expiration_date ?? "",
-            expiryTime: item?.expiration_time ?? "",
-            status,
-            eventId: currentEvent.id,
-            imageUrl: item?.profile_image,
-            imageId: item?.profile_image_id,
-            payment_state:
-              (item?.payment_state as PaymentState) ?? "NOT_PAYED",
-            payment_mp_id: item?.payment_mp_id ?? null,
-          };
-        });
-
-        normalized.sort(
-          (a, b) =>
-            a.fechaInicio.localeCompare(b.fechaInicio) ||
-            a.horaInicio.localeCompare(b.horaInicio)
-        );
-
-        setOffers(normalized);
-      } finally {
-        setLoading(false);
+        all = results.flat().filter(Boolean);
       }
-    };
 
+      const normalized: Offer[] = all.map((item: any) => {
+        const backendName = item?.offer_state?.name;
+
+        const status: OfferStatus = isFinalized
+          ? finalizedFilter === "PAGADO"
+            ? "Pagado"
+            : "A Pagar"
+          : backendStateToStatus[backendName] ?? "Pendiente";
+
+        const basePayment = Number(item?.shift?.payment ?? 0);
+        const factor = 1 + (feePercent ?? 0) / 100;
+        const totalWithFee = basePayment * factor;
+
+        return {
+          id: item?.id ?? 0,
+          employeeName: `${item?.employee_name ?? ""} ${
+            item?.employee_lastname ?? ""
+          }`.trim(),
+          employeeImage: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
+          role: item?.job_type ?? "Sin rol",
+          salary: new Intl.NumberFormat("es-AR").format(totalWithFee),
+          fechaInicio: item?.shift?.start_date ?? "",
+          horaInicio: item?.shift?.start_time ?? "",
+          horaFin: item?.shift?.end_time ?? "",
+          expiryDate: item?.expiration_date ?? "",
+          expiryTime: item?.expiration_time ?? "",
+          status,
+          eventId: currentEvent.id,
+          imageUrl: item?.profile_image,
+          imageId: item?.profile_image_id,
+          payment_state:
+            (item?.payment_state as PaymentState) ?? "NOT_PAYED",
+          payment_mp_id: item?.payment_mp_id ?? null,
+          payment_date: item?.payment_date ?? null,
+        };
+      });
+
+      setOffers(normalized);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentEvent, filter, finalizedFilter, feePercent]);
+
+  useEffect(() => {
     fetchOffers();
-  }, [currentEvent, filter, feePercent]);
+  }, [fetchOffers]);
 
-  const goNextEvent = () => {
-    if (currentEventIndex < events.length - 1) {
-      setCurrentEventIndex((prev) => prev + 1);
-      setFilter("Aceptadas");
-    }
+  const refreshOffers = () => {
+    fetchOffers();
   };
 
-  const goPrevEvent = () => {
-    if (currentEventIndex > 0) {
-      setCurrentEventIndex((prev) => prev - 1);
-      setFilter("Aceptadas");
-    }
-  };
-
-  const createPaymentLink = async (
-    offerId: number
-  ): Promise<{ url: string; paymentId?: number }> => {
+  const createPaymentLink = async (offerId: number) => {
     setCreatingPaymentId(offerId);
     try {
       let data: any = await requestBackend(
@@ -268,13 +261,11 @@ export const useStateOffers = () => {
         data?.redirect_url ||
         data?.link;
 
-      const paymentId = data?.payment_id ?? data?.id;
-
-      if (!url || typeof url !== "string") {
-        throw new Error("El backend no devolvió un link de pago válido.");
+      if (!url) {
+        throw new Error("No se pudo obtener el link de pago");
       }
 
-      return { url, paymentId };
+      return { url };
     } finally {
       setCreatingPaymentId(null);
     }
@@ -282,12 +273,24 @@ export const useStateOffers = () => {
 
   return {
     currentEvent,
-    goNextEvent,
-    goPrevEvent,
+    goNextEvent: () => {
+      if (currentEventIndex < events.length - 1) {
+        setCurrentEventIndex((p) => p + 1);
+        setFilter("Aceptadas");
+      }
+    },
+    goPrevEvent: () => {
+      if (currentEventIndex > 0) {
+        setCurrentEventIndex((p) => p - 1);
+        setFilter("Aceptadas");
+      }
+    },
     canGoNext: currentEventIndex < events.length - 1,
     canGoPrev: currentEventIndex > 0,
     filter,
     setFilter,
+    finalizedFilter,
+    setFinalizedFilter,
     offers,
     filteredOffers: offers,
     events,
@@ -295,5 +298,6 @@ export const useStateOffers = () => {
     loadingEvents,
     creatingPaymentId,
     createPaymentLink,
+    refreshOffers,
   };
 };

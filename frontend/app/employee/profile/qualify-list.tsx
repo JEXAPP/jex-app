@@ -7,7 +7,7 @@ import { router } from "expo-router";
 import { listStyles as styles } from "@/styles/app/employee/profile/qualifyListStyles";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 
 export default function SelectEventToQualify() {
   const { employers, loading, error } = useQualifyList();
@@ -36,6 +36,9 @@ export default function SelectEventToQualify() {
   return (
     <LinearGradient colors={["#f8f6ff", "#ffffff"]} style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
+        <View style={styles.backBtnHero} onTouchEnd={() => router.replace('/employee/profile')}>
+            <Ionicons name="arrow-back" size={28} color={Colors.violet4} />
+        </View>
         <Image
           source={require("@/assets/images/jex/Jex-Busqueda-Disponibilidad.webp")}
           style={styles.headerImage}
@@ -68,7 +71,7 @@ export default function SelectEventToQualify() {
                       jobType: item.job_type,
                       date: item.event_start_date,
                       time: `${item.event_start_time} - ${item.event_end_time}`,
-                      imageUrl: item.image_url || "", // ✅ se pasa la imagen al siguiente screen
+                      imageUrl: item.image_url || "", 
                     },
                   })
                 }

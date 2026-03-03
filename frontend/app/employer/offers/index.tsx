@@ -19,7 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { SelectableTag } from "@/components/button/SelectableTags";
 import { selectableTagStyles2 } from "@/styles/components/button/selectableTagsStyles/selectableTagsStyles2";
 import * as WebBrowser from "expo-web-browser";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import ImageWindow from "@/components/window/ImageWindow";
 import { useEffect, useMemo, useState } from "react";
 import * as Clipboard from "expo-clipboard";
@@ -37,6 +37,8 @@ export default function StateOffersScreen() {
     canGoPrev,
     filter,
     setFilter,
+    finalizedFilter,
+    setFinalizedFilter,
     filteredOffers,
     offers,
     events,
@@ -44,13 +46,12 @@ export default function StateOffersScreen() {
     loadingEvents,
     creatingPaymentId,
     createPaymentLink,
+    refreshOffers,
   } = useStateOffers();
 
-  const router = useRouter();
-
   const { payment_status } = useLocalSearchParams<{ payment_status?: string }>();
-  const [showInfo, setShowInfo] = useState(false);
 
+  const [showInfo, setShowInfo] = useState(false);
   const [receiptCopiedVisible, setReceiptCopiedVisible] = useState(false);
 
   const statusContent = useMemo(() => {
@@ -80,19 +81,23 @@ export default function StateOffersScreen() {
   }, [payment_status]);
 
   useEffect(() => {
-    setShowInfo(!!statusContent);
+    if (statusContent) {
+      setShowInfo(true);
+      setTimeout(() => {
+        refreshOffers();
+      }, 800);
+    }
   }, [statusContent]);
 
   const cerrarVentana = () => {
-    setShowInfo(false)
-  }
+    setShowInfo(false);
+  };
 
   const handlePay = async (offerId: number) => {
     try {
       const { url } = await createPaymentLink(offerId);
       await WebBrowser.openBrowserAsync(url);
     } catch (err: any) {
-      console.error("Error al iniciar pago MP:", err);
       Alert.alert("Error", err?.message ?? "No se pudo iniciar el pago.");
     }
   };
@@ -113,21 +118,11 @@ export default function StateOffersScreen() {
             resizeMode="contain"
           />
         </View>
-
-        {statusContent && (
-          <ImageWindow
-            visible={showInfo}
-            title={statusContent.title}
-            subtitle={statusContent.subtitle}
-            buttonText="Entendido"
-            onClose={cerrarVentana}
-            imageSource={statusContent.image}
-          />
-        )}
       </SafeAreaView>
     );
   }
 
+  const isFinalized = currentEvent?.state.name === "Finalizado";
   const hasOffersForEvent = offers.some((o) => o.eventId === currentEvent!.id);
 
   return (
@@ -138,7 +133,7 @@ export default function StateOffersScreen() {
           title={statusContent.title}
           subtitle={statusContent.subtitle}
           buttonText="Entendido"
-          onClose={() => setShowInfo(false)}
+          onClose={cerrarVentana}
           imageSource={statusContent.image}
         />
       )}
@@ -165,20 +160,18 @@ export default function StateOffersScreen() {
               ? styles.statusAceptada
               : styles.statusRechazada;
 
-          const badgeText = item.status === "Vencida" ? "Vencida" : item.status;
-
-          const canShowPayment =
-            item.status === "Aceptada" || item.status === "A Pagar";
+          const badgeText =
+            item.status === "Vencida" ? "Vencida" : item.status;
 
           const isApproved = item.payment_state === "APPROVED";
           const isPending = item.payment_state === "PENDING";
-          const isFailure = item.payment_state === "FAILURE";
           const isNotPayed = item.payment_state === "NOT_PAYED";
-
-          const showPayButton = canShowPayment && !isApproved && !isPending;
+          const showPayButton = isFinalized && isNotPayed;
 
           const copyReceipt = async () => {
-            const raw = item.payment_mp_id ? String(item.payment_mp_id).trim() : "";
+            const raw = item.payment_mp_id
+              ? String(item.payment_mp_id).trim()
+              : "";
             if (!raw) return;
             await Clipboard.setStringAsync(raw);
             setReceiptCopiedVisible(true);
@@ -187,7 +180,9 @@ export default function StateOffersScreen() {
           return (
             <View style={styles.offerCard}>
               <View style={styles.statusBadge}>
-                <Text style={[styles.statusText, badgeStyle]}>{badgeText}</Text>
+                <Text style={[styles.statusText, badgeStyle]}>
+                  {badgeText}
+                </Text>
               </View>
 
               <View style={styles.offerHeader}>
@@ -200,18 +195,16 @@ export default function StateOffersScreen() {
                   fallback={require("@/assets/images/jex/Jex-Postulantes-Default.webp")}
                 />
                 <View style={styles.headerInfo}>
-                  <Text style={styles.employeeName}>{item.employeeName}</Text>
+                  <Text style={styles.employeeName}>
+                    {item.employeeName}
+                  </Text>
                   <Text style={styles.roleText}>{item.role}</Text>
                 </View>
               </View>
 
               <View style={styles.turnContainer}>
                 <View style={styles.turnRow}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={16}
-                    color={Colors.gray3}
-                  />
+                  <Ionicons name="calendar-outline" size={16} color={Colors.gray3} />
                   <Text style={styles.turnText}>{item.fechaInicio}</Text>
                 </View>
 
@@ -223,44 +216,65 @@ export default function StateOffersScreen() {
                 </View>
               </View>
 
-              {canShowPayment && (
-                <View style={isApproved ? styles.paymentBlockApproved : styles.paymentBlock}>
-                  {isApproved ? (
-                    <>
-                      <Text style={styles.paymentAmountApproved}>
-                        {item.salary} ARS
-                      </Text>
+              <View
+                style={
+                  isFinalized && isApproved
+                    ? styles.paymentBlockApproved
+                    : styles.paymentBlock
+                }
+              >
+                {!isFinalized && (
+                  <Text style={styles.paymentAmountPending}>
+                    {item.salary} ARS
+                  </Text>
+                )}
 
-                      <Text style={styles.paymentDateText}>
-                        Realizado el pago el {item.fechaInicio} - {item.horaInicio}
-                      </Text>
+                {isFinalized && isApproved && (
+                  <>
+                    <Text style={styles.paymentAmountApproved}>
+                      {item.salary} ARS
+                    </Text>
 
-                      {!!item.payment_mp_id && (
-                        <TouchableOpacity
-                          style={styles.receiptBox}
-                          onPress={copyReceipt}
-                          activeOpacity={0.85}
-                        >
-                          <Text style={styles.receiptLabel}>
-                            Número Comprobante:
-                          </Text>
-                          <Text style={styles.receiptValue} numberOfLines={1}>
-                            {item.payment_mp_id}
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                    </>
-                  ) : isPending ? (
+                    <Text style={styles.paymentDateText}>
+                      Realizado el pago el {item.payment_date}
+                    </Text>
+
+                    {!!item.payment_mp_id && (
+                      <TouchableOpacity
+                        style={styles.receiptBox}
+                        onPress={copyReceipt}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.receiptLabel}>
+                          Número Comprobante:
+                        </Text>
+                        <Text style={styles.receiptValue} numberOfLines={1}>
+                          {item.payment_mp_id}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
+                )}
+
+                {isFinalized && isPending && (
+                  <>
+                    <Text style={styles.paymentAmountPending}>
+                      {item.salary} ARS
+                    </Text>
                     <View style={styles.pendingBox}>
                       <ActivityIndicator size="small" color={Colors.violet4} />
                       <Text style={styles.pendingText}>Pago pendiente</Text>
                     </View>
-                  ) : (
-                    <View style={styles.payRow}>
-                      <Text style={styles.paymentAmountPending}>
-                        {item.salary} ARS
-                      </Text>
+                  </>
+                )}
 
+                {isFinalized && !isApproved && !isPending && (
+                  <View style={styles.payRow}>
+                    <Text style={styles.paymentAmountPending}>
+                      {item.salary} ARS
+                    </Text>
+
+                    {showPayButton && (
                       <TouchableOpacity
                         onPress={() => handlePay(item.id)}
                         style={[
@@ -276,10 +290,10 @@ export default function StateOffersScreen() {
                             : "Pagar"}
                         </Text>
                       </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              )}
+                    )}
+                  </View>
+                )}
+              </View>
             </View>
           );
         }}
@@ -297,7 +311,9 @@ export default function StateOffersScreen() {
               </View>
 
               <View style={styles.centerSlot}>
-                <Text style={styles.eventName}>{currentEvent!.name}</Text>
+                <Text style={styles.eventName}>
+                  {currentEvent!.name}
+                </Text>
               </View>
 
               <View style={styles.sideSlot}>
@@ -309,14 +325,29 @@ export default function StateOffersScreen() {
               </View>
             </View>
 
+            {currentEvent?.state?.name && (
+              <View style={styles.eventEstadoBadge}>
+                <Text style={styles.eventEstadoText}>{currentEvent.state.name}</Text>
+              </View>
+            )}
+            
+
             <View style={styles.tagsRow}>
-              {currentEvent?.state.name === "Finalizado" ? (
-                <SelectableTag
-                  title="A Pagar"
-                  selected
-                  onPress={() => {}}
-                  styles={selectableTagStyles2}
-                />
+              {isFinalized ? (
+                <>
+                  <SelectableTag
+                    title="A Pagar"
+                    selected={finalizedFilter === "A_PAGAR"}
+                    onPress={() => setFinalizedFilter("A_PAGAR")}
+                    styles={selectableTagStyles2}
+                  />
+                  <SelectableTag
+                    title="Pagado"
+                    selected={finalizedFilter === "PAGADO"}
+                    onPress={() => setFinalizedFilter("PAGADO")}
+                    styles={selectableTagStyles2}
+                  />
+                </>
               ) : (
                 <>
                   <SelectableTag
@@ -346,23 +377,53 @@ export default function StateOffersScreen() {
         }
         ListEmptyComponent={
           !loading ? (
-            !hasOffersForEvent ? (
+            isFinalized && finalizedFilter === "A_PAGAR" ? (
               <View style={styles.generalEmptyContainer}>
-                <Text style={styles.generalEmptyTitle}>Sin Ofertas</Text>
+                
+                <Image
+                  source={require("@/assets/images/jex/Jex-Asociado.webp")}
+                  style={styles.generalEmptyImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.generalEmptyTitle}>
+                  Pagaste a todos los empleados
+                </Text>
+              </View>
+            ) : isFinalized && finalizedFilter === "PAGADO" ? (
+              <View style={styles.generalEmptyContainer}>
+                
+                <Image
+                  source={require("@/assets/images/jex/Jex-Pago-Rechazado.webp")}
+                  style={styles.generalEmptyImage}
+                  resizeMode="contain"
+                />
+                <Text style={styles.generalEmptyTitle}>
+                  No realizaste ningún pago aún
+                </Text>
+              </View>
+            ): !hasOffersForEvent ? (
+              <View style={styles.generalEmptyContainer}>
+                
                 <Image
                   source={require("@/assets/images/jex/Jex-Sin-Eventos.webp")}
                   style={styles.generalEmptyImage}
                   resizeMode="contain"
                 />
+                <Text style={styles.generalEmptyTitle}>
+                  Sin Ofertas
+                </Text>
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyTitle}>Sin Ofertas de este tipo</Text>
+                
                 <Image
                   source={require("@/assets/images/jex/Jex-Sin-Eventos.webp")}
                   style={styles.emptyImage}
                   resizeMode="contain"
                 />
+                <Text style={styles.emptyTitle}>
+                  Sin Ofertas de este tipo
+                </Text>
               </View>
             )
           ) : null

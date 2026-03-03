@@ -210,19 +210,19 @@ export const stateOffersStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 20,
-    marginTop: 10,
+    marginTop: 30,
     alignItems: "center",
     justifyContent: "flex-start",
   },
   generalEmptyTitle: {
     fontSize: 20,
-    fontWeight: "700",
+    fontFamily: 'interSemiBoldItalic',
     color: Colors.violet4,
     marginBottom: 10,
     marginTop: 10,
     textAlign: "center",
   },
-  generalEmptyImage: { width: 250, height: 250, marginTop: 5 },
+  generalEmptyImage: { width: 250, height: 300, marginTop: 5 },
 
   noEventsContainer: {
     flex: 0,
@@ -249,7 +249,7 @@ export const stateOffersStyles = StyleSheet.create({
   eventRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   sideSlot: {
     flex: 1,
@@ -286,7 +286,19 @@ export const stateOffersStyles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: "#e7fddc",
   },
-
+  eventEstadoBadge: {
+    backgroundColor: Colors.gray12,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    alignSelf: 'center',
+    marginBottom: 20
+  },
+  eventEstadoText: {
+    color: Colors.gray3,
+    fontSize: 11,
+    fontFamily: 'interBold',
+  },
   payRow: {
     flexDirection: "row",
     alignItems: "center",
