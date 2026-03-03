@@ -554,7 +554,7 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
     def get_payment_date(self,  obj):
         approved_state = PaymentStates.APPROVED
         payment = Payment.objects.filter(offer=obj, employee=obj.employee.user).first()
-        if payment and payment.state == approved_state and self.updated_at:
+        if payment and payment.state == approved_state and payment.updated_at:
             return payment.updated_at.strftime('%d/%m/%Y')
         return None
 
