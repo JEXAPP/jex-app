@@ -9,6 +9,7 @@ from applications.services.employee_search_service import EmployeeSearchService
 from config.pagination import CustomPagination
 from eventos.models.event import Event
 from payments.constants import PaymentStates
+from payments.models.payments import Payment
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from user_auth.models.employee import EmployeeProfile
 from user_auth.permissions import IsInGroup
