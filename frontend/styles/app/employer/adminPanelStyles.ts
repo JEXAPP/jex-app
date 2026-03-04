@@ -47,7 +47,7 @@ export const adminPanelStyles = StyleSheet.create({
     flex: 3,
     alignItems: "center",
   },
- eventName: {
+  eventName: {
     fontSize: 24,
     fontFamily: 'interBold',
     textAlign: 'center',
@@ -70,7 +70,7 @@ export const adminPanelStyles = StyleSheet.create({
     alignItems: "center",
   },
   eventEstadoPill: {
-    backgroundColor: Colors.gray2, // pill gris
+    backgroundColor: Colors.gray2,
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -90,7 +90,40 @@ export const adminPanelStyles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'interBold',
   },
-
+  cardDisabled: {
+    opacity: 0.4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalBox: {
+    backgroundColor: Colors.white,
+    borderRadius: 12,
+    padding: 20,
+    width: "80%",
+    alignItems: "center",
+  },
+  modalText: {
+    fontSize: 16,
+    fontFamily: "interMedium",
+    textAlign: "center",
+    color: Colors.black,
+    marginBottom: 16,
+  },
+  modalButton: {
+    backgroundColor: Colors.violet4,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: Colors.white,
+    fontFamily: "interSemiBold",
+    fontSize: 15,
+  },
   cardText: {
     fontSize: 17,
     marginLeft: 12,
@@ -125,6 +158,21 @@ export const adminPanelStyles = StyleSheet.create({
     fontFamily: 'interItalic',
     color: Colors.gray3,
     textAlign: 'center',
-   },
+  },
 
+  // --- NUEVO: wrapper + puntito de notificaciones ---
+  notificationIconWrapper: {
+    position: "relative",
+  },
+  notificationDot: {
+    position: 'absolute',
+    top: 35,
+    right: 5,
+    width: 15,
+    height: 15,
+    borderRadius: 15,
+    backgroundColor: Colors.red,
+    borderWidth: 2,
+    borderColor: Colors.gray1, 
+  },
 });

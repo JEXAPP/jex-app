@@ -20,8 +20,8 @@ const toBool = (v: unknown) =>
 export function useAttendance() {
   const { requestBackend } = useBackendConection();
 
-  const params = useLocalSearchParams<{ event_id?: string }>();
-  const eventId = Number(params.event_id);
+  const params = useLocalSearchParams<{ id?: string }>();
+  const eventId = Number(params.id);
 
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);

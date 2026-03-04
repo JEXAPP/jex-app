@@ -1,16 +1,20 @@
 import { useGoogleAuthRequest } from '@/services/external/google/useGoogleAuthRequest';
 import { usePushNotifications } from '@/services/internal/notifications/usePushNotifications';
 import useBackendConection from '@/services/internal/useBackendConection';
+import { getToken, setToken } from '@/services/internal/useTokenStorage';
+import { connectStream } from '@/services/stream/streamClient';
 import { useRouter } from 'expo-router';
 import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react';
 import { Platform } from 'react-native';
-import { setToken, getToken } from '@/services/internal/useTokenStorage';
-import { connectStream, getStreamClient } from '@/services/stream/streamClient';
-
 
 type Role = 'employee' | 'employer';
-interface DecodedToken { role?: Role | null; [k: string]: any; }
+
+interface DecodedToken {
+  role?: Role | null;
+  is_superuser?: boolean | null;
+  [k: string]: any;
+}
 
 export const useLogin = () => {
   const router = useRouter();
@@ -34,6 +38,43 @@ export const useLogin = () => {
     if (refresh) await setToken('refresh', refresh);
   };
 
+  const ensureStreamConnected = async () => {
+    try {
+      await connectStream(requestBackend);
+    } catch (e) {
+      console.log('No se pudo conectar a Stream:', e);
+    }
+  };
+
+  const handleLoginToken = async () => {
+    try {
+      const accessToken = await getToken('access');
+      if (!accessToken) throw new Error('No access token');
+
+      await ensureStreamConnected();
+
+      const decoded = jwtDecode<DecodedToken>(accessToken);
+      const role = decoded.role;
+      const isSuperuser = !!decoded.is_superuser;
+
+      if (isSuperuser) {
+        router.replace('/admin');
+        return;
+      }
+
+      if (role === 'employee') {
+        router.replace('/employee');
+      } else if (role === 'employer') {
+        router.replace('/employer');
+      } else {
+        router.replace('/auth/register/type-user');
+      }
+    } catch (error) {
+      console.log('Token inválido:', error);
+      router.replace('/');
+    }
+  };
+
   const handleGoogle = async () => {
     if (!gReady) {
       setErrorMessage('Google aún se está inicializando. Probá de nuevo.');
@@ -51,9 +92,17 @@ export const useLogin = () => {
 
       let res;
       if (g.accessToken) {
-        res = await requestBackend('/api/auth/login/google/', { access_token: g.accessToken }, 'POST');
+        res = await requestBackend(
+          '/api/auth/login/google/',
+          { access_token: g.accessToken },
+          'POST'
+        );
       } else if (g.code) {
-        res = await requestBackend('/api/auth/login/google/code/', { code: g.code }, 'POST');
+        res = await requestBackend(
+          '/api/auth/login/google/code/',
+          { code: g.code },
+          'POST'
+        );
       } else {
         setErrorMessage('No se pudo obtener un token válido de Google.');
         setShowError(true);
@@ -85,7 +134,7 @@ export const useLogin = () => {
         }
       }, 800);
     } catch (e: any) {
-      console.log('Error Google Sign-In:', e?.message || e);
+      console.log('Error Google Sign-In:', e?.error || e);
       setErrorMessage('Error al iniciar sesión con Google');
       setShowError(true);
     } finally {
@@ -93,18 +142,6 @@ export const useLogin = () => {
     }
   };
 
-  const ensureStreamConnected = async () => {
-    try {
-      // 1) Conecta (si ya estaba conectado con el mismo user, no hace nada)
-      await connectStream();
-      // 2) Opcional: obtené el cliente para confirmar
-     const client = getStreamClient();
-      // console.log('✅ Stream conectado como', client.userID);
-    } catch (e) {
-      console.log('❌ No se pudo conectar a Stream:', e);
-    }
-  }
-  
   const handleLogin = async () => {
     if (!email || !password) {
       setErrorMessage('Todos los campos son obligatorios');
@@ -113,7 +150,11 @@ export const useLogin = () => {
     }
     setLoading(true);
     try {
-      const data = await requestBackend('/api/auth/login/jwt/', { email: email.trim(), password: password.trim() }, 'POST');
+      const data = await requestBackend(
+        '/api/auth/login/jwt/',
+        { email: email.trim(), password: password.trim() },
+        'POST'
+      );
       await saveTokens(data);
       try {
         if (Platform.OS !== 'web') {
@@ -122,35 +163,18 @@ export const useLogin = () => {
       } catch {}
       setSuccessMessage('Sesión iniciada correctamente');
       setShowSuccess(true);
-      setTimeout(async () => { setShowSuccess(false); await handleLoginToken(); }, 800);
+      setTimeout(async () => {
+        setShowSuccess(false);
+        await handleLoginToken();
+      }, 800);
     } catch (e: any) {
       const status = e?.response?.status;
       const path = e?.config?.url;
       console.log('Error en login:', status, path, e?.response?.data || e?.message);
-      if (path?.includes('/api/auth/login/jwt/') && (status === 400 || status === 401)) {
-        setErrorMessage('Correo o contraseña incorrectos');
-      } else {
-        setErrorMessage('Error al iniciar sesión. Intentalo de nuevo.');
-      }
+      setErrorMessage(e?.error || 'Error al iniciar sesión');
       setShowError(true);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleLoginToken = async () => {
-    try {
-      const accessToken = await getToken('access');
-      if (!accessToken) throw new Error('No access token');
-      await ensureStreamConnected();
-      const decoded = jwtDecode<DecodedToken>(accessToken);
-      const role = decoded.role;
-      if (role === 'employee') router.push('/employee');
-      else if (role === 'employer') router.push('/employer');
-      else router.replace('/auth/register/type-user');
-    } catch (error) {
-      console.log('Token inválido:', error);
-      router.replace('/');
     }
   };
 
@@ -163,11 +187,22 @@ export const useLogin = () => {
   const closeSuccess = () => setShowSuccess(false);
 
   return {
-    email, password, loading,
-    showError, errorMessage, showSuccess, successMessage,
-    mostrarPassword, setMostrarPassword,
-    setEmail, setPassword,
-    handleLogin, handleNavigateToRegister,
-    closeError, closeSuccess, handleGoogle, handlePasswordForgot,
+    email,
+    password,
+    loading,
+    showError,
+    errorMessage,
+    showSuccess,
+    successMessage,
+    mostrarPassword,
+    setMostrarPassword,
+    setEmail,
+    setPassword,
+    handleLogin,
+    handleNavigateToRegister,
+    closeError,
+    closeSuccess,
+    handleGoogle,
+    handlePasswordForgot,
   };
 };

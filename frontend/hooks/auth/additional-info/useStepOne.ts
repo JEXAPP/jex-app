@@ -6,7 +6,6 @@ import useBackendConection from '@/services/internal/useBackendConection';
 import { useTokenValidations } from '@/services/internal/useTokenValidations';
 
 type AdditionalInfoPayload = {
-  job_types: number[];              // en este paso va vacío
   description: string | null;
   profile_image_url: string | null;
   profile_image_id: string | null;
@@ -38,7 +37,6 @@ export const useStepOne = () => {
   const siguiente = async () => {
 
     const payload: AdditionalInfoPayload = {
-      job_types: [], // intereses se guardan en el Paso 4
       description: sobreMi.trim() !== '' ? sobreMi.trim() : null,
       profile_image_url: null,
       profile_image_id: null,
@@ -48,12 +46,12 @@ export const useStepOne = () => {
       await validateToken('employee');
 
       if (imagenFile) {
-        const upload = await uploadImage(imagenFile.uri);
+        const upload = await uploadImage(imagenFile.uri, 'user-profiles-images')
         payload.profile_image_url = upload.image_url;
         payload.profile_image_id = upload.image_id;
       }
 
-      await requestBackend('/api/auth/employee/additional-info/', payload, 'PUT');
+      await requestBackend('/api/auth/employee/profile-description/', payload, 'PUT');
 
       router.replace('/auth/additional-info/step-two');
 

@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { View, Text, Keyboard, TouchableWithoutFeedback, FlatList, Pressable } from 'react-native';
+import { View, Text, Keyboard, TouchableWithoutFeedback, FlatList, Pressable, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChat } from '@/hooks/employee/chats/useChats';
 import { chatStyles as s } from '@/styles/app/employee/chats/chatStyles';
@@ -72,28 +72,27 @@ export default function ChatScreen() {
         </>
       )}
 
-      {isLoadingAny && 
-      <SafeAreaView style={{ justifyContent: 'center', alignItems: 'center', marginTop: 100 }}>
-        <DotsLoader />
-      </SafeAreaView>}
+      {isLoadingAny && <DotsLoader/>}
       {!isLoadingAny && error && <Text style={s.errorText}>Error: {error}</Text>}
     </View>
   );
 
  // fallback
 const renderItem = ({ item }: { item: (typeof items)[number] }) => (
-      <ChatListItem
-        title={item.chatTitle ?? 'Chat'}       // "Foro Grupal" | "Trabajadores" | "Chat"
-        subtitle={item.subtitle}               // último mensaje o copy auxiliar
-        onPress={() => {
-          router.push({
-            pathname: '/employee/chats/thread',
-            params: { cid: item.id },
-          });
-        }}
-        leftImageSource={item.avatar}
-      />
-    );
+  <ChatListItem
+    title={item.chatTitle ?? 'Chat'}
+    subtitle={item.subtitle}
+    onPress={() => {
+      router.push({
+        pathname: '/employee/chats/threads',
+        params: { cid: item.id },
+      });
+    }}
+    leftImageSource={item.avatar}
+    hasUnread={item.hasUnread}
+    unreadCount={item.unreadCount}
+  />
+);
 
   return (
     <SafeAreaView style={s.container} edges={['top', 'left', 'right']}>
@@ -107,8 +106,24 @@ const renderItem = ({ item }: { item: (typeof items)[number] }) => (
             renderItem={renderItem}
             ListEmptyComponent={
               !isLoadingAny && !error && !hasChannels ? (
-                <View style={s.emptyContainer}>
-                  <Text style={s.emptyText}>Aún no hay chats para este evento</Text>
+                <View style={s.noChatsCard}>
+                  <Text style={s.noChatsTitle}>No tienes ningún chat disponible</Text>
+                  <Image
+                    source={require('@/assets/images/jex/Jex-Sin-Mensajes.webp')}
+                    style={s.noChatsImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              ) : null
+            }
+            ListFooterComponent={
+              !isLoadingAny && !error && hasChannels ? (
+                <View style={{ marginTop: 80, alignItems: 'center'}}>
+                  <Image
+                    source={require('@/assets/images/jex/Jex-Chats-Empleador.webp')}
+                    style={{ width: 250, height: 250}}
+                    resizeMode="contain"
+                  />
                 </View>
               ) : null
             }

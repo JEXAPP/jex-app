@@ -26,8 +26,11 @@ export const newPasswordStyles = StyleSheet.create({
   },
   content:{
     marginBottom: 210,
-    alignItems: 'center',
-    gap: 15
+    gap: 15,
+    alignItems: 'center'
+  },
+  passwordBar:{
+    marginBottom: 20
   },
   texto: {
     fontSize: 18,
@@ -40,7 +43,4 @@ export const newPasswordStyles = StyleSheet.create({
   step:{
     paddingHorizontal: 20
   },
-  passwordBar:{
-    marginLeft: 40
-  }
 });

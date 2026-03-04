@@ -4,6 +4,13 @@ import useBackendConection from "@/services/internal/useBackendConection";
 import { Animated, Easing } from "react-native";
 import { Offer } from "@/constants/interfaces";
 
+type Coords = { latitude: number; longitude: number };
+
+const toNum = (v: any) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
 export const useDetailOffers = () => {
   const { id } = useLocalSearchParams();
   const { requestBackend } = useBackendConection();
@@ -16,42 +23,24 @@ export const useDetailOffers = () => {
   const [showRejected, setShowRejected] = useState(false);
   const [showMatch, setShowMatch] = useState(false);
 
-  // Animaciones para pantalla de "match"
+  const [locationAddress, setLocationAddress] = useState<string | null>(null);
+  const [locationCoords, setLocationCoords] = useState<Coords | null>(null);
+
+  const [isMpAssociated, setIsMpAssociated] = useState<boolean>(true);
+  const [showMpModal, setShowMpModal] = useState(false);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
-  // Dispara animación de match y luego redirige
-  useEffect(() => {
-    if (showMatch) {
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 400,
-          useNativeDriver: true,
-          easing: Easing.out(Easing.ease),
-        }),
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          friction: 5,
-          tension: 80,
-          useNativeDriver: true,
-        }),
-      ]).start(() => {
-        setTimeout(() => {
-          router.replace("/employee/offers");
-        }, 3000);
-      });
-    }
-  }, [showMatch]);
+  // Para poder limpiar el timeout si hiciera falta
+  const matchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Formatea números con locale es-AR
   const formatNumber = (value: string | number) => {
     const num = Number(value);
     if (isNaN(num)) return String(value);
     return new Intl.NumberFormat("es-AR").format(num);
   };
 
-  // Devuelve dd/mm/yyyy
   const formatDate = (date: Date) => {
     const d = date.getDate().toString().padStart(2, "0");
     const m = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -59,27 +48,25 @@ export const useDetailOffers = () => {
     return `${d}/${m}/${y}`;
   };
 
-  // Consulta detalle y normaliza a Offer (sin cambiar nombres)
   useEffect(() => {
     let mounted = true;
 
     const fetchDetail = async () => {
       setLoading(true);
       try {
-        const data = await requestBackend(`/api/applications/offers/${id}/detail/`, null, "GET");
+        const data = await requestBackend(
+          `/api/applications/offers/${id}/detail/`,
+          null,
+          "GET"
+        );
         if (!mounted) return;
 
         const shift = data?.application?.shift ?? data?.shift;
         const vacancy = shift?.vacancy;
+        const ev = vacancy?.event ?? {};
 
-        // Calcula vencimiento restando 3 días a la fecha de inicio
-        let expirationDate = "";
-        if (shift?.start_date) {
-          const [d, m, y] = shift.start_date.split("/").map(Number);
-          const start = new Date(y, m - 1, d);
-          start.setDate(start.getDate() - 3);
-          expirationDate = formatDate(start);
-        }
+        const expirationDate = data?.expiration_date ?? "";
+        const expirationTime = data?.expiration_time ?? "";
 
         const mapped: Offer = {
           id: data?.id ?? 0,
@@ -89,15 +76,44 @@ export const useDetailOffers = () => {
           startTime: shift?.start_time ?? "",
           endTime: shift?.end_time ?? "",
           company: vacancy?.event?.name ?? "Evento sin nombre",
-          eventImage: require("@/assets/images/jex/Jex-Evento-Default.webp"),
-          expirationDate: data.expiration_date,
-          expirationTime: data.expiration_time,
+          eventImage:
+            data?.event_image_url && typeof data.event_image_url === "string"
+              ? { uri: data.event_image_url }
+              : require("@/assets/images/jex/Jex-Evento-Default.webp"),
+          expirationDate,
+          expirationTime,
           location: vacancy?.event?.location ?? "Ubicación no definida",
-          requirements: vacancy?.requirements?.map((r: any) => r.description) ?? [],
-          comments: vacancy?.description ?? data?.additional_comments ?? "",
+          requirements:
+            vacancy?.requirements?.map((r: any) => r.description) ?? [],
+          comments: data?.additional_comments ?? "-",
         };
 
         setOffer(mapped);
+
+        const topLevelAddr: string | null =
+          typeof data?.address === "string" && data.address.trim().length > 0
+            ? data.address.trim()
+            : null;
+        const eventAddr: string | null =
+          typeof ev?.location === "string" && ev.location.trim().length > 0
+            ? ev.location.trim()
+            : null;
+
+        const topLat = toNum(data?.latitude);
+        const topLng = toNum(data?.longitude);
+        const evLat = toNum(ev?.latitude);
+        const evLng = toNum(ev?.longitude);
+
+        setLocationAddress(topLevelAddr || eventAddr || mapped.location || null);
+        setLocationCoords(
+          topLat !== null && topLng !== null
+            ? { latitude: topLat, longitude: topLng }
+            : evLat !== null && evLng !== null
+            ? { latitude: evLat, longitude: evLng }
+            : null
+        );
+
+        setIsMpAssociated(Boolean(data?.is_mp_associated));
       } catch (e) {
         console.log("Error al traer detalle de oferta:", e);
       } finally {
@@ -108,41 +124,102 @@ export const useDetailOffers = () => {
     if (id) fetchDetail();
     return () => {
       mounted = false;
+      if (matchTimeoutRef.current) {
+        clearTimeout(matchTimeoutRef.current);
+      }
     };
-  }, [id]);
+  }, []);
 
-  // Envía decisión (aceptar/rechazar) y maneja estados asociados
-  const decideOffer = async (rejected: boolean, onAccepted?: () => void) => {
+  /**
+   * Arranca la animación de match y programa la navegación,
+   * TODO esto SIN useEffect dependiente de showMatch.
+   */
+  const startMatchFlow = () => {
+    setShowMatch(true);
+
+    fadeAnim.setValue(0);
+    scaleAnim.setValue(0.8);
+
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.ease),
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 5,
+        tension: 80,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    if (matchTimeoutRef.current) {
+      clearTimeout(matchTimeoutRef.current);
+    }
+    matchTimeoutRef.current = setTimeout(() => {
+      router.replace("/employee/offers");
+    }, 3000);
+  };
+
+  /**
+   * Devuelve true/false según si el decide salió bien.
+   */
+  const decideOffer = async (rejected: boolean): Promise<boolean> => {
     if (rejected) setShowRejected(true);
     try {
       const body = { rejected };
-      await requestBackend(`/api/applications/offers/${id}/decide/`, body, "POST");
-      if (!rejected && onAccepted) onAccepted();
+      await requestBackend(
+        `/api/applications/offers/${id}/decide/`,
+        body,
+        "POST"
+      );
+      return true;
     } catch (err) {
       console.log("Error al decidir la oferta:", err);
       if (rejected) setShowRejected(false);
       alert("No se pudo procesar la decisión.");
+      return false;
     }
   };
 
-  const handleAccept = (onAccepted: () => void) => {
+  /**
+   * Aceptar oferta: hace el POST y si sale bien dispara animación + redirect.
+   * El onAccepted queda opcional por si querés cerrar modales desde el render.
+   */
+  const handleAccept = (onAccepted?: () => void) => {
     setAccepting(true);
-    decideOffer(false, onAccepted).finally(() => setAccepting(false));
+    decideOffer(false)
+      .then((ok) => {
+        if (!ok) return;
+        if (onAccepted) onAccepted();
+        startMatchFlow();
+      })
+      .finally(() => setAccepting(false));
   };
 
-  const handleReject = () => decideOffer(true);
+  const handleReject = () => {
+    return decideOffer(true);
+  };
 
   const closeRejected = () => {
     setShowRejected(false);
     router.replace("/employee/offers");
   };
 
-  // Control de confirmación de rechazo
   const openConfirmReject = () => setConfirmRejectVisible(true);
   const closeConfirmReject = () => setConfirmRejectVisible(false);
   const confirmReject = async () => {
     setConfirmRejectVisible(false);
     await handleReject();
+  };
+
+  const openMpModal = () => setShowMpModal(true);
+  const closeMpModal = () => setShowMpModal(false);
+  const goToAssociateMp = () => {
+    setShowMpModal(false);
+    router.push("/employee/profile/settings/associate-mp");
   };
 
   return {
@@ -156,10 +233,19 @@ export const useDetailOffers = () => {
     showMatch,
     fadeAnim,
     scaleAnim,
-    setShowMatch,
+    setShowMatch, // lo dejo por compatibilidad, pero ya no depende de useEffect
     confirmRejectVisible,
     openConfirmReject,
     closeConfirmReject,
     confirmReject,
+
+    locationAddress,
+    locationCoords,
+
+    isMpAssociated,
+    showMpModal,
+    openMpModal,
+    closeMpModal,
+    goToAssociateMp,
   };
 };

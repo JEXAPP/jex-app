@@ -1,90 +1,82 @@
-import { useFocusEffect } from '@react-navigation/native';
+import useBackendConection from '@/services/internal/useBackendConection';
+import { useTokenValidations } from '@/services/internal/useTokenValidations';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { useMercadoPagoOAuth } from '@/services/external/mercado-pago/useMercadoPagoOAuth';
+type Interest = { id: number; name: string };
 
 export const useStepThree = () => {
+  
   const router = useRouter();
-  const {
-    status, error, info, busy,
-    openAuthorization, refreshStatus, loadLocal,
-  } = useMercadoPagoOAuth();
-
+  const { requestBackend } = useBackendConection();
+  const { validateToken } = useTokenValidations();
+  const [loading, setLoading] = useState(false);
+  const [intereses, setIntereses] = useState<Interest[]>([]);
+  const [interesesSeleccionados, setInteresesSeleccionados] = useState<number[]>([]);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Cargar estado guardado localmente
   useEffect(() => {
-    loadLocal();
-  }, [loadLocal]);
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      try {
+        await validateToken('employee');
+        const data = await requestBackend('/api/vacancies/job-types/', null, 'GET');
+        if (alive && data) setIntereses(data);
+      } catch (e) {
+        setErrorMessage('No pudimos cargar los intereses. Intentá nuevamente.');
+        setShowError(true);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    })();
+    return () => { alive = false; };
+  }, []);
 
-  // Auto-verificar al enfocar la pantalla (cuando volvés de MP)
-  useFocusEffect(
-    useCallback(() => {
-      let cancelled = false;
-
-      const check = async () => {
-        // Sólo intentamos verificar si no está "linked" aún
-        if (status !== 'linked') {
-          const ok = await refreshStatus();
-          if (cancelled) return;
-          if (ok) {
-            setTimeout(() => {
-              router.replace('/auth/additional-info/step-four');
-            }, 1000);
-          }
-        }
-      };
-
-      check();
-      return () => { cancelled = true; };
-    }, [refreshStatus, status, router])
-  );
-
-  // Acción: abrir flujo de autorización
-  const vincular = useCallback(async () => {
-    const res = await openAuthorization();
-    if (!res.ok) {
-      setErrorMessage(res.error ?? 'No se pudo abrir Mercado Pago.');
-      setShowError(true);
-    }
-    // Al volver, la verificación automática se dispara por el focus effect
-  }, [openAuthorization]);
-
-  // Acción: pedir verificación inmediata (manual)
-  const reintentarVerificacion = useCallback(async () => {
-    const ok = await refreshStatus();
-    if (ok) {
-      setTimeout(() => {
-        router.replace('/auth/additional-info/step-four');
-      }, 1000);
+  const handleToggleIntereses = (id: number) => {
+    const ya = interesesSeleccionados.includes(id);
+    if (ya) {
+      setInteresesSeleccionados(prev => prev.filter(x => x !== id));
     } else {
-      setErrorMessage('Aún no vemos la vinculación. Probá nuevamente en unos segundos.');
-      setShowError(true);
+      if (interesesSeleccionados.length >= 3) {
+        setErrorMessage('Solo podés seleccionar hasta 3 intereses.');
+        setShowError(true);
+        return;
+      }
+      setInteresesSeleccionados(prev => [...prev, id]);
     }
-  }, [refreshStatus, router]);
+  };
 
   const omitir = () => router.replace('/employee');
 
   const siguiente = async () => {
-    // si ya está vinculado, avanza
-    router.replace('/auth/additional-info/step-four');
+    // Enviar solo job_types aquí (Step 1 ya guardó foto/descr.)
+    const payload = { job_types: interesesSeleccionados };
+
+    setLoading(true);
+    try {
+      await requestBackend('/api/auth/employee/interests/', payload, 'PUT');
+      setTimeout(() => {
+        router.replace('/employee');
+      }, 1100);
+    } catch (e) {
+      setErrorMessage('Ocurrió un error al guardar tus intereses.');
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
+
+    // Si querés cambiar el endpoint, dejé el objeto listo:
+    // await requestBackend('/reemplazar', payload, 'PUT');
   };
 
   const closeError = () => setShowError(false);
 
   return {
-    // estado MP
-    status, busy, info, error,
-
-    // nav
     omitir, siguiente,
-
-    // acciones
-    vincular, reintentarVerificacion,
-
-    // feedback
+    intereses, interesesSeleccionados, handleToggleIntereses,
+    loading,
     showError, errorMessage, closeError,
   };
 };

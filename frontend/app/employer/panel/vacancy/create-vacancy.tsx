@@ -24,10 +24,18 @@ import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
 import { Colors } from '@/themes/colors';
 import React from 'react';
-import { Image, Keyboard, ScrollView, Text, TouchableWithoutFeedback, View, } from 'react-native';
+import {
+  ActivityIndicator,
+  Image,
+  Keyboard,
+  Modal,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-
 
 export default function RegisterVacancyScreen() {
   const {
@@ -56,72 +64,84 @@ export default function RegisterVacancyScreen() {
     loading,
     fechaInicioEvento,
     fechaFinEvento,
-    horaInicioEvento,
-    horaFinEvento,
-    
+    confirmPaymentModal,
+    feeModalVisible,
+    openPaymentModal,
+    closePaymentModal,
+    sueldoPagar,
+    sueldoPublicar,
+    handleChangeSueldoPagar,
+    handleChangeSueldoPublicar,
+    feeLoading,
+    feeDetails,
   } = useCreateVacancy();
 
+  const totalFeeLabel =
+    feeDetails?.total_fee_percent != null
+      ? `${feeDetails.total_fee_percent.toFixed(2).replace(/\.00$/, '')}%`
+      : null;
+
   return (
-
     <SafeAreaView edges={['top', 'left', 'right']}>
-
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-
           <View style={styles.container}>
-
             <View style={styles.header}>
-
               <Image
                 source={require('@/assets/images/jex/Jex-Creando-Vacantes.webp')}
                 style={styles.image}
               />
-
               <Text style={styles.title}>Registrar Vacantes</Text>
-
             </View>
 
             {vacantes.map((vacante, vIndex) => (
-
               <View key={vIndex} style={styles.vacancyCard}>
-
                 <View style={styles.subtitleRow}>
+                  <Text style={styles.subtitulo}> Vacante {vIndex + 1}</Text>
 
-                  <Text style={styles.subtitulo}> Vacante {vIndex + 1}</Text>                
+                  <View style={styles.subtitleButtons}>
+                    <IconButton
+                      styles={iconButtonStyles1}
+                      onPress={() => toggleVacancy(vIndex)}
+                      icon={
+                        expandedVacancy === vIndex
+                          ? iconos.carpeta_abierta(25, Colors.violet4)
+                          : iconos.carpeta_cerrada(25, Colors.violet4)
+                      }
+                    />
 
-                    <View style={styles.subtitleButtons}>
-
-                      <IconButton
-                        sizeContent={25}
-                        styles={iconButtonStyles1}
-                        onPress={() => toggleVacancy(vIndex)}
-                        content={expandedVacancy === vIndex ? 'folder-open' : 'folder'}
-                        contentColor={Colors.violet4}
-                      />
-
-                      {vacantes.length > 1 && (
-
+                    {vacantes.length > 1 && (
                       <Button
                         texto="Eliminar"
                         onPress={() => eliminarVacante(vIndex)}
-                        styles={{boton: {...buttonStyles1.boton, width: 80, backgroundColor: Colors.gray2, height: 30, marginBottom: 0}, texto: {...buttonStyles1.texto, fontSize: 15}}}
-                      />)}
-
-                    </View>
-                  
+                        styles={{
+                          boton: {
+                            ...buttonStyles1.boton,
+                            width: 80,
+                            backgroundColor: Colors.gray2,
+                            height: 30,
+                            marginBottom: 0,
+                          },
+                          texto: { ...buttonStyles1.texto, fontSize: 15 },
+                        }}
+                      />
+                    )}
+                  </View>
                 </View>
 
                 {expandedVacancy === vIndex && (
                   <>
-
                     <DropDown2
                       name="Rol:"
                       options={opcionesDropdown}
-                      id={vacantes[vIndex].rol || ''} // Asegura que no sea undefined
-                      onValueChange={(id) => {
-                        const seleccionado = opcionesDropdown.find((r) => r.id.toString() === id);
-                        actualizarRol(vIndex, seleccionado?.id.toString() || '', seleccionado?.name || '');
+                      id={vacantes[vIndex].rol || ''}
+                      onValueChange={id => {
+                        const seleccionado = opcionesDropdown.find(r => r.id.toString() === id);
+                        actualizarRol(
+                          vIndex,
+                          seleccionado?.id.toString() || '',
+                          seleccionado?.name || ''
+                        );
                       }}
                       placeholder={vacantes[vIndex].rolNombre || 'Elegí un rol'}
                       styles={dropdown2Styles1}
@@ -131,142 +151,199 @@ export default function RegisterVacancyScreen() {
                       <Input
                         placeholder="Rol Específico"
                         value={vacante.otrosRol}
-                        onChangeText={(text) => actualizarCampo(vIndex, 'otrosRol', text)}
-                        styles={{input:inputStyles1.input, inputContainer:{...inputStyles1.inputContainer, width:310, marginBottom: 20}}}
+                        onChangeText={text => actualizarCampo(vIndex, 'otrosRol', text)}
+                        styles={{
+                          input: inputStyles1.input,
+                          inputContainer: {
+                            ...inputStyles1.inputContainer,
+                            width: 310,
+                            marginBottom: 20,
+                          },
+                        }}
                       />
                     )}
 
                     <Input
                       placeholder="Descripción"
                       value={vacante.descripcion}
-                      onChangeText={(text) => actualizarCampo(vIndex, 'descripcion', text)}
+                      onChangeText={text => actualizarCampo(vIndex, 'descripcion', text)}
                       multiline
                       maxLength={200}
-                      styles={{input:inputStyles1.input, inputContainer:{...inputStyles1.inputContainer, width:310, height: 120, alignItems: 'flex-start', paddingVertical: 2}}}
+                      styles={{
+                        input: inputStyles1.input,
+                        inputContainer: {
+                          ...inputStyles1.inputContainer,
+                          width: 310,
+                          height: 120,
+                          alignItems: 'flex-start',
+                          paddingVertical: 2,
+                        },
+                      }}
                     />
 
-                    <CharCounter 
-                        current={vacante.descripcion.length} 
-                        max={200} 
-                        styles={charCounterStyles1}
+                    <CharCounter
+                      current={vacante.descripcion.length}
+                      max={200}
+                      styles={charCounterStyles1}
                     />
 
                     <Button
                       texto="Agregar Requerimiento"
                       onPress={() => agregarRequerimiento(vIndex)}
-                      styles={{ ...buttonStyles1, boton: { ...buttonStyles1.boton, paddingVertical: 10, width: 240, marginTop: 20, marginBottom: 20} }}
+                      styles={{
+                        ...buttonStyles1,
+                        boton: {
+                          ...buttonStyles1.boton,
+                          paddingVertical: 10,
+                          width: 240,
+                          marginTop: 20,
+                          marginBottom: 20,
+                        },
+                      }}
                     />
 
                     {vacante.requerimientos.map((req, rIndex) => (
-
                       <View key={rIndex} style={styles.requerimientoRow}>
-
                         <Input
                           placeholder="Requerimiento"
                           value={req}
-                          onChangeText={(text) => actualizarRequerimiento(vIndex, rIndex, text)}
-                          styles={{input:{...inputStyles1.input}, inputContainer:{...inputStyles1.inputContainer, width:270, paddingVertical: 5}}}
+                          onChangeText={text =>
+                            actualizarRequerimiento(vIndex, rIndex, text)
+                          }
+                          styles={{
+                            input: { ...inputStyles1.input },
+                            inputContainer: {
+                              ...inputStyles1.inputContainer,
+                              width: 270,
+                              paddingVertical: 5,
+                            },
+                          }}
                         />
 
                         <IconButton
-                          sizeContent={25}
                           styles={iconButtonStyles1}
                           onPress={() => eliminarRequerimiento(vIndex, rIndex)}
-                          content="trash"
-                          contentColor={Colors.gray2}
+                          icon={iconos.trash(25, Colors.gray2)}
                         />
-
                       </View>
                     ))}
-                    
+
                     {vacante.turnos.map((turno, tIndex) => (
-
                       <View key={tIndex} style={styles.turnoContainer}>
-
                         <View style={styles.shiftTitleRow}>
-
                           <Text style={styles.turnoTitulo}>{`Turno ${tIndex + 1}`}</Text>
 
-                            <IconButton
-                              sizeContent={25}
-                              styles={iconButtonStyles1}
-                              onPress={() => toggleShift(vIndex, tIndex)}
-                              content={
-                                (expandedShiftByVacancy[vIndex] ?? null) === tIndex
-                                  ? 'folder-open'
-                                  : 'folder'
-                              }
-                              contentColor={Colors.white}
-                            />
-
-                          </View>
+                          <IconButton
+                            styles={iconButtonStyles1}
+                            onPress={() => toggleShift(vIndex, tIndex)}
+                            icon={
+                              (expandedShiftByVacancy[vIndex] ?? null) === tIndex
+                                ? iconos.carpeta_abierta(25, Colors.white)
+                                : iconos.carpeta_cerrada(25, Colors.white)
+                            }
+                          />
+                        </View>
 
                         {(expandedShiftByVacancy[vIndex] ?? null) === tIndex && (
-                          
                           <>
-
                             <View style={styles.shiftRow}>
-
-                                <DatePicker
-                                  label="Fecha Inicio"
-                                  minimumDate={fechaInicioEvento}
-                                  maximumDate={fechaFinEvento}
-                                  date={turno.fechaInicio}
-                                  setDate={(date) => actualizarTurno(vIndex, tIndex, 'fechaInicio', date)}
-                                  styles={{...datePickerStyles1, selector:{...datePickerStyles1.selector, width: 140}}}
-                                />
+                              <DatePicker
+                                label="Fecha Inicio"
+                                minimumDate={fechaInicioEvento}
+                                maximumDate={fechaFinEvento}
+                                date={turno.fechaInicio}
+                                setDate={date =>
+                                  actualizarTurno(vIndex, tIndex, 'fechaInicio', date)
+                                }
+                                styles={{
+                                  ...datePickerStyles1,
+                                  selector: {
+                                    ...datePickerStyles1.selector,
+                                    width: 140,
+                                  },
+                                }}
+                              />
 
                               <TimePicker
                                 time={turno.horaInicio}
-                                setTime={(time) => actualizarTurno(vIndex, tIndex, 'horaInicio', time)}
+                                setTime={time =>
+                                  actualizarTurno(vIndex, tIndex, 'horaInicio', time)
+                                }
                                 label="Hora Inicio"
-                                styles={{...timePickerStyles1,selector: {...timePickerStyles1.selector,width: 110,}}}
+                                styles={{
+                                  ...timePickerStyles1,
+                                  selector: {
+                                    ...timePickerStyles1.selector,
+                                    width: 110,
+                                  },
+                                }}
                               />
-
                             </View>
 
                             <View style={styles.shiftRow}>
-
                               <DatePicker
                                 label="Fecha Fin"
                                 minimumDate={fechaInicioEvento}
                                 maximumDate={fechaFinEvento}
                                 date={turno.fechaFin}
-                                setDate={(date) => actualizarTurno(vIndex, tIndex, 'fechaFin', date)}
-                                styles={{...datePickerStyles1, selector:{...datePickerStyles1.selector, width: 140}}}
+                                setDate={date =>
+                                  actualizarTurno(vIndex, tIndex, 'fechaFin', date)
+                                }
+                                styles={{
+                                  ...datePickerStyles1,
+                                  selector: {
+                                    ...datePickerStyles1.selector,
+                                    width: 140,
+                                  },
+                                }}
                               />
 
                               <TimePicker
                                 time={turno.horaFin}
-                                setTime={(time) => actualizarTurno(vIndex, tIndex, 'horaFin', time)}
+                                setTime={time =>
+                                  actualizarTurno(vIndex, tIndex, 'horaFin', time)
+                                }
                                 label="Hora Fin"
-                                styles={{...timePickerStyles1,selector: {...timePickerStyles1.selector,width: 110,}}}
+                                styles={{
+                                  ...timePickerStyles1,
+                                  selector: {
+                                    ...timePickerStyles1.selector,
+                                    width: 110,
+                                  },
+                                }}
                               />
-
                             </View>
 
                             <View style={styles.shiftRow}>
-                              
                               <Input
                                 placeholder="Cantidad Personas"
-                                keyboardType='numeric'
+                                keyboardType="numeric"
                                 value={turno.cantidad}
-                                onChangeText={(value) => actualizarTurno(vIndex, tIndex, 'cantidad', value)}
-                                styles={{input:inputStyles1.input, inputContainer:{...inputStyles1.inputContainer, width:270}}}
+                                onChangeText={value =>
+                                  actualizarTurno(vIndex, tIndex, 'cantidad', value)
+                                }
+                                styles={{
+                                  input: inputStyles1.input,
+                                  inputContainer: {
+                                    ...inputStyles1.inputContainer,
+                                    width: 270,
+                                  },
+                                }}
                               />
-
                             </View>
 
                             <View style={styles.shiftRow}>
-
-                              <Input
-                                placeholder="Pago en ARS"
-                                keyboardType='numeric'
-                                value={turno.pago}
-                                onChangeText={(value) => actualizarTurno(vIndex, tIndex, 'pago', value)}
-                                styles={{input:inputStyles1.input, inputContainer:{...inputStyles1.inputContainer, width:270}}}
-                              />
-
+                              <TouchableOpacity
+                                style={styles.paymentButton}
+                                activeOpacity={0.8}
+                                onPress={() => openPaymentModal(vIndex, tIndex)}
+                              >
+                                <Text style={styles.paymentButtonValue}>
+                                  {turno.pago
+                                    ? `${turno.pago} ARS`
+                                    : 'Sueldo en ARS'}
+                                </Text>
+                              </TouchableOpacity>
                             </View>
 
                             {vacante.turnos.length > 1 && (
@@ -274,36 +351,56 @@ export default function RegisterVacancyScreen() {
                                 icono={iconos.trash(18, Colors.violet4)}
                                 texto="Eliminar turno"
                                 onPress={() => eliminarTurno(vIndex, tIndex)}
-                                styles={{ ...buttonWithIconStyles1, boton: { ...buttonWithIconStyles1.boton, width: 200, marginBottom: 20, height: 45}, texto: {...buttonWithIconStyles1.texto, marginRight: 0} }}
+                                styles={{
+                                  ...buttonWithIconStyles1,
+                                  boton: {
+                                    ...buttonWithIconStyles1.boton,
+                                    width: 200,
+                                    marginBottom: 20,
+                                    height: 45,
+                                  },
+                                  texto: {
+                                    ...buttonWithIconStyles1.texto,
+                                    marginRight: 0,
+                                  },
+                                }}
                               />
                             )}
-
                           </>
                         )}
-
                       </View>
-
                     ))}
 
                     <Button
-                        texto="Agregar turno"
-                        onPress={() => agregarTurno(vIndex)}
-                        styles={{ ...buttonStyles1, boton: { ...buttonStyles1.boton, width: 200, backgroundColor: Colors.violet2, height: 40 } }}
-                      />
-
+                      texto="Agregar turno"
+                      onPress={() => agregarTurno(vIndex)}
+                      styles={{
+                        ...buttonStyles1,
+                        boton: {
+                          ...buttonStyles1.boton,
+                          width: 200,
+                          backgroundColor: Colors.violet2,
+                          height: 40,
+                        },
+                      }}
+                    />
                   </>
                 )}
-                
               </View>
-
             ))}
 
             <View style={styles.lastButtons}>
-
               <Button
                 texto="Agregar Vacante"
                 onPress={agregarVacante}
-                styles={{ ...buttonStyles2, boton: { ...buttonStyles2.boton, width: 250, paddingVertical: 10}}}
+                styles={{
+                  ...buttonStyles2,
+                  boton: {
+                    ...buttonStyles2.boton,
+                    width: 250,
+                    paddingVertical: 10,
+                  },
+                }}
               />
 
               <Button
@@ -312,7 +409,6 @@ export default function RegisterVacancyScreen() {
                 styles={buttonStyles1}
                 loading={loading}
               />
-
             </View>
 
             <ClickWindow
@@ -332,14 +428,111 @@ export default function RegisterVacancyScreen() {
               styles={tempWindowStyles1}
               duration={2000}
             />
-
           </View>
 
+          <Modal
+            visible={feeModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={closePaymentModal}
+          >
+            <View style={styles.paymentModalOverlay}>
+              <View style={styles.paymentModalCard}>
+                <Text style={styles.paymentModalTitle}>Definir sueldo</Text>
+
+                {feeLoading ? (
+                  <View style={styles.paymentModalLoadingRow}>
+                    <ActivityIndicator size="small" color={Colors.violet4} />
+                    <Text style={styles.paymentModalHint}>
+                      Obteniendo comisión…
+                    </Text>
+                  </View>
+                ) : (
+                  <>
+                    {totalFeeLabel && (
+                      <Text style={styles.paymentModalHint}>
+                        Comisión total: {totalFeeLabel}
+                      </Text>
+                    )}
+
+                    <Text style={styles.paymentModalHint2}>
+                        Lo que pagas realmente
+                    </Text>
+
+                    <Input
+                      placeholder="Sueldo a pagar (ARS)"
+                      keyboardType="numeric"
+                      value={sueldoPagar}
+                      onChangeText={handleChangeSueldoPagar}
+                      styles={{
+                        input: inputStyles1.input,
+                        inputContainer: {
+                          ...inputStyles1.inputContainer,
+                          width: 300,
+                          marginBottom: 20
+                        },
+                      }}
+                    />
+
+                    <Text style={styles.paymentModalHint2}>
+                        Lo que ve el empleado
+                    </Text>
+
+                    <Input
+                      placeholder="Sueldo a publicar (ARS)"
+                      keyboardType="numeric"
+                      value={sueldoPublicar}
+                      onChangeText={handleChangeSueldoPublicar}
+                      styles={{
+                        input: inputStyles1.input,
+                        inputContainer: {
+                          ...inputStyles1.inputContainer,
+                          width: 300,
+                        },
+                      }}
+                    />
+
+                    <View style={styles.paymentModalButtonsRow}>
+                      <Button
+                        texto="Cancelar"
+                        onPress={closePaymentModal}
+                        styles={{
+                          boton: {
+                            ...buttonStyles1.boton,
+                            backgroundColor: Colors.gray12,
+                            width: 120,
+                            height: 44,
+                          },
+                          texto: {
+                            ...buttonStyles1.texto,
+                            color: Colors.gray3,
+                            fontSize: 15,
+                          },
+                        }}
+                      />
+                      <Button
+                        texto="Aplicar"
+                        onPress={confirmPaymentModal}
+                        styles={{
+                          boton: {
+                            ...buttonStyles1.boton,
+                            width: 120,
+                            height: 44,
+                          },
+                          texto: {
+                            ...buttonStyles1.texto,
+                            fontSize: 15,
+                          },
+                        }}
+                      />
+                    </View>
+                  </>
+                )}
+              </View>
+            </View>
+          </Modal>
         </ScrollView>
-
       </TouchableWithoutFeedback>
-      
     </SafeAreaView>
-
   );
 }

@@ -10,7 +10,7 @@ import { buttonStyles4 } from '@/styles/components/button/buttonStyles/buttonSty
 import { inputStyles1 } from '@/styles/components/input/inputStyles/inputStyles1';
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { Colors } from '@/themes/colors';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, Keyboard, KeyboardAvoidingView, Platform, Text, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -29,62 +29,49 @@ export default function RegisterPhoneScreen() {
     loading 
   } = useRegisterPhone();
 
-   return (
+  useEffect(() => {
+    console.log('RegisterPhoneScreen - desdeGoogle:', desdeGoogle);
+  }, [desdeGoogle]);
 
+  return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
           
           <View style={styles.header}>
-
             <Image source={require('@/assets/images/jex/Jex-Registrandose.webp')} style={styles.image}/>
-            
             <Text style={styles.title}>Registrate{'\n'}en JEX</Text>
-          
           </View>
 
           <View style={styles.step}>
-
-            <Stepper activeIndex={0} totalSteps={desdeGoogle ? 4 : 5} />
-
+            {/* Opcional: si quieres mantener el stepper dinámico, usa {desdeGoogle ? 4 : 5} */}
+            <Stepper activeIndex={0} totalSteps={5} />
             <Text style={styles.texto}>Ingresá tu número de teléfono:</Text>
-          
           </View>
 
-          {!desdeGoogle && (
-
-            <View style={styles.opcionesContainer}>
-              
-              <View style={styles.row}>
-                  
-                <Input
-                  placeholder="Cod. Área"
-                  keyboardType="numeric"
-                  maxLength={4}
-                  value={codigoArea}
-                  onChangeText={setCodigoArea}
-                  styles={{ inputContainer: { ...inputStyles1.inputContainer, width: 115 }, input: inputStyles1.input }}
-                />
-                  
-                <Input
-                  placeholder="Teléfono"
-                  keyboardType="numeric"
-                  maxLength={8}
-                  value={telefono}
-                  onChangeText={setTelefono}
-                  styles={{ inputContainer: { ...inputStyles1.inputContainer, width: 210}, input: inputStyles1.input  }}
-                />
-              
-              </View>
-            
+          {/* Ahora siempre mostramos los inputs, independientemente de desdeGoogle */}
+          <View style={styles.opcionesContainer}>
+            <View style={styles.row}>
+              <Input
+                placeholder="Cod. Área"
+                keyboardType="numeric"
+                maxLength={4}
+                value={codigoArea}
+                onChangeText={setCodigoArea}
+                styles={{ inputContainer: { ...inputStyles1.inputContainer, width: 115 }, input: inputStyles1.input }}
+              />
+              <Input
+                placeholder="Teléfono"
+                keyboardType="numeric"
+                maxLength={8}
+                value={telefono}
+                onChangeText={setTelefono}
+                styles={{ inputContainer: { ...inputStyles1.inputContainer, width: 210}, input: inputStyles1.input  }}
+              />
             </View>
-          
-          )}
+          </View>
 
           <View style={{ marginTop: 190 }}>
-            
             <Button
               texto="Continuar"
               loading={loading}
@@ -92,7 +79,6 @@ export default function RegisterPhoneScreen() {
               styles={continuarHabilitado ? buttonStyles1 : buttonStyles4}
               disabled={!continuarHabilitado}
             />
-          
           </View>
 
           <ClickWindow
@@ -106,10 +92,7 @@ export default function RegisterPhoneScreen() {
           />
 
         </KeyboardAvoidingView>
-      
       </TouchableWithoutFeedback>
-  
     </SafeAreaView>
-
   );
 }

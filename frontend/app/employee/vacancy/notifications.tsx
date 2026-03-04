@@ -13,22 +13,26 @@ type NotifItemProps = { item: NotificationDTO; rightText: string; onPress: (n: N
 
 const NotifItem = React.memo(function NotifItem({ item, rightText, onPress }: NotifItemProps) {
   return (
-    <View style={s.card}>
-      <View style={s.iconWrap}>
-        {item.image_url ? (
-          <ImageOnline imageUrl={item.image_url} size={20} style={{ width: 36, height: 36 }} />
-        ) : (
-          <Ionicons name="notifications-outline" size={22} color={Colors.violet4} />
-        )}
+  <View style={{...s.card, backgroundColor: !item.read? Colors.violet0 : Colors.white}}>
+      <View style={s.titleRow}>
+            <Text style={s.notifTitle} numberOfLines={1} onPress={() => onPress(item)}>{item.title}</Text>
+            <Text style={s.time}>{rightText}</Text>
+            {!item.read && <View style={s.unreadDot} />}
       </View>
-
-      <View style={s.textWrap}>
-        <View style={s.titleRow}>
-          <Text style={s.notifTitle} numberOfLines={1} onPress={() => onPress(item)}>{item.title}</Text>
-          <Text style={s.time}>{rightText}</Text>
-          {!item.read && <View style={s.unreadDot} />}
+      <View style={s.information}>
+        
+        <View style={s.iconWrap}>
+          {item.image_url ? (
+            <ImageOnline imageUrl={item.image_url} size={20} style={{ width: 36, height: 36 }} />
+          ) : (
+            <Ionicons name="notifications-outline" size={22} color={Colors.violet4} />
+          )}
         </View>
-        <Text style={s.message} numberOfLines={2} onPress={() => onPress(item)}>{item.message}</Text>
+
+        <View style={s.textWrap}>
+          
+          <Text style={s.message} numberOfLines={2} onPress={() => onPress(item)}>{item.message}</Text>
+        </View>
       </View>
     </View>
   );

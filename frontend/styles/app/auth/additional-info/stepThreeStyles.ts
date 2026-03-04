@@ -8,14 +8,12 @@ export const stepThreeAdditionalInfoStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 26,
   },
-
-  /* Header */
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 40,
-    marginTop: 20,
+    alignItems: 'center',
+    paddingTop: 10,
+    marginBottom: 30,
   },
   stepperRow: {
     flexDirection: 'row',
@@ -49,10 +47,8 @@ export const stepThreeAdditionalInfoStyles = StyleSheet.create({
     fontFamily: 'interBold',
     color: Colors.gray3,
   },
-
-  /* Body */
-  body: {
-    flex: 1,
+  scroll: {
+    paddingBottom: 26,
   },
   title: {
     fontSize: 50,
@@ -61,85 +57,18 @@ export const stepThreeAdditionalInfoStyles = StyleSheet.create({
     textAlign: 'left',
     lineHeight: 60,
   },
-  stateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  stateLabel: {
-    fontFamily: 'interMedium',
-    fontSize: 14,
-    color: Colors.gray3,
-    marginRight: 6,
-  },
-  stateValue: {
-    fontFamily: 'interSemiBold',
-    fontSize: 14,
-    color: Colors.gray3,
-  },
-  stateOk: { color: '#2e7d32' },
-  stateWarn: { color: Colors.gray3 },
-
-  /* Card */
-  card: {
-    backgroundColor: Colors.white,
-    borderRadius: 14,
-    padding: 20,
-    paddingTop: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 40,
-    marginTop: 20
-  },
-  cardText: {
-    fontFamily: 'interLightItalic',
+  subtitle: {
     fontSize: 18,
+    fontFamily: 'interItalic',
     color: Colors.gray3,
-    marginBottom: 14,
-    textAlign: 'center'
+    marginBottom: 20  ,
   },
-  cardTitle: {
-    fontFamily: 'interSemiBold',
-    fontSize: 16,
-    color: Colors.violet4,
-    marginBottom: 6,
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 14,
   },
-  cardLine: {
-    fontFamily: 'interMedium',
-    fontSize: 14,
-    color: Colors.gray3,
-  },
-  cardMuted: {
-    fontFamily: 'interRegular',
-    fontSize: 12,
-    color: Colors.gray3,
-    opacity: 0.9,
-    marginTop: 2,
-  },
-  helpLink: { 
-    marginTop: 12, 
-    alignSelf: 'flex-start' 
-  },
-  helpLinkText: {
-    fontFamily: 'interBold',
-    fontSize: 16,
-    color: Colors.violet4,
-    textAlign: 'left',
-    alignItems: 'flex-start',
-    textDecorationLine: 'underline',
-  },
-
-  errorInline: {
-    marginTop: 12,
-    color: '#b00020',
-    fontFamily: 'interMedium',
-  },
-  image: {
-    width: 220,
-    height: 220,
-    marginBottom: 20,
-  },
-  /* Footer */
   footer: {
     flexDirection: 'row',
     gap: 130,

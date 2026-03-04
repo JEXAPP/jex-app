@@ -28,7 +28,8 @@ export const useMailConfirmation = () => {
       const res = await requestBackend(
         '/api/auth/password-reset/',
         { email },
-        'POST'
+        'POST',
+        { useAuth: false }
       );
 
       if (!res) {

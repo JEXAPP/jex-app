@@ -1,48 +1,123 @@
-import { View, Text } from 'react-native';
 import React, { useEffect, useMemo } from 'react';
+import { View, Text } from 'react-native';
+import { Colors } from '@/themes/colors';
+import { iconos } from '@/constants/iconos';
 
-interface Props {
+interface PasswordStrengthProps {
   password: string;
   styles: {
     container?: any;
-    label?: any;
-    barBackground?: any;
-    barFill?: any;
+    listContainer?: any;
+    itemRow?: any;
+    itemText?: any;
+    icon?: any;
+    successContainer?: any;
+    successText?: any;
+    successIcon?: any;
   };
-  onStrengthChange?: (strength: number) => void; 
+  onValidChange?: (isValid: boolean) => void; // << nuevo: booleano para el padre
 }
 
-export const PasswordStrengthBar: React.FC<Props> = ({ password, styles, onStrengthChange}) => {
+export const PasswordStrengthBar: React.FC<PasswordStrengthProps> = ({
+  password,
+  styles,
+  onValidChange,
+}) => {
 
-    const strength = useMemo(() => {
-    let score = 0;
+  const checks = useMemo(() => {
+    const hasMinLength = password.length >= 6;
+    const hasLower = /[a-z]/.test(password);
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLettersAndNumbers = /[A-Za-z]/.test(password) && /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_\-+={}[\]\\|:;"'<>,.?/~`]/.test(password);
 
-    if (password.length >= 8) score++;
-    if (password.length >= 10) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
+    const hasLowerAndUpper = hasLower && hasUpper;
 
-    return Math.min(score, 5);
+    return {
+      hasMinLength,
+      hasLowerAndUpper,
+      hasLettersAndNumbers,
+      hasSpecial,
+    };
   }, [password]);
 
-  const percentage = (strength / 5) * 100;
+  const requirements = useMemo(
+    () => [
+      {
+        key: 'length',
+        label: 'Contiene al menos 6 caracteres',
+        met: checks.hasMinLength,
+      },
+      {
+        key: 'case',
+        label: 'Varía minúsculas y mayúsculas',
+        met: checks.hasLowerAndUpper,
+      },
+      {
+        key: 'alnum',
+        label: 'Contiene combinación de letras y números',
+        met: checks.hasLettersAndNumbers,
+      },
+      {
+        key: 'special',
+        label:
+          'Incluye un carácter especial @ # $ % & * , . / ? !',
+        met: checks.hasSpecial,
+      },
+    ],
+    [checks]
+  );
 
+  const isValid = useMemo(
+    () => requirements.every(r => r.met),
+    [requirements]
+  );
+
+  // Avisar al padre cuando cambie la validez
   useEffect(() => {
-    if (onStrengthChange) {
-      onStrengthChange(strength);
+    if (onValidChange) {
+      onValidChange(isValid);
     }
-  }, [strength, onStrengthChange]);
+  }, [isValid, onValidChange]);
 
-  const strengthLabels = ['Muy débil', 'Débil', 'Media', 'Buena', 'Fuerte'];
-  const label = strengthLabels[strength - 1] || '';
+  // Si el usuario todavía no escribió nada, no mostrar nada
+  if (!password || password.length === 0) {
+    return null;
+  }
 
+  // Si cumple todos los requisitos → mensaje de éxito
+  if (isValid) {
+    return (
+      <View style={styles.successContainer}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={styles.successIcon}>
+            {iconos.contraseña_segura(
+              20,
+              Colors.violet3
+            )}
+          </View>
+          <Text style={styles.successText}>
+            Contraseña apta para utilizar
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Caso normal: mostrar lista de requisitos
   return (
-    <View style={[styles.container, styles.container]}>
-      <Text style={[styles.label, styles.label]}>{label}</Text>
-
-      <View style={[styles.barBackground, styles.barBackground]}>
-        <View style={[styles.barFill, styles.barFill, { width: `${percentage}%` }]} />
+    <View style={styles.container}>
+      <View style={styles.listContainer}>
+        {requirements.map(req => (
+          <View key={req.key} style={styles.itemRow}>
+            <View style={styles.icon}>
+              {req.met
+                ? iconos.check(12, Colors.green)
+                : iconos.uncheck(12, Colors.gray2)}
+            </View>
+            <Text style={styles.itemText}>{req.label}</Text>
+          </View>
+        ))}
       </View>
     </View>
   );

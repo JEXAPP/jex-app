@@ -5,45 +5,48 @@ import {
   Text,
   TextStyle,
   ViewStyle,
-  StyleSheet,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 interface Props {
   onPress: () => void;
-  content: string;                  // nombre de Ionicon o texto
-  sizeContent: number;              // tamaño del ícono o texto
+
+  // Opción 1: icono ya renderizado (por ejemplo: iconos.trash(20, Colors.violet4))
+  icon?: React.ReactNode;
+
+  // Opción 2: texto simple en el botón (si no pasás icon)
+  content?: string;
+  sizeContent?: number;             // tamaño del texto si usás content
+
   sizeButton?: number;              // diámetro del círculo
   backgroundColor?: string;
-  contentColor: string;
+
   styles: {
     button: StyleProp<ViewStyle>;
     text: StyleProp<TextStyle>;
   };
+
   accessibilityLabel?: string;
   hitSlop?: number | { top: number; bottom: number; left: number; right: number };
 }
 
 export const IconButton: React.FC<Props> = ({
   onPress,
+  icon,
   content,
-  sizeContent,
+  sizeContent = 16,
   sizeButton,
   backgroundColor,
-  contentColor,
   styles,
   accessibilityLabel,
   hitSlop = 6,
 }) => {
-  const isIcon = content.length > 1; 
-
   const diameter = sizeButton ?? sizeContent + 16;
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? `Botón ${content}`}
+      accessibilityLabel={accessibilityLabel ?? 'Botón'}
       hitSlop={hitSlop}
       style={[
         styles.button,
@@ -57,22 +60,13 @@ export const IconButton: React.FC<Props> = ({
         },
       ]}
     >
-      {isIcon ? (
-        <Ionicons
-          name={content as any}
-          size={sizeContent}
-          color={contentColor}
-          style={StyleSheet.compose(null, {
-            includeFontPadding: false,
-            textAlignVertical: 'center',
-          })}
-        />
-      ) : (
+      {icon ? (
+        icon
+      ) : content ? (
         <Text
           style={[
             styles.text,
             {
-              color: contentColor,
               fontSize: sizeContent,
               includeFontPadding: false,
               textAlignVertical: 'center',
@@ -81,7 +75,7 @@ export const IconButton: React.FC<Props> = ({
         >
           {content}
         </Text>
-      )}
+      ) : null}
     </Pressable>
   );
 };

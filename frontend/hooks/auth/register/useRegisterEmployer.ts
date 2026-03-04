@@ -1,3 +1,4 @@
+// hooks/auth/register/useRegisterEmployer.ts
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useDataValidation } from '@/services/internal/useDataValidation';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -19,30 +20,67 @@ export const useRegisterEmployer = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [continuarHabilitado, setContinuarHabilitado] = useState(false);
 
+  // nuevo: aceptación de términos
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
   const validarCampos = () => {
-    if (!nombreEmpresa.trim()) { setErrorMessage('El nombre de la Empresa es obligatorio'); setShowError(true); return false; }
-    if (!validateText(nombreEmpresa)) { setErrorMessage('El nombre contiene caracteres inválidos'); setShowError(true); return false; }
-    if (!phone) { setErrorMessage('Falta el teléfono verificado'); setShowError(true); return false; }
-    if (!desdeGoogle && (!email || !password)) { setErrorMessage('Faltan credenciales'); setShowError(true); return false; }
+    if (!nombreEmpresa.trim()) {
+      setErrorMessage('El nombre de la Empresa es obligatorio');
+      setShowError(true);
+      return false;
+    }
+    if (!validateText(nombreEmpresa)) {
+      setErrorMessage('El nombre contiene caracteres inválidos');
+      setShowError(true);
+      return false;
+    }
+    if (!phone) {
+      setErrorMessage('Falta el teléfono verificado');
+      setShowError(true);
+      return false;
+    }
+    if (!desdeGoogle && (!email || !password)) {
+      setErrorMessage('Faltan credenciales');
+      setShowError(true);
+      return false;
+    }
+    if (!termsAccepted) {
+      setErrorMessage('Debés aceptar los Términos y Condiciones para registrarte');
+      setShowError(true);
+      return false;
+    }
     return true;
   };
 
   const handleRegistrarEmpleador = async () => {
     if (!validarCampos()) return;
+
     const registroPrevio: any = { phone };
-    if (!desdeGoogle) { registroPrevio.email = email; registroPrevio.password = password; }
+    if (!desdeGoogle) {
+      registroPrevio.email = email;
+      registroPrevio.password = password;
+    }
     const payload = { company_name: nombreEmpresa, ...registroPrevio };
 
     setLoading(true);
     try {
       if (desdeGoogle) {
-        await requestBackend('/api/auth/google/register', {
-          google_access_token: gAt || undefined,
-          google_code: gCode || undefined,
-          datosAdicionales: payload,
-        }, 'POST');
+        await requestBackend(
+          '/api/auth/register/employer/social/',
+          {
+            google_access_token: gAt || undefined,
+            google_code: gCode || undefined,
+            datosAdicionales: payload,
+          },
+          'POST'
+        );
       } else {
         await requestBackend('/api/auth/register/employer/', payload, 'POST');
+        const loginRes = await requestBackend('/api/auth/login/jwt/', { email, password }, 'POST');
+        const { access, refresh } = loginRes;
+        const { setToken } = await import('@/services/internal/useTokenStorage');
+        if (access) await setToken('access', access);
+        if (refresh) await setToken('refresh', refresh);
       }
       setLoading(false);
       setShowSuccess(true);
@@ -54,15 +92,33 @@ export const useRegisterEmployer = () => {
     }
   };
 
-  const closeSuccess = () => { setShowSuccess(false); router.push('/employer'); };
-  const closeError = () => { setShowError(false); setErrorMessage(''); };
+  const closeSuccess = () => {
+    setShowSuccess(false);
+    router.push('/auth/additional-info/step-employer');
+  };
 
-  useEffect(() => { setContinuarHabilitado(nombreEmpresa.length > 0); }, [nombreEmpresa]);
+  const closeError = () => {
+    setShowError(false);
+    setErrorMessage('');
+  };
+
+  useEffect(() => {
+    setContinuarHabilitado(nombreEmpresa.length > 0 && termsAccepted);
+  }, [nombreEmpresa, termsAccepted]);
 
   return {
-    nombreEmpresa, setNombreEmpresa,
-    continuarHabilitado, handleRegistrarEmpleador,
-    showError, errorMessage, showSuccess, closeError, closeSuccess,
-    loading, desdeGoogle,
+    nombreEmpresa,
+    setNombreEmpresa,
+    continuarHabilitado,
+    handleRegistrarEmpleador,
+    showError,
+    errorMessage,
+    showSuccess,
+    closeError,
+    closeSuccess,
+    loading,
+    desdeGoogle,
+    termsAccepted,
+    setTermsAccepted,
   };
 };

@@ -5,7 +5,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import useVacancies from './useVacancies';
 
-// Tipos
 type Turno = {
   fechaInicio: Date | null;
   horaInicio: string;
@@ -25,6 +24,12 @@ type Vacante = {
 };
 
 type RolDTO = { name: string; id: number };
+
+type FeeDetails = {
+  total_fee_percent: number;
+  mp_fee_percent: number;
+  app_fee_percent: number;
+};
 
 const crearTurno = (): Turno => ({
   fechaInicio: null,
@@ -55,18 +60,24 @@ const formatearFecha = (d: Date): string => {
 };
 
 const limpiarYFormatearPago = (pago: string): string => {
-  const soloNumeros = pago.replace(/\./g, ''); // elimina puntos de miles
-  const numero = parseInt(soloNumeros, 10);
+  const s = pago.replace(/\./g, '');
+  const numero = parseInt(s, 10);
   if (isNaN(numero)) return '0.00';
-  return `${numero.toFixed(2)}`; // agrega ".00"
+  return `${numero.toFixed(2)}`;
 };
 
-// === NUEVO: helpers para filtrar/validar turnos ===
 const turnoVacio = (t: Turno) =>
   !t.fechaInicio && !t.horaInicio && !t.fechaFin && !t.horaFin && !t.pago && !t.cantidad;
 
 const turnoCompleto = (t: Turno) =>
   !!t.fechaInicio && !!t.horaInicio && !!t.fechaFin && !!t.horaFin && !!t.pago && !!t.cantidad;
+
+const parseMonto = (v: string) => {
+  const nStr = soloNumeros(v);
+  const n = parseInt(nStr || '0', 10);
+  if (!Number.isFinite(n) || n <= 0) return 0;
+  return n;
+};
 
 export const useCreateVacancy = () => {
   const { horaInicioEvento, horaFinEvento, currentEvent } = useVacancies();
@@ -88,7 +99,20 @@ export const useCreateVacancy = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Carga de roles
+  const [expandedVacancy, setExpandedVacancy] = useState<number | null>(0);
+  const [expandedShiftByVacancy, setExpandedShiftByVacancy] = useState<Record<number, number | null>>({
+    0: 0,
+  });
+
+  const [feeDetails, setFeeDetails] = useState<FeeDetails | null>(null);
+  const [feeLoading, setFeeLoading] = useState(false);
+
+  const [feeModalVisible, setFeeModalVisible] = useState(false);
+  const [activeVacancyIndex, setActiveVacancyIndex] = useState<number | null>(null);
+  const [activeShiftIndex, setActiveShiftIndex] = useState<number | null>(null);
+  const [sueldoPagar, setSueldoPagar] = useState('');
+  const [sueldoPublicar, setSueldoPublicar] = useState('');
+
   useEffect(() => {
     (async () => {
       try {
@@ -100,13 +124,11 @@ export const useCreateVacancy = () => {
     })();
   }, []);
 
-  // Opciones para dropdown
   const opcionesDropdown = useMemo(
     () => rolesDisponibles.map(r => ({ name: r.name, id: String(r.id) })),
     [rolesDisponibles]
   );
 
-  // Mutadores de lista de vacantes
   const setVac = useCallback(
     (fn: (prev: Vacante[]) => Vacante[]) => setVacantes(prev => fn([...prev])),
     []
@@ -218,12 +240,10 @@ export const useCreateVacancy = () => {
       const turnos = [...v.turnos];
       const t = { ...turnos[iTur] };
 
-      // Asignación con normalizaciones
       if (campo === 'cantidad' && typeof valor === 'string') {
         const n = soloNumeros(valor);
         t.cantidad = n ? String(clamp(parseInt(n, 10), 1, 50)) : '';
       } else if (campo === 'pago' && typeof valor === 'string') {
-        // normaliza NBSP u otros espacios
         const limpio = valor.replace(/\u00A0/g, ' ');
         const n = soloNumeros(limpio);
         t.pago = n ? parseInt(n, 10).toLocaleString('es-AR') : '';
@@ -231,30 +251,107 @@ export const useCreateVacancy = () => {
         (t[campo] as typeof valor) = valor;
       }
 
-      // Validaciones (no borramos valores)
-      if (t.fechaInicio && t.fechaFin) {
-        if (t.fechaFin.getTime() < t.fechaInicio.getTime()) {
-          setErrorMessage('La fecha de fin debe ser mayor o igual a la fecha de inicio.');
-          setShowError(true);
-        }
-      }
-
-      if (t.horaInicio && t.horaFin) {
-        const [h1, m1] = t.horaInicio.split(':').map(Number);
-        const [h2, m2] = t.horaFin.split(':').map(Number);
-        if (h2 * 60 + m2 <= h1 * 60 + m1) {
-          setErrorMessage('El horario de fin debe ser mayor al horario de inicio.');
-          setShowError(true);
-        }
-      }
-
       turnos[iTur] = t;
       prev[iVac] = { ...v, turnos };
       return prev;
     });
 
+  const fetchFeeDetails = async () => {
+    if (feeDetails) return;
+    try {
+      setFeeLoading(true);
+      const res = await requestBackend('/api/payments/mercadopago/fee-details/', null, 'GET');
+      setFeeDetails(res as FeeDetails);
+    } catch (e: any) {
+      setErrorMessage('No se pudo obtener la comisión de pago.');
+      setShowError(true);
+    } finally {
+      setFeeLoading(false);
+    }
+  };
+
+  const openPaymentModal = async (vIndex: number, tIndex: number) => {
+    setActiveVacancyIndex(vIndex);
+    setActiveShiftIndex(tIndex);
+
+    const turno = vacantes[vIndex].turnos[tIndex];
+    const montoPublicarActual = parseMonto(turno.pago);
+    setSueldoPublicar(montoPublicarActual ? String(montoPublicarActual) : '');
+    setSueldoPagar('');
+
+    setFeeModalVisible(true);
+    await fetchFeeDetails();
+  };
+
+  const closePaymentModal = () => {
+    setFeeModalVisible(false);
+    setActiveVacancyIndex(null);
+    setActiveShiftIndex(null);
+    setSueldoPagar('');
+    setSueldoPublicar('');
+  };
+
+  const totalFee = feeDetails?.total_fee_percent ?? 0;
+
+  const handleChangeSueldoPagar = (valor: string) => {
+    const n = parseMonto(valor);
+    if (!n) {
+      setSueldoPagar('');
+      setSueldoPublicar('');
+      return;
+    }
+    setSueldoPagar(String(n));
+    if (totalFee <= 0) {
+      setSueldoPublicar(String(n));
+      return;
+    }
+    const publicar = Math.max(0, Math.round(n / (1 + totalFee / 100)));
+    setSueldoPublicar(publicar ? String(publicar) : '');
+  };
+
+  const handleChangeSueldoPublicar = (valor: string) => {
+    const n = parseMonto(valor);
+    if (!n) {
+      setSueldoPublicar('');
+      setSueldoPagar('');
+      return;
+    }
+    setSueldoPublicar(String(n));
+    if (totalFee <= 0) {
+      setSueldoPagar(String(n));
+      return;
+    }
+    const pagar = Math.max(0, Math.round(n * (1 + totalFee / 100)));
+    setSueldoPagar(pagar ? String(pagar) : '');
+  };
+
+  const confirmPaymentModal = () => {
+    if (activeVacancyIndex == null || activeShiftIndex == null) {
+      closePaymentModal();
+      return;
+    }
+    const nPub = parseMonto(sueldoPublicar);
+    if (!nPub) {
+      setErrorMessage('Definí al menos un sueldo mayor a cero.');
+      setShowError(true);
+      return;
+    }
+
+    setVac(prev => {
+      const vacs = [...prev];
+      const v = vacs[activeVacancyIndex];
+      const turnos = [...v.turnos];
+      const t = { ...turnos[activeShiftIndex] };
+      t.pago = nPub.toLocaleString('es-AR');
+      turnos[activeShiftIndex] = t;
+      vacs[activeVacancyIndex] = { ...v, turnos };
+      return vacs;
+    });
+
+    closePaymentModal();
+  };
+
   const handleRegistrarTodas = async () => {
-    // Quitamos turnos vacíos y vacantes sin contenido mínimo
     const vacantesLimpias = vacantes
       .map(v => {
         const turnosUtiles = v.turnos.filter(t => !turnoVacio(t));
@@ -268,18 +365,48 @@ export const useCreateVacancy = () => {
       });
 
     const esValido =
-      vacantesLimpias.length > 0 && vacantesLimpias.every(v => v.turnos.every(turnoCompleto));
+      vacantesLimpias.length > 0 &&
+      vacantesLimpias.every(v => v.turnos.every(turnoCompleto));
 
     if (!esValido) {
-      setErrorMessage('Error al registrar las vacantes. \nPor favor completa todos los datos.');
+      setErrorMessage('Error al registrar las vacantes.\nPor favor completa todos los datos.');
       setShowError(true);
       return;
+    }
+
+    for (const v of vacantesLimpias) {
+      for (const t of v.turnos) {
+
+        if (t.fechaFin!.getTime() < t.fechaInicio!.getTime()) {
+          setErrorMessage('La fecha de fin debe ser mayor o igual a la fecha de inicio.');
+          setShowError(true);
+          return;
+        }
+
+        const mismoDia =
+          t.fechaInicio!.getTime() === t.fechaFin!.getTime();
+
+        if (mismoDia) {
+          const [h1, m1] = t.horaInicio.split(':').map(Number);
+          const [h2, m2] = t.horaFin.split(':').map(Number);
+
+          const inicioMin = h1 * 60 + m1;
+          const finMin = h2 * 60 + m2;
+
+          if (finMin <= inicioMin) {
+            setErrorMessage(
+              'Si el turno comienza y termina el mismo día, el horario de fin debe ser mayor al horario de inicio.'
+            );
+            setShowError(true);
+            return;
+          }
+        }
+      }
     }
 
     setLoading(true);
 
     try {
-      
       const payload = vacantesLimpias.map(v => {
         const base = {
           event: Number(id),
@@ -301,20 +428,15 @@ export const useCreateVacancy = () => {
       await requestBackend('/api/vacancies/create/', payload, 'POST');
       setShowSuccess(true);
     } catch (error: any) {
-  
-
-  // Intenta usar primero el mensaje específico que mande el backend
-  const mensaje =
-    error?.response?.data?.error ||   // 👈 acá lees lo que vos querés
-    error?.response?.data?.message || // fallback si es otra estructura
-    'Error al registrar las vacantes'; // fallback genérico
-
-  setErrorMessage(mensaje);
-  setShowError(true);
-} finally {
-  setLoading(false);
-}
-
+      const mensaje =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        'Error al registrar las vacantes';
+      setErrorMessage(mensaje);
+      setShowError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const closeSuccess = () => {
@@ -327,17 +449,10 @@ export const useCreateVacancy = () => {
     setErrorMessage('');
   };
 
-  // Estado para expandir/minimizar
-  const [expandedVacancy, setExpandedVacancy] = useState<number | null>(0);
-  // Por vacante, qué turno está expandido (null = todos minimizados)
-  const [expandedShiftByVacancy, setExpandedShiftByVacancy] = useState<Record<number, number | null>>({ 0: 0 });
-
-  // Alternar vacante
   const toggleVacancy = (index: number) => {
     setExpandedVacancy(prev => (prev === index ? null : index));
   };
 
-  // Alternar turno dentro de una vacante
   const toggleShift = (vIndex: number, tIndex: number) => {
     setExpandedShiftByVacancy(prev => ({
       ...prev,
@@ -371,8 +486,19 @@ export const useCreateVacancy = () => {
     loading,
     fechaInicioEvento,
     fechaFinEvento,
-    horaInicioEvento,   // 👈 lo devolvés
+    horaInicioEvento,
     horaFinEvento,
     currentEvent,
+
+    feeModalVisible,
+    openPaymentModal,
+    closePaymentModal,
+    sueldoPagar,
+    sueldoPublicar,
+    handleChangeSueldoPagar,
+    handleChangeSueldoPublicar,
+    feeLoading,
+    feeDetails,
+    confirmPaymentModal,
   };
 };

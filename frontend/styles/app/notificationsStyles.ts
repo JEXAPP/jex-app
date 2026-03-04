@@ -26,9 +26,10 @@ export const notificationsStyles = StyleSheet.create({
   },
   card: {
     borderRadius: Borders.soft,
+    backgroundColor: Colors.white,
     gap: 12,
     marginTop: 10,
-    padding: 12,
+    padding: 20,
   },
   information:{
     flexDirection: 'row',
@@ -50,6 +51,12 @@ export const notificationsStyles = StyleSheet.create({
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  titleRow2: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 15
   },
   notifTitle: {
     flex: 1,

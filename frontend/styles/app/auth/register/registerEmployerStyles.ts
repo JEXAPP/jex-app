@@ -1,3 +1,4 @@
+// styles/app/auth/register/registerEmployerStyles.ts
 import { Colors } from '@/themes/colors';
 import { StyleSheet } from 'react-native';
 
@@ -17,7 +18,7 @@ export const registerEmployerStyles = StyleSheet.create({
     width: 130,
     height: 130,
     marginRight: 10,
-    marginLeft: 20
+    marginLeft: 20,
   },
   header: {
     flexDirection: 'row',
@@ -27,17 +28,54 @@ export const registerEmployerStyles = StyleSheet.create({
   },
   opcionesContainer: {
     gap: 2,
-    marginBottom: 330
+    marginBottom: 20,
+    paddingHorizontal: 20,
   },
-  texto:{
+  texto: {
     fontFamily: 'interBold',
     fontSize: 18,
     color: Colors.violet4,
     textAlign: 'left',
     marginBottom: 20,
-    marginTop: 10
+    marginTop: 10,
   },
   step: {
-    paddingHorizontal: 20
-  }
+    paddingHorizontal: 20,
+  },
+
+  // mismos estilos que usaste en empleado
+  termsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 25,
+    marginBottom: 20,
+  },
+  termsCheckbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Colors.violet4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    backgroundColor: Colors.gray1,
+  },
+  termsCheckboxInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 3,
+    backgroundColor: Colors.violet4,
+  },
+  termsText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'interMedium',
+    color: Colors.gray3,
+  },
+  termsLink: {
+    fontFamily: 'interMedium',
+    color: Colors.violet4,
+    textDecorationLine: 'underline',
+  },
 });

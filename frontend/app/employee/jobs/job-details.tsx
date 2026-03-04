@@ -15,6 +15,7 @@ import { IconButton } from '@/components/button/IconButton';
 import JobDetailsSkeleton from '@/constants/skeletons/employee/jobs/jobDetailsSkeleton';
 import { DotsLoader } from '@/components/others/DotsLoader';
 import { iconos } from '@/constants/iconos';
+import LocationMapCard from '@/components/others/LocationMapCard';
 
 export default function JobDetailScreen() {
   const {
@@ -87,13 +88,15 @@ export default function JobDetailScreen() {
             </View>
           </View>
 
+          
+
           {/* FILA 2: UBICACIÓN */}
           <View style={[styles.card2, styles.locationCard]}>
-            <Ionicons name="location" color={Colors.violet4} size={44} />
-            <View style={styles.subCard}>
-              <Text style={styles.cardTitle}>Ubicación</Text>
-              <Text style={styles.text} numberOfLines={3}>{job?.event_location ?? '-'}</Text>
-            </View>
+            <LocationMapCard
+            address={job?.event_location ?? undefined}
+            zoom={18}
+            style={{ marginTop: 0 }}
+          />
           </View>
         </View>
         {/* Requisitos */}
@@ -126,11 +129,7 @@ export default function JobDetailScreen() {
         <View style={{ marginLeft: 12, flexShrink: 0}}>
           <IconButton
             onPress={() => setShowInfo(true)}
-            content="information-circle"
-            sizeContent={30}
-            sizeButton={50}
-            backgroundColor= {Colors.violet4}
-            contentColor={Colors.white}
+            icon={iconos.information(30, Colors.violet4)}
             styles={{
                   button: {},
                   text: {},

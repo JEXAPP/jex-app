@@ -1,5 +1,13 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { View, Text, Keyboard, TouchableWithoutFeedback, FlatList, Pressable } from 'react-native';
+import {
+  View,
+  Text,
+  Keyboard,
+  TouchableWithoutFeedback,
+  FlatList,
+  Pressable,
+  Image
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChat } from '@/hooks/employer/chats/useChat';
 import { chatStyles as s } from '@/styles/app/employer/chats/chatStyles';
@@ -12,14 +20,26 @@ import { Colors } from '@/themes/colors';
 import { DotsLoader } from '@/components/others/DotsLoader';
 
 export default function ChatScreen() {
-  const { options, selectedEventId, selectEvent, loading: loadingEvents, error: errorEvents } = useChat();
-  const { loading: loadingChannels, error: errorChannels, items, hasChannels } =
-    useStreamChannels(selectedEventId || undefined);
+  const {
+    options,
+    selectedEventId,
+    selectEvent,
+    loading: loadingEvents,
+    error: errorEvents,
+  } = useChat();
+
+  const {
+    loading: loadingChannels,
+    error: errorChannels,
+    items,
+    hasChannels,
+  } = useStreamChannels(selectedEventId || undefined);
 
   const error = errorEvents ?? errorChannels ?? null;
-  const isLoadingAny = loadingEvents || loadingChannels;
+  const isLoadingAny =
+    loadingEvents ||
+    (selectedEventId != null && loadingChannels);
 
-  // Dropdown
   const [visible, setVisible] = useState(false);
   const anchorRef = useRef<View | null>(null);
 
@@ -29,7 +49,8 @@ export default function ChatScreen() {
   );
 
   const selectedLabel =
-    ddOptions.find((o) => o.value === selectedEventId)?.label || 'Seleccionar evento';
+    ddOptions.find((o) => o.value === selectedEventId)?.label ||
+    'Seleccionar evento';
 
   const Header = (
     <View style={s.headerWrap}>
@@ -37,7 +58,7 @@ export default function ChatScreen() {
         <Text style={s.titles}>Chats</Text>
       </View>
 
-      {!isLoadingAny && ddOptions.length > 0 && (
+      {!loadingEvents && ddOptions.length > 0 && (
         <>
           <Pressable
             ref={anchorRef}
@@ -66,23 +87,24 @@ export default function ChatScreen() {
         </>
       )}
 
-      {isLoadingAny && 
-        <SafeAreaView style={{ justifyContent: 'center', alignItems: 'center', marginTop: 100 }}>
-          <DotsLoader />
-        </SafeAreaView>}
-      {!isLoadingAny && error && <Text style={s.errorText}>Error: {error}</Text>}
+      {isLoadingAny && <DotsLoader />}
+      {!isLoadingAny && error && (
+        <Text style={s.errorText}>Error: {error}</Text>
+      )}
     </View>
   );
 
   const renderItem = ({ item }: { item: (typeof items)[number] }) => (
     <ChatListItem
-      title={item.chatTitle}      // "Foro Grupal"
-      subtitle={item.subtitle}    // último mensaje o copy
+      title={item.chatTitle ?? 'Chat'}
+      subtitle={item.subtitle}
       onPress={() => {
-        router.push({ pathname: '/employer/chats/thread', params: { cid: item.id } });
+        router.push({
+          pathname: '/employer/chats/thread',
+          params: { cid: item.id },
+        });
       }}
-      leftImageSource={item.avatar} // Jex-Foro-Grupal
-      avatarBg="#EEE7F4"
+      leftImageSource={item.avatar}
     />
   );
 
@@ -97,9 +119,30 @@ export default function ChatScreen() {
             contentContainerStyle={s.scroll}
             renderItem={renderItem}
             ListEmptyComponent={
-              !isLoadingAny && !error ? (
-                <View style={s.emptyContainer}>
-                  <Text style={s.emptyText}>Aún no hay chats para este evento</Text>
+              !isLoadingAny && !error && !hasChannels ? (
+                <View style={s.noChatsCard}>
+                  
+                  <Image
+                    source={require('@/assets/images/jex/Jex-Sin-Mensajes.webp')}
+                    style={s.noChatsImage}
+                    resizeMode="contain"
+                  />
+
+                  <Text style={s.noChatsTitle}>
+                    Este evento aún no tiene chats disponibles
+                  </Text>
+
+                </View>
+              ) : null
+            }
+            ListFooterComponent={
+              !isLoadingAny && !error && hasChannels ? (
+                <View style={{ marginTop: 100, alignItems: 'center'}}>
+                  <Image
+                    source={require('@/assets/images/jex/Jex-Chats-Empleador.webp')}
+                    style={{ width: 250, height: 250}}
+                    resizeMode="contain"
+                  />
                 </View>
               ) : null
             }

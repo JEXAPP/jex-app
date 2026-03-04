@@ -1,6 +1,8 @@
 import { suggestCargosESCO, suggestDisciplinasOpenAlex, suggestUniversidadesHipolabs } from '@/services/external/sugerencias/useSuggestSources';
 import { useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useUploadImageServ } from '@/services/external/cloudinary/useUploadImage';
+import useBackendConection from '@/services/internal/useBackendConection';
 
 type UploadableImage = { uri: string; name: string; type: string };
 
@@ -26,54 +28,138 @@ export type Educacion = {
   fotosFiles: (UploadableImage | null)[];
 };
 
+export type Idioma = {
+  idioma: string;
+  nivel: string;
+  nivelId: number | null;
+  notas: string;
+};
+
 type SugItem = { descripcion: string; placeId: string };
 
 const DEBOUNCE_MS = 280;
 
-// helper
+// helpers
 const isNonEmpty = (s?: string | null) => !!s && s.trim().length > 0;
 const isDate = (d: Date | null) => d instanceof Date && !isNaN(d.getTime());
 const startLEEnd = (a: Date, b: Date) => a.getTime() <= b.getTime();
 
+// dd/mm/yyyy
+const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+const toDDMMYYYY = (d: Date | null): string | null =>
+  d ? `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}` : null;
+
+type LanguageLevel = { id: number; name: string };
+
 export const useOnboardingExperience = () => {
   const router = useRouter();
+  const { requestBackend } = useBackendConection();
+  const { uploadImage } = useUploadImageServ();
 
   // listas
   const [experiencias, setExperiencias] = useState<Experiencia[]>([]);
   const [estudios, setEstudios] = useState<Educacion[]>([]);
+  const [idiomas, setIdiomas] = useState<Idioma[]>([]);
 
-  // ---- NAV ----
-  const goStep = (n: number) => {
-    if (n === 1) router.replace('/auth/additional-info/step-one');
-    if (n === 2) router.replace('/auth/additional-info/step-two');
-    if (n === 3) router.replace('/auth/additional-info/step-three');
-    if (n === 4) router.replace('/auth/additional-info/step-four');
-  };
+  // niveles de idioma desde backend
+  const [languageLevels, setLanguageLevels] = useState<LanguageLevel[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const res = await requestBackend('/api/auth/language-levels/', null, 'GET');
+        if (mounted && Array.isArray(res)) {
+          setLanguageLevels(res);
+        }
+      } catch (e) {
+        console.log('Error cargando niveles de idioma:', e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const omitir = () => router.replace('/employee');
 
   const siguiente = async () => {
-    const payload = {
-      experiences: experiencias.map(e => ({
-        role: e.cargo,
-        employment_type: e.tipoTrabajo,
-        company: e.empresa,
-        start_date: e.fechaInicio ? e.fechaInicio.toISOString() : null,
-        end_date: e.fechaFin ? e.fechaFin.toISOString() : null,
-        description: e.descripcion || null,
-        photos_uris: e.fotosUris,
-      })),
-      studies: estudios.map(e => ({
-        institution: e.institucion,
-        degree_title: e.titulo,
-        discipline: e.disciplina,
-        start_date: e.fechaInicio ? e.fechaInicio.toISOString() : null,
-        end_date: e.fechaFin ? e.fechaFin.toISOString() : null,
-        description: e.descripcion || null,
-        photos_uris: e.fotosUris,
-      })),
-    };
-    // await requestBackend('/reemplazar', payload, 'PUT');
-    router.replace('/auth/additional-info/step-three');
+    try {
+      const payload = {
+        experiences: await Promise.all(
+          experiencias.map(async (e) => {
+            let image_url: string | null = null;
+            let image_id: string | null = null;
+
+            const firstUri = e.fotosUris?.[0] ?? null;
+            if (firstUri) {
+              const res: any = await uploadImage(firstUri, 'work-experiences-docs');
+              image_url = res?.image_url ?? res?.secure_url ?? res?.url ?? null;
+              image_id = res?.image_id ?? res?.public_id ?? null;
+            }
+
+            return {
+              title: e.cargo,
+              work_type: e.tipoTrabajo,
+              company_or_event: e.empresa,
+              start_date: toDDMMYYYY(e.fechaInicio),
+              end_date: toDDMMYYYY(e.fechaFin),
+              description: e.descripcion || null,
+              image_url,
+              image_id,
+            };
+          })
+        ),
+
+        studies: await Promise.all(
+          estudios.map(async (s) => {
+            let image_url: string | null = null;
+            let image_id: string | null = null;
+
+            const firstUri = s.fotosUris?.[0] ?? null;
+            if (firstUri) {
+              const res: any = await uploadImage(firstUri, 'certificates-docs');
+              image_url = res?.image_url ?? res?.secure_url ?? res?.url ?? null;
+              image_id = res?.image_id ?? res?.public_id ?? null;
+            }
+
+            return {
+              institution: s.institucion,
+              title: s.titulo,
+              discipline: s.disciplina,
+              start_date: toDDMMYYYY(s.fechaInicio),
+              end_date: toDDMMYYYY(s.fechaFin),
+              description: s.descripcion || null,
+              image_url,
+              image_id,
+            };
+          })
+        ),
+      };
+
+      // experiencia y estudios
+      await requestBackend('/api/auth/employee/work-experience/', payload.experiences, 'POST');
+      await requestBackend('/api/auth/employee/education/', payload.studies, 'POST');
+
+      // idiomas: solo mandar si hay algo para mandar
+      if (idiomas.length > 0) {
+        const langsPayload = idiomas
+          .map((l) => ({
+            language: l.idioma,
+            level: l.nivelId,
+            notes: l.notas || '',
+          }))
+          .filter((l) => isNonEmpty(l.language) && l.level != null);
+
+        if (langsPayload.length > 0) {
+          await requestBackend('/api/auth/employee/language/', langsPayload, 'PUT');
+        }
+      }
+
+      router.replace('/auth/additional-info/step-three');
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   // ---- MODAL EXPERIENCIA ----
@@ -100,23 +186,40 @@ export const useOnboardingExperience = () => {
   const [fechaInicioExp, setFechaInicioExp] = useState<Date | null>(null);
   const [fechaFinExp, setFechaFinExp] = useState<Date | null>(null);
 
-  // types en el hook
   type Option = { id: string; name: string };
 
-  // reemplazá tu arreglo de strings por esto:
   const tiposTrabajoOptions: Option[] = [
-    'Parcial','Completo','Independiente','Prácticas','Temporal','Contrato','Freelance',
+    'Parcial',
+    'Completo',
+    'Independiente',
+    'Prácticas',
+    'Temporal',
+    'Contrato',
+    'Freelance',
   ].map((t, i) => ({ id: String(i + 1), name: t }));
 
-  // helper para convertir tu string guardado -> Option | null
   const tipoTrabajoToOption = (name: string): Option | null =>
-    tiposTrabajoOptions.find(o => o.name === name) ?? null;
+    tiposTrabajoOptions.find((o) => o.name === name) ?? null;
 
-  const abrirModalExp = () => { setEditIdxExp(null); resetExpForm(); setExpModalAbierto(true); };
-  const cerrarModalExp = () => { setExpModalAbierto(false); setFormErrorExp(''); };
+  const abrirModalExp = () => {
+    setEditIdxExp(null);
+    resetExpForm();
+    setExpModalAbierto(true);
+  };
+  const cerrarModalExp = () => {
+    setExpModalAbierto(false);
+    setFormErrorExp('');
+  };
 
   const resetExpForm = () => {
-    setExpForm({ cargo: '', tipoTrabajo: '', empresa: '', descripcion: '', fotosUris: [], fotosFiles: [] });
+    setExpForm({
+      cargo: '',
+      tipoTrabajo: '',
+      empresa: '',
+      descripcion: '',
+      fotosUris: [],
+      fotosFiles: [],
+    });
     setFechaInicioExp(null);
     setFechaFinExp(null);
     setFormErrorExp('');
@@ -131,19 +234,36 @@ export const useOnboardingExperience = () => {
   };
 
   const validarExp = (): boolean => {
-    if (!isNonEmpty(expForm.cargo)) { setFormErrorExp('El cargo es obligatorio.'); return false; }
-    if (!isNonEmpty(expForm.tipoTrabajo)) { setFormErrorExp('El tipo de trabajo es obligatorio.'); return false; }
-    if (!isNonEmpty(expForm.empresa)) { setFormErrorExp('La empresa/evento es obligatoria.'); return false; }
-    if (!isDate(fechaInicioExp)) { setFormErrorExp('La fecha de inicio es obligatoria.'); return false; }
-    if (!isDate(fechaFinExp)) { setFormErrorExp('La fecha de fin es obligatoria.'); return false; }
-    if (!startLEEnd(fechaInicioExp!, fechaFinExp!)) { setFormErrorExp('La fecha de inicio debe ser anterior o igual a la fecha de fin.'); return false; }
-    if (!isNonEmpty(expForm.descripcion)) { setFormErrorExp('La descripción es obligatoria.'); return false; }
+    if (!isNonEmpty(expForm.cargo)) {
+      setFormErrorExp('El cargo es obligatorio.');
+      return false;
+    }
+    if (!isNonEmpty(expForm.tipoTrabajo)) {
+      setFormErrorExp('El tipo de trabajo es obligatorio.');
+      return false;
+    }
+    if (!isNonEmpty(expForm.empresa)) {
+      setFormErrorExp('La empresa/evento es obligatoria.');
+      return false;
+    }
+    if (!isDate(fechaInicioExp)) {
+      setFormErrorExp('La fecha de inicio es obligatoria.');
+      return false;
+    }
+    if (!isDate(fechaFinExp)) {
+      setFormErrorExp('La fecha de fin es obligatoria.');
+      return false;
+    }
+    if (!startLEEnd(fechaInicioExp!, fechaFinExp!)) {
+      setFormErrorExp('La fecha de inicio debe ser anterior o igual a la fecha de fin.');
+      return false;
+    }
     setFormErrorExp('');
     return true;
   };
 
-  const guardarExp = () => {
-    if (!validarExp()) return;
+  const guardarExp = (): boolean => {
+    if (!validarExp()) return false;
 
     const item: Experiencia = {
       cargo: expForm.cargo.trim(),
@@ -164,6 +284,7 @@ export const useOnboardingExperience = () => {
       setExperiencias((p) => [...p, item]);
     }
     cerrarModalExp();
+    return true;
   };
 
   const editarExp = (idx: number) => {
@@ -190,13 +311,16 @@ export const useOnboardingExperience = () => {
   // ---- SUGERENCIAS EXP (ESCO cargos) ----
   const [cargoSug, setCargoSug] = useState<SugItem[]>([]);
   const cargoTimer = useRef<any>(null);
+
+  const clearCargoSug = () => setCargoSug([]);
+
   const onChangeCargo = (txt: string) => {
     setExpFormField('cargo', txt);
     if (cargoTimer.current) clearTimeout(cargoTimer.current);
     cargoTimer.current = setTimeout(async () => {
       if (!txt?.trim()) return setCargoSug([]);
       const rows = await suggestCargosESCO(txt, { limit: 8 });
-      setCargoSug(rows.map(r => ({ descripcion: r.label, placeId: r.id })));
+      setCargoSug(rows.map((r) => ({ descripcion: r.label, placeId: r.id })));
     }, DEBOUNCE_MS);
   };
 
@@ -224,11 +348,25 @@ export const useOnboardingExperience = () => {
   const [fechaInicioEdu, setFechaInicioEdu] = useState<Date | null>(null);
   const [fechaFinEdu, setFechaFinEdu] = useState<Date | null>(null);
 
-  const abrirModalEdu = () => { setEditIdxEdu(null); resetEduForm(); setEduModalAbierto(true); };
-  const cerrarModalEdu = () => { setEduModalAbierto(false); setFormErrorEdu(''); };
+  const abrirModalEdu = () => {
+    setEditIdxEdu(null);
+    resetEduForm();
+    setEduModalAbierto(true);
+  };
+  const cerrarModalEdu = () => {
+    setEduModalAbierto(false);
+    setFormErrorEdu('');
+  };
 
   const resetEduForm = () => {
-    setEduForm({ institucion: '', titulo: '', disciplina: '', descripcion: '', fotosUris: [], fotosFiles: [] });
+    setEduForm({
+      institucion: '',
+      titulo: '',
+      disciplina: '',
+      descripcion: '',
+      fotosUris: [],
+      fotosFiles: [],
+    });
     setFechaInicioEdu(null);
     setFechaFinEdu(null);
     setFormErrorEdu('');
@@ -243,19 +381,36 @@ export const useOnboardingExperience = () => {
   };
 
   const validarEdu = (): boolean => {
-    if (!isNonEmpty(eduForm.institucion)) { setFormErrorEdu('La institución es obligatoria.'); return false; }
-    if (!isNonEmpty(eduForm.titulo)) { setFormErrorEdu('El título/certificación es obligatorio.'); return false; }
-    if (!isNonEmpty(eduForm.disciplina)) { setFormErrorEdu('La disciplina es obligatoria.'); return false; }
-    if (!isDate(fechaInicioEdu)) { setFormErrorEdu('La fecha de inicio es obligatoria.'); return false; }
-    if (!isDate(fechaFinEdu)) { setFormErrorEdu('La fecha de fin (o prevista) es obligatoria.'); return false; }
-    if (!startLEEnd(fechaInicioEdu!, fechaFinEdu!)) { setFormErrorEdu('La fecha de inicio debe ser anterior o igual a la fecha de fin.'); return false; }
-    if (!isNonEmpty(eduForm.descripcion)) { setFormErrorEdu('La descripción es obligatoria.'); return false; }
+    if (!isNonEmpty(eduForm.institucion)) {
+      setFormErrorEdu('La institución es obligatoria.');
+      return false;
+    }
+    if (!isNonEmpty(eduForm.titulo)) {
+      setFormErrorEdu('El título/certificación es obligatorio.');
+      return false;
+    }
+    if (!isNonEmpty(eduForm.disciplina)) {
+      setFormErrorEdu('La disciplina es obligatoria.');
+      return false;
+    }
+    if (!isDate(fechaInicioEdu)) {
+      setFormErrorEdu('La fecha de inicio es obligatoria.');
+      return false;
+    }
+    if (!isDate(fechaFinEdu)) {
+      setFormErrorEdu('La fecha de fin (o prevista) es obligatoria.');
+      return false;
+    }
+    if (!startLEEnd(fechaInicioEdu!, fechaFinEdu!)) {
+      setFormErrorEdu('La fecha de inicio debe ser anterior o igual a la fecha de fin.');
+      return false;
+    }
     setFormErrorEdu('');
     return true;
   };
 
-  const guardarEdu = () => {
-    if (!validarEdu()) return;
+  const guardarEdu = (): boolean => {
+    if (!validarEdu()) return false;
 
     const item: Educacion = {
       institucion: eduForm.institucion.trim(),
@@ -276,6 +431,7 @@ export const useOnboardingExperience = () => {
       setEstudios((p) => [...p, item]);
     }
     cerrarModalEdu();
+    return true;
   };
 
   const editarEdu = (idx: number) => {
@@ -305,13 +461,16 @@ export const useOnboardingExperience = () => {
   const instTimer = useRef<any>(null);
   const discTimer = useRef<any>(null);
 
+  const clearInstSug = () => setInstSug([]);
+  const clearDiscSug = () => setDiscSug([]);
+
   const onChangeInst = (txt: string) => {
     setEduFormField('institucion', txt);
     if (instTimer.current) clearTimeout(instTimer.current);
     instTimer.current = setTimeout(async () => {
       if (!txt?.trim()) return setInstSug([]);
       const rows = await suggestUniversidadesHipolabs(txt, { country: 'Argentina', limit: 8 });
-      setInstSug(rows.map(r => ({ descripcion: r.label, placeId: r.id })));
+      setInstSug(rows.map((r) => ({ descripcion: r.label, placeId: r.id })));
     }, DEBOUNCE_MS);
   };
 
@@ -321,41 +480,178 @@ export const useOnboardingExperience = () => {
     discTimer.current = setTimeout(async () => {
       if (!txt?.trim()) return setDiscSug([]);
       const rows = await suggestDisciplinasOpenAlex(txt, { limit: 8 });
-      setDiscSug(rows.map(r => ({ descripcion: r.label, placeId: r.id })));
+      setDiscSug(rows.map((r) => ({ descripcion: r.label, placeId: r.id })));
     }, DEBOUNCE_MS);
   };
 
-  // Wrapper: asegurar zIndex bajo en inputs normales (para que Suggestions flote arriba)
   const empresaWrapStyleZ = { position: 'relative', zIndex: 1 };
+
+  // ---- MODAL IDIOMA ----
+  const [idiomaModalAbierto, setIdiomaModalAbierto] = useState(false);
+  const [editIdxIdioma, setEditIdxIdioma] = useState<number | null>(null);
+  const [formErrorIdioma, setFormErrorIdioma] = useState<string>('');
+
+  const [idiomaForm, setIdiomaForm] = useState<{
+    idioma: string;
+    nivel: string;
+    nivelId: number | null;
+    notas: string;
+  }>({
+    idioma: '',
+    nivel: '',
+    nivelId: null,
+    notas: '',
+  });
+
+  const abrirModalIdioma = () => {
+    setEditIdxIdioma(null);
+    resetIdiomaForm();
+    setIdiomaModalAbierto(true);
+  };
+
+  const cerrarModalIdioma = () => {
+    setIdiomaModalAbierto(false);
+    setFormErrorIdioma('');
+  };
+
+  const resetIdiomaForm = () => {
+    setIdiomaForm({ idioma: '', nivel: '', nivelId: null, notas: '' });
+    setFormErrorIdioma('');
+  };
+
+  const setIdiomaFormField = (k: 'idioma' | 'nivel' | 'notas' | 'nivelId', v: any) => {
+    setIdiomaForm((p) => ({ ...p, [k]: v }));
+  };
+
+  const guardarIdioma = (): boolean => {
+    if (!isNonEmpty(idiomaForm.idioma)) {
+      setFormErrorIdioma('El idioma es obligatorio.');
+      return false;
+    }
+    if (!isNonEmpty(idiomaForm.nivel) || idiomaForm.nivelId == null) {
+      setFormErrorIdioma('El nivel es obligatorio.');
+      return false;
+    }
+
+    const nuevoNombre = idiomaForm.idioma.trim().toLowerCase();
+
+    const yaExiste = idiomas.some((l, idx) => {
+      if (editIdxIdioma !== null && idx === editIdxIdioma) return false;
+      return l.idioma.trim().toLowerCase() === nuevoNombre;
+    });
+
+    if (yaExiste) {
+      setFormErrorIdioma('Ya cargaste este idioma.');
+      return false;
+    }
+
+    const item: Idioma = {
+      idioma: idiomaForm.idioma.trim(),
+      nivel: idiomaForm.nivel.trim(),
+      nivelId: idiomaForm.nivelId,
+      notas: idiomaForm.notas.trim(),
+    };
+
+    if (editIdxIdioma !== null) {
+      const next = [...idiomas];
+      next[editIdxIdioma] = item;
+      setIdiomas(next);
+    } else {
+      setIdiomas((p) => [...p, item]);
+    }
+
+    setFormErrorIdioma('');
+    cerrarModalIdioma();
+    return true;
+  };
+
+  const editarIdioma = (idx: number) => {
+    const l = idiomas[idx];
+    setIdiomaForm({
+      idioma: l.idioma,
+      nivel: l.nivel,
+      nivelId: l.nivelId,
+      notas: l.notas,
+    });
+    setEditIdxIdioma(idx);
+    setFormErrorIdioma('');
+    setIdiomaModalAbierto(true);
+  };
+
+  const eliminarIdioma = (idx: number) => {
+    setIdiomas((p) => p.filter((_, i) => i !== idx));
+  };
 
   return {
     // nav
-    goStep,
     omitir,
     siguiente,
 
     // lists
-    experiencias, estudios,
-    editarExp, eliminarExp,
-    editarEdu, eliminarEdu,
+    experiencias,
+    estudios,
+    idiomas,
+
+    // editar / eliminar
+    editarExp,
+    eliminarExp,
+    editarEdu,
+    eliminarEdu,
+    editarIdioma,
+    eliminarIdioma,
 
     // modals
-    abrirModalExp, cerrarModalExp, expModalAbierto,
-    abrirModalEdu, cerrarModalEdu, eduModalAbierto,
+    abrirModalExp,
+    cerrarModalExp,
+    expModalAbierto,
+    abrirModalEdu,
+    cerrarModalEdu,
+    eduModalAbierto,
+    abrirModalIdioma,
+    cerrarModalIdioma,
+    idiomaModalAbierto,
 
     // forms exp
-    expForm, setExpFormField, guardarExp,
-    cargoSug, onChangeCargo, empresaWrapStyleZ,
-    fechaInicioExp, setFechaInicioExp, fechaFinExp, setFechaFinExp,
+    expForm,
+    setExpFormField,
+    guardarExp,
+    cargoSug,
+    onChangeCargo,
+    empresaWrapStyleZ,
+    fechaInicioExp,
+    setFechaInicioExp,
+    fechaFinExp,
+    setFechaFinExp,
     formErrorExp,
-    tiposTrabajoOptions, // <- para el Picker
+    tiposTrabajoOptions,
 
     // forms edu
-    eduForm, setEduFormField, guardarEdu,
-    instSug, onChangeInst,
-    discSug, onChangeDisc,
-    fechaInicioEdu, setFechaInicioEdu, fechaFinEdu, setFechaFinEdu,
+    eduForm,
+    setEduFormField,
+    guardarEdu,
+    instSug,
+    onChangeInst,
+    discSug,
+    onChangeDisc,
+    fechaInicioEdu,
+    setFechaInicioEdu,
+    fechaFinEdu,
+    setFechaFinEdu,
     tipoTrabajoToOption,
     formErrorEdu,
+
+    // helpers sugerencias
+    clearCargoSug,
+    clearInstSug,
+    clearDiscSug,
+
+    // idioma
+    idiomaForm,
+    setIdiomaFormField,
+    guardarIdioma,
+    formErrorIdioma,
+
+    // niveles de idioma
+    languageLevels,
   };
 };

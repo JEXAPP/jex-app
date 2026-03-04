@@ -36,97 +36,91 @@ export default function ResetNewPasswordScreen() {
     setPassword,
     closeError,
     closeSuccess,
-    setPasswordStrength
+    setIsPasswordValid,
   } = useNewPassword();
 
   return (
-
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      
         <View style={styles.container}>
-
           <View style={styles.header}>
-
-            <Image source={require('@/assets/images/jex/Jex-Olvidadizo.webp')} style={styles.image} />
-
+            <Image
+              source={require('@/assets/images/jex/Jex-Olvidadizo.webp')}
+              style={styles.image}
+            />
             <Text style={styles.title}>Cambia tu contraseña</Text>
-
           </View>
 
           <View style={styles.step}>
-
             <Stepper activeIndex={2} totalSteps={3} />
-
             <Text style={styles.texto}>Ingresá tu nueva contraseña</Text>
-
           </View>
 
           <View style={styles.content}>
-
             <View>
-
               <Input
-                placeholder="Contraseña nueva" 
+                placeholder="Contraseña nueva"
                 secureTextEntry={!mostrarPassword}
-                value={password}  
+                value={password}
                 onChangeText={setPassword}
                 styles={inputStyles1}
               />
 
-              {iconos.ojoContra(mostrarPassword, Colors.violet4, Colors.violet4,() => setMostrarPassword(!mostrarPassword))}
-
-            </View>
-
-            <View style={styles.passwordBar}>
-
-              {password && (
-
-                <PasswordStrengthBar
-                  password={password}
-                  onStrengthChange={setPasswordStrength}
-                  styles={passwordStrengthStyles1}
-                />
-
-              )}                  
-            
+              {iconos.ojoContra(
+                mostrarPassword,
+                Colors.violet4,
+                Colors.violet4,
+                () => setMostrarPassword(!mostrarPassword)
+              )}
             </View>
 
             <View>
+              <View style={styles.passwordBar}>
+                <PasswordStrengthBar
+                  password={password}
+                  onValidChange={setIsPasswordValid}
+                  styles={passwordStrengthStyles1}
+                />
+              </View>
+              
 
-              <Input
-                placeholder="Confirmar contraseña"
-                secureTextEntry={!mostrarConfirmPassword}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                styles={inputStyles1}
-              />
+              <View>
+                <Input
+                  placeholder="Confirmar contraseña"
+                  secureTextEntry={!mostrarConfirmPassword}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  styles={inputStyles1}
+                />
 
-              {iconos.ojoContra(mostrarConfirmPassword, Colors.violet5, Colors.violet3,() => setMostrarConfirmPassword(!mostrarConfirmPassword))}
-
+                {iconos.ojoContra(
+                  mostrarConfirmPassword,
+                  Colors.violet5,
+                  Colors.violet3,
+                  () => setMostrarConfirmPassword(!mostrarConfirmPassword)
+                )}
+              </View>
             </View>
-
           </View>
 
-          <Button 
-            texto="Guardar" 
+          <Button
+            texto="Guardar"
             onPress={handleGuardar}
-            loading={loading} 
+            loading={loading}
             styles={continuarHabilitado ? buttonStyles1 : buttonStyles4}
             disabled={!continuarHabilitado}
           />
 
           <ClickWindow
-            title='Error'
-            visible={showError} 
-            message={errorMessage} 
-            onClose={closeError} 
-            styles={clickWindowStyles1} 
+            title="Error"
+            visible={showError}
+            message={errorMessage}
+            onClose={closeError}
+            styles={clickWindowStyles1}
             icono={iconos.error_outline(30, Colors.white)}
-            buttonText='Entendido'
+            buttonText="Entendido"
           />
-          
+
           <TempWindow
             visible={showSuccess}
             icono={iconos.exito(40, Colors.white)}
@@ -134,12 +128,8 @@ export default function ResetNewPasswordScreen() {
             styles={tempWindowStyles1}
             duration={2000}
           />
-
         </View>
-
       </TouchableWithoutFeedback>
-
     </SafeAreaView>
-    
   );
 }

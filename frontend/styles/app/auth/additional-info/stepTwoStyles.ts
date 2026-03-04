@@ -12,7 +12,7 @@ export const stepTwoAdditionalInfoStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 40,
+    marginBottom: 20,
     marginTop: 20,
   },
   title: {
@@ -22,61 +22,48 @@ export const stepTwoAdditionalInfoStyles = StyleSheet.create({
     textAlign: 'left',
     lineHeight: 50,
   },
-  actionBtnRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
+
+  // Column de botones "Agregar ..."
+  actionsColumn: {
+    marginTop: 10,
+    marginBottom: 16,
     gap: 10,
-    backgroundColor: Colors.white,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderWidth: 1,
-    borderColor: Colors.gray2,
-    width: '48%', // queda “a la mitad”
-  },
-  actionIconImg: {
-    width: 40,
-    height: 40,
-    borderRadius: 6,
-    backgroundColor: Colors.gray1,
-    marginRight: 10
   },
 
-  /* Cards */
+  // Cards
   cardsRow: {
     flexDirection: 'row',
     gap: 16,
     paddingHorizontal: 26,
   },
   card: {
-    flex: 1,
+    height: 340, // ventana blanca fija
     marginTop: 10,
     marginBottom: 20,
     backgroundColor: Colors.white,
     borderRadius: 14,
     padding: 12,
   },
-  cardList: { 
-    flex: 1 
+  cardScroll: {
+    flex: 1,
   },
-  cardListContent: { 
-    paddingBottom: 6 
+  cardListContent: {
+    paddingBottom: 6,
   },
   cardEmpty: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 10,
   },
   cardEmptyText: {
     fontFamily: 'interMedium',
     fontSize: 14,
     color: Colors.gray3,
-  },
-  cardScroll: {
-    flex: 1,
+    textAlign: 'center',
   },
 
-  /* Ítems dentro de la card */
+  // Ítems genéricos (no timeline, no idiomas)
   itemRow: {
     flexDirection: 'row',
     alignItems: 'stretch',
@@ -112,7 +99,6 @@ export const stepTwoAdditionalInfoStyles = StyleSheet.create({
     color: Colors.gray3,
   },
 
-  /* Acciones a la derecha (con separador) */
   itemActions: {
     paddingLeft: 10,
     borderLeftWidth: 1,
@@ -125,12 +111,121 @@ export const stepTwoAdditionalInfoStyles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  iconGhost: {
-    // círculo invisible (background transparente), tamaño lo maneja el componente
-  },
+  iconGhost: {},
   iconGhostTxt: {},
 
-  /* Modal base */
+  // ----- IDIOMAS -----
+  languageItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  languageInfo: {
+    flex: 1,
+    marginRight: 8,
+  },
+  languageName: {
+    fontFamily: 'interBold',
+    fontSize: 14,
+    color: Colors.violet4,
+  },
+  languageLevelBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: Colors.gray1,
+    marginRight: 8,
+  },
+  languageLevelText: {
+    fontFamily: 'interSemiBold',
+    fontSize: 11,
+    color: Colors.gray3,
+  },
+
+  separatorDotted: {
+    borderTopWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: Colors.gray3,
+    marginVertical: 12,
+  },
+
+  // ----- TIMELINE -----
+  timelineRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  timelineCol: {
+    width: 26,
+    alignItems: 'center',
+  },
+  timelineDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: Colors.violet4,
+    marginTop: 4,
+  },
+  timelineLine: {
+    flex: 1,
+    width: 3,
+    backgroundColor: Colors.violet3,
+    marginTop: 2,
+    borderRadius: 999,
+    shadowColor: Colors.violet4,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  timelineCardWrapper: {
+    flex: 1,
+    marginLeft: 4,
+  },
+  timelineCardInner: {
+    borderRadius: 12,
+    padding: 10,
+  },
+  timelineContentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  timelineTextCol: {
+    flex: 1,
+  },
+  timelineActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginLeft: 8,
+    gap: 6,
+  },
+  timelineTitle: {
+    fontFamily: 'interSemiBold',
+    fontSize: 14,
+    color: Colors.violet4,
+    marginBottom: 2,
+  },
+  timelineSub: {
+    fontFamily: 'interMedium',
+    fontSize: 12,
+    color: Colors.gray3,
+    marginBottom: 2,
+  },
+  timelineDates: {
+    fontFamily: 'interMedium',
+    fontSize: 11,
+    color: Colors.gray3,
+    marginBottom: 4,
+  },
+  timelineDesc: {
+    fontFamily: 'interRegular',
+    fontSize: 12,
+    color: Colors.gray3,
+  },
+
+  // Modal base
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
@@ -152,21 +247,21 @@ export const stepTwoAdditionalInfoStyles = StyleSheet.create({
     color: Colors.violet4,
     marginBottom: 20,
   },
-  /* Campos y filas */
+
   fieldWrapSuggest: {
     marginBottom: 12,
     position: 'relative',
-    zIndex: 30,            // <— más alto que el resto
+    zIndex: 30,
   },
   fieldWrap: {
     marginBottom: 12,
     position: 'relative',
-    zIndex: 1,             // <— explícitamente bajo
+    zIndex: 1,
   },
   row2: {
     flexDirection: 'row',
     gap: 12,
-    zIndex: 1,             // <— bajo para que Suggestions lo tape
+    zIndex: 1,
   },
   label: {
     fontFamily: 'interSemiBold',
@@ -201,7 +296,6 @@ export const stepTwoAdditionalInfoStyles = StyleSheet.create({
     color: Colors.violet4,
   },
 
-  /* Botonera inferior */
   footer: {
     flexDirection: 'row',
     gap: 130,
@@ -209,12 +303,18 @@ export const stepTwoAdditionalInfoStyles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  /* Botonera de los modales */
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 12,
     marginTop: 20,
+    marginBottom: 6,
+  },
+  modalButtons2: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 10,
     marginBottom: 6,
   },
   skipButton: {
@@ -223,6 +323,6 @@ export const stepTwoAdditionalInfoStyles = StyleSheet.create({
   nextButton: {
     fontSize: 20,
     fontFamily: 'interBold',
-    color: Colors.violet4
-  }
+    color: Colors.violet4,
+  },
 });

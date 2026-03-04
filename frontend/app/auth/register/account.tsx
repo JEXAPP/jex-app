@@ -34,7 +34,7 @@ export default function RegisterAccountScreen() {
     setMostrarPassword,
     mostrarConfirmPassword,
     setMostrarConfirmPassword,    
-    setPasswordStrength
+    setIsPasswordValid
   } = useRegisterAccount();
 
   return (
@@ -95,7 +95,7 @@ export default function RegisterAccountScreen() {
 
                       <PasswordStrengthBar
                         password={password}
-                        onStrengthChange={setPasswordStrength}
+                        onValidChange={setIsPasswordValid}
                         styles={passwordStrengthStyles1}
                       />
 

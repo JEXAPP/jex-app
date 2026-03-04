@@ -5,7 +5,6 @@ export const stateOffersStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.gray1,
-    paddingHorizontal: 20,
   },
   title: {
     fontSize: 50,
@@ -36,9 +35,10 @@ export const stateOffersStyles = StyleSheet.create({
     gap: 8,
     flexWrap: "wrap",
   },
+
   offerCard: {
     backgroundColor: "#fff",
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 16,
     marginTop: 15,
     position: "relative",
@@ -51,78 +51,137 @@ export const stateOffersStyles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 4,
     paddingHorizontal: 12,
+    zIndex: 10,
   },
-  statusText: { 
-    fontSize: 12, 
-    fontFamily: "interMedium" 
+  statusText: {
+    fontSize: 12,
+    fontFamily: "interMedium",
   },
-  statusPendiente: { 
-    color: Colors.gray3 
+  statusPendiente: {
+    color: Colors.gray3,
   },
-  statusAceptada: { 
-    color: Colors.gray3
+  statusAceptada: {
+    color: Colors.gray3,
   },
-  statusRechazada: { 
-    color: Colors.gray3 
+  statusRechazada: {
+    color: Colors.gray3,
   },
+
   offerHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginTop: 8,
   },
-  employeeImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 27.5,
-    marginRight: 12,
-    marginTop: 10
+  avatar: {
+    marginRight: 10,
   },
-  employeeName: { 
-    fontSize: 22, 
-    fontFamily: 'interBold', 
-    marginBottom: 6,
-    marginTop: 10,
-    color: Colors.violet4
+  headerInfo: {
+    flex: 1,
+    flexDirection: "column",
   },
-  column: {
-    flexDirection: 'column'
-  },
-  roleText: { 
-    fontSize: 18, 
-    color: Colors.black, 
-    fontFamily: 'interSemiBold',
-    marginLeft:5
-  },
-  salaryPill: {
-    alignSelf: 'flex-start',
-    backgroundColor: Colors.violet4,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+  employeeName: {
+    fontSize: 24,
+    fontFamily: "interBold",
+    color: Colors.violet4,
     marginBottom: 4,
-    minWidth: 60,
   },
-  salaryText: { 
-    fontSize: 14, 
-    color: Colors.white, 
-    fontFamily: 'interBold' 
+  roleText: {
+    fontSize: 18,
+    color: Colors.black,
+    fontFamily: "interSemiBold",
   },
-  datePill: {
+
+  turnContainer: {
+    marginTop: 14,
+    paddingHorizontal: 6,
+  },
+  turnRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-start",
+    marginBottom: 6,
+  },
+  turnText: {
+    marginLeft: 10,
+    fontSize: 15,
+    fontFamily: "interMediumItalic",
+    color: Colors.gray3,
+  },
+  paymentAmount: {
+    fontSize: 28,
+    fontFamily: "interBold",
+    color: "#1B5E20",
+  },
+  paidRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 4,
+  },
+  paymentSuccess: {
+    fontSize: 16,
+    fontFamily: "interBold",
+    color: "#1B5E20",
+  },
+
+  receiptBox: {
+    marginTop: 12,
+    backgroundColor: "rgba(255,255,255,0.6)",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderRadius: 12,
-    paddingVertical: 6,
-    alignSelf: "stretch",
-    marginLeft:5
+    flexDirection: "row",
+    alignItems: "center",
   },
-  date: { 
-    marginLeft: 10, 
-    fontSize: 15, 
-    fontFamily: 'interMediumItalic',
-    color: Colors.gray3, 
-    textAlign: "center" 
+  receiptLabel: {
+    fontSize: 12,
+    fontFamily: "interRegular",
+    color: "#1B5E20",
+    marginRight: 8,
   },
+  receiptValue: {
+    fontSize: 14,
+    fontFamily: "interBold",
+    color: "#1B5E20",
+    flexShrink: 1,
+  },
+
+  pendingBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: "#EDEDED",
+  },
+  pendingText: {
+    fontSize: 14,
+    fontFamily: "interBold",
+    color: Colors.gray3,
+  },
+
+  paymentHint: {
+    fontSize: 13,
+    fontFamily: "interMediumItalic",
+    color: Colors.gray3,
+    marginBottom: 10,
+  },
+
+  payButtonLarge: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.violet4,
+    paddingVertical: 14,
+    borderRadius: 16,
+    gap: 10,
+  },
+  payButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "interBold",
+  },
+
   emptyContainer: {
     flex: 0,
     backgroundColor: Colors.gray12,
@@ -151,19 +210,19 @@ export const stateOffersStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 20,
-    marginTop: 10,
+    marginTop: 30,
     alignItems: "center",
     justifyContent: "flex-start",
   },
   generalEmptyTitle: {
     fontSize: 20,
-    fontWeight: "700",
+    fontFamily: 'interSemiBoldItalic',
     color: Colors.violet4,
     marginBottom: 10,
     marginTop: 10,
     textAlign: "center",
   },
-  generalEmptyImage: { width: 250, height: 250, marginTop: 5 },
+  generalEmptyImage: { width: 250, height: 300, marginTop: 5 },
 
   noEventsContainer: {
     flex: 0,
@@ -178,18 +237,19 @@ export const stateOffersStyles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: Colors.violet4,
-    marginBottom: 10, 
+    marginBottom: 10,
     textAlign: "center",
   },
   noEventsImage: {
-    width: 250,  
+    width: 250,
     height: 250,
-    marginTop: 5, 
+    marginTop: 5,
   },
+
   eventRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   sideSlot: {
     flex: 1,
@@ -199,17 +259,80 @@ export const stateOffersStyles = StyleSheet.create({
     flex: 3,
     alignItems: "center",
   },
- eventName: {
+  eventName: {
     fontSize: 24,
-    fontFamily: 'interBold',
-    textAlign: 'center',
+    fontFamily: "interBold",
+    textAlign: "center",
     color: Colors.violet4,
   },
   tagsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 10,
     marginBottom: 14,
+  },
+  paymentBlock: {
+    marginTop: 16,
+    borderRadius: 20,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    backgroundColor: "#F1F1F1",
+  },
+  paymentBlockApproved: {
+    marginTop: 16,
+    borderRadius: 20,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    backgroundColor: "#e7fddc",
+  },
+  eventEstadoBadge: {
+    backgroundColor: Colors.gray12,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    alignSelf: 'center',
+    marginBottom: 20
+  },
+  eventEstadoText: {
+    color: Colors.gray3,
+    fontSize: 11,
+    fontFamily: 'interBold',
+  },
+  payRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  paymentAmountPending: {
+    fontSize: 20,
+    fontFamily: "interBold",
+    color: Colors.violet4,
+  },
+
+  payButtonSmall: {
+    backgroundColor: Colors.violet4,
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    borderRadius: 14,
+  },
+  paymentDateText: {
+    marginTop: 6,
+    fontSize: 14,
+    fontFamily: "interLightItalic",
+    color: "#1B5E20",
+  },
+
+  payButtonSmallText: {
+    color: "#fff",
+    fontSize: 16,
+    fontFamily: "interBold",
+  },
+
+  paymentAmountApproved: {
+    fontSize: 20,
+    fontFamily: "interBold",
+    color: "#1B5E20",
   },
 });

@@ -31,9 +31,9 @@ export const styles = StyleSheet.create({
   block: {
   },
   suggestWrapper: {
-    position: 'relative',
-    zIndex: 1000,
-    elevation: 8,
+    position: 'relative', 
+    zIndex: 9999, 
+    elevation: 9999
   },
   // Calle + Altura en fila
   rowCalleAltura: {

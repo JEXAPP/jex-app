@@ -7,8 +7,7 @@ import { router } from "expo-router";
 import { listStyles as styles } from "@/styles/app/employee/profile/qualifyListStyles";
 import { LinearGradient } from "expo-linear-gradient";
 import { MotiView } from "moti";
-import { MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
-
+import { Feather, Ionicons } from "@expo/vector-icons";
 
 export default function SelectEventToQualify() {
   const { employers, loading, error } = useQualifyList();
@@ -37,9 +36,11 @@ export default function SelectEventToQualify() {
   return (
     <LinearGradient colors={["#f8f6ff", "#ffffff"]} style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        {/* Imagen decorativa opcional */}
+        <View style={styles.backBtnHero} onTouchEnd={() => router.replace('/employee/profile')}>
+            <Ionicons name="arrow-back" size={28} color={Colors.violet4} />
+        </View>
         <Image
-          source={require("@/assets/images/jex/Jex-Busqueda-Disponibilidad.webp")} 
+          source={require("@/assets/images/jex/Jex-Busqueda-Disponibilidad.webp")}
           style={styles.headerImage}
         />
 
@@ -64,25 +65,25 @@ export default function SelectEventToQualify() {
                     pathname: "/employee/profile/qualify",
                     params: {
                       employerId: item.employer_id,
-                      employerName: item.employer_full_name,
+                      employerName: item.company_name,
                       eventId: item.event_id,
                       eventName: item.event_name,
                       jobType: item.job_type,
-                      date: `${item.event_start_date}`,
+                      date: item.event_start_date,
                       time: `${item.event_start_time} - ${item.event_end_time}`,
+                      imageUrl: item.image_url || "", 
                     },
                   })
                 }
               >
                 <View style={styles.cardHeader}>
-                <Text style={styles.eventName}>{item.event_name}</Text>
-                </View>
-
-                <View style={styles.cardDetailRow}>
-                
-                <Text style={styles.eventDetail}>
-                    {item.event_start_date} • {item.job_type}
-                </Text>
+                 
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.eventName}>{item.event_name}</Text>
+                    <Text style={styles.eventDetail}>
+                      {item.event_start_date} • {item.job_type}
+                    </Text>
+                  </View>
                 </View>
               </TouchableOpacity>
             </MotiView>

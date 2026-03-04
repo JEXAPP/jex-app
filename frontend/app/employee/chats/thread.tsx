@@ -15,11 +15,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
 import { getStreamClient } from '@/services/stream/streamClient';
 import { threadStyles as s } from '@/styles/app/employer/chats/threadStyles';
+import { DateSeparator as JexDateSeparator } from '@/components/chats/DateSeparator';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 function parseCid(cid: string) {
   const i = cid.indexOf(':');
   return i === -1 ? { type: '', id: '' } : { type: cid.slice(0, i), id: cid.slice(i + 1) };
 }
+
+const JexMessageList = (props: any) => <MessageList {...props} />;
 
 export default function ThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
@@ -32,7 +36,11 @@ export default function ThreadScreen() {
   const [loading, setLoading] = useState(true);
 
   const client = useMemo(() => {
-    try { return getStreamClient(); } catch { return null; }
+    try {
+      return getStreamClient();
+    } catch {
+      return null;
+    }
   }, []);
 
   useEffect(() => {
@@ -54,24 +62,47 @@ export default function ThreadScreen() {
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [client, cid]);
+
+  const CustomDateSeparator = (props: any) => (
+    <JexDateSeparator date={props?.date} />
+  );
 
   if (!client) return <Text>No se pudo inicializar el chat.</Text>;
   if (!cid) return <Text>Canal no especificado.</Text>;
 
   return (
     <SafeAreaView style={s.container} edges={['top', 'left', 'right', 'bottom']}>
-      <OverlayProvider>
+      <OverlayProvider 
+        value={{
+        style: {
+          inlineDateSeparator: {
+            container: {
+              backgroundColor: Colors.violet4,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 20
+            },
+            text: {
+              color: 'white',
+              fontFamily: 'interLightItalic',
+              fontSize: 11,
+            },
+          },
+        },
+      }}>
         <StreamChatUI client={client}>
-          {loading && <Text style={{ padding: 16 }}>Cargando chat…</Text>}
+          {loading && <DotsLoader/>}
           {!loading && error && <Text style={{ color: 'red', padding: 16 }}>{error}</Text>}
           {!loading && !error && channel && (
-            <StreamChannelUI channel={channel}>
+            <StreamChannelUI channel={channel} hideStickyDateHeader={true} >
               <>
-                {/* Header */}
                 <View style={s.header}>
-                  <TouchableOpacity onPress={() => router.back()} style={s.backButton}>
+                  <TouchableOpacity onPress={() => router.push('/employee/chats')} style={s.backButton}>
                     <Ionicons name="chevron-back-outline" size={26} color={Colors.violet4} />
                   </TouchableOpacity>
                   <View style={s.headerAvatar}>
@@ -86,23 +117,24 @@ export default function ThreadScreen() {
                   </View>
                 </View>
 
-                {/* Lista de mensajes */}
                 <KeyboardAvoidingView
                   style={{ flex: 1 }}
                   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                   keyboardVerticalOffset={insets.bottom + 90}
                 >
                   <View style={{ flex: 1 }}>
-                    <MessageList
+                    <JexMessageList
                       TypingIndicator={TypingIndicator}
                       ScrollToBottomButton={ScrollToBottomButton}
-                      inverted={true} // ✅ mensajes nuevos abajo, orden normal
+                      inverted={true}
+                      DateSeparator={CustomDateSeparator}
                     />
                   </View>
 
-                  {/* Composer */}
                   <View style={[s.inputContainer, { paddingBottom: insets.bottom }]}>
-                    <MessageInput />
+                    <MessageInput additionalTextInputProps={{
+                        placeholder: 'Escribí un mensaje...',
+                      }}/>
                   </View>
                 </KeyboardAvoidingView>
               </>
