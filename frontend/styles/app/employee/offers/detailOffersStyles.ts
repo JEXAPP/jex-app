@@ -23,7 +23,8 @@ export const detailOffersStyles = StyleSheet.create({
   card: { 
     backgroundColor: Colors.white, 
     borderRadius: 16, 
-    padding: 20 
+    padding: 20,
+    gap: 5 
   },
    card2: { 
     backgroundColor: Colors.white, 
@@ -98,7 +99,8 @@ export const detailOffersStyles = StyleSheet.create({
   requirementsTitle: { 
     fontSize: 16, 
     fontFamily: 'interSemiBold', 
-    marginBottom: 4 
+    marginBottom: 4,
+    marginTop: 5
   },
   requirement: { 
     fontSize: 15, 

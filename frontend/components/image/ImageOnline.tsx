@@ -57,7 +57,7 @@ const ImageOnline: React.FC<Props> = ({
   const base =
     shape === 'circle'
       ? [{overflow: 'hidden', width: size, height: size, borderRadius: size / 2 }]
-      : [{overflow: 'hidden', width: size, height: size }];
+      : [{overflow: 'hidden', width: size, height: size, borderRadius: size / 4 }];
 
   if (!uri) {
     return <Image source={fallback} style={[...base, style as any]} resizeMode="cover" />;

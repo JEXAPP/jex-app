@@ -1,23 +1,37 @@
 // services/external/streamApi.ts
-import useBackendConection from '@/services/internal/useBackendConection';
 
 export type StreamCredentials = {
   api_key: string;
-  user_id: string;
+  user: {
+    id: string;
+    name: string;
+    image?: string;
+    role?: string;
+  };
   token: string;
 };
 
-// Pide al backend las credenciales para conectarse a Stream.
-// Devuelve: { api_key, user_id, token }
-export async function getStreamCredentials(): Promise<StreamCredentials> {
-  const url = '/api/chats/stream/token/';
-  const { requestBackend } = useBackendConection<StreamCredentials>();
+// La hacemos compatible con tu requestBackend real
+export type RequestBackendFn = (
+  endpoint: string,
+  payload?: any,
+  method?: any,
+  customConfig?: any
+) => Promise<StreamCredentials>;
 
-  const response = await requestBackend(url, null, 'GET');
+/**
+ * Pide al backend las credenciales para conectarse a Stream.
+ * NO usa hooks. Recibe requestBackend como parámetro.
+ */
+export async function getStreamCredentials(
+  requestBackend: RequestBackendFn
+): Promise<StreamCredentials> {
+  const url = "/api/chats/stream/token/";
 
-  // Sanity check mínimo (opcional)
-  if (!response?.api_key || !response?.user_id || !response?.token) {
-    throw new Error('Credenciales de Stream inválidas desde el backend.');
+  const response = await requestBackend(url, null, "GET");
+
+  if (response?.user?.id) {
+    response.user.id = String(response.user.id);
   }
 
   return response;

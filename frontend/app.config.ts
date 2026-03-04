@@ -39,7 +39,7 @@ export default (): ExpoConfig => ({
      "POST_NOTIFICATIONS"
    ],
     config: {
-      googleMaps: { apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY }
+      googleMaps: { apiKey: 'AIzaSyBn4LQdUfBiyNnmbXHbmEsFXnWZ2OHpIXQ' }
     }
   },
   ios: {
@@ -51,7 +51,7 @@ export default (): ExpoConfig => ({
       backgroundColor: "#ffffff"
     },
     config: {
-      googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY 
+      googleMapsApiKey: 'AIzaSyBn4LQdUfBiyNnmbXHbmEsFXnWZ2OHpIXQ' 
     },
     infoPlist: {
       NSCameraUsageDescription: "Necesitamos la cámara para escanear el QR y tomar fotos.",

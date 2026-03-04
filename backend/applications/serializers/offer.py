@@ -11,6 +11,7 @@ from eventos.formatters.date_time import CustomDateField, CustomTimeField
 from eventos.serializers.event import EventSerializer
 from notifications.constants import NotificationTypes
 from notifications.services.send_notification import send_notification
+from payments.constants import PaymentStates
 from payments.models.payments import Payment
 from rating.utils import get_user_average_rating, get_user_rating_count
 from user_auth.models.employee import EmployeeProfile
@@ -293,8 +294,8 @@ class OfferDecisionSerializer(serializers.Serializer):
             offer.rejection_reason = self.validated_data.get('rejection_reason', '')
 
             if offer.application:
-                pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
-                offer.application.state = pending_state
+                rejected_state = ApplicationState.objects.get(name=ApplicationStates.REJECTED.value)
+                offer.application.state = rejected_state
                 offer.application.save(update_fields=['state'])
             
             offer.save(update_fields=['state', 'rejection_reason'])
@@ -324,8 +325,8 @@ class OfferDecisionSerializer(serializers.Serializer):
                 o.state = rejected_state
                 o.rejection_reason = "Conflicto de horario con otra oferta aceptada"
                 if o.application:
-                    pending_state = ApplicationState.objects.get(name=ApplicationStates.PENDING.value)
-                    o.application.state = pending_state
+                    rejected_state = ApplicationState.objects.get(name=ApplicationStates.REJECTED.value)
+                    o.application.state = rejected_state
                     o.application.save(update_fields=['state'])
                 o.save(update_fields=['state', 'rejection_reason'])
             
@@ -512,6 +513,7 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
     expiration_time = CustomTimeField(required=False)
     payment_state = serializers.SerializerMethodField()
     payment_mp_id = serializers.SerializerMethodField()
+    payment_date = serializers.SerializerMethodField()
 
     class Meta:
         model = Offer
@@ -526,7 +528,8 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
             "expiration_date",
             "expiration_time",
             "payment_state",
-            "payment_mp_id"
+            "payment_mp_id",
+            "payment_date"
         ]
 
     def get_profile_image(self, obj):
@@ -547,6 +550,16 @@ class OfferEventByStateSerializer(serializers.ModelSerializer):
         if payment and payment.state:
             return payment.mp_payment_id
         return "El pago no está completo"
+    
+    def get_payment_date(self,  obj):
+        payment = Payment.objects.filter(
+            offer=obj,
+            employee=obj.employee.user,
+            state__name=PaymentStates.APPROVED.value
+        ).first()
+        if payment:
+            return payment.updated_at.strftime('%d/%m/%Y')
+        return None
 
 
 

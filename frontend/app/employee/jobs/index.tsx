@@ -15,8 +15,6 @@ export default function ActiveJobsScreen() {
   const orderOptions = [
     "Días Faltantes ASC",
     "Días Faltantes DESC",
-    "Fecha Inicio ASC",
-    "Fecha Inicio DESC",
     "Rol ASC",
     "Rol DESC",
     "Evento ASC",
@@ -32,10 +30,6 @@ export default function ActiveJobsScreen() {
         return list.sort((a, b) => a.daysRemaining - b.daysRemaining);
       case "Días Faltantes DESC":
         return list.sort((a, b) => b.daysRemaining - a.daysRemaining);
-      case "Fecha Inicio ASC":
-        return list.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
-      case "Fecha Inicio DESC":
-        return list.sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
       case "Rol ASC":
         return list.sort((a, b) => a.role.localeCompare(b.role));
       case "Rol DESC":

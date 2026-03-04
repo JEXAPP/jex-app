@@ -58,7 +58,7 @@ export default function CreateEventScreen() {
   return (
 
     <View style={{flex: 1}}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
         
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         
@@ -191,7 +191,7 @@ export default function CreateEventScreen() {
               <View style={styles.button}>
 
                 <Button
-                  texto="Validar"
+                  texto="Crear Evento"
                   onPress={handleCrearEvento}
                   styles={continuarHabilitado ? buttonStyles1 : buttonStyles4}
                   disabled={!continuarHabilitado}

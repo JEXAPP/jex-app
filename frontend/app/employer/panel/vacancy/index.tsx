@@ -79,7 +79,6 @@ export default function VacanciesScreen() {
             />
             <IconButton
               sizeButton={35}
-              sizeContent={27}
               styles={iconButtonStyles1}
               onPress={() =>
                 goToCreateVacancy(
@@ -90,9 +89,8 @@ export default function VacanciesScreen() {
                   currentEvent.horaFin
                 )
               }
-              content="+"
               backgroundColor={Colors.violet4}
-              contentColor={Colors.white}
+              icon={iconos.plus(25, Colors.white)}
             />
           </View>
 
@@ -123,7 +121,7 @@ export default function VacanciesScreen() {
               <TouchableOpacity
                 key={String(item.id)}
                 style={styles.vacancyCard}
-                onPress={() => goToVacancyDetail(item.id)}
+                onPress={() => goToVacancyDetail(item.id, currentEvent.id)}
               >
                 <View style={styles.vacancyInfo}>
                   <View style={styles.vacancyEstadoBadge}>

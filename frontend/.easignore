@@ -1,0 +1,10 @@
+# Gradle caches/locks (Windows/OneDrive EBUSY)
+android/.gradle/
+android/**/.gradle/
+**/*.lock
+
+# extras recomendados
+node_modules/
+.expo/
+dist/
+build/

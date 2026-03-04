@@ -35,17 +35,15 @@ export const chatStyles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   dropdownAnchor: {
-    marginHorizontal: 16,
-    paddingVertical: 12,
+    marginTop: 8,
+    paddingVertical: 18,
     paddingHorizontal: 14,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ddd',
     backgroundColor: '#fff',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 5
+    marginBottom: 10
   },
   dropdownAnchorText: { 
     fontSize: 16, 
@@ -69,5 +67,26 @@ export const chatStyles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     opacity: 0.7,
+  },
+  noChatsCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 15,
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 50,
+    height: 500
+  },
+  noChatsTitle: {
+    fontFamily: 'interBoldItalic',
+    fontSize: 22,
+    color: Colors.violet4,
+    marginBottom: 60,
+    textAlign: 'center'
+  },
+  noChatsImage: {
+    width: 250,
+    height: 250,
+    marginBottom: 70
   },
 });

@@ -38,8 +38,6 @@ export const useVacancies = () => {
       try {
         const data = await requestBackend(`/api/vacancies/by-employer/${eventId}/`, null, "GET");
 
-        console.log(data.vacancies)
-
         if (data && Array.isArray(data.vacancies)) {
           const normalized: VacancyItem[] = data.vacancies.map((v: any) => ({
             id: v.id,
@@ -89,8 +87,8 @@ export const useVacancies = () => {
       `/employer/panel/vacancy/create-vacancy?id=${eventId}&fechaInicio=${fechaInicio}&fechaFin=${fechaFin}&horaInicio=${horaInicio}&horaFin=${horaFin}`
     );
 
-  const goToVacancyDetail = (vacancyId: number) =>
-    router.push(`/employer/panel/vacancy/manipulate-vacancy?id=${vacancyId}`);
+  const goToVacancyDetail = (vacancyId: number, eventId: number) =>
+    router.replace(`/employer/panel/vacancy/manipulate-vacancy?id=${vacancyId}&eventId=${eventId}`);
 
   const filteredVacantes = useMemo(() => {
     const q = search.toLowerCase();

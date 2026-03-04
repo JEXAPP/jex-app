@@ -26,9 +26,8 @@ type ApplicantAPI = {
   employee_id: number;
   full_name: string;
   profile_image: string | null;
-  average_rating: number | null
-  rating_count: number
-
+  average_rating: number | null;
+  rating_count: number;
 };
 
 // Datos por turno
@@ -98,9 +97,15 @@ export const useChooseCandidates = () => {
   // Refs de UI
   const roleAnchorRef = useRef<View | null>(null);
 
+  // Para evitar race conditions (responses viejas)
+  const applicationsRequestIdRef = useRef(0);
+
   // Estado principal
-  const [events, setEvents] = useState<{ id: string; name: string; vacancies: VacancySummary[] }[]>([]);
+  const [events, setEvents] = useState<{ id: string; name: string; vacancies: VacancySummary[] }[]>(
+    []
+  );
   const [currentEventIndex, setCurrentEventIndex] = useState(0);
+
   const currentEvent = events.length ? events[Math.min(currentEventIndex, events.length - 1)] : null;
 
   const [selectedVacancyId, setSelectedVacancyId] = useState<number | null>(null);
@@ -121,6 +126,7 @@ export const useChooseCandidates = () => {
   const [rolePickerVisible, setRolePickerVisible] = useState(false);
   const [loadingEventVacancies, setLoadingEventVacancies] = useState(false);
   const [loadingApplications, setLoadingApplications] = useState(false);
+  const [hasLoadedApplications, setHasLoadedApplications] = useState(false); // ✅ clave para no “flashear” empty
   const [error, setError] = useState<string | null>(null);
 
   // Derivados para render
@@ -129,10 +135,12 @@ export const useChooseCandidates = () => {
     () => (currentEvent?.vacancies ?? []).map(v => ({ label: v.roleName, value: v.id })),
     [currentEvent]
   );
+
   const selectedRoleLabel = useMemo(
     () => roleOptions.find(o => o.value === selectedVacancyId)?.label ?? 'Seleccionar rol',
     [roleOptions, selectedVacancyId]
   );
+
   const shiftTags = useMemo(
     () => (currentVacancy?.shiftIds ?? []).map((id, idx) => ({ id, name: `Turno ${idx + 1}` })),
     [currentVacancy?.shiftIds]
@@ -148,6 +156,7 @@ export const useChooseCandidates = () => {
   const fetchAllEventsVacancies = async () => {
     setLoadingEventVacancies(true);
     setError(null);
+
     try {
       const data: EventWithVacanciesAPI[] = await requestBackend(ENDPOINTS.eventsVacancies, null, 'GET');
 
@@ -180,22 +189,37 @@ export const useChooseCandidates = () => {
     }
   };
 
+  // Helper: reset “contenido” de postulaciones
+  const resetApplicationsState = () => {
+    setCandidates([]);
+    setShiftInfo(null);
+    setOffers(null);
+  };
+
   // Trae postulaciones + horario + cupos/ofertas del turno seleccionado
   const fetchApplications = async (vacancyId: number | null, shiftId: number | null) => {
     if (!vacancyId || !shiftId) {
-      setCandidates([]);
-      setShiftInfo(null);
-      setOffers(null);
+      resetApplicationsState();
+      setHasLoadedApplications(false);
       return;
     }
+
+    const requestId = ++applicationsRequestIdRef.current;
+
+    // ✅ importantísimo: marcar que estamos en transición
     setLoadingApplications(true);
+    setHasLoadedApplications(false);
     setError(null);
+
     try {
       const data: ApplicationsByShiftAPI = await requestBackend(
         ENDPOINTS.applicationsByVacancyShift(vacancyId, shiftId),
         null,
         'GET'
       );
+
+      // Si entró una request nueva después, ignoramos esta respuesta
+      if (requestId !== applicationsRequestIdRef.current) return;
 
       // Horario por turno
       setShiftInfo({
@@ -210,7 +234,8 @@ export const useChooseCandidates = () => {
       const madeFromShift = typeof data.quantity_offers === 'number' ? data.quantity_offers : undefined;
       const maxFromShift = typeof data.quantity === 'number' ? data.quantity : undefined;
 
-      const madeFallback = typeof currentVacancy?.quantityOffers === 'number' ? currentVacancy?.quantityOffers : 0;
+      const madeFallback =
+        typeof currentVacancy?.quantityOffers === 'number' ? currentVacancy?.quantityOffers : 0;
       const maxFallback = typeof currentVacancy?.quantity === 'number' ? currentVacancy?.quantity : 0;
 
       setOffers({
@@ -233,87 +258,121 @@ export const useChooseCandidates = () => {
         .sort((a, b) => a.fullName.localeCompare(b.fullName));
 
       setCandidates(items);
-
     } catch (e: any) {
+      if (requestId !== applicationsRequestIdRef.current) return;
       setError(e?.message ?? 'Error al cargar candidatos');
-      setCandidates([]);
-      setShiftInfo(null);
-      setOffers(null);
+      resetApplicationsState();
     } finally {
+      if (requestId !== applicationsRequestIdRef.current) return;
       setLoadingApplications(false);
+      setHasLoadedApplications(true); // ✅ recién acá habilitamos empty state
     }
   };
 
   // ===== Efectos =====
 
   // Carga inicial de eventos/vacantes
-  useEffect(() => { fetchAllEventsVacancies(); }, []);
+  useEffect(() => {
+    fetchAllEventsVacancies();
+  }, []);
 
   // Al cambiar de evento, seleccionar primera vacante y su primer turno
   useEffect(() => {
     if (!currentEvent) return;
+
+    // invalidar requests en vuelo
+    applicationsRequestIdRef.current += 1;
+
     if ((currentEvent.vacancies?.length ?? 0) === 0) {
       setSelectedVacancyId(null);
       setSelectedShiftId(null);
-      setCandidates([]);
-      setShiftInfo(null);
-      setOffers(null);
+      resetApplicationsState();
+      setHasLoadedApplications(false);
       return;
     }
+
     const v = currentEvent.vacancies[0];
     setSelectedVacancyId(v.id);
     setSelectedShiftId(v.shiftIds[0] ?? null);
-    setCandidates([]);
-    setShiftInfo(null);
-    setOffers(null);
+
+    resetApplicationsState();
+    setHasLoadedApplications(false);
   }, [currentEventIndex, currentEvent?.id]);
 
   // Al cambiar vacante, seleccionar primer turno
   useEffect(() => {
+    // invalidar requests en vuelo
+    applicationsRequestIdRef.current += 1;
+
     if (!currentVacancy) {
       setSelectedShiftId(null);
-      setCandidates([]); setShiftInfo(null); setOffers(null);
+      resetApplicationsState();
+      setHasLoadedApplications(false);
       return;
     }
+
     setSelectedShiftId(currentVacancy.shiftIds[0] ?? null);
-    setCandidates([]); setShiftInfo(null); setOffers(null);
+    resetApplicationsState();
+    setHasLoadedApplications(false);
   }, [selectedVacancyId]);
 
   // Traer postulaciones cuando el turno pertenece a la vacante
   useEffect(() => {
     if (!selectedVacancyId || !selectedShiftId) return;
+
     const belongs = currentVacancy?.shiftIds?.includes(selectedShiftId) ?? false;
     if (!belongs) return;
+
     fetchApplications(selectedVacancyId, selectedShiftId);
   }, [selectedVacancyId, selectedShiftId, currentVacancy?.id]);
 
   // ===== Handlers =====
-  const handlePrevEvent = () => { if (currentEventIndex > 0) setCurrentEventIndex(i => i - 1); };
-  const handleNextEvent = () => { if (currentEventIndex < events.length - 1) setCurrentEventIndex(i => i + 1); };
+  const handlePrevEvent = () => {
+    if (currentEventIndex > 0) setCurrentEventIndex(i => i - 1);
+  };
+
+  const handleNextEvent = () => {
+    if (currentEventIndex < events.length - 1) setCurrentEventIndex(i => i + 1);
+  };
 
   const handleSelectVacancy = (vacancyId: number) => {
+    // invalidar requests en vuelo
+    applicationsRequestIdRef.current += 1;
+
     setSelectedVacancyId(vacancyId);
     setSelectedShiftId(null);
-    setCandidates([]);
-    setShiftInfo(null);
-    setOffers(null);
+
+    resetApplicationsState();
+    setHasLoadedApplications(false);
   };
 
   const handleSelectShift = (shiftId: number) => {
     if (shiftId === selectedShiftId) return;
+
+    // invalidar requests en vuelo
+    applicationsRequestIdRef.current += 1;
+
     setSelectedShiftId(shiftId);
-    setCandidates([]);
-    setShiftInfo(null);
-    setOffers(null);
+
+    resetApplicationsState();
+    setHasLoadedApplications(false);
   };
 
   // Empty states
   const hasNoEvents = !loadingEventVacancies && events.length === 0;
+
   const hasEventsButNoVacanciesGlobal =
     !loadingEventVacancies && events.length > 0 && events.every(ev => (ev.vacancies?.length ?? 0) === 0);
+
   const currentEventHasNoVacancies = !!currentEvent && (currentEvent.vacancies?.length ?? 0) === 0;
+
+  // ✅ solo es “no hay postulaciones” si ya cargamos al menos una vez para esa selección
   const hasVacanciesButNoCandidates =
-    !loadingApplications && !loadingEventVacancies && !!currentVacancy && candidates.length === 0;
+    hasLoadedApplications &&
+    !loadingApplications &&
+    !loadingEventVacancies &&
+    !!currentVacancy &&
+    candidates.length === 0;
 
   // Navegación a detalle de candidato
   const openCandidateDetail = (applicationId: number | string) => {
@@ -368,5 +427,6 @@ export const useChooseCandidates = () => {
 
     // utils
     splitFirstSpace,
+    totalEvents: events.length,
   };
 };

@@ -1,58 +1,39 @@
+// src/hooks/employer/profile/useProfileEmployer.ts
 import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { clearTokens } from "@/services/internal/api";
 import useBackendConection from "@/services/internal/useBackendConection";
 import * as SecureStore from "expo-secure-store";
-import { Asset } from "expo-asset";
-import * as FileSystem from "expo-file-system/legacy";
-import * as Sharing from "expo-sharing";
-import { jwtDecode } from "jwt-decode";
-
-// Tipo del payload de tu JWT
-type JwtPayload = {
-  user_id: number; // asegurate que tu backend ponga el id acá
-  exp: number;
-};
+import { disconnectStream } from "@/services/stream/streamClient";
 
 export const useProfile = () => {
   const { requestBackend } = useBackendConection();
 
   const [user, setUser] = useState<{
     name: string;
-    image: any; // 👈 puede ser require() o string
+    image: string | null;
     rating: number;
+    ratingCount: number;
   } | null>(null);
 
-  // 👉 decodificar token para obtener id
-  const getEmployeeId = async () => {
-    const access = await SecureStore.getItemAsync("access");
-    if (!access) throw new Error("No hay access token");
-    const decoded: JwtPayload = jwtDecode(access);
-    return decoded.user_id;
-  };
-
-  // 👉 cargar datos del empleado
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const employeeId = await getEmployeeId();
-        const data = await requestBackend(
-          `/api/rating/viewratings/${employeeId}/`,
-          null,
-          "GET"
-        );
+        const data = await requestBackend(`/api/auth/user/profile/`, null, "GET");
 
         if (data) {
+          const ratingNumber =
+            data.rating !== null && data.rating !== undefined
+              ? Number(data.rating)
+              : 0;
+
           setUser({
-            name: `${data.user_full_name}`,
-            image: require("@/assets/images/jex/Jex-FotoPerfil.webp"),
-            rating:
-              data.average_rating !== null
-                ? Number(data.average_rating.toFixed(1))
-                : 0,
+            name: data.user_name ?? "Usuario",
+            image: data.image_url ?? null,
+            rating: ratingNumber,
+            ratingCount: data.rating_count ?? 0,
           });
         }
-
       } catch (e: any) {
         console.warn("⚠️ Error cargando perfil:", e.message);
       }
@@ -68,46 +49,56 @@ export const useProfile = () => {
     console.log("REFRESH:", refresh);
   };
 
-  const openLegalPdf = async () => {
-    try {
-      const asset = Asset.fromModule(require("@/assets/legal.pdf"));
-      await asset.downloadAsync();
-
-      if (!asset.localUri) throw new Error("No se pudo obtener la ruta local del PDF");
-
-      const dest = FileSystem.cacheDirectory + "legal.pdf";
-      await FileSystem.copyAsync({ from: asset.localUri, to: dest });
-
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(dest, { mimeType: "application/pdf" });
-      } else {
-        console.warn("⚠️ Sharing no está disponible en este dispositivo");
-      }
-    } catch (e: any) {
-      console.warn("⚠️ No se pudo abrir el PDF:", e.message);
-    }
+  // Navegaciones (ajustá paths si los tuyos son otros)
+  const goToProfileDetails = () => {
+   router.push("/employer/profile/view-profile");
   };
 
+  const goToRatingsScreen = () => {
+    router.push("/employer/profile/employer-ratings");
+  };
+
+  const goToEventsHistory = () => {
+    router.push("/employer/profile/events-history");
+  };
+  
+  const goToEditProfile = () => {
+    router.push("/employer/profile/edit-basic")
+  }
+
   const options = [
-  { label: "Configuración de la cuenta", icon: "settings" },
-  { label: "Consultá tu perfil", icon: "user" },
-  { label: "Privacidad", icon: "lock" },
-  { label: "Invitá a un trabajador", icon: "user-plus" },
-  { label: "Legal", icon: "file-text", onPress: openLegalPdf },
-];
+    {
+      label: "Editar perfil",
+      icon: "user",
+      onPress: goToEditProfile,
+    },
+    {
+      label: "Legal",
+      icon: "file-text",
+    },
+  ];
 
   const handleLogout = async () => {
     try {
       const refresh = await SecureStore.getItemAsync("refresh");
+
       if (refresh) {
-        await requestBackend("/api/auth/logout/", { refresh }, "POST");
-        console.log("✅ Sesión cerrada en backend");
+        try {
+          await requestBackend("/api/auth/logout/", { refresh }, "POST");
+          console.log("Sesión cerrada en backend");
+        } catch (e) {
+          console.warn("Logout backend falló, pero seguimos:", e);
+        }
       }
-    } catch (e: any) {
-      console.warn("⚠️ Error al cerrar sesión en backend:", e.message);
+
+      try {
+        await disconnectStream();
+      } catch (e) {
+        console.warn("Error al desconectar Stream:", e);
+      }
+
     } finally {
       await clearTokens();
-      await debugTokens();
       router.replace("/");
     }
   };
@@ -116,5 +107,8 @@ export const useProfile = () => {
     user,
     options,
     handleLogout,
+    goToProfileDetails,
+    goToRatingsScreen,
+    goToEventsHistory,
   };
 };

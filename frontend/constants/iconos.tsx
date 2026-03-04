@@ -1,13 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Octicons from '@expo/vector-icons/Octicons';
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { TouchableOpacity } from 'react-native';
 import React from 'react';
 import { Colors } from '@/themes/colors';
-
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 export const iconos = {
   error: (size: number, color: string) => (
@@ -23,6 +21,15 @@ export const iconos = {
     <TouchableOpacity onPress={onPress} style={{position: 'absolute', right: 15, top: 12, zIndex: 10,padding: 5,}} accessibilityLabel={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}>
       <MaterialIcons name={visible ? 'visibility' : 'visibility-off'} size={20} color={visible ? colorVisible : colorOculto}/>
     </TouchableOpacity>
+  ),
+  check: (size: number, color: string) => (
+    <Octicons name="check-circle-fill" size={size} color={color} />
+  ),
+  uncheck: (size: number, color: string) => (
+    <Octicons name="x-circle-fill" size={size} color={color} />
+  ),
+  contraseña_segura: (size: number, color: string) => (
+    <MaterialCommunityIcons name="account-lock" size={size} color={color} />
   ),
   flechaIzquierda: (size: number, color: string) => (
     <Ionicons name="chevron-back" size={size} color={color}/>
@@ -60,7 +67,7 @@ export const iconos = {
     <MaterialCommunityIcons name="format-list-bulleted" size={size} color={color} />
   ),
   cuidado: (size: number, color: string) => (
-    <Ionicons name="alert-circle" size={size} color={color} />
+    <Ionicons name="alert" size={size} color={color} />
   ),
   usuario_validado: (size: number, color: string) => (
     <MaterialCommunityIcons name="account-multiple-check" size={size} color={color} />
@@ -80,8 +87,23 @@ export const iconos = {
   search: (size: number, color: string) => (
     <Ionicons name="search" size={size} color={color} />
   ),
+  plus: (size: number, color: string) => (
+    <MaterialCommunityIcons name="plus-thick" size={size} color={color} />
+  ),
+  minus: (size: number, color: string) => (
+    <FontAwesome5 name="minus" size={size} color={color}/>
+  ),
   trash: (size:number, color:string) => (
     <Octicons name="trash" size={size} color={color} />
+  ),
+  edit: (size: number, color: string) => (
+    <Octicons name="pencil" size={size} color={color} />
+  ),
+  notification: (size: number, color: string) => (
+    <Ionicons name="notifications-circle-sharp" size={size} color={color} />
+  ), 
+  information: (size: number, color: string) => (
+    <MaterialIcons name="info" size={size} color={color} />
   ),
   full_star: (size: number, color: string, key?: React.Key) => (
     <MaterialIcons key={key} name="star" size={size} color={color} />
@@ -95,14 +117,41 @@ export const iconos = {
   location: (size:number, color:string) => (
     <MaterialIcons name="location-pin" size={size} color={color} />
   ),
-  notification: (size: number, color:string) => (
-    <Ionicons name="notifications" size={size} color={color} />
-  ),
   portfolio: (size: number, color: string) => (
     <Octicons name="briefcase" size={size} color={color} />
   ), 
   libro_abierto: (size:number, color: string) => (
     <MaterialCommunityIcons name="book-open-variant-outline" size={size} color={color} />
+  ),
+  idioma: (size:number, color: string) => (
+    <Octicons name="globe" size={size} color={color} />
+  ),
+  carpeta_cerrada: (size:number, color: string) => (
+    <FontAwesome5 name="folder" size={size} color={color} />
+  ),
+  carpeta_abierta: (size:number, color: string) => (
+    <FontAwesome5 name="folder-open" size={size} color={color} />
+  ),
+  work_history: (size: number, color: string) => (
+    <MaterialIcons name="work-history" size={size} color={color} />
+  ),
+  logout: (size: number, color: string) => (
+    <Ionicons name="log-out-outline" size={size} color={color} />
+  ),
+  config_interests: (size: number, color: string) => (
+    <Ionicons name="heart-circle-outline" size={size} color={color} />
+  ),
+  config_profile: (size: number, color: string) => (
+    <Ionicons name="person-circle-outline" size={size} color={color} />
+  ), 
+  config_mp: (size: number, color: string) => (
+    <Ionicons name="scan-circle-outline" size={size} color={color} />
+  ), 
+  config_password: (size: number, color: string) => (
+    <Ionicons name="remove-circle-outline" size={size} color={color} />
+  ),
+  config_account: (size:number, color: string) => (
+    <Ionicons name="reload-circle-outline" size={size} color={color} />
   ),
   // ==== Footer Nav Icons ====
   footer_home: (active: boolean, size: number, color: string) =>

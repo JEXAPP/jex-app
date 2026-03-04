@@ -1,7 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Platform, KeyboardAvoidingView } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { StreamChat as StreamChatType } from 'stream-chat';
 import {
   OverlayProvider,
   Chat as StreamChatUI,
@@ -11,28 +19,37 @@ import {
   TypingIndicator,
   ScrollToBottomButton,
 } from 'stream-chat-expo';
-import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/themes/colors';
+
 import { getStreamClient } from '@/services/stream/streamClient';
 import { threadStyles as s } from '@/styles/app/employer/chats/threadStyles';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/themes/colors';
+import { DateSeparator as JexDateSeparator } from '@/components/chats/DateSeparator';
+import { DotsLoader } from '@/components/others/DotsLoader';
 
 function parseCid(cid: string) {
   const i = cid.indexOf(':');
   return i === -1 ? { type: '', id: '' } : { type: cid.slice(0, i), id: cid.slice(i + 1) };
 }
 
-export default function ThreadScreen() {
+const JexMessageList = (props: any) => <MessageList {...props} />;
+
+export default function AnnouncementThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
   const cid = cidParam ?? '';
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const [loading, setLoading] = useState(true);
   const [channel, setChannel] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  const client = useMemo(() => {
-    try { return getStreamClient(); } catch { return null; }
+  const client = useMemo<StreamChatType | null>(() => {
+    try {
+      return getStreamClient();
+    } catch {
+      return null;
+    }
   }, []);
 
   useEffect(() => {
@@ -41,9 +58,11 @@ export default function ThreadScreen() {
 
     (async () => {
       setLoading(true);
+      setError(null);
       try {
         const { type, id } = parseCid(cid);
         if (!type || !id) throw new Error('Canal inválido');
+
         const ch = client.channel(type, id);
         await ch.watch({ state: true });
         if (!cancelled) setChannel(ch);
@@ -54,55 +73,122 @@ export default function ThreadScreen() {
       }
     })();
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [client, cid]);
 
-  if (!client) return <Text>No se pudo inicializar el chat.</Text>;
-  if (!cid) return <Text>Canal no especificado.</Text>;
+  const CustomDateSeparator = (props: any) => (
+    <JexDateSeparator date={props?.date} />
+  );
+
+  if (!client) {
+    return (
+      <SafeAreaView style={s.container} edges={['top', 'bottom', 'left', 'right']}>
+        <View style={{ padding: 16 }}>
+          <Text style={{ fontSize: 16 }}>No se pudo inicializar el chat.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!cid) {
+    return (
+      <SafeAreaView style={s.container} edges={['top', 'bottom', 'left', 'right']}>
+        <View style={{ padding: 16 }}>
+          <Text style={{ fontSize: 16 }}>Canal no especificado.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
-    <SafeAreaView style={s.container} edges={['top', 'left', 'right', 'bottom']}>
-      <OverlayProvider>
+    <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
+     <OverlayProvider 
+        value={{
+        style: {
+          inlineDateSeparator: {
+            container: {
+              backgroundColor: Colors.violet4,
+              borderRadius: 10,
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 20
+            },
+            text: {
+              color: 'white',
+              fontFamily: 'interLightItalic',
+              fontSize: 11,
+            },
+          },
+        },
+      }}>
         <StreamChatUI client={client}>
-          {loading && <Text style={{ padding: 16 }}>Cargando chat…</Text>}
-          {!loading && error && <Text style={{ color: 'red', padding: 16 }}>{error}</Text>}
+          {loading && (
+            <DotsLoader/>
+          )}
+
+          {!loading && error && (
+            <View style={{ padding: 16 }}>
+              <Text style={{ color: 'red' }}>Error: {error}</Text>
+            </View>
+          )}
+
           {!loading && !error && channel && (
-            <StreamChannelUI channel={channel}>
+            <StreamChannelUI channel={channel} hideStickyDateHeader={true} >
               <>
-                {/* Header */}
+                {/* HEADER */}
                 <View style={s.header}>
-                  <TouchableOpacity onPress={() => router.back()} style={s.backButton}>
-                    <Ionicons name="chevron-back-outline" size={26} color={Colors.violet4} />
+                  <TouchableOpacity
+                    onPress={() => router.push('/employer/chats')}
+                    style={s.backButton}
+                  >
+                    <Ionicons
+                      name="chevron-back-outline"
+                      size={26}
+                      color={Colors.white}
+                    />
                   </TouchableOpacity>
+
                   <View style={s.headerAvatar}>
                     <Image
                       source={require('@/assets/images/jex/Jex-Foro-Grupal.webp')}
-                      style={{ width: 28, height: 28, resizeMode: 'contain' }}
+                      style={s.avatarImg}
                     />
                   </View>
+
                   <View style={s.headerTitleWrap}>
                     <Text style={s.headerTitle}>Foro Grupal</Text>
-                    <Text style={s.headerSubtitle}>Anunciá lo que quieras a tus empleados.</Text>
+                    <Text style={s.headerSubtitle}>
+                      Anunciá lo que quieras a tus empleados.
+                    </Text>
                   </View>
                 </View>
 
-                {/* Lista de mensajes */}
+                {/* CHAT + INPUT */}
                 <KeyboardAvoidingView
-                  style={{ flex: 1 }}
+                  style={s.chatWrapper}
                   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                  keyboardVerticalOffset={insets.bottom + 90}
+                  keyboardVerticalOffset={0}
                 >
-                  <View style={{ flex: 1 }}>
-                    <MessageList
+                  <View style={s.messagesWrapper}>
+                    <JexMessageList
                       TypingIndicator={TypingIndicator}
                       ScrollToBottomButton={ScrollToBottomButton}
-                      inverted={true} 
+                      inverted={true}
+                      DateSeparator={CustomDateSeparator}
                     />
                   </View>
 
-                  {/* Composer */}
-                  <View style={[s.inputContainer, { paddingBottom: insets.bottom }]}>
-                    <MessageInput />
+                  <View
+                    style={[
+                      s.inputContainer,
+                      { paddingBottom: 15 },
+                    ]}
+                  >
+                    <MessageInput additionalTextInputProps={{
+                        placeholder: 'Escribí un mensaje...',
+                      }}/>
                   </View>
                 </KeyboardAvoidingView>
               </>

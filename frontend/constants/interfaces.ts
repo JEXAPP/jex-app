@@ -64,7 +64,9 @@ export interface Organizer {
   reviews: number;
   rating: number;
   jexTime: string;
+  image: string | number; // ✅ permite URL o require local
 }
+
 
 export interface Requirement {
   description: string;

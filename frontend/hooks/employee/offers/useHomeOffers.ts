@@ -16,7 +16,13 @@ export const useHomeOffers = () => {
   const parseExpirationMs = (expDate: string, expTime: string) => {
     const [d, m, y] = String(expDate ?? '').split('/').map(Number);
     const [hh, mm] = String(expTime ?? '').split(':').map(Number);
-    return new Date(y ?? new Date().getFullYear(), (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0).getTime();
+    return new Date(
+      y ?? new Date().getFullYear(),
+      (m ?? 1) - 1,
+      d ?? 1,
+      hh ?? 0,
+      mm ?? 0
+    ).getTime();
   };
 
   // Limpia string de salario a número (AR)
@@ -75,24 +81,42 @@ export const useHomeOffers = () => {
         if (!mounted) return;
 
         const normalized: Offer[] = (data ?? []).map((item: any) => {
-          const shift = item?.application?.shift ?? item?.shift;
-          const vacancy = shift?.vacancy;        
+          // ✅ shift puede venir dentro de application o directo en el objeto
+          const shiftFromApplication = item?.application?.shift;
+          const shiftFromRoot = item?.shift;
+          const shift = shiftFromApplication ?? shiftFromRoot ?? null;
+
+          // ✅ vacancy puede venir colgada del shift (caso normal)
+          //   y dejamos un fallback por si en algún caso viene directo
+          const vacancyFromShift = shift?.vacancy;
+          const vacancyFromRoot = item?.vacancy;
+          const vacancy = vacancyFromShift ?? vacancyFromRoot ?? null;
+
+          const expirationDate = item?.expiration_date ?? '';
+          const expirationTime = item?.expiration_time ?? '';
 
           return {
             id:
               item?.id ??
-              `${vacancy?.event?.id ?? 'noevent'}-${shift?.job_type ?? 'norole'}-${shift?.start_time ?? 'notime'}`,
+              `${vacancy?.event?.id ?? 'noevent'}-${vacancy?.job_type ?? 'norole'}-${
+                shift?.start_time ?? 'notime'
+              }`,
             salary: formatNumberAR(shift?.payment ?? 0),
             role: vacancy?.job_type ?? 'Sin rol',
             date: shift?.start_date ?? '',
             startTime: shift?.start_time ?? '',
             endTime: shift?.end_time ?? '',
             company: vacancy?.event?.name ?? 'Evento sin nombre',
-            eventImage: vacancy?.event?.image
-              ? { uri: vacancy.event.image }
-              : require('@/assets/images/jex/Jex-Evento-Default.webp'),
-            expirationDate: item.expiration_date,
-            expirationTime: item.expiration_time,
+            eventImage:
+              item?.event_image_url && typeof item.event_image_url === 'string'
+                ? { uri: item.event_image_url }
+                : require('@/assets/images/jex/Jex-Evento-Default.webp'),
+
+            expirationDate,
+            expirationTime,
+            location: vacancy?.event?.location ?? '',
+            requirements: item?.requirements ?? vacancy?.requirements ?? [],
+            comments: item?.comments ?? '',
           };
         });
 

@@ -1,3 +1,4 @@
+// src/styles/app/employee/vacancy/applyVacancyStyles.ts
 import { Borders } from '@/themes/borders';
 import { Colors } from '@/themes/colors';
 import { StyleSheet } from 'react-native';
@@ -6,23 +7,34 @@ export const applyVacancyStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.gray1,
-    marginTop: 50
   },
-  scroll:{
-    paddingHorizontal: 26, 
+  scroll:{ 
     paddingBottom: 100
+  },
+  role: {
+    paddingHorizontal: 26,
+  },
+  backBtnHero: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    marginBottom: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   header: {
     backgroundColor: Colors.violet4,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 7,
-    gap: 12,
+    paddingTop: 8,
+    paddingBottom: 22,
+    paddingHorizontal: 26,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   headerTop: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+    marginBottom: 5
   },
   headerText: {
     flex: 1,
@@ -65,19 +77,28 @@ export const applyVacancyStyles = StyleSheet.create({
     color: Colors.violet4,
     textAlign: 'left',
     marginBottom: 5,
+    marginTop: 10
   },
   containerText: {
-    fontSize: 18,
+    fontSize: 17,
     fontFamily: 'interRegular',
     color: Colors.gray3,
-    textAlign: 'justify',
-    marginBottom: 5
   },
   containerText2: {
     fontSize: 17,
     fontFamily: 'interRegular',
     color: Colors.gray3,
     textAlign: 'justify',
+    marginBottom: 10
+  },
+  containerText3: {
+    fontSize: 17,
+    fontFamily: 'interItalic',
+    color: Colors.gray3,
+    paddingVertical: 5,
+    justifyContent: 'center',
+    textAlign: 'center',
+    alignSelf: 'center',
     marginBottom: 10
   },
   organizerArea: {
@@ -156,7 +177,7 @@ export const applyVacancyStyles = StyleSheet.create({
     resizeMode: 'cover',
   },
   organizerNameTag: {
-    backgroundColor: Colors.gray12,
+    backgroundColor: Colors.gray1,
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -197,4 +218,120 @@ export const applyVacancyStyles = StyleSheet.create({
     marginBottom: 4,
     alignSelf: 'center'
   },
-})
+
+  /* ==== MODAL CALIFICACIONES ORGANIZADOR ==== */
+  ratingsModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+  },
+  ratingsModalCard: {
+    backgroundColor: Colors.gray1,
+    borderRadius: 20,
+    maxHeight: '80%',
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+  },
+  ratingsModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  ratingsModalTitle: {
+    fontSize: 20,
+    fontFamily: 'interBold',
+    color: Colors.violet4,
+  },
+  ratingsModalLoading: {
+    marginBottom: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ratingsModalError: {
+    fontFamily: 'interMedium',
+    fontSize: 14,
+    color: Colors.violet4,
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  ratingsModalEmpty: {
+    fontFamily: 'interRegular',
+    fontSize: 14,
+    color: Colors.gray3,
+    textAlign: 'center',
+    marginTop: 10,
+  },
+  ratingsModalList: {
+    marginTop: 8,
+  },
+
+  ratingCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  ratingCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  ratingCardHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratingAvatar: {
+    marginRight: 8,
+  },
+  ratingRaterName: {
+    fontFamily: 'interBold',
+    fontSize: 15,
+    color: Colors.violet4,
+  },
+  ratingDatePill: {
+    backgroundColor: Colors.gray1,
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  ratingDateText: {
+    fontFamily: 'interRegular',
+    fontSize: 11,
+    color: Colors.gray3,
+  },
+  ratingEventName: {
+    fontFamily: 'interMediumItalic',
+    fontSize: 14,
+    color: Colors.black,
+    marginBottom: 6,
+  },
+  ratingStarsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  ratingStarsInner: {
+    flexDirection: 'row',
+    marginRight: 6,
+  },
+  ratingValueText: {
+    fontFamily: 'interBold',
+    fontSize: 14,
+    color: Colors.gray3,
+  },
+  ratingCommentBubble: {
+    backgroundColor: '#f3f3f5',
+    borderRadius: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+  },
+  ratingCommentText: {
+    fontFamily: 'interRegular',
+    fontSize: 14,
+    color: Colors.gray3,
+  },
+});

@@ -5,8 +5,7 @@ export const config = {
     clientIdAndroid: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID,
     clientIdIOS: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS,
     clientIdWeb: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_WEB,
-    placesAutocomplete: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_AUTOCOMPLETE,
-    placesDetail: process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_DETAIL
+    apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
   },
   mercadoPago: {
     clientId: process.env.EXPO_PUBLIC_MP_CLIENT_ID,

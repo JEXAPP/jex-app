@@ -3,26 +3,38 @@ import { Colors } from '@/themes/colors';
 
 export const passwordStrengthStyles1 = StyleSheet.create({
   container: {
-    flexDirection: 'row',          
-    alignItems: 'center',   
-    gap: 10,
-    alignSelf: 'flex-end',
-    marginRight: 40                        
+    justifyContent: 'center'
   },
-  label: {
-    fontSize: 14,
+  listContainer: {
+    gap: 0,
+    marginLeft: 30
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  itemText: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 13,
     color: Colors.gray3,
+    fontFamily: 'interLightItalic'
   },
-  barBackground: {
-    width: 220,                    
-    height: 6,
-    backgroundColor: Colors.gray2,
-    borderRadius: 4,
-    overflow: 'hidden',
+  icon: {
+    alignItems: 'center',
   },
-  barFill: {
-    height: 6,
-    backgroundColor: Colors.violet3,
-    borderRadius: 4,
+  successContainer: {
+    paddingVertical: 4,
+    alignSelf: 'center'
+  },
+  successText: {
+    fontSize: 15,
+    color: Colors.violet3,
+    fontFamily: 'interMediumItalic'
+  },
+  successIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

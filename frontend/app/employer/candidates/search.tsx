@@ -65,7 +65,7 @@ export default function SearchEmployeesScreen() {
   } = useSearchEmployees();
 
   const provinciaOpts = useMemo(
-    () => provinciaOptions.map(p => ({ id: p, name: p })),
+    () => provinciaOptions.map(p => ({ id: p.placeId, name: p.descripcion })),
     [provinciaOptions]
   );
 
@@ -177,7 +177,7 @@ export default function SearchEmployeesScreen() {
                     name="Provincia"
                     placeholder="Provincia"
                     options={provinciaOpts}
-                    id={selectedProvincia ? selectedProvincia.placeId : ''}
+                    id={selectedProvincia ? `prov:${selectedProvincia.id}|provName:${selectedProvincia.nombre}` : ''}
                     onValueChange={(id) => {
                       const opt = provinciaOpts.find(o => String(o.id) === String(id));
                       if (opt) onProvinciaPick({ descripcion: opt.name, placeId: String(opt.id) });
@@ -308,9 +308,7 @@ export default function SearchEmployeesScreen() {
                 <View style={s.ratingControlRow}>
                   {ratingMin > 0 && (
                     <IconButton
-                      content="−"
-                      contentColor={Colors.violet4}
-                      sizeContent={22}
+                      icon={iconos.plus(25, Colors.violet4)}
                       onPress={decRating}
                       styles={iconButtonStyles1}
                       backgroundColor={Colors.gray12}
@@ -323,9 +321,7 @@ export default function SearchEmployeesScreen() {
 
                   {ratingMin < 5 && (
                     <IconButton
-                      content="+"
-                      contentColor={Colors.violet4}
-                      sizeContent={22}
+                      icon={iconos.plus(25, Colors.violet4)}
                       onPress={incRating}
                       styles={iconButtonStyles1}
                       backgroundColor={Colors.gray12}

@@ -47,22 +47,7 @@ export default function LoginScreen() {
 
   const router = useRouter();
 
-  const onSwipe = (e: PanGestureHandlerStateChangeEvent) => {
-    const { oldState, translationX } = e.nativeEvent as any;
-    if (oldState === 4 || oldState === 5 || oldState === 2) {
-      if (translationX >= SWIPE_THRESHOLD) {
-        router.replace('/employer/candidates/search');
-      }
-    }
-  };
-
-
   return (
-
-    <PanGestureHandler
-      onHandlerStateChange={onSwipe}
-      activeOffsetY={[-12, 12]}  // evita conflictos con scroll vertical
-    >
     
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
 
@@ -153,8 +138,6 @@ export default function LoginScreen() {
 
       </SafeAreaView>
 
-    </PanGestureHandler>
-  
   );
   
 }

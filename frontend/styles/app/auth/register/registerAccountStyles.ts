@@ -41,7 +41,6 @@ export const registerAccountStyles = StyleSheet.create({
     paddingHorizontal: 20
   },
   passwordBar:{
-    marginLeft: 40,
     marginBottom: 20
   }
 });

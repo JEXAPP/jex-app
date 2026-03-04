@@ -1,16 +1,12 @@
 import { useUploadImageServ } from '@/services/external/cloudinary/useUploadImage';
 import useBackendConection, { getApiErrorMessage } from '@/services/internal/useBackendConection';
+import { obtenerCoordenadasDesdeDireccion } from '@/services/external/sugerencias/useGeoRefAr';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Keyboard } from 'react-native';
 
 type Option = { id: number | string; name: string };
-
-type UploadableImage = {
-  uri: string;
-  name: string;
-  type: string;
-};
+type UploadableImage = { uri: string; name: string; type: string };
 
 const stringToDate = (s?: string | null): Date | null => {
   if (!s) return null;
@@ -34,49 +30,53 @@ const dateToBackendDDMMYYYY = (d: Date | null): string | null => {
   return `${dd}/${mm}/${yyyy}`;
 };
 
-// Normaliza a HH:mm (24h). Acepta "9:5", "09:05", "09:05:00", etc.
+// Normaliza a HH:mm (24h). Acepta "9:5", "09:05", etc.
 const toHHMM = (s: string): string => {
   const m = s?.match?.(/^(\d{1,2}):(\d{1,2})(?::\d{1,2})?$/);
   if (!m) throw new Error('Hora inválida. Usa HH:mm');
-  const hh = Number(m[1]); const mm = Number(m[2]);
-  if (hh < 0 || hh > 23 || mm < 0 || mm > 59) throw new Error('Hora fuera de rango (00:00–23:59)');
+  const hh = Number(m[1]);
+  const mm = Number(m[2]);
+  if (hh < 0 || hh > 23 || mm < 0 || mm > 59)
+    throw new Error('Hora fuera de rango (00:00–23:59)');
   return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
 };
 
 export const useEditEvent = () => {
   const { uploadImage } = useUploadImageServ();
+  const { requestBackend } = useBackendConection();
   const router = useRouter();
+
   const { id } = useLocalSearchParams();
   const eventIdStr = Array.isArray(id) ? id[0] : id;
   const eventIdNum = Number(eventIdStr);
-  const { requestBackend } = useBackendConection();
-  const [imagenFile, setImagenFile] = useState<UploadableImage | null>(null);
-  const [showSkeleton, setShowSkeleton] = useState(true);
-  const [loading, setLoading] = useState(false);
+
   const [nombreEvento, setNombreEvento] = useState('');
-  const [ubicacionId, setUbicacionId] = useState('');
   const [descripcionEvento, setDescripcionEvento] = useState('');
-  const [ubicacionEvento, setUbicacionEvento] = useState('');
   const [fechaInicioEvento, setFechaInicioEvento] = useState<Date | null>(null);
   const [fechaFinEvento, setFechaFinEvento] = useState<Date | null>(null);
-  const [imageURL, setImageURL] = useState<string | null>(null);
-  const [imageID, setImageID] = useState<string | null>(null);
-  const [horaInicio, setHoraInicio] = useState(''); // HH:mm
-  const [horaFin, setHoraFin] = useState('');       // HH:mm
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [horaInicio, setHoraInicio] = useState('');
+  const [horaFin, setHoraFin] = useState('');
+  const [ubicacionEvento, setUbicacionEvento] = useState('');
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+
   const [rubros, setRubros] = useState<Option[]>([]);
   const [selectedRubro, setSelectedRubro] = useState<Option | null>(null);
 
+  const [imagenFile, setImagenFile] = useState<UploadableImage | null>(null);
+  const [imageURL, setImageURL] = useState<string | null>(null);
+  const [imageID, setImageID] = useState<string | null>(null);
+
+  const [showSkeleton, setShowSkeleton] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-
   const [mostrarConfirmEliminar, setMostrarConfirmEliminar] = useState(false);
 
-  const originalLocationRef = useRef<{ location: string; lat: number | null; long: number | null }>({
+  const originalLocationRef = useRef<{ location: string; lat: number | null; lng: number | null }>({
     location: '',
     lat: null,
-    long: null,
+    lng: null,
   });
   const [locationDirty, setLocationDirty] = useState(false);
 
@@ -90,7 +90,7 @@ export const useEditEvent = () => {
     !!horaInicio &&
     !!horaFin;
 
-  // cargar rubros
+  // ---- Cargar rubros ----
   const loadRubros = async () => {
     try {
       const response = await requestBackend('/api/events/categories/', null, 'GET');
@@ -103,7 +103,7 @@ export const useEditEvent = () => {
     }
   };
 
-  // cargar evento
+  // ---- Cargar detalle del evento ----
   const loadEventDetail = async () => {
     if (!eventIdStr || Number.isNaN(eventIdNum)) {
       setErrorMessage('ID de evento inválido.');
@@ -119,28 +119,21 @@ export const useEditEvent = () => {
       setUbicacionEvento(data?.location ?? '');
       setFechaInicioEvento(stringToDate(data?.start_date));
       setFechaFinEvento(stringToDate(data?.end_date));
-      setHoraInicio((data?.start_time ?? '').slice(0, 5)); // HH:mm
-      setHoraFin((data?.end_time ?? '').slice(0, 5));      // HH:mm
-      setImageID(data?.event_image_public_id ?? null);
+      setHoraInicio((data?.start_time ?? '').slice(0, 5));
+      setHoraFin((data?.end_time ?? '').slice(0, 5));
       setImageURL(data?.event_image_url ?? null);
+      setImageID(data?.event_image_public_id ?? null);
 
-      const cat = data?.category; // { id, name }
+      const cat = data?.category;
       setSelectedRubro(cat ? { id: cat.id, name: cat.name } : null);
 
-      // Normalizar lat/long a número o null
-      const rawLat = data?.latitud ?? data?.latitude;
-      const rawLng = data?.longitud ?? data?.longitude;
-      const latNum =
-        typeof rawLat === 'number' ? rawLat :
-        typeof rawLat === 'string' ? parseFloat(rawLat) : null;
-      const lngNum =
-        typeof rawLng === 'number' ? rawLng :
-        typeof rawLng === 'string' ? parseFloat(rawLng) : null;
+      const latNum = parseFloat(data?.latitud ?? data?.latitude ?? '');
+      const lngNum = parseFloat(data?.longitud ?? data?.longitude ?? '');
 
       originalLocationRef.current = {
         location: data?.location ?? '',
-        lat: Number.isFinite(latNum as number) ? (latNum as number) : null,
-        long: Number.isFinite(lngNum as number) ? (lngNum as number) : null,
+        lat: Number.isFinite(latNum) ? latNum : null,
+        lng: Number.isFinite(lngNum) ? lngNum : null,
       };
 
       setLocationDirty(false);
@@ -158,50 +151,52 @@ export const useEditEvent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventIdNum]);
 
-  const handleUbicacion = (texto: string, coord: {lat: number, lng: number}) => { setUbicacionEvento(texto); setCoords(coord); };
+  // ---- Ubicación seleccionada ----
+  const handleUbicacion = (texto: string, coord: { lat: number; lng: number } | null) => {
+    setUbicacionEvento(texto);
+    setCoords(coord);
+    setLocationDirty(true);
+  };
 
-  // Guardar
+  // ---- Guardar cambios ----
   const handleEditarEvento = async () => {
     if (!guardarHabilitado) return;
     setLoading(true);
+
     try {
-      // Si cambió la ubicación y hay ubicacionId, geocodifico; si no, uso las anteriores
-      let coords: { lat: number | null; lng: number | null } = {
-        lat: originalLocationRef.current.lat,
-        lng: originalLocationRef.current.long,
-      };
-      if (locationDirty && ubicacionId) {
-        coords = {
-          lat: coords.lat,
-          lng: coords.lng,
-        };
+      let lat = originalLocationRef.current.lat;
+      let lng = originalLocationRef.current.lng;
+
+      // Si la ubicación cambió, obtenemos nuevas coordenadas (si no vinieron del picker)
+      if (locationDirty) {
+        if (coords?.lat && coords?.lng) {
+          lat = coords.lat;
+          lng = coords.lng;
+        } else {
+          const { lat: lat2, lon: lon2 } = await obtenerCoordenadasDesdeDireccion({
+            canonical: ubicacionEvento,
+          });
+          lat = lat2 ?? null;
+          lng = lon2 ?? null;
+        }
       }
 
-      // Imagen
+      // Imagen nueva
       let finalImageURL = imageURL;
       let finalImageID = imageID;
       if (imagenFile) {
-        const upload = await uploadImage(imagenFile.uri);
+        const upload = await uploadImage(imagenFile.uri, 'events-images');
         finalImageURL = upload.image_url;
         finalImageID = upload.image_id;
         setImageURL(finalImageURL);
         setImageID(finalImageID);
       }
 
-      // Normalizar HH:mm y capturar errores de formato antes de enviar
-      let startHHMM: string;
-      let endHHMM: string;
-      try {
-        startHHMM = toHHMM(horaInicio);
-        endHHMM = toHHMM(horaFin);
-      } catch (e: any) {
-        setErrorMessage(e?.message || 'Hora inválida. Usa HH:mm');
-        setShowError(true);
-        setLoading(false);
-        return;
-      }
+      // Normalizar HH:mm
+      let startHHMM = toHHMM(horaInicio);
+      let endHHMM = toHHMM(horaFin);
 
-      // Armar payload base
+      // Payload final
       const payload: any = {
         name: nombreEvento,
         description: descripcionEvento,
@@ -209,22 +204,20 @@ export const useEditEvent = () => {
         category_id: selectedRubro ? Number(selectedRubro.id) : null,
         start_date: dateToBackendDDMMYYYY(fechaInicioEvento),
         end_date: dateToBackendDDMMYYYY(fechaFinEvento),
-        start_time: startHHMM, // HH:mm
-        end_time: endHHMM,     // HH:mm
+        start_time: startHHMM,
+        end_time: endHHMM,
         profile_image_id: finalImageID,
         profile_image_url: finalImageURL,
       };
 
-      // Solo incluir lat/lng si son números válidos (no pisar con null)
-      if (typeof coords.lat === 'number' && Number.isFinite(coords.lat)) {
-        payload.latitude = coords.lat;
+      if (lat != null && lng != null) {
+        payload.latitude = lat;
+        payload.longitude = lng;
       }
-      if (typeof coords.lng === 'number' && Number.isFinite(coords.lng)) {
-        payload.longitude = coords.lng;
-      }
+
       await requestBackend(`/api/events/update/${eventIdNum}/`, payload, 'PUT');
       setShowSuccess(true);
-      router.replace('/employer')
+      router.replace('/employer');
     } catch (err) {
       setErrorMessage(getApiErrorMessage(err));
       setShowError(true);
@@ -233,12 +226,11 @@ export const useEditEvent = () => {
     }
   };
 
-  // Eliminar (baja lógica estado=6)
+  // ---- Eliminar evento ----
   const handleEliminarEvento = () => setMostrarConfirmEliminar(true);
-
   const confirmarEliminar = async () => {
     try {
-      await requestBackend(`/api/events/update/${eventIdNum}/state/`, 6, 'PATCH');
+      await requestBackend(`/api/events/delete/${eventIdNum}/`, null, 'DELETE');
       setMostrarConfirmEliminar(false);
       setShowSuccess(true);
       setTimeout(() => router.back(), 600);
@@ -248,7 +240,6 @@ export const useEditEvent = () => {
       setShowError(true);
     }
   };
-
   const cancelarEliminar = () => setMostrarConfirmEliminar(false);
 
   const closeError = () => setShowError(false);

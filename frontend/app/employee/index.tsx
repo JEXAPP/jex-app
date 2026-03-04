@@ -11,21 +11,28 @@ import { buttonWithIconStyles2 } from '@/styles/components/button/buttonWithIcon
 import { iconButtonStyles1 } from '@/styles/components/button/iconButtonStyles1';
 import { Colors } from '@/themes/colors';
 import React from 'react';
-import { FlatList, Image, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  FlatList,
+  Image,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-
-export default function HomeEmployeeScreen () {
+export default function HomeEmployeeScreen() {
   const {
     sections,
     loadingComienzo,
     errorVacancies,
     goToSearchVacancy,
     goToVacancyDetails,
-    goToNotifications
+    goToNotifications,
+    hasNewNotifications, // NUEVO
   } = useHomeEmployee();
 
-    const handleVacancyPress = (vacancy: Vacancy) => {
+  const handleVacancyPress = (vacancy: Vacancy) => {
     goToVacancyDetails(vacancy);
   };
 
@@ -33,19 +40,23 @@ export default function HomeEmployeeScreen () {
     <ScrollView>
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.headerRow}>
-
           <Text style={styles.title}>Vacantes</Text>
-          
-          <IconButton
-            sizeContent={40}
-            styles={iconButtonStyles1}
-            onPress={goToNotifications}
-            content="notifications-circle-sharp"
-            contentColor={Colors.violet4}
-          />
-          
+
+          {/* Wrapper para poder posicionar el puntito rojo */}
+          <View style={styles.notificationIconWrapper}>
+            <IconButton
+              styles={iconButtonStyles1}
+              sizeContent={40}
+              onPress={goToNotifications}
+              icon={iconos.notification(40, Colors.violet4)}
+            />
+
+            {hasNewNotifications && (
+              <View style={styles.notificationDot} />
+            )}
+          </View>
         </View>
-        
+
         {loadingComienzo ? (
           <HomeSkeleton />
         ) : (
@@ -55,61 +66,69 @@ export default function HomeEmployeeScreen () {
                 texto="Buscar"
                 icono={iconos.search(24, Colors.gray3)}
                 onPress={goToSearchVacancy}
-                styles={{ ...buttonWithIconStyles2, texto: { ...buttonWithIconStyles2.texto, marginLeft: 10 } }}
+                styles={{
+                  ...buttonWithIconStyles2,
+                  texto: {
+                    ...buttonWithIconStyles2.texto,
+                    marginLeft: 10,
+                  },
+                }}
               />
             </View>
 
             <View style={styles.adsWrapper}>
-
               <Image
                 source={require('@/assets/images/jex/Jex-Publicidad.webp')}
                 style={styles.jexBanner}
                 resizeMode="cover"
               />
-              
+
               <Carousel
                 images={[
-                  require('@/assets/images/Publicidad1.png'),
-                  require('@/assets/images/Publicidad2.png'),
-                  require('@/assets/images/Publicidad3.png'),
+                  require('@/assets/images/Publicidad1.webp'),
+                  require('@/assets/images/Publicidad2.webp'),
+                  require('@/assets/images/Publicidad3.webp'),
                 ]}
               />
-
             </View>
 
-            {errorVacancies && <Text style={styles.errorText}>{errorVacancies}</Text>}
+            {errorVacancies && (
+              <Text style={styles.errorText}>{errorVacancies}</Text>
+            )}
 
-            {!errorVacancies && sections.map(({ title, data, onPressTitle, showArrow }, idx) => (
-              <View key={idx} style={styles.vacancySectionContainer}>
-                <TouchableOpacity
-                  style={styles.vacancySectionHeader}
-                  activeOpacity={showArrow ? 0.7 : 1}
-                  onPress={showArrow  ? onPressTitle : undefined}
-                >
-                  <View style={styles.vacancyTitleRow}>
-                    <Text style={styles.vacancyTitle}>{title}</Text>
-                    {showArrow && <Text style={styles.vacancyArrow}> ›</Text>}
-                  </View>
-                </TouchableOpacity>
-
-                <FlatList
-                  data={data}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  keyExtractor={(item) => item.vacancy_id.toString()}
-                  renderItem={({ item }) => (
-                    <View style={styles.vacancyCardWrapper}>
-                      <ShowVacancy
-                        vacancy={item}
-                        orientation="vertical"
-                        onPress={handleVacancyPress}
-                      />
+            {!errorVacancies &&
+              sections.map(({ title, data, onPressTitle, showArrow }, idx) => (
+                <View key={idx} style={styles.vacancySectionContainer}>
+                  <TouchableOpacity
+                    style={styles.vacancySectionHeader}
+                    activeOpacity={showArrow ? 0.7 : 1}
+                    onPress={showArrow ? onPressTitle : undefined}
+                  >
+                    <View style={styles.vacancyTitleRow}>
+                      <Text style={styles.vacancyTitle}>{title}</Text>
+                      {showArrow && (
+                        <Text style={styles.vacancyArrow}> ›</Text>
+                      )}
                     </View>
-                  )}
-                />
-              </View>
-            ))}
+                  </TouchableOpacity>
 
+                  <FlatList
+                    data={data}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    keyExtractor={(item) => item.vacancy_id.toString()}
+                    renderItem={({ item }) => (
+                      <View style={styles.vacancyCardWrapper}>
+                        <ShowVacancy
+                          vacancy={item}
+                          orientation="vertical"
+                          onPress={handleVacancyPress}
+                        />
+                      </View>
+                    )}
+                  />
+                </View>
+              ))}
           </>
         )}
       </SafeAreaView>
