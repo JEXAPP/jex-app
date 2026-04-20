@@ -1,6 +1,6 @@
 
 export const config = {
-  apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
+  apiBaseUrl: 'http://127.0.0.1:8000/',
   google: {
     clientIdAndroid: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_ANDROID,
     clientIdIOS: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS,
