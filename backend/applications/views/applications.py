@@ -81,7 +81,6 @@ class ListApplicationsByShiftView(RetrieveAPIView):
             state__name=ApplicationStates.PENDING.value
         ).order_by("-created_at")
 
-        # El shift siempre se devuelve, aunque esté completo
         shift = get_object_or_404(
             Shift.objects.prefetch_related(
                 Prefetch("applications", queryset=applications_qs)

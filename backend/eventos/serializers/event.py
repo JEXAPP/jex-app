@@ -1,7 +1,13 @@
 from rest_framework import serializers
 from applications.models.attendance import Attendance
 from applications.utils import get_job_type_display
-from eventos.errors.events_messages import BOTH_PROFILE_IMAGE_FIELDS_REQUIRED, EVENT_START_DATE_AFTER_END_DATE, EVENT_START_TIME_NOT_BEFORE_END_TIME, EVENT_START_DATE_IN_PAST, INVALID_STATE_ID
+from eventos.errors.events_messages import (
+    BOTH_PROFILE_IMAGE_FIELDS_REQUIRED,
+    EVENT_START_DATE_AFTER_END_DATE,
+    EVENT_START_TIME_NOT_BEFORE_END_TIME,
+    EVENT_START_DATE_IN_PAST,
+    INVALID_STATE_ID,
+)
 from eventos.models.category_events import Category
 from eventos.models.event import Event
 from eventos.models.state_events import EventState
@@ -22,11 +28,19 @@ from vacancies.models.vacancy import Vacancy
 from rating.models import Behavior
 from applications.models import Offer
 from user_auth.models.employee import EmployeeProfile
-from rating.utils import get_user_average_rating, get_user_rating_count, has_already_rated
-    
+from rating.utils import (
+    get_user_average_rating,
+    get_user_rating_count,
+    has_already_rated,
+)
+
+_DATE_FIELD = CustomDateField()
+_TIME_FIELD = CustomTimeField()
+
+
 class CreateEventSerializer(serializers.ModelSerializer):
     category_id = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(), source='category', write_only=True
+        queryset=Category.objects.all(), source="category", write_only=True
     )
 
     start_date = CustomDateField()
@@ -39,12 +53,23 @@ class CreateEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            'id', 'name', 'description', 'start_date', 'end_date',
-            'start_time', 'end_time', 'location', 'created_at',
-            'updated_at', 'category_id', 'latitude', 'longitude',
-            'profile_image_url', 'profile_image_id',
+            "id",
+            "name",
+            "description",
+            "start_date",
+            "end_date",
+            "start_time",
+            "end_time",
+            "location",
+            "created_at",
+            "updated_at",
+            "category_id",
+            "latitude",
+            "longitude",
+            "profile_image_url",
+            "profile_image_id",
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'owner']
+        read_only_fields = ["id", "created_at", "updated_at", "owner"]
 
     def validate(self, data):
         self._validate_dates(data)
@@ -53,84 +78,89 @@ class CreateEventSerializer(serializers.ModelSerializer):
         return data
 
     def _validate_dates(self, data):
-        start_date = data.get('start_date')
-        end_date = data.get('end_date')
-        start_time = data.get('start_time')
-        end_time = data.get('end_time')
+        start_date = data.get("start_date")
+        end_date = data.get("end_date")
+        start_time = data.get("start_time")
+        end_time = data.get("end_time")
 
         if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError(EVENT_START_DATE_AFTER_END_DATE)
 
-        if start_date == end_date and start_time and end_time and start_time >= end_time:
+        if (
+            start_date == end_date
+            and start_time
+            and end_time
+            and start_time >= end_time
+        ):
             raise serializers.ValidationError(EVENT_START_TIME_NOT_BEFORE_END_TIME)
 
     def _validate_start_date_future(self, data):
-        start_date = data.get('start_date')
+        start_date = data.get("start_date")
         if start_date and start_date < date.today():
             raise serializers.ValidationError(EVENT_START_DATE_IN_PAST)
 
     def _validate_image_fields(self, data):
-        profile_image_url = data.get('profile_image_url')
-        profile_image_id = data.get('profile_image_id')
+        profile_image_url = data.get("profile_image_url")
+        profile_image_id = data.get("profile_image_id")
 
         if not profile_image_url or not profile_image_id:
             raise serializers.ValidationError(BOTH_PROFILE_IMAGE_FIELDS_REQUIRED)
 
     def create(self, validated_data):
-        user = self.context['user']
+        user = self.context["user"]
 
-        image_url = validated_data.pop('profile_image_url', None)
-        image_id = validated_data.pop('profile_image_id', None)
+        image_url = validated_data.pop("profile_image_url", None)
+        image_id = validated_data.pop("profile_image_id", None)
 
         image_obj = None
         if image_url and image_id:
             image_obj, _ = Image.objects.update_or_create(
                 public_id=image_id,
                 defaults={
-                    'url': image_url,
-                    'type': ImageType.EVENT,
-                    'uploaded_by': user,
-                }
+                    "url": image_url,
+                    "type": ImageType.EVENT,
+                    "uploaded_by": user,
+                },
             )
 
         public_state = EventState.objects.get(name=EventStates.DRAFT.value)
 
-        validated_data['owner'] = user
-        validated_data['state'] = public_state
+        validated_data["owner"] = user
+        validated_data["state"] = public_state
         if image_obj:
-            validated_data['event_image'] = image_obj
+            validated_data["event_image"] = image_obj
 
         return Event.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        image_url = validated_data.pop('profile_image_url', None)
-        image_id = validated_data.pop('profile_image_id', None)
+        image_url = validated_data.pop("profile_image_url", None)
+        image_id = validated_data.pop("profile_image_id", None)
 
         if image_url and image_id:
             image_obj, _ = Image.objects.update_or_create(
                 public_id=image_id,
                 defaults={
-                    'url': image_url,
-                    'type': ImageType.EVENT,
-                    'uploaded_by': self.context['user'],
-                }
+                    "url": image_url,
+                    "type": ImageType.EVENT,
+                    "uploaded_by": self.context["user"],
+                },
             )
-            validated_data['event_image'] = image_obj
+            validated_data["event_image"] = image_obj
         elif image_url is None and image_id is None:
-            validated_data['event_image'] = None
+            validated_data["event_image"] = None
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        
+
         instance.save()
         return instance
 
-   
+
 class CreateEventResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ['id', 'description']
-    
+        fields = ["id", "description"]
+
 
 class EventOwnerSerializer(serializers.ModelSerializer):
     profile_image = ImageSerializer(allow_null=True)
@@ -140,11 +170,18 @@ class EventOwnerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'company_name', 'email', 'profile_image', 'average_rating', 'rating_count']
+        fields = [
+            "id",
+            "company_name",
+            "email",
+            "profile_image",
+            "average_rating",
+            "rating_count",
+        ]
 
     def get_company_name(self, obj):
         return f"{obj.employer_profile.company_name}"
-    
+
     def get_average_rating(self, obj):
         return get_user_average_rating(obj)
 
@@ -158,26 +195,40 @@ class EventSerializer(serializers.ModelSerializer):
     state = EventStateSerializer()
     event_image_public_id = serializers.SerializerMethodField()
     event_image_url = serializers.SerializerMethodField()
-    address = serializers.CharField(source='location')
+    address = serializers.CharField(source="location")
     latitude = serializers.FloatField()
     longitude = serializers.FloatField()
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'description', 'owner', 'category', 'state', 'event_image_public_id', 'event_image_url', 'address', 'latitude', 'longitude']
+        fields = [
+            "id",
+            "name",
+            "description",
+            "owner",
+            "category",
+            "state",
+            "event_image_public_id",
+            "event_image_url",
+            "address",
+            "latitude",
+            "longitude",
+        ]
 
     def get_event_image_public_id(self, obj):
-        event_image = getattr(obj, 'event_image', None)
+        event_image = getattr(obj, "event_image", None)
         return event_image.public_id if event_image else None
 
     def get_event_image_url(self, obj):
-        event_image = getattr(obj, 'event_image', None)
+        event_image = getattr(obj, "event_image", None)
         return event_image.url if event_image else None
+
 
 class ListActiveEventsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ['id', 'name']
+        fields = ["id", "name"]
+
 
 class ListEventsByEmployerSerializer(serializers.ModelSerializer):
     state = EventStateSerializer()
@@ -185,7 +236,7 @@ class ListEventsByEmployerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ['id', 'name', 'state', 'all_payed']
+        fields = ["id", "name", "state", "all_payed"]
 
     def get_all_payed(self, event):
         payments = [
@@ -200,8 +251,7 @@ class ListEventsByEmployerSerializer(serializers.ModelSerializer):
             return False
 
         return all(
-            payment.state.name == PaymentStates.APPROVED.value
-            for payment in payments
+            payment.state.name == PaymentStates.APPROVED.value for payment in payments
         )
 
 
@@ -247,25 +297,58 @@ class ListEventDetailSerializer(serializers.ModelSerializer):
 class VacancyByEventSerializer(serializers.ModelSerializer):
     vacancy_id = serializers.IntegerField(source="id")
     job_type_name = serializers.CharField(source="job_type.name")
+    start_date = serializers.SerializerMethodField()
+    end_date = serializers.SerializerMethodField()
+    start_time = serializers.SerializerMethodField()
+    end_time = serializers.SerializerMethodField()
     quantity_shifts = serializers.SerializerMethodField()
     shift_ids = serializers.SerializerMethodField()
-
+    quantity_offers = serializers.SerializerMethodField()
 
     class Meta:
         model = Vacancy
         fields = [
             "vacancy_id",
             "job_type_name",
+            "start_date",
+            "end_date",
+            "start_time",
+            "end_time",
             "specific_job_type",
             "quantity_shifts",
-            "shift_ids"
+            "shift_ids",
+            "quantity_offers",
         ]
 
+    def _get_first_shift(self, obj):
+        shifts = obj.shifts.all()
+        return shifts[0] if shifts else None
+
+    def get_start_date(self, obj):
+        shift = self._get_first_shift(obj)
+        return _DATE_FIELD.to_representation(shift.start_date) if shift else None
+
+    def get_end_date(self, obj):
+        shift = self._get_first_shift(obj)
+        return _DATE_FIELD.to_representation(shift.end_date) if shift else None
+
+    def get_start_time(self, obj):
+        shift = self._get_first_shift(obj)
+        return _TIME_FIELD.to_representation(shift.start_time) if shift else None
+
+    def get_end_time(self, obj):
+        shift = self._get_first_shift(obj)
+        return _TIME_FIELD.to_representation(shift.end_time) if shift else None
+
     def get_quantity_shifts(self, obj):
-        return obj.shifts.count()
-    
+        return len(obj.shifts.all())
+
     def get_shift_ids(self, obj):
-        return list(obj.shifts.values_list("id", flat=True))
+        return [shift.id for shift in obj.shifts.all()]
+
+    def get_quantity_offers(self, obj):
+        return sum(getattr(shift, "quantity_offers", 0) for shift in obj.shifts.all())
+
 
 class ListEventVacanciesSerializer(serializers.ModelSerializer):
     event_name = serializers.CharField(source="name")
@@ -275,6 +358,7 @@ class ListEventVacanciesSerializer(serializers.ModelSerializer):
         model = Event
         fields = ["event_name", "vacancies"]
 
+
 class UpdateEventStateSerializer(serializers.Serializer):
     state_id = serializers.IntegerField()
 
@@ -282,28 +366,28 @@ class UpdateEventStateSerializer(serializers.Serializer):
         if not EventState.objects.filter(id=value).exists():
             raise serializers.ValidationError(INVALID_STATE_ID)
         return value
-    
+
+
 class VacancyEventSerializer(serializers.ModelSerializer):
-    vacancy_id = serializers.IntegerField(source='id')
+    vacancy_id = serializers.IntegerField(source="id")
     job_type_name = serializers.SerializerMethodField()
 
-    
     class Meta:
         model = Vacancy
-        fields = ['vacancy_id', 'job_type_name']
+        fields = ["vacancy_id", "job_type_name"]
 
     def get_job_type_name(self, obj):
         return get_job_type_display(obj)
 
+
 class ListEventsWithVacanciesSerializer(serializers.ModelSerializer):
-    event_id = serializers.IntegerField(source='id', read_only=True)
-    event_name = serializers.CharField(source='name', read_only=True)
+    event_id = serializers.IntegerField(source="id", read_only=True)
+    event_name = serializers.CharField(source="name", read_only=True)
     vacancies = VacancyEventSerializer(many=True, read_only=True)
 
     class Meta:
         model = Event
-        fields = ['event_id', 'event_name', 'vacancies']
-
+        fields = ["event_id", "event_name", "vacancies"]
 
 
 class ListEventsEmployeeSerializer(serializers.ModelSerializer):
@@ -328,7 +412,7 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
             "already_rated",
             "is_linked",
             "is_penalized",
-            "has_shown"
+            "has_shown",
         ]
 
     def get_name(self, obj):
@@ -344,67 +428,62 @@ class ListEventsEmployeeSerializer(serializers.ModelSerializer):
 
     def get_rating(self, obj):
         user = obj.employee.user
-        behavior = Behavior.objects.filter(user=user).order_by('-created_at').first()
+        behavior = Behavior.objects.filter(user=user).order_by("-created_at").first()
         return behavior.average_rating if behavior else None
-    
+
     def get_already_rated(self, obj):
-        request = self.context.get('request')
+        request = self.context.get("request")
         # owner is the employer user for the event
         rated_user = obj.employee.user
         # current user (the rater) may be anonymous in some contexts
-        rater = getattr(request, 'user', None) if request is not None else None
+        rater = getattr(request, "user", None) if request is not None else None
 
         # event instance
         event = obj.selected_shift.vacancy.event
 
-        return has_already_rated(
-            event=event, rater=rater, rated_user=rated_user
-        )
-    
+        return has_already_rated(event=event, rater=rater, rated_user=rated_user)
+
     def get_is_linked(self, obj):
         """
         Devuelve True si el empleado está vinculado con el empleador actual
         """
-        request = self.context.get('request')
-        employer_user = getattr(request, 'user', None)
+        request = self.context.get("request")
+        employer_user = getattr(request, "user", None)
         employee_user = obj.employee.user
 
         if not employer_user:
             return False
 
         return UserConnection.objects.filter(
-            employee=employee_user,
-            employer=employer_user
+            employee=employee_user, employer=employer_user
         ).exists()
-    
+
     def get_is_penalized(self, obj):
         """
         Devuelve True si el empleado ya fue penalizado en este evento.
         """
-        request = self.context.get('request')
-        punisher = getattr(request, 'user', None)
+        request = self.context.get("request")
+        punisher = getattr(request, "user", None)
         event = obj.selected_shift.vacancy.event
         employee_user = obj.employee.user
 
         # Buscar si existe una penalización creada por este empleador para este empleado en el evento
         return Penalty.objects.filter(
-            punisher=punisher,
-            event=event,
-            behavior__user=employee_user
+            punisher=punisher, event=event, behavior__user=employee_user
         ).exists()
-    
+
     def get_has_shown(self, obj):
         """
         Devuelve True si el empleado asistió al shift de la oferta.
         """
         return Attendance.objects.filter(
-            employee=obj.employee,
-            shift=obj.selected_shift
+            employee=obj.employee, shift=obj.selected_shift
         ).exists()
-        
+
+
 class EmployeeReportSerializer(serializers.Serializer):
-    employee_id = serializers.IntegerField(source='employee.user.id')
-    employee_name = serializers.CharField(source='employee.user.get_full_name')
+    employee_id = serializers.IntegerField(source="employee.user.id")
+    employee_name = serializers.CharField(source="employee.user.get_full_name")
     attendance = serializers.SerializerMethodField()
     payment_status = serializers.SerializerMethodField()
     rating = serializers.SerializerMethodField()
@@ -414,8 +493,7 @@ class EmployeeReportSerializer(serializers.Serializer):
     def get_attendance(self, obj):
         # Verifica si el empleado asistió al shift de la oferta
         return Attendance.objects.filter(
-            employee=obj.employee,
-            shift=obj.selected_shift
+            employee=obj.employee, shift=obj.selected_shift
         ).exists()
 
     def get_payment_status(self, obj):
@@ -441,7 +519,7 @@ class EmployeeReportSerializer(serializers.Serializer):
     def get_profile_image_url(self, obj):
         user = obj.employee.user
         return user.profile_image.url if user.profile_image else None
-    
+
     def get_job_type(self, obj):
         return get_job_type_display(obj.selected_shift.vacancy)
 
@@ -455,46 +533,42 @@ class EventReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = [
-            'id', 'name',
-            'total_offers_accepted',
-            'total_attendances_confirmed',
-            'total_payments_approved',
-            'employees'
+            "id",
+            "name",
+            "total_offers_accepted",
+            "total_attendances_confirmed",
+            "total_payments_approved",
+            "employees",
         ]
 
     def get_total_offers_accepted(self, obj):
         return Offer.objects.filter(
-            selected_shift__vacancy__event=obj,
-            state__name__in=OFFER_VALID_STATES
+            selected_shift__vacancy__event=obj, state__name__in=OFFER_VALID_STATES
         ).count()
 
     def get_total_attendances_confirmed(self, obj):
-        return Attendance.objects.filter(
-            shift__vacancy__event=obj
-        ).count()
+        return Attendance.objects.filter(shift__vacancy__event=obj).count()
 
     def get_total_payments_approved(self, obj):
         approved_state = PaymentState.objects.get(name=PaymentStates.APPROVED.value)
         return Payment.objects.filter(
-            offer__selected_shift__vacancy__event=obj,
-            state=approved_state
+            offer__selected_shift__vacancy__event=obj, state=approved_state
         ).count()
 
     def get_employees(self, obj):
         offers = Offer.objects.filter(
-            selected_shift__vacancy__event=obj,
-            state__name__in=OFFER_VALID_STATES
+            selected_shift__vacancy__event=obj, state__name__in=OFFER_VALID_STATES
         )
-        return EmployeeReportSerializer(
-            offers, many=True, context={"event": obj}
-        ).data
+        return EmployeeReportSerializer(offers, many=True, context={"event": obj}).data
+
 
 class ListHistoryEventsViewSerializer(serializers.ModelSerializer):
 
     event_image = serializers.SerializerMethodField()
+
     class Meta:
         model = Event
-        fields = ['id', 'name', 'description', 'event_image', 'start_date', 'end_date']
+        fields = ["id", "name", "description", "event_image", "start_date", "end_date"]
 
     def get_event_image(self, obj):
         if obj.event_image:
