@@ -24,6 +24,7 @@ from rating.models.penalty import Penalty
 from rating.models.users_connections import UserConnection
 from user_auth.models.user import CustomUser
 from datetime import date
+from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
 from rating.models import Behavior
 from applications.models import Offer
@@ -294,60 +295,61 @@ class ListEventDetailSerializer(serializers.ModelSerializer):
         return None
 
 
-class VacancyByEventSerializer(serializers.ModelSerializer):
-    vacancy_id = serializers.IntegerField(source="id")
-    job_type_name = serializers.CharField(source="job_type.name")
+class ShiftByVacancySerializer(serializers.ModelSerializer):
+    shift_id = serializers.IntegerField(source="id")
     start_date = serializers.SerializerMethodField()
     end_date = serializers.SerializerMethodField()
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
+    quantity_offers = serializers.IntegerField()
+
+    class Meta:
+        model = Shift
+        fields = [
+            "shift_id",
+            "start_date",
+            "end_date",
+            "start_time",
+            "end_time",
+            "quantity_offers",
+        ]
+
+    def get_start_date(self, obj):
+        return _DATE_FIELD.to_representation(obj.start_date)
+
+    def get_end_date(self, obj):
+        return _DATE_FIELD.to_representation(obj.end_date)
+
+    def get_start_time(self, obj):
+        return _TIME_FIELD.to_representation(obj.start_time)
+
+    def get_end_time(self, obj):
+        return _TIME_FIELD.to_representation(obj.end_time)
+
+
+class VacancyByEventSerializer(serializers.ModelSerializer):
+    vacancy_id = serializers.IntegerField(source="id")
+    job_type_name = serializers.CharField(source="job_type.name")
+    shifts = ShiftByVacancySerializer(many=True, read_only=True)
     quantity_shifts = serializers.SerializerMethodField()
     shift_ids = serializers.SerializerMethodField()
-    quantity_offers = serializers.SerializerMethodField()
 
     class Meta:
         model = Vacancy
         fields = [
             "vacancy_id",
             "job_type_name",
-            "start_date",
-            "end_date",
-            "start_time",
-            "end_time",
             "specific_job_type",
+            "shifts",
             "quantity_shifts",
             "shift_ids",
-            "quantity_offers",
         ]
-
-    def _get_first_shift(self, obj):
-        shifts = obj.shifts.all()
-        return shifts[0] if shifts else None
-
-    def get_start_date(self, obj):
-        shift = self._get_first_shift(obj)
-        return _DATE_FIELD.to_representation(shift.start_date) if shift else None
-
-    def get_end_date(self, obj):
-        shift = self._get_first_shift(obj)
-        return _DATE_FIELD.to_representation(shift.end_date) if shift else None
-
-    def get_start_time(self, obj):
-        shift = self._get_first_shift(obj)
-        return _TIME_FIELD.to_representation(shift.start_time) if shift else None
-
-    def get_end_time(self, obj):
-        shift = self._get_first_shift(obj)
-        return _TIME_FIELD.to_representation(shift.end_time) if shift else None
 
     def get_quantity_shifts(self, obj):
         return len(obj.shifts.all())
 
     def get_shift_ids(self, obj):
         return [shift.id for shift in obj.shifts.all()]
-
-    def get_quantity_offers(self, obj):
-        return sum(getattr(shift, "quantity_offers", 0) for shift in obj.shifts.all())
 
 
 class ListEventVacanciesSerializer(serializers.ModelSerializer):
