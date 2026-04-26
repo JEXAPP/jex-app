@@ -2,7 +2,7 @@
 from django.urls import path
 
 from vacancies.views.job_types import ListJobTypesView
-from vacancies.views.vacancy import CreateVacancyView, EmployerEventsWithVacanciesByIdView, EmployerEventsWithVacanciesView, ListVacancyShiftView, ListVacancyWithShiftView, SearchVacancyView, UpdateVacancyView, VacancyDetailView
+from vacancies.views.vacancy import CreateVacancyView, EmployerEventsWithVacanciesByIdView, EmployerEventsWithVacanciesView, ListOffersByShiftView, ListVacancyShiftView, ListVacancyWithShiftView, SearchVacancyView, UpdateVacancyView, VacancyDetailView
 from vacancies.views.vacancy_state import UpdateVacancyStateView, VacancyStateListView
 
 urlpatterns = [ 
@@ -23,4 +23,5 @@ urlpatterns = [
     path('<int:pk>/state/', UpdateVacancyStateView.as_view(), name='update-vacancy-state'),
     path('vacancy-states/', VacancyStateListView.as_view(), name='vacancy-states-list'),
     path('<int:pk>/shifts/', ListVacancyWithShiftView.as_view(), name='list-vacancy-shifts'),
+    path("shifts/<int:shift_pk>/offers/", ListOffersByShiftView.as_view(), name="list-offers-by-shift"),
 ]
