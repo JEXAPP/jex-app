@@ -22,14 +22,14 @@ export const headerNavStyles = StyleSheet.create({
     paddingVertical: 12,
   },
   tabText: {
-    fontSize: 15,
-    fontFamily: 'interMedium',
-    color: Colors.gray3,
+    fontSize: 16,
+    fontFamily: 'titulos',
+    color: Colors.gray2,
   },
   tabTextActive: {
     color: Colors.violet4,
-    fontFamily: 'interBold',
-    fontSize: 15,
+    fontFamily: 'titulos',
+    fontSize: 16,
   },
   baseLine: {
     height: StyleSheet.hairlineWidth, 

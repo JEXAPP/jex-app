@@ -1,9 +1,10 @@
 import useBackendConection from '@/services/internal/useBackendConection';
 import { Colors } from '@/themes/colors';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { secureGet, secureSet } from '@/services/internal/secureStorage';
 import { useRef, useState } from 'react';
 import { Animated, Keyboard, NativeSyntheticEvent, TextInput, TextInputKeyPressEventData, Vibration } from 'react-native';
+import { logger } from '@/services/internal/logger';
 
 export const useCodeValidation = () => {
   const router = useRouter();
@@ -84,7 +85,7 @@ export const useCodeValidation = () => {
   const codeValidation = async (codigo: string) => {
     setLoading(true)
     try {
-      const email = await SecureStore.getItemAsync('email-password-reset');
+      const email = await secureGet('email-password-reset');
       if (!email) throw new Error('Email no encontrado');
 
       const res = await requestBackend(
@@ -95,11 +96,11 @@ export const useCodeValidation = () => {
 
       if (!res) throw new Error('Código incorrecto');
 
-      await SecureStore.setItemAsync('code', codigo);
+      await secureSet('code', codigo);
 
       router.push('/auth/reset-password/new-password');
     } catch (error) {
-      console.log('El código no es válido:', error);
+      logger.warn('El código no es válido');
       Vibration.vibrate(200);
       iniciarAnimacion();
       setBorderColors(Array(6).fill(Colors.red));

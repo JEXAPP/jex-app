@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import useBackendConection from '@/services/internal/useBackendConection';
@@ -50,7 +51,7 @@ export const useEventReport = () => {
       };
       setData(report);
     } catch (e) {
-      console.log('Error al obtener reporte del evento:', e);
+      logger.log('Error al obtener reporte del evento:', e);
       setError('No se pudo cargar el reporte');
     } finally {
       setLoading(false);

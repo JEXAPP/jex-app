@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { useState } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
 import { router, useLocalSearchParams } from "expo-router";
@@ -50,7 +51,7 @@ export const useQualify = () => {
       setComment("");
       setShowSuccess(true);
     } catch (err: any) {
-      console.error("Error al enviar calificación:", err);
+      logger.error("Error al enviar calificación:", err);
       const backendMsg =
         err?.response?.data?.error ||
         err?.response?.data?.message ||
@@ -64,8 +65,7 @@ export const useQualify = () => {
 
   const closeSuccess = () => {
     setShowSuccess(false);
-    // volvemos a la pantalla anterior (lista de eventos / historial, etc.)
-    router.replace('/employee/profile/qualify-list');
+    router.back();
   };
 
   const closeError = () => {

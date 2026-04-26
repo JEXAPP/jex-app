@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import useBackendConection from "@/services/internal/useBackendConection";
 import { Animated, Easing } from "react-native";
 import { Offer } from "@/constants/interfaces";
+import { logger } from "@/services/internal/logger";
 
 type Coords = { latitude: number; longitude: number };
 
@@ -39,13 +40,6 @@ export const useDetailOffers = () => {
     const num = Number(value);
     if (isNaN(num)) return String(value);
     return new Intl.NumberFormat("es-AR").format(num);
-  };
-
-  const formatDate = (date: Date) => {
-    const d = date.getDate().toString().padStart(2, "0");
-    const m = (date.getMonth() + 1).toString().padStart(2, "0");
-    const y = date.getFullYear();
-    return `${d}/${m}/${y}`;
   };
 
   useEffect(() => {
@@ -115,7 +109,7 @@ export const useDetailOffers = () => {
 
         setIsMpAssociated(Boolean(data?.is_mp_associated));
       } catch (e) {
-        console.log("Error al traer detalle de oferta:", e);
+        logger.warn("Error al traer detalle de oferta:", e);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -177,7 +171,7 @@ export const useDetailOffers = () => {
       );
       return true;
     } catch (err) {
-      console.log("Error al decidir la oferta:", err);
+      logger.warn("Error al decidir la oferta:", err);
       if (rejected) setShowRejected(false);
       alert("No se pudo procesar la decisión.");
       return false;

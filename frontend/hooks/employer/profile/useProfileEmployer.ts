@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import { clearTokens } from "@/services/internal/api";
 import useBackendConection from "@/services/internal/useBackendConection";
-import * as SecureStore from "expo-secure-store";
 import { disconnectStream } from "@/services/stream/streamClient";
+import { logger } from "@/services/internal/logger";
 
 export const useProfile = () => {
   const { requestBackend } = useBackendConection();
@@ -34,22 +34,15 @@ export const useProfile = () => {
             ratingCount: data.rating_count ?? 0,
           });
         }
-      } catch (e: any) {
-        console.warn("⚠️ Error cargando perfil:", e.message);
+      } catch (e: unknown) {
+        logger.warn("Error cargando perfil:", (e as Error).message);
       }
     };
 
     fetchProfile();
   }, []);
 
-  const debugTokens = async () => {
-    const access = await SecureStore.getItemAsync("access");
-    const refresh = await SecureStore.getItemAsync("refresh");
-    console.log("ACCESS:", access);
-    console.log("REFRESH:", refresh);
-  };
-
-  // Navegaciones (ajustá paths si los tuyos son otros)
+  // Navegaciones
   const goToProfileDetails = () => {
    router.push("/employer/profile/view-profile");
   };
@@ -66,6 +59,42 @@ export const useProfile = () => {
     router.push("/employer/profile/edit-basic")
   }
 
+  // COMPLIANCE: Ley 25.326 – user can request deletion of all personal data
+  const handleDeleteAccount = async () => {
+    try {
+      await requestBackend("/api/auth/user/delete/", null, "DELETE");
+    } finally {
+      try { await disconnectStream(); } catch { /* stream already disconnected */ }
+      await clearTokens();
+      router.replace("/");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const { getToken } = await import("@/services/internal/useTokenStorage");
+      const refresh = await getToken("refresh");
+
+      if (refresh) {
+        try {
+          await requestBackend("/api/auth/logout/", { refresh }, "POST");
+        } catch (e) {
+          logger.warn("Logout backend falló, continuando:", (e as Error).message);
+        }
+      }
+
+      try {
+        await disconnectStream();
+      } catch (e) {
+        logger.warn("Error al desconectar Stream:", (e as Error).message);
+      }
+
+    } finally {
+      await clearTokens();
+      router.replace("/");
+    }
+  };
+
   const options = [
     {
       label: "Editar perfil",
@@ -76,37 +105,18 @@ export const useProfile = () => {
       label: "Legal",
       icon: "file-text",
     },
+    {
+      label: "Cerrar Sesión",
+      icon: "log-out",
+      onPress: handleLogout,
+    },
   ];
-
-  const handleLogout = async () => {
-    try {
-      const refresh = await SecureStore.getItemAsync("refresh");
-
-      if (refresh) {
-        try {
-          await requestBackend("/api/auth/logout/", { refresh }, "POST");
-          console.log("Sesión cerrada en backend");
-        } catch (e) {
-          console.warn("Logout backend falló, pero seguimos:", e);
-        }
-      }
-
-      try {
-        await disconnectStream();
-      } catch (e) {
-        console.warn("Error al desconectar Stream:", e);
-      }
-
-    } finally {
-      await clearTokens();
-      router.replace("/");
-    }
-  };
 
   return {
     user,
     options,
     handleLogout,
+    handleDeleteAccount,
     goToProfileDetails,
     goToRatingsScreen,
     goToEventsHistory,

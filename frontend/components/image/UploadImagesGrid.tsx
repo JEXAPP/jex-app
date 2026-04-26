@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -136,7 +137,7 @@ export const UploadImagesGrid: React.FC<Props> = ({
         emitChange(next, { file, uri });
       }
     } catch (e) {
-      console.log('Error al seleccionar imagen:', e);
+      logger.log('Error al seleccionar imagen:', e);
     }
   };
 

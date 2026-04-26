@@ -1,5 +1,6 @@
 // /hooks/services/useCreateVacancy.ts
 import useBackendConection from '@/services/internal/useBackendConection';
+import { formatDate } from '@/services/internal/formatDate';
 import { useDataTransformation } from '@/services/internal/useDataTransformation';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -52,12 +53,7 @@ const crearVacante = (): Vacante => ({
 const soloNumeros = (v: string) => v.replace(/\D/g, '');
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
-const formatearFecha = (d: Date): string => {
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-};
+const formatearFecha = (d: Date): string => formatDate(d);
 
 const limpiarYFormatearPago = (pago: string): string => {
   const s = pago.replace(/\./g, '');

@@ -9,27 +9,15 @@ export const workHistoryStyles = StyleSheet.create({
     paddingTop: 16,
   },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 18,
-  },
-  headerTitle: {
-    fontSize: 40,
-    fontFamily: "titulos",
-    color: Colors.violet4,
-    alignSelf: "center",
-    marginLeft: 20,
-    marginTop: 20,
-  },
-
   loadingContainer: {
     flex: 1,
     justifyContent: "flex-start",
     alignItems: "center",
   },
 
-  listContent: {},
+  listContent: {
+    paddingBottom: 40,
+  },
 
   card: {
     backgroundColor: "#fff",
@@ -176,11 +164,11 @@ export const workHistoryStyles = StyleSheet.create({
   },
 
   payBoxPaid: {
-    backgroundColor: "#d8fac7", 
+    backgroundColor: "#d8fac7",
   },
 
   payBoxPending: {
-    backgroundColor: "#d8fac7", 
+    backgroundColor: "#d8fac7",
     opacity: 0.85,
   },
 
@@ -219,5 +207,24 @@ export const workHistoryStyles = StyleSheet.create({
     fontFamily: "interBold",
     color: "#2f6d24",
     flexShrink: 1,
+  },
+
+  qualifyRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.violet1
+  ,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    gap: 10,
+  },
+
+  qualifyButtonText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: "interSemiBoldItalic",
+    color: Colors.violet4,
   },
 });

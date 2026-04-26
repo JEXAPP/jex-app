@@ -1,3 +1,5 @@
+import { logger } from '@/services/internal/logger';
+import { formatDate } from '@/services/internal/formatDate';
 import { useEffect, useRef, useState } from 'react';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter } from 'expo-router';
@@ -86,9 +88,6 @@ export function useCreateOffer(params: RouteParams) {
     setModalVisible(false);
   };
 
-  const formatDDMMYYYY = (d: Date) =>
-    `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-
   // Carga inicial según source/params
   useEffect(() => {
     (async () => {
@@ -125,7 +124,7 @@ export function useCreateOffer(params: RouteParams) {
           setEvents(evs || []);
         }
       } catch (e) {
-        console.log('Error carga inicial de oferta', e);
+        logger.log('Error carga inicial de oferta', e);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,14 +140,14 @@ export function useCreateOffer(params: RouteParams) {
 
   const onSelectVacancy = async (vacancyId: number) => {
     try { await loadVacancyDetail(vacancyId); }
-    catch (e) { console.log('Error GET vacancy detail', e); }
+    catch (e) { logger.log('Error GET vacancy detail', e); }
   };
 
   // Submit
   const buildBody = () => {
     const base = {
       additional_comments: comment,
-      expiration_date: expDate ? formatDDMMYYYY(expDate) : null,
+      expiration_date: expDate ? formatDate(expDate) : null,
       expiration_time: expTime ?? null,
     };
     return sourceRef.current === 'application'
@@ -162,7 +161,7 @@ export function useCreateOffer(params: RouteParams) {
       const res = await requestBackend('/api/applications/offers/', buildBody(), 'POST');
       return res;
     } catch (e) {
-      console.log('Error POST /api/applications/offers/', e);
+      logger.log('Error POST /api/applications/offers/', e);
       throw e;
     } finally {
       setLoading(false);

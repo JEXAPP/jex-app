@@ -1,3 +1,5 @@
+import { logger } from '@/services/internal/logger';
+import { formatDate } from '@/services/internal/formatDate';
 import { suggestCargosESCO, suggestDisciplinasOpenAlex, suggestUniversidadesHipolabs } from '@/services/external/sugerencias/useSuggestSources';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -44,10 +46,8 @@ const isNonEmpty = (s?: string | null) => !!s && s.trim().length > 0;
 const isDate = (d: Date | null) => d instanceof Date && !isNaN(d.getTime());
 const startLEEnd = (a: Date, b: Date) => a.getTime() <= b.getTime();
 
-// dd/mm/yyyy
-const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
 const toDDMMYYYY = (d: Date | null): string | null =>
-  d ? `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}` : null;
+  d ? formatDate(d) : null;
 
 type LanguageLevel = { id: number; name: string };
 
@@ -73,7 +73,7 @@ export const useOnboardingExperience = () => {
           setLanguageLevels(res);
         }
       } catch (e) {
-        console.log('Error cargando niveles de idioma:', e);
+        logger.log('Error cargando niveles de idioma:', e);
       }
     })();
     return () => {
@@ -158,7 +158,7 @@ export const useOnboardingExperience = () => {
 
       router.replace('/auth/additional-info/step-three');
     } catch (e) {
-      console.log(e);
+      logger.log(e);
     }
   };
 

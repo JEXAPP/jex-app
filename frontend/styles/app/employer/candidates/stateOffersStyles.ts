@@ -6,13 +6,6 @@ export const stateOffersStyles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.gray1,
   },
-  title: {
-    fontSize: 50,
-    fontFamily: "titulos",
-    color: Colors.violet4,
-    marginBottom: 20,
-    marginTop: 10,
-  },
   filterButtonActive: { backgroundColor: Colors.violet4 },
   filterTextActive: { color: "#fff" },
   filterButton: {
@@ -246,25 +239,6 @@ export const stateOffersStyles = StyleSheet.create({
     marginTop: 5,
   },
 
-  eventRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  sideSlot: {
-    flex: 1,
-    alignItems: "center",
-  },
-  centerSlot: {
-    flex: 3,
-    alignItems: "center",
-  },
-  eventName: {
-    fontSize: 24,
-    fontFamily: "interBold",
-    textAlign: "center",
-    color: Colors.violet4,
-  },
   tagsRow: {
     flexDirection: "row",
     justifyContent: "center",
@@ -285,19 +259,6 @@ export const stateOffersStyles = StyleSheet.create({
     paddingVertical: 18,
     paddingHorizontal: 20,
     backgroundColor: "#e7fddc",
-  },
-  eventEstadoBadge: {
-    backgroundColor: Colors.gray12,
-    borderRadius: 14,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    alignSelf: 'center',
-    marginBottom: 20
-  },
-  eventEstadoText: {
-    color: Colors.gray3,
-    fontSize: 11,
-    fontFamily: 'interBold',
   },
   payRow: {
     flexDirection: "row",

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Modal, StyleProp, Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { MotiView } from 'moti';
 
 interface ClickWindowProps {
   visible: boolean;
@@ -39,7 +40,12 @@ export const ClickWindow: React.FC<ClickWindowProps> = ({
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
-        <View style={styles.modalWrapper}>
+        <MotiView
+          from={{ opacity: 0, scale: 0.88, translateY: 16 }}
+          animate={{ opacity: 1, scale: 1, translateY: 0 }}
+          transition={{ type: 'spring', damping: 18, stiffness: 220 }}
+          style={styles.modalWrapper}
+        >
           <View style={styles.modal}>
             <View>
               <Text style={styles.title}>{title}</Text>
@@ -74,7 +80,7 @@ export const ClickWindow: React.FC<ClickWindowProps> = ({
 
           {icono ? <View style={styles.iconBadge}>{icono}</View> : null}
 
-        </View>
+        </MotiView>
       </View>
     </Modal>
   );

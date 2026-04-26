@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { Button } from '@/components/button/Button';
 import { Input } from '@/components/input/Input';
 import { Stepper } from '@/components/others/Stepper';
@@ -30,7 +31,7 @@ export default function RegisterPhoneScreen() {
   } = useRegisterPhone();
 
   useEffect(() => {
-    console.log('RegisterPhoneScreen - desdeGoogle:', desdeGoogle);
+    logger.log('RegisterPhoneScreen - desdeGoogle:', desdeGoogle);
   }, [desdeGoogle]);
 
   return (

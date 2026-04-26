@@ -72,7 +72,11 @@ export default function ChatScreen() {
         </>
       )}
 
-      {isLoadingAny && <DotsLoader/>}
+      {isLoadingAny && (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 32 }}>
+          <DotsLoader />
+        </View>
+      )}
       {!isLoadingAny && error && <Text style={s.errorText}>Error: {error}</Text>}
     </View>
   );

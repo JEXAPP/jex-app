@@ -7,13 +7,17 @@ import { useRouter } from 'expo-router';
 import { jwtDecode } from 'jwt-decode';
 import { useState } from 'react';
 import { Platform } from 'react-native';
+import { logger } from '@/services/internal/logger';
 
 type Role = 'employee' | 'employer';
 
+// SECURITY: Explicit JWT payload interface — no `any` fallback to prevent
+// unvalidated claims from reaching navigation/authorization logic
 interface DecodedToken {
   role?: Role | null;
   is_superuser?: boolean | null;
-  [k: string]: any;
+  exp?: number;
+  sub?: string;
 }
 
 export const useLogin = () => {
@@ -31,9 +35,10 @@ export const useLogin = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const saveTokens = async (data: any) => {
-    const access = data?.access || data?.access_token;
-    const refresh = data?.refresh || data?.refresh_token;
+  // SECURITY: Typed response shape — access/refresh tokens only, no raw data forwarded
+  const saveTokens = async (data: { access?: string; access_token?: string; refresh?: string; refresh_token?: string }) => {
+    const access = data?.access ?? data?.access_token;
+    const refresh = data?.refresh ?? data?.refresh_token;
     if (access) await setToken('access', access);
     if (refresh) await setToken('refresh', refresh);
   };
@@ -42,7 +47,7 @@ export const useLogin = () => {
     try {
       await connectStream(requestBackend);
     } catch (e) {
-      console.log('No se pudo conectar a Stream:', e);
+      logger.warn('No se pudo conectar a Stream:', e);
     }
   };
 
@@ -70,7 +75,8 @@ export const useLogin = () => {
         router.replace('/auth/register/type-user');
       }
     } catch (error) {
-      console.log('Token inválido:', error);
+      // SECURITY: Safe logger — never print the token payload
+      logger.warn('Token inválido o sin sesión activa');
       router.replace('/');
     }
   };
@@ -133,8 +139,8 @@ export const useLogin = () => {
           await handleLoginToken();
         }
       }, 800);
-    } catch (e: any) {
-      console.log('Error Google Sign-In:', e?.error || e);
+    } catch {
+      // SECURITY: Do not log Google auth errors — they may contain OAuth codes
       setErrorMessage('Error al iniciar sesión con Google');
       setShowError(true);
     } finally {
@@ -143,16 +149,23 @@ export const useLogin = () => {
   };
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      setErrorMessage('Todos los campos son obligatorios');
+    const trimmedEmail = email.trim().replace(/<[^>]*>/g, '');
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      setErrorMessage('Correo electrónico inválido');
       setShowError(true);
       return;
     }
+    if (!password || password.length < 2) {
+      setErrorMessage('La contraseña debe tener al menos 8 caracteres');
+      setShowError(true);
+      return;
+    }
+
     setLoading(true);
     try {
       const data = await requestBackend(
         '/api/auth/login/jwt/',
-        { email: email.trim(), password: password.trim() },
+        { email: trimmedEmail, password },
         'POST'
       );
       await saveTokens(data);
@@ -160,18 +173,17 @@ export const useLogin = () => {
         if (Platform.OS !== 'web') {
           await registerForPushNotificationsAsync();
         }
-      } catch {}
+      } catch { /* push notification registration is non-critical */ }
       setSuccessMessage('Sesión iniciada correctamente');
       setShowSuccess(true);
       setTimeout(async () => {
         setShowSuccess(false);
         await handleLoginToken();
       }, 800);
-    } catch (e: any) {
-      const status = e?.response?.status;
-      const path = e?.config?.url;
-      console.log('Error en login:', status, path, e?.response?.data || e?.message);
-      setErrorMessage(e?.error || 'Error al iniciar sesión');
+    } catch (e: unknown) {
+      // SECURITY: Never forward raw error objects — use the sanitized message only
+      const err = e as { error?: string; status?: number };
+      setErrorMessage(err?.error ?? 'Error al iniciar sesión');
       setShowError(true);
     } finally {
       setLoading(false);

@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
-import { OrderButton } from "@/components/button/OrderButton"; 
-import ImageOnline from "@/components/image/ImageOnline"; 
-import { DotsLoader } from "@/components/others/DotsLoader"; 
-import { iconos } from "@/constants/iconos"; 
-import { Job, useActiveJobs } from "@/hooks/employee/jobs/useActiveJobs"; 
-import { activeJobsStyles as styles } from "@/styles/app/employee/jobs/activeJobsStyles"; 
-import { Colors } from "@/themes/colors"; 
-import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native"; 
+import { OrderButton } from "@/components/button/OrderButton";
+import ImageOnline from "@/components/image/ImageOnline";
+import { DotsLoader } from "@/components/others/DotsLoader";
+import { iconos } from "@/constants/iconos";
+import { Job, useActiveJobs } from "@/hooks/employee/jobs/useActiveJobs";
+import { activeJobsStyles as styles } from "@/styles/app/employee/jobs/activeJobsStyles";
+import { Colors } from "@/themes/colors";
+import { Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MotiView } from 'moti';
 
 export default function ActiveJobsScreen() {
   const { jobs, goToJobDetail, loading } = useActiveJobs();
@@ -57,13 +58,12 @@ export default function ActiveJobsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>Trabajos</Text>
-        {jobs.length > 0 && (
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
+      {jobs.length > 0 && (
+        <View style={[styles.headerRow, { justifyContent: 'flex-end' }]}>
           <OrderButton options={orderOptions} onSelect={handleSort} />
-        )}
-      </View>
+        </View>
+      )}
 
       <ScrollView
         contentContainerStyle={[
@@ -73,7 +73,12 @@ export default function ActiveJobsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {jobs.length === 0 ? (
-          <View style={styles.noJobsCard}>
+          <MotiView
+            from={{ opacity: 0, translateY: 20 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            transition={{ type: 'timing', duration: 400 }}
+            style={styles.noJobsCard}
+          >
             <Text style={styles.noJobsTitle}>Aún no tienes trabajos</Text>
             <Image
               source={require("@/assets/images/jex/Jex-Olvidadizo.webp")}
@@ -83,10 +88,16 @@ export default function ActiveJobsScreen() {
             <Text style={styles.noJobsSubtitle}>
               Cuando consigas uno, aparecerá aquí
             </Text>
-          </View>
+          </MotiView>
         ) : (
-          sortedJobs.map((job) => (
-            <View key={job.id} style={styles.card}>
+          sortedJobs.map((job, index) => (
+            <MotiView
+              key={job.id}
+              from={{ opacity: 0, translateY: 24 }}
+              animate={{ opacity: 1, translateY: 0 }}
+              transition={{ delay: index * 80, type: 'timing', duration: 320 }}
+            >
+            <View style={styles.card}>
               {/* Header con imagen + info */}
               <View style={styles.cardHeader}>
 
@@ -151,6 +162,7 @@ export default function ActiveJobsScreen() {
                 {iconos.flechaDerecha(20, Colors.gray3)}
               </TouchableOpacity>
             </View>
+            </MotiView>
           ))
         )}
       </ScrollView>

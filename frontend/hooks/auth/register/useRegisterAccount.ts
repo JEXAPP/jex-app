@@ -2,6 +2,8 @@ import { useDataValidation } from '@/services/internal/useDataValidation';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import useBackendConection from '@/services/internal/useBackendConection';
+import { logger } from '@/services/internal/logger';
+import { registerAccountSchema } from '@/services/validation/schemas';
 
 export const useRegisterAccount = () => {
   const { requestBackend } = useBackendConection();
@@ -28,33 +30,32 @@ export const useRegisterAccount = () => {
   const handlePasswordChange = (value: string) => setPassword(value);
 
   const handleContinue = async () => {
-    const emailExists = await validateEmailExists(correo);
+    // SECURITY: Zod schema strips HTML and validates email format/max-length
+    const parsed = registerAccountSchema.safeParse({
+      email: correo,
+      password,
+      confirmPassword,
+    });
+    if (!parsed.success) {
+      const firstError = parsed.error.errors[0]?.message ?? 'Datos inválidos';
+      setErrorMessage(firstError);
+      setShowError(true);
+      return;
+    }
+
+    const emailExists = await validateEmailExists(parsed.data.email);
     if (!emailExists) {
       setErrorMessage('Este correo ya está registrado.');
       setShowError(true);
       return;
     }
 
-    if (!validateEmail(correo)) {
+    if (!validateEmail(parsed.data.email)) {
       setErrorMessage('Formato de mail inválido.');
       setShowError(true);
       return;
     }
 
-    if (password !== confirmPassword) {
-      setErrorMessage('Las contraseñas no coinciden');
-      setShowError(true);
-      return;
-    }
-
-    // 🔄 ANTES:
-    // if (passwordStrength < 3) {
-    //   setErrorMessage('La contraseña es demasiado débil');
-    //   setShowError(true);
-    //   return;
-    // }
-
-    // ✅ AHORA: usamos el booleano del componente
     if (!isPasswordValid) {
       setErrorMessage('La contraseña no cumple con los requisitos mínimos.');
       setShowError(true);
@@ -64,20 +65,20 @@ export const useRegisterAccount = () => {
     const qs = new URLSearchParams({
       google: '0',
       phone: phone || '',
-      email: correo,
-      password,
+      email: parsed.data.email,
+      password: parsed.data.password,
     }).toString();
 
     router.push(`./type-user?${qs}`);
   };
 
   const validateEmailExists = async (email: string) => {
-    const payload = { email: email };
     try {
-      const res = await requestBackend(`/api/auth/validate-mail/`, payload, 'POST');
+      const res = await requestBackend(`/api/auth/validate-mail/`, { email }, 'POST');
       return res;
     } catch (error) {
-      console.error('Error validando email:', error);
+      // SECURITY: Log only in dev; never expose the email or server response
+      logger.error('Error validando email');
       return false;
     }
   };

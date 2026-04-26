@@ -5,8 +5,8 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
 } from "react-native";
+import { DotsLoader } from "@/components/others/DotsLoader";
 import { useSanction } from "@/hooks/employer/panel/qualification/useSanction";
 import { sanctionStyles as styles } from "@/styles/app/employer/panel/qualification/sanctionStyles";
 import * as React from "react";
@@ -201,7 +201,7 @@ export default function SanctionScreen() {
           }}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <DotsLoader size={8} color={Colors.white} />
           ) : (
             <Text style={styles.registerButtonText}>
               Registrar sanción

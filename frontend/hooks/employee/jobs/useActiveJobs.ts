@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 // hooks/employee/jobs/useActiveJobs.ts
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -80,7 +81,7 @@ export const useActiveJobs = () => {
 
         setJobs(normalized);
       } catch (e) {
-        console.log("Error cargando trabajos activos:", e);
+        logger.log("Error cargando trabajos activos:", e);
       } finally {
         setLoading(false)
       }

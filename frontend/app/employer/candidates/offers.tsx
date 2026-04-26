@@ -2,12 +2,11 @@ import ImageOnline from "@/components/image/ImageOnline";
 import { DotsLoader } from "@/components/others/DotsLoader";
 import { iconos } from "@/constants/iconos";
 import StateOffersSkeleton from "@/constants/skeletons/employer/offers/stateOffersSkeleton";
-import { useStateOffers } from "@/hooks/employer/offers/useStateOffers";
-import { stateOffersStyles as styles } from "@/styles/app/employer/offers/stateOffersStyles";
+import { useStateOffers } from "@/hooks/employer/candidates/useStateOffers";
+import { stateOffersStyles as styles } from "@/styles/app/employer/candidates/stateOffersStyles";
 import { Colors } from "@/themes/colors";
 import { Ionicons } from "@expo/vector-icons";
 import {
-  ActivityIndicator,
   FlatList,
   Image,
   Text,
@@ -25,29 +24,25 @@ import { useEffect, useMemo, useState } from "react";
 import * as Clipboard from "expo-clipboard";
 import { ClickWindow } from "@/components/window/ClickWindow";
 import { clickWindowStyles1 } from "@/styles/components/window/clickWindowStyles1";
+import { useCandidatesEvent } from "./_layout";
 
 type StatusParam = "success" | "failure" | "pending";
 
 export default function StateOffersScreen() {
+  const { currentEvent, events, loadingEvents } = useCandidatesEvent();
+
   const {
-    currentEvent,
-    goNextEvent,
-    goPrevEvent,
-    canGoNext,
-    canGoPrev,
     filter,
     setFilter,
     finalizedFilter,
     setFinalizedFilter,
     filteredOffers,
     offers,
-    events,
     loading,
-    loadingEvents,
     creatingPaymentId,
     createPaymentLink,
     refreshOffers,
-  } = useStateOffers();
+  } = useStateOffers(currentEvent);
 
   const { payment_status } = useLocalSearchParams<{ payment_status?: string }>();
 
@@ -106,8 +101,7 @@ export default function StateOffersScreen() {
 
   if (events.length === 0) {
     return (
-      <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-        <Text style={styles.title}>Ofertas</Text>
+      <SafeAreaView style={styles.container} edges={["left", "right"]}>
         <View style={styles.noEventsContainer}>
           <Text style={styles.noEventsTitle}>
             Aún no has creado ningún evento
@@ -126,7 +120,7 @@ export default function StateOffersScreen() {
   const hasOffersForEvent = offers.some((o) => o.eventId === currentEvent!.id);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       {statusContent && (
         <ImageWindow
           visible={showInfo}
@@ -262,7 +256,7 @@ export default function StateOffersScreen() {
                       {item.salary} ARS
                     </Text>
                     <View style={styles.pendingBox}>
-                      <ActivityIndicator size="small" color={Colors.violet4} />
+                      <DotsLoader size={6} color={Colors.violet4} style={{ marginRight: 5 }} />
                       <Text style={styles.pendingText}>Pago pendiente</Text>
                     </View>
                   </>
@@ -299,39 +293,6 @@ export default function StateOffersScreen() {
         }}
         ListHeaderComponent={
           <>
-            <Text style={styles.title}>Ofertas</Text>
-
-            <View style={styles.eventRow}>
-              <View style={styles.sideSlot}>
-                {canGoPrev && (
-                  <TouchableOpacity onPress={goPrevEvent}>
-                    {iconos.flechaIzquierda(24, Colors.violet4)}
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              <View style={styles.centerSlot}>
-                <Text style={styles.eventName}>
-                  {currentEvent!.name}
-                </Text>
-              </View>
-
-              <View style={styles.sideSlot}>
-                {canGoNext && (
-                  <TouchableOpacity onPress={goNextEvent}>
-                    {iconos.flechaDerecha(24, Colors.violet4)}
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-
-            {currentEvent?.state?.name && (
-              <View style={styles.eventEstadoBadge}>
-                <Text style={styles.eventEstadoText}>{currentEvent.state.name}</Text>
-              </View>
-            )}
-            
-
             <View style={styles.tagsRow}>
               {isFinalized ? (
                 <>
@@ -379,7 +340,6 @@ export default function StateOffersScreen() {
           !loading ? (
             isFinalized && finalizedFilter === "A_PAGAR" ? (
               <View style={styles.generalEmptyContainer}>
-                
                 <Image
                   source={require("@/assets/images/jex/Jex-Asociado.webp")}
                   style={styles.generalEmptyImage}
@@ -391,7 +351,6 @@ export default function StateOffersScreen() {
               </View>
             ) : isFinalized && finalizedFilter === "PAGADO" ? (
               <View style={styles.generalEmptyContainer}>
-                
                 <Image
                   source={require("@/assets/images/jex/Jex-Pago-Rechazado.webp")}
                   style={styles.generalEmptyImage}
@@ -401,9 +360,8 @@ export default function StateOffersScreen() {
                   No realizaste ningún pago aún
                 </Text>
               </View>
-            ): !hasOffersForEvent ? (
+            ) : !hasOffersForEvent ? (
               <View style={styles.generalEmptyContainer}>
-                
                 <Image
                   source={require("@/assets/images/jex/Jex-Sin-Eventos.webp")}
                   style={styles.generalEmptyImage}
@@ -415,7 +373,6 @@ export default function StateOffersScreen() {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                
                 <Image
                   source={require("@/assets/images/jex/Jex-Sin-Eventos.webp")}
                   style={styles.emptyImage}

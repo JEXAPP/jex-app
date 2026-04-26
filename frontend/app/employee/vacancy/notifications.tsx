@@ -6,7 +6,8 @@ import { buttonStyles5 } from '@/styles/components/button/buttonStyles/buttonSty
 import { Colors } from '@/themes/colors';
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { ActivityIndicator, FlatList, Image, Text, View } from 'react-native';
+import { FlatList, Image, Text, View } from 'react-native';
+import { DotsLoader } from '@/components/others/DotsLoader';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type NotifItemProps = { item: NotificationDTO; rightText: string; onPress: (n: NotificationDTO) => void };
@@ -60,7 +61,7 @@ export default function NotificationsScreen() {
       </View>
 
       {isFetching && items.length === 0 ? (
-        <ActivityIndicator style={{ marginTop: 40 }} color={Colors.violet4} />
+        <DotsLoader style={{ marginTop: 40 }} />
       ) : (
         <FlatList
           data={items}

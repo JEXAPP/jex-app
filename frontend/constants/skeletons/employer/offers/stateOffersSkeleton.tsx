@@ -2,7 +2,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { MotiView } from 'moti';
-import { stateOffersStyles as s } from '@/styles/app/employer/offers/stateOffersStyles';
+import { stateOffersStyles as s } from '@/styles/app/employer/candidates/stateOffersStyles';
 
 const SkeletonBox = ({
   w,

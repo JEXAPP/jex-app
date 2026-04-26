@@ -1,6 +1,6 @@
 // src/app/employee/profile/edit-interests.tsx
 import React from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "@/themes/colors";
 import { SelectableTag } from "@/components/button/SelectableTags";

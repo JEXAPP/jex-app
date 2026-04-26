@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { useEffect, useState } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
 
@@ -62,7 +63,7 @@ export const useEmployeeRatings = () => {
 
         setRatings(ordered);
       } catch (err: any) {
-        console.warn("Error cargando calificaciones:", err?.message);
+        logger.warn("Error cargando calificaciones:", err?.message);
       } finally {
         setLoading(false);
       }

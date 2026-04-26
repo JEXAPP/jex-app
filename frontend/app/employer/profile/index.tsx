@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 // src/app/employer/profile/index.tsx (o donde tengas este screen)
 import React, { useState } from "react";
 import {
@@ -6,9 +7,9 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
   Modal,
 } from "react-native";
+import { DotsLoader } from "@/components/others/DotsLoader";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 
@@ -20,7 +21,6 @@ import { profileEmployerStyles as styles } from "@/styles/app/employer/profile/p
 import RowButton from "@/components/button/RowButton";
 import { rowButtonStyles1 } from "@/styles/components/button/rowButton/rowButtonStyles1";
 import { iconos } from "@/constants/iconos";
-import { DotsLoader } from "@/components/others/DotsLoader";
 
 export default function EmployerProfileScreen() {
   const {
@@ -44,9 +44,8 @@ export default function EmployerProfileScreen() {
         <View
           style={{
             flex: 1,
-            justifyContent: "flex-start",
+            justifyContent: "center",
             alignItems: "center",
-            marginTop: 40,
           }}
         >
           <DotsLoader />
@@ -60,7 +59,7 @@ export default function EmployerProfileScreen() {
       setIsLoggingOut(true);
       await handleLogout();
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      logger.error("Error al cerrar sesión:", error);
     } finally {
       setIsLoggingOut(false);
     }
@@ -159,8 +158,12 @@ export default function EmployerProfileScreen() {
               />
             );
 
-            const handlePress =
-              opt.label === "Legal" ? loadTerms : opt.onPress ?? (() => {});
+            const isLogout = opt.label === "Cerrar Sesión";
+            const handlePress = opt.label === "Legal"
+              ? loadTerms
+              : isLogout
+              ? onLogoutPress
+              : opt.onPress ?? (() => {});
 
             return (
               <RowButton
@@ -169,31 +172,16 @@ export default function EmployerProfileScreen() {
                 icon={iconElement}
                 onPress={handlePress}
                 styles={rowButtonStyles1}
+                disabled={isLogout && isLoggingOut}
+                rightIcon={isLogout && isLoggingOut
+                  ? <DotsLoader size={7} color={Colors.gray3} />
+                  : undefined
+                }
               />
             );
           })}
         </View>
       </ScrollView>
-
-      {/* Logout */}
-      <View style={styles.logoutContainer}>
-        <TouchableOpacity
-          style={styles.logoutRow}
-          activeOpacity={0.7}
-          onPress={onLogoutPress}
-          disabled={isLoggingOut}
-        >
-          {iconos.logout(28, Colors.gray3)}
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
-          {isLoggingOut && (
-            <ActivityIndicator
-              size="small"
-              color="#444"
-              style={{ marginLeft: 10 }}
-            />
-          )}
-        </TouchableOpacity>
-      </View>
 
       {/* Modal de Términos (igual que empleado) */}
       <Modal visible={termsVisible} animationType="slide" transparent>

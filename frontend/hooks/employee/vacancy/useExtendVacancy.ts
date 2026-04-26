@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { Vacancy } from '@/constants/interfaces';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -55,7 +56,7 @@ export const useExtendVacancy = () => {
           setHasMore(fetched < count);
         }
     } catch (e) {
-        console.log('Error al listar por categoría', e);
+        logger.log('Error al listar por categoría', e);
         setHasMore(false);
     } finally {
         setIsFetching(false);

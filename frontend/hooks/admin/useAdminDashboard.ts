@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { disconnectStream } from '@/services/stream/streamClient';
-import * as SecureStore from 'expo-secure-store';
+import { getToken } from '@/services/internal/useTokenStorage';
 import { clearTokens } from '@/services/internal/api';
 import { router } from 'expo-router';
+import { logger } from '@/services/internal/logger';
 
 export type ComplaintStatus = 'En Revisión' | 'Aceptada' | 'Rechazada';
 
@@ -179,21 +180,20 @@ export const useAdminDashboard = () => {
 
   const handleLogout = async () => {
     try {
-      const refresh = await SecureStore.getItemAsync("refresh");
+      const refresh = await getToken("refresh");
 
       if (refresh) {
         try {
           await requestBackend("/api/auth/logout/", { refresh }, "POST");
-          console.log("Sesión cerrada en backend");
         } catch (e) {
-          console.warn("Logout backend falló, pero seguimos:", e);
+          logger.warn("Logout backend falló, continuando:", (e as Error).message);
         }
       }
 
       try {
         await disconnectStream();
       } catch (e) {
-        console.warn("Error al desconectar Stream:", e);
+        logger.warn("Error al desconectar Stream:", (e as Error).message);
       }
 
     } finally {

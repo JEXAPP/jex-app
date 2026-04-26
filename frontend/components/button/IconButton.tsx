@@ -6,6 +6,9 @@ import {
   TextStyle,
   ViewStyle,
 } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface Props {
   onPress: () => void;
@@ -15,9 +18,9 @@ interface Props {
 
   // Opción 2: texto simple en el botón (si no pasás icon)
   content?: string;
-  sizeContent?: number;             // tamaño del texto si usás content
+  sizeContent?: number;
 
-  sizeButton?: number;              // diámetro del círculo
+  sizeButton?: number;
   backgroundColor?: string;
 
   styles: {
@@ -41,15 +44,23 @@ export const IconButton: React.FC<Props> = ({
   hitSlop = 6,
 }) => {
   const diameter = sizeButton ?? sizeContent + 16;
+  const scale = useSharedValue(1);
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
+  const handlePressIn = () => { scale.value = withSpring(0.84, { damping: 10, stiffness: 350 }); };
+  const handlePressOut = () => { scale.value = withSpring(1, { damping: 10, stiffness: 350 }); };
 
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel ?? 'Botón'}
       hitSlop={hitSlop}
       style={[
         styles.button,
+        animStyle,
         {
           width: diameter,
           height: diameter,
@@ -76,6 +87,6 @@ export const IconButton: React.FC<Props> = ({
           {content}
         </Text>
       ) : null}
-    </Pressable>
+    </AnimatedPressable>
   );
 };

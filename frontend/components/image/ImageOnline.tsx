@@ -1,6 +1,7 @@
 import useGetImage from '@/services/external/cloudinary/useGetImage';
 import React, { useEffect, useState } from 'react';
-import { Image, ImageSourcePropType, ImageStyle } from 'react-native';
+import { Image } from 'expo-image';
+import { ImageSourcePropType, ImageStyle } from 'react-native';
 
 type Props = {
   imageId?: string | null;        // public_id
@@ -60,10 +61,11 @@ const ImageOnline: React.FC<Props> = ({
       : [{overflow: 'hidden', width: size, height: size, borderRadius: size / 4 }];
 
   if (!uri) {
-    return <Image source={fallback} style={[...base, style as any]} resizeMode="cover" />;
+    return <Image source={fallback} style={[...base, style as any]} contentFit="cover" />;
   }
 
-  return <Image source={{ uri }} style={[...base, style as any]} resizeMode="cover" />;
+  // expo-image: disk+memory cache for remote images
+  return <Image source={{ uri }} style={[...base, style as any]} contentFit="cover" cachePolicy="memory-disk" />;
 };
 
 export default ImageOnline;

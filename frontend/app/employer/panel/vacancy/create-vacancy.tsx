@@ -23,9 +23,9 @@ import { timePickerStyles1 } from '@/styles/components/picker/timePickerStyles1'
 import { clickWindowStyles1 } from '@/styles/components/window/clickWindowStyles1';
 import { tempWindowStyles1 } from '@/styles/components/window/tempWindowStyles1';
 import { Colors } from '@/themes/colors';
+import { DotsLoader } from '@/components/others/DotsLoader';
 import React from 'react';
 import {
-  ActivityIndicator,
   Image,
   Keyboard,
   Modal,
@@ -442,7 +442,7 @@ export default function RegisterVacancyScreen() {
 
                 {feeLoading ? (
                   <View style={styles.paymentModalLoadingRow}>
-                    <ActivityIndicator size="small" color={Colors.violet4} />
+                    <DotsLoader size={8} color={Colors.violet4} />
                     <Text style={styles.paymentModalHint}>
                       Obteniendo comisión…
                     </Text>

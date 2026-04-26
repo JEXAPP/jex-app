@@ -11,15 +11,19 @@ type ValidateErr = {
 };
 export type ValidateResult = ValidateOk | ValidateErr;
 
+// SECURITY: Explicit interface replaces `any` — prevents untyped JWT claims from
+// spreading into downstream code without validation
 interface DecodedToken {
   role?: Role | null;
   exp?: number;
-  [k: string]: any;
+  sub?: string;
+  iat?: number;
 }
 
 const isTokenExpired = (token: string): boolean => {
   try {
-    const decoded: any = jwtDecode(token);
+    // SECURITY: Validate expiry before every authenticated API call
+    const decoded = jwtDecode<DecodedToken>(token);
     if (!decoded.exp) return true;
     const now = Math.floor(Date.now() / 1000);
     return decoded.exp < now;

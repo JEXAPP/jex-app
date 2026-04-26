@@ -1,5 +1,6 @@
 import { Colors } from '@/themes/colors';
 import { Ionicons } from '@expo/vector-icons';
+import { MotiView } from 'moti';
 import React from 'react';
 import {
   StyleProp,
@@ -42,8 +43,13 @@ export const SelectableTag = ({
   if (disabled) return null;
 
   return (
+  <MotiView
+    animate={{ scale: selected ? 1.03 : 1 }}
+    transition={{ type: 'spring', damping: 14, stiffness: 280 }}
+  >
   <TouchableOpacity
     onPress={onPress}
+    activeOpacity={0.8}
     style={[styles.tag, selected && styles.tagSelected]}
   >
     <View
@@ -109,5 +115,6 @@ export const SelectableTag = ({
       )}
     </View>
   </TouchableOpacity>
+  </MotiView>
 );
 }

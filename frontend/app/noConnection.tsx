@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, Image, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, Image, StyleSheet } from "react-native";
+import { DotsLoader } from "@/components/others/DotsLoader";
 import { SafeAreaView } from "react-native-safe-area-context";
 import NetInfo from "@react-native-community/netinfo";
 import { useRouter } from "expo-router";
@@ -46,7 +47,7 @@ export default function NoWifiScreen() {
 
         {loading ? (
           <View style={styles.retryButton}>
-            <ActivityIndicator color="#fff" />
+            <DotsLoader size={8} color={Colors.white} />
           </View>
         ) : (
           <Button

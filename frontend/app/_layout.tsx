@@ -7,24 +7,25 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 import { useDeepLinkDebug } from '@/services/internal/useDeepLinkDebug';
+import { ErrorBoundary } from '@/components/errors/ErrorBoundary';
+import { logger } from '@/services/internal/logger';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function RootLayout() {
-    useDeepLinkDebug();
+  useDeepLinkDebug();
 
   const [fontsLoaded] = useFonts(fontMap);
 
-  // Calienta el Custom Tab / SFSafariViewController y luego lo enfría
   useEffect(() => {
     WebBrowser.warmUpAsync();
     return () => { WebBrowser.coolDownAsync(); };
   }, []);
 
-  // Debug de deep links: confirmá que llega jex://oauthredirect
   useEffect(() => {
     const sub = Linking.addEventListener('url', ({ url }) => {
-      console.log('DEEPLINK capturado =>', url);
+      // SECURITY: Deep-link URLs may contain OAuth codes — log only in dev
+      logger.log('Deep link received:', url);
     });
     return () => sub.remove();
   }, []);
@@ -35,10 +36,13 @@ export default function RootLayout() {
 
   if (!fontsLoaded) return null;
 
-
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack screenOptions={{ ...transitionFade, headerShown: false }} />
-    </GestureHandlerRootView>
+    // SECURITY: ErrorBoundary wraps the entire app to prevent raw crashes
+    // from exposing stack traces or internal state to the user
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Stack screenOptions={{ ...transitionFade, headerShown: false }} />
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }

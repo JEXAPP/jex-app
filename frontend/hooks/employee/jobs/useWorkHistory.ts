@@ -1,12 +1,16 @@
+import { logger } from '@/services/internal/logger';
 import { useEffect, useState } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
 
 export type WorkHistoryItem = {
   id: string;
 
+  eventId: number;
   eventName: string;
   eventLogoUrl?: string | null;
   eventDate: string; // dd/mm/aaaa
+  startTime: string | null;
+  endTime: string | null;
 
   roleName: string;
   amount: number;
@@ -17,9 +21,11 @@ export type WorkHistoryItem = {
   paymentMpId: string | null;
   isPaid: boolean;
 
+  employerId: number | null;
   organizerName: string;
   organizerImageUrl?: string | null;
 
+  isRated: boolean;
   ratingScore: number;
   ratingComment: string;
 };
@@ -63,11 +69,16 @@ export const useWorkHistory = () => {
           const mpId = raw.payment_mp_id ?? null;
           const paid = isPaidFromMpId(mpId);
 
+          const rated = raw.stars !== null && raw.stars !== undefined;
+
           return {
             id: `${raw.event_id}-${i}`,
+            eventId: raw.event_id ?? 0,
             eventName: raw.event_name ?? "Evento",
             eventLogoUrl: raw.event_image_url ?? null,
             eventDate: raw.start_date ?? "",
+            startTime: raw.start_time ?? null,
+            endTime: raw.end_time ?? null,
 
             roleName: raw.job_type ?? "",
             amount: Number(raw.payment_amount ?? 0),
@@ -78,13 +89,12 @@ export const useWorkHistory = () => {
             paymentMpId: mpId,
             isPaid: paid,
 
+            employerId: raw.employer_id ?? null,
             organizerName: raw.company_name ?? "Organizador",
             organizerImageUrl: raw.employer_image_url ?? null,
 
-            ratingScore:
-              raw.stars !== null && raw.stars !== undefined
-                ? Number(raw.stars)
-                : 0,
+            isRated: rated,
+            ratingScore: rated ? Number(raw.stars) : 0,
             ratingComment: raw.comment ?? "",
           };
         });
@@ -97,7 +107,7 @@ export const useWorkHistory = () => {
 
         setItems(ordered);
       } catch (err) {
-        console.warn("Error cargando historial:", err);
+        logger.warn("Error cargando historial:", err);
       } finally {
         setLoading(false);
       }

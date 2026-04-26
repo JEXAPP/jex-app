@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 export const useDataTransformation = () => {
 
   function stringToDate(fechaStr: string): Date {
@@ -41,8 +42,8 @@ export const useDataTransformation = () => {
 
       return fechaFormateada.charAt(0).toUpperCase() + fechaFormateada.slice(1);
     } catch (error) {
-      console.log('Hubo un error:', error);
-      console.warn('Fecha inválida:', fechaStr);
+      logger.log('Hubo un error:', error);
+      logger.warn('Fecha inválida:', fechaStr);
       return fechaStr;
     }
   };

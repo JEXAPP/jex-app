@@ -6,6 +6,7 @@ import React from 'react';
 import { Image, Keyboard, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import { OrderButton } from '@/components/button/OrderButton';
 import HomeOfferSkeleton from '@/constants/skeletons/employee/offers/homeOfferSkeleton';
+import { MotiView } from 'moti';
 
 export default function HomeOffersScreen() {
   const { offers, handleOrderSelect, goToOfferDetail, loadingOffers } = useHomeOffers();
@@ -45,7 +46,12 @@ export default function HomeOffersScreen() {
               showsVerticalScrollIndicator={false}
             >
               {offers.length === 0 ? (
-                <View style={styles.noOffersCard}>
+                <MotiView
+                  from={{ opacity: 0, translateY: 20 }}
+                  animate={{ opacity: 1, translateY: 0 }}
+                  transition={{ type: 'timing', duration: 400 }}
+                  style={styles.noOffersCard}
+                >
                   <Text style={styles.noOffersTitle}>Aún no tienes ofertas</Text>
                   <Image
                     source={require('@/assets/images/jex/Jex-Olvidadizo.webp')}
@@ -55,11 +61,16 @@ export default function HomeOffersScreen() {
                   <Text style={styles.noOffersSubtitle}>
                     Vuelve más tarde para ver nuevas oportunidades
                   </Text>
-                </View>
+                </MotiView>
               ) : (
-                offers.map((offer) => (
+                offers.map((offer, index) => (
+                  <MotiView
+                    key={offer.id}
+                    from={{ opacity: 0, translateY: 24 }}
+                    animate={{ opacity: 1, translateY: 0 }}
+                    transition={{ delay: index * 80, type: 'timing', duration: 320 }}
+                  >
                   <TouchableOpacity
-                    key={offer.id} // evita duplicados si faltara id
                     style={styles.offerCard}
                     activeOpacity={0.8}
                     onPress={() => goToOfferDetail(offer)}
@@ -92,6 +103,7 @@ export default function HomeOffersScreen() {
                       </Text>
                     </View>
                   </TouchableOpacity>
+                  </MotiView>
                 ))
               )}
             </ScrollView>

@@ -1,8 +1,8 @@
+import { logger } from '@/services/internal/logger';
 import { termsAndConditionsText } from "@/assets/legal/terms_and_conditions";
 import RowButton from "@/components/button/RowButton";
 import { DotsLoader } from "@/components/others/DotsLoader";
 import ImageWindow from "@/components/window/ImageWindow";
-import { iconos } from "@/constants/iconos";
 import { useProfile } from "@/hooks/employee/profile/useProfile";
 import { profileStyles as styles } from "@/styles/app/employee/profile/profileStyles";
 import { rowButtonStyles1 } from "@/styles/components/button/rowButton/rowButtonStyles1";
@@ -10,7 +10,6 @@ import { Colors } from "@/themes/colors";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   Image,
   Modal,
   ScrollView,
@@ -27,7 +26,6 @@ export default function ProfileScreen() {
     handleLogout,
     goToProfileDetails,
     goToRatingsScreen,
-    goToWorkHistory,
     mpModalVisible,
     mpModalConfig,
     closeMpModal,
@@ -42,7 +40,7 @@ export default function ProfileScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View
-          style={{ flex: 1, justifyContent: "flex-start", alignItems: "center" }}
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
         >
           <DotsLoader />
         </View>
@@ -55,7 +53,7 @@ export default function ProfileScreen() {
       setIsLoggingOut(true);
       await handleLogout();
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      logger.error("Error al cerrar sesión:", error);
     } finally {
       setIsLoggingOut(false);
     }
@@ -91,56 +89,41 @@ export default function ProfileScreen() {
 
         </TouchableOpacity>
 
-        <View style={styles.summaryRow}>
-          <TouchableOpacity
-            style={styles.summaryCard}
-            activeOpacity={0.8}
-            onPress={goToRatingsScreen}
-          >
-            <Text style={styles.ratingValue}>
-              {user.rating?.toFixed(1) ?? "0.0"}
-            </Text>
+        <TouchableOpacity
+          style={styles.summaryCard}
+          activeOpacity={0.8}
+          onPress={goToRatingsScreen}
+        >
+          <Text style={styles.ratingValue}>
+            {user.rating?.toFixed(1) ?? "0.0"}
+          </Text>
 
-            <View style={styles.ratingRow}>
-              <View style={styles.starsRow}>
-                {[...Array(5)].map((_, index) => {
-                  const filled = index + 1 <= Math.floor(user.rating);
-                  const half =
-                    user.rating - index >= 0.5 && user.rating - index < 1;
+          <View style={styles.ratingRow}>
+            <View style={styles.starsRow}>
+              {[...Array(5)].map((_, index) => {
+                const filled = index + 1 <= Math.floor(user.rating);
+                const half =
+                  user.rating - index >= 0.5 && user.rating - index < 1;
 
-                  return (
-                    <Ionicons
-                      key={index}
-                      name={
-                        filled ? "star" : half ? "star-half" : "star-outline"
-                      }
-                      size={25}
-                      color={Colors.violet4}
-                      style={{ marginRight: 2 }}
-                    />
-                  );
-                })}
-              </View>
+                return (
+                  <Ionicons
+                    key={index}
+                    name={
+                      filled ? "star" : half ? "star-half" : "star-outline"
+                    }
+                    size={25}
+                    color={Colors.violet4}
+                    style={{ marginRight: 2 }}
+                  />
+                );
+              })}
             </View>
+          </View>
 
-            <Text style={styles.summaryCardSubtitle}>
-              Mirá los comentarios que te hicieron
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.summaryCard2}
-            activeOpacity={0.8}
-            onPress={goToWorkHistory}
-          >
-            <View style={styles.historyIconWrapper}>
-              {iconos.work_history(30, Colors.violet4)}
-            </View>
-            <Text style={styles.summaryCardSubtitleCentered}>
-              Consultá tu historial de trabajo
-            </Text>
-          </TouchableOpacity>
-        </View>
+          <Text style={styles.summaryCardSubtitle}>
+            Mirá los comentarios que te hicieron
+          </Text>
+        </TouchableOpacity>
 
         <View style={styles.optionsContainer}>
           {options.map((opt, idx) => {
@@ -152,8 +135,12 @@ export default function ProfileScreen() {
               />
             );
 
-            const handlePress =
-              opt.label === "Legal" ? loadTerms : opt.onPress ?? (() => {});
+            const isLogout = opt.label === "Cerrar Sesión";
+            const handlePress = opt.label === "Legal"
+              ? loadTerms
+              : isLogout
+              ? onLogoutPress
+              : opt.onPress ?? (() => {});
 
             return (
               <RowButton
@@ -162,30 +149,16 @@ export default function ProfileScreen() {
                 icon={iconElement}
                 onPress={handlePress}
                 styles={rowButtonStyles1}
+                disabled={isLogout && isLoggingOut}
+                rightIcon={isLogout && isLoggingOut
+                  ? <DotsLoader size={7} color={Colors.gray3} />
+                  : undefined
+                }
               />
             );
           })}
         </View>
       </ScrollView>
-
-      <View style={styles.logoutContainer}>
-        <TouchableOpacity
-          style={styles.logoutRow}
-          activeOpacity={0.7}
-          onPress={onLogoutPress}
-          disabled={isLoggingOut}
-        >
-          {iconos.logout(28, Colors.gray3)}
-          <Text style={styles.logoutText}>Cerrar Sesión</Text>
-          {isLoggingOut && (
-            <ActivityIndicator
-              size="small"
-              color="#444"
-              style={{ marginLeft: 10 }}
-            />
-          )}
-        </TouchableOpacity>
-      </View>
 
       <Modal visible={termsVisible} animationType="slide" transparent>
         <View

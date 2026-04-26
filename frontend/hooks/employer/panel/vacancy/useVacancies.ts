@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 // hooks/employer/useVacancies.ts
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useState, useMemo, useEffect } from "react";
@@ -66,7 +67,7 @@ export const useVacancies = () => {
           setHoraFinEvento(null);
         }
       } catch (err) {
-        console.log("Error cargando vacantes por evento:", err);
+        logger.log("Error cargando vacantes por evento:", err);
       } finally {
         setLoadingVacancies(false);
       }

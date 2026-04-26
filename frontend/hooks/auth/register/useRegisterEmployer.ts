@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 // hooks/auth/register/useRegisterEmployer.ts
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useDataValidation } from '@/services/internal/useDataValidation';
@@ -85,7 +86,7 @@ export const useRegisterEmployer = () => {
       setLoading(false);
       setShowSuccess(true);
     } catch (err) {
-      console.log('Hubo un error al completar el registro:', err);
+      logger.log('Hubo un error al completar el registro:', err);
       setErrorMessage('No se pudo completar el registro');
       setShowError(true);
       setLoading(false);

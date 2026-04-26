@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 // ✅ Hook corregido con fix y modales
 import { useEffect, useState } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
@@ -44,7 +45,7 @@ export const useSanction = (workerId: string, eventId?: string) => {
         }
       }
     } catch (err) {
-      console.log("❌ Error cargando empleado:", err);
+      logger.log("❌ Error cargando empleado:", err);
     }
   };
 
@@ -78,7 +79,7 @@ export const useSanction = (workerId: string, eventId?: string) => {
         setCategories(withIcons);
       }
     } catch (err) {
-      console.log("❌ Error cargando categorías:", err);
+      logger.log("❌ Error cargando categorías:", err);
       setErrorMessage("No se pudieron cargar las categorías de sanciones.");
       setShowError(true);
     }
@@ -140,7 +141,7 @@ export const useSanction = (workerId: string, eventId?: string) => {
       setShowSuccess(true);
       return true;
     } catch (err) {
-      console.log("❌ Error registrando sanción:", err);
+      logger.log("❌ Error registrando sanción:", err);
       setErrorMessage("No se pudo registrar la sanción.");
       setShowError(true);
       return false;

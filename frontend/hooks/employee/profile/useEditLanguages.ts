@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
@@ -68,7 +69,7 @@ export const useEditLanguages = () => {
           setIdiomas(mapped);
         }
       } catch (e) {
-        console.log("Error cargando idiomas:", e);
+        logger.log("Error cargando idiomas:", e);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -188,7 +189,7 @@ export const useEditLanguages = () => {
       return true;
       
     } catch (e) {
-      console.log("Error guardando idiomas:", e);
+      logger.log("Error guardando idiomas:", e);
       return false;
     } finally {
       setSaving(false);

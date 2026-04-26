@@ -6,6 +6,8 @@ import useBackendConection from "@/services/internal/useBackendConection";
 import { useDataValidation } from "@/services/internal/useDataValidation";
 import { obtenerCoordenadasDesdeDireccion } from "@/services/external/sugerencias/useGeoRefAr";
 import { useUploadImageServ } from "@/services/external/cloudinary/useUploadImage";
+import { formatDate } from "@/services/internal/formatDate";
+import { logger } from "@/services/internal/logger";
 
 type Coords = { lat: number; lng: number } | null;
 
@@ -17,12 +19,6 @@ type UploadableImage = {
 
 const isNonEmpty = (s?: string | null) => !!s && s.trim().length > 0;
 
-const formatearFecha = (f: Date) => {
-  const d = String(f.getDate()).padStart(2, "0");
-  const m = String(f.getMonth() + 1).padStart(2, "0");
-  const y = f.getFullYear();
-  return `${d}/${m}/${y}`;
-};
 
 const parseBirthDate = (v: string | null | undefined): Date | null => {
   if (!v) return null;
@@ -97,7 +93,7 @@ export const useEditBasicInfo = () => {
     (async () => {
       try {
         setLoading(true);
-        const res: any = await requestBackend(
+        const res = await requestBackend(
           "/api/auth/employee/view-profile-description/",
           null,
           "GET"
@@ -127,7 +123,7 @@ export const useEditBasicInfo = () => {
           setImageId(String(res.profile_image_id));
         }
       } catch (e) {
-        console.log("Error cargando perfil básico:", e);
+        logger.warn("Error cargando perfil básico:", e);
         setErrorMessage(
           "Ocurrió un error al cargar tu información. Intentá nuevamente."
         );
@@ -228,15 +224,15 @@ export const useEditBasicInfo = () => {
           lat = lat2 ?? null;
           lng = lon2 ?? null;
         } catch (e) {
-          console.log("Error buscando coordenadas:", e);
+          logger.warn("Error buscando coordenadas:", e);
         }
       }
 
       const dniNum = dni.replace(/\./g, "");
 
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         description: aboutMe.trim() !== "" ? aboutMe.trim() : null,
-        birth_date: formatearFecha(birthDate!),
+        birth_date: formatDate(birthDate!),
         address: address.trim(),
         first_name: firstName.trim(),
         last_name: lastName.trim(),
@@ -251,7 +247,7 @@ export const useEditBasicInfo = () => {
 
       // si el usuario cambió la foto, subimos y pisamos url + id
       if (profileImageFile) {
-        const upload: any = await uploadImage(
+        const upload = await uploadImage(
           profileImageFile.uri,
           "user-profiles-images"
         );
@@ -270,7 +266,7 @@ export const useEditBasicInfo = () => {
       setShowSuccess(true);
       return true;
     } catch (e) {
-      console.log("Error guardando información básica:", e);
+      logger.warn("Error guardando información básica:", e);
       setErrorMessage(
         "Ocurrió un error al guardar tus datos. Intentá nuevamente."
       );

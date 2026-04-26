@@ -1,7 +1,7 @@
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useDataValidation } from '@/services/internal/useDataValidation';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { secureSet } from '@/services/internal/secureStorage';
 import { useEffect, useState } from 'react';
 
 export const useMailConfirmation = () => {
@@ -38,7 +38,7 @@ export const useMailConfirmation = () => {
         return;
       }
 
-      await SecureStore.setItemAsync('email-password-reset', email);
+      await secureSet('email-password-reset', email);
       router.push('./reset-password/code-validation');
     } finally {
       setLoading(false); 

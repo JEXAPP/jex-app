@@ -6,42 +6,55 @@ type RequestConfig = Omit<
   'url' | 'method' | 'data'
 >;
 
-function parseAxiosErrorData(err: any): any {
-  const resp = err?.response;
-  if (!resp) return { error: err?.message || 'Request failed' };
+// SECURITY: Internal error shape — never exposed directly to the UI.
+interface NormalizedError {
+  status?: number;
+  error?: string;
+  detail?: string;
+  retryAfter?: number;
+  [key: string]: unknown;
+}
 
-  // axios ya intenta parsear JSON en response.data
-  let data = resp.data;
-
-  // Si vino como Blob (pasa a veces), intentar leer texto y parsear
-  if (data && typeof Blob !== 'undefined' && data instanceof Blob) {
-    // NO podemos hacer await aquí porque no es async.
-    // Devolvemos un objeto genérico; o podés volver async el parse.
-    return { status: resp.status, error: 'Request failed' };
+function parseAxiosErrorData(err: unknown): NormalizedError {
+  // SECURITY: 429 errors are pre-normalized in the api.ts interceptor
+  if (
+    err !== null &&
+    typeof err === 'object' &&
+    (err as NormalizedError).status === 429
+  ) {
+    return err as NormalizedError;
   }
 
-  // Si es string, intentar parsear JSON; si no, dejar string como error
+  const axiosErr = err as { response?: { status?: number; data?: unknown }; message?: string } | null;
+  const resp = axiosErr?.response;
+  if (!resp) return { error: axiosErr?.message || 'Error de conexión' };
+
+  let data = resp.data;
+
+  if (data && typeof Blob !== 'undefined' && data instanceof Blob) {
+    return { status: resp.status, error: 'No se pudo completar la operación.' };
+  }
+
   if (typeof data === 'string') {
     try {
-      const j = JSON.parse(data);
-      data = j;
+      data = JSON.parse(data);
     } catch {
-      data = { error: data };
+      // SECURITY: Don't expose raw server strings to the UI
+      data = { error: 'No se pudo completar la operación.' };
     }
   }
 
-  // Si no hay “error” ni “detail” y es un objeto con validaciones por campo, lo devolvemos igual
   if (typeof data !== 'object' || data === null) {
-    return { status: resp.status, error: 'Request failed' };
+    return { status: resp.status, error: 'No se pudo completar la operación.' };
   }
 
-  return { status: resp.status, ...data };
+  return { status: resp.status, ...(data as Record<string, unknown>) };
 }
 
-export default function useBackendConection<T = any>() {
+export default function useBackendConection<T = unknown>() {
   const requestBackend = async (
     endpoint: string,
-    payload: any = undefined,
+    payload: unknown = undefined,
     method: Method = 'GET',
     customConfig: RequestConfig & { useAuth?: boolean } = {}
   ): Promise<T> => {
@@ -54,8 +67,7 @@ export default function useBackendConection<T = any>() {
         ...customConfig,
       });
       return res.data;
-    } catch (err: any) {
-      // Normalizamos y re-lanzamos un objeto usable
+    } catch (err: unknown) {
       const normalized = parseAxiosErrorData(err);
       throw normalized;
     }
@@ -64,15 +76,23 @@ export default function useBackendConection<T = any>() {
   return { requestBackend };
 }
 
-export const getApiErrorMessage = (err: any): string => {
+// SECURITY: Maps internal error objects to Spanish user-facing strings.
+// Raw server messages and stack traces are never forwarded to the UI.
+export const getApiErrorMessage = (err: unknown): string => {
   if (!err) return 'Error desconocido';
-  if (typeof err.error === 'string') return err.error;
-  if (typeof err.detail === 'string') return err.detail;
+  const e = err as NormalizedError;
 
-  // DRF por campo: { start_date: ["..."], end_date: ["..."] }
-  const firstKey = Object.keys(err).find(k => Array.isArray(err[k]) && typeof err[k][0] === 'string');
-  if (firstKey) return err[firstKey][0];
+  // SECURITY: Rate-limit message — always user-friendly
+  if (e.status === 429 && typeof e.error === 'string') return e.error;
 
-  if (typeof err.message === 'string') return err.message;
+  if (typeof e.error === 'string') return e.error;
+  if (typeof e.detail === 'string') return e.detail;
+
+  // DRF field-level errors: { start_date: [“...”], end_date: [“...”] }
+  const firstKey = Object.keys(e).find(
+    k => Array.isArray(e[k]) && typeof (e[k] as unknown[])[0] === 'string'
+  );
+  if (firstKey) return (e[firstKey] as string[])[0];
+
   return 'No se pudo completar la operación.';
 };

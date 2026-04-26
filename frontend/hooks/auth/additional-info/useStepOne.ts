@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 
@@ -56,7 +57,7 @@ export const useStepOne = () => {
       router.replace('/auth/additional-info/step-two');
 
     } catch (err) {
-      console.log(err);
+      logger.log(err);
       setErrorMessage('Ocurrió un error al guardar tu perfil. Intentá nuevamente.');
       setShowError(true);
     } 

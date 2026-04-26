@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 // hooks/employer/profile/edit/useEditEmployerBasicInfo.ts
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
@@ -58,7 +59,7 @@ export const useEditEmployerBasicInfo = () => {
           setImageId(String(res.profile_image_id));
         }
       } catch (e) {
-        console.log("Error cargando perfil de empleador:", e);
+        logger.log("Error cargando perfil de empleador:", e);
         setErrorMessage(
           "Ocurrió un error al cargar los datos del empleador. Intentá nuevamente."
         );
@@ -120,7 +121,7 @@ export const useEditEmployerBasicInfo = () => {
       setShowSuccess(true);
       return true;
     } catch (e) {
-      console.log("Error guardando perfil de empleador:", e);
+      logger.log("Error guardando perfil de empleador:", e);
       setErrorMessage(
         "Ocurrió un error al guardar los cambios. Intentá nuevamente."
       );

@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -87,7 +88,7 @@ export const useNotifications = () => {
         setPage(p => p + 1);
       }
     } catch (e) {
-      console.log('Error al obtener notificaciones', e);
+      logger.log('Error al obtener notificaciones', e);
       setHasMore(false);
       Alert.alert('Error', 'No pudimos obtener tus notificaciones.');
     } finally {

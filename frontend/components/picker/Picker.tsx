@@ -9,6 +9,8 @@ import {
   ViewStyle,
   Pressable,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/themes/colors';
 
 interface Option {
   id: string | number;
@@ -25,8 +27,11 @@ interface PickerProps {
     selector: StyleProp<ViewStyle>;
     labelText: StyleProp<TextStyle>;
     selectedText: StyleProp<TextStyle>;
+    chevron?: StyleProp<ViewStyle>;
     dropdown: StyleProp<ViewStyle>;
     optionText: StyleProp<TextStyle>;
+    optionTextSelected?: StyleProp<TextStyle>;
+    divider?: StyleProp<ViewStyle>;
   };
 }
 
@@ -49,6 +54,12 @@ export const Picker: React.FC<PickerProps> = ({
         <Text style={value ? styles.selectedText : styles.labelText}>
           {value?.name || label}
         </Text>
+        <Ionicons
+          name={open ? 'chevron-up' : 'chevron-down'}
+          size={18}
+          color={Colors.gray2}
+          style={styles.chevron as any}
+        />
       </TouchableOpacity>
 
       {open && (
@@ -56,19 +67,28 @@ export const Picker: React.FC<PickerProps> = ({
           <ScrollView
             nestedScrollEnabled
             keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator
+            showsVerticalScrollIndicator={false}
           >
-            {options.map((option) => (
-              <Pressable
-                key={option.id.toString()}
-                onPress={() => {
-                  setValue(option);
-                  setOpen(false);
-                }}
-              >
-                <Text style={styles.optionText}>{option.name}</Text>
-              </Pressable>
-            ))}
+            {options.map((option, idx) => {
+              const selected = value?.id === option.id;
+              return (
+                <React.Fragment key={option.id.toString()}>
+                  {idx > 0 && styles.divider && (
+                    <View style={styles.divider} />
+                  )}
+                  <Pressable
+                    onPress={() => {
+                      setValue(option);
+                      setOpen(false);
+                    }}
+                  >
+                    <Text style={selected && styles.optionTextSelected ? styles.optionTextSelected : styles.optionText}>
+                      {option.name}
+                    </Text>
+                  </Pressable>
+                </React.Fragment>
+              );
+            })}
           </ScrollView>
         </View>
       )}

@@ -1,12 +1,20 @@
-import axios, {AxiosError,AxiosInstance,AxiosRequestConfig,AxiosRequestHeaders,} from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders } from 'axios';
 import { config } from '@/config';
 import { router } from 'expo-router';
-import {getToken as getStoredToken,setToken as setStoredToken,deleteToken as deleteStoredToken,} from '@/services/internal/useTokenStorage';
+import {
+  getToken as getStoredToken,
+  setToken as setStoredToken,
+  deleteToken as deleteStoredToken,
+} from '@/services/internal/useTokenStorage';
+import { logger } from '@/services/internal/logger';
 export { clearTokens };
-
 
 let api: AxiosInstance | null = null;
 let refreshPromise: Promise<string | null> | null = null;
+
+// SECURITY: Tracks until when the client is rate-limited (ms epoch).
+// Requests are blocked locally to respect the server's Retry-After header.
+let rateLimitedUntil: number | null = null;
 
 async function getAccess() {
   return getStoredToken('access');
@@ -27,18 +35,18 @@ async function clearTokens() {
 }
 
 function withAuthHeader(
-  headers: AxiosRequestHeaders | any | undefined,
+  headers: AxiosRequestHeaders | Record<string, unknown> | undefined,
   token: string
-): AxiosRequestHeaders | any {
+): Record<string, unknown> {
   if (!headers) return { Authorization: `Bearer ${token}` };
 
-  if (typeof (headers as any).set === 'function') {
-    (headers as any).set('Authorization', `Bearer ${token}`);
-    return headers;
+  if (typeof (headers as Record<string, unknown>).set === 'function') {
+    (headers as { set: (k: string, v: string) => void }).set('Authorization', `Bearer ${token}`);
+    return headers as Record<string, unknown>;
   }
 
   return {
-    ...(headers as any),
+    ...(headers as Record<string, unknown>),
     Authorization: `Bearer ${token}`,
   };
 }
@@ -56,24 +64,24 @@ export async function doRefresh(): Promise<string | null> {
         { refresh }
       );
 
-      // soporte para ambas variantes
       const newAccess = r.data?.access || r.data?.access_token;
+      // SECURITY: Rotate the refresh token on every use to limit replay window.
       const newRefresh = r.data?.refresh || r.data?.refresh_token;
 
       if (!newAccess) return null;
 
       await setTokens(newAccess, newRefresh);
 
-      // muy importante: que lo siguiente ya salga con el token nuevo
       if (api) {
         api.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
       }
 
       return newAccess;
     } catch (err) {
-      console.log('[REFRESH ERROR]', err);
+      // SECURITY: Use safe logger — never print raw tokens or response bodies
+      logger.error('[REFRESH ERROR]', err);
       await clearTokens();
-      router.replace('/'); // vuelve al login si falla el refresh
+      router.replace('/');
       return null;
     } finally {
       refreshPromise = null;
@@ -91,37 +99,59 @@ export function getApi(): AxiosInstance {
     timeout: 100000,
   });
 
-  // Inserta el access en cada request
+  // SECURITY: Attach Bearer token to every authenticated request.
   api.interceptors.request.use(async (cfg) => {
-    // Si el request marcó explícitamente que NO use auth, no agrego token
-    if ((cfg as any).useAuth === false) {
-      if (cfg.headers) delete (cfg.headers as any).Authorization;
+    if ((cfg as AxiosRequestConfig & { useAuth?: boolean }).useAuth === false) {
+      if (cfg.headers) delete (cfg.headers as Record<string, unknown>).Authorization;
       return cfg;
+    }
+
+    // SECURITY: Block the request locally while rate-limited to respect Retry-After
+    if (rateLimitedUntil !== null && Date.now() < rateLimitedUntil) {
+      const seconds = Math.ceil((rateLimitedUntil - Date.now()) / 1000);
+      return Promise.reject({
+        status: 429,
+        error: `Demasiadas solicitudes. Por favor, esperá ${seconds} segundos antes de intentar de nuevo.`,
+        retryAfter: seconds,
+      });
     }
 
     const token = await getAccess();
     if (token) {
-      if ((cfg.headers as any)?.set) {
-        (cfg.headers as any).set('Authorization', `Bearer ${token}`);
+      if (typeof (cfg.headers as Record<string, unknown>)?.set === 'function') {
+        (cfg.headers as { set: (k: string, v: string) => void }).set(
+          'Authorization',
+          `Bearer ${token}`
+        );
       } else {
         cfg.headers = {
           ...(cfg.headers || {}),
           Authorization: `Bearer ${token}`,
-        } as any;
+        } as AxiosRequestHeaders;
       }
     } else {
-      console.log('[API] No token found (web/localStorage o nativo/SecureStore)');
+      logger.warn('[API] No access token found; request will be unauthenticated');
     }
     return cfg;
   });
 
-  // Maneja el refresh si da 401
+  // SECURITY: Handle 401 via token refresh and 429 via Retry-After.
   api.interceptors.response.use(
     (res) => res,
     async (error: AxiosError) => {
-      const original = error.config as (AxiosRequestConfig & {
-        _retry?: boolean;
-      }) | undefined;
+      const original = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
+
+      // SECURITY: 429 – respect Retry-After and surface a user-friendly message
+      if (error.response?.status === 429) {
+        const retryAfterHeader = (error.response.headers as Record<string, string>)['retry-after'];
+        const seconds = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60;
+        rateLimitedUntil = Date.now() + seconds * 1000;
+        throw {
+          status: 429,
+          error: `Demasiadas solicitudes. Por favor, esperá ${seconds} segundos antes de intentar de nuevo.`,
+          retryAfter: seconds,
+        };
+      }
 
       if (error.response?.status === 401 && original && !original._retry) {
         original._retry = true;
@@ -129,19 +159,12 @@ export function getApi(): AxiosInstance {
         const newAccess = await doRefresh();
 
         if (newAccess) {
-          // Actualizo headers globales y de la request original
           api!.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
           original.headers = withAuthHeader(original.headers, newAccess);
-
-  // 👇 Usamos el helper para que SIEMPRE se setee el header bien
-  original.headers = withAuthHeader(original.headers, newAccess);
-
-  
-
-  console.log('[RETRYING WITH TOKEN]', newAccess.slice(0, 20) + '...');
-  console.log('[HEADERS]', original.headers);
-  return api!.request(original);
-}
+          // SECURITY: Log only the fact of the retry, never the token value
+          logger.log('[API] Retrying request after token refresh');
+          return api!.request(original);
+        }
       }
 
       throw error;

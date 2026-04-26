@@ -1,29 +1,43 @@
-// components/DotsLoader.tsx
-import React from "react";
-import { View } from "react-native";
-import { MotiView } from "moti";
+import React from 'react';
+import { StyleProp, View, ViewStyle } from 'react-native';
+import { MotiView } from 'moti';
+import { Colors } from '@/themes/colors';
 
-export const DotsLoader = () => {
+interface DotsLoaderProps {
+  size?: number;
+  color?: string;
+  style?: StyleProp<ViewStyle>;
+}
+
+export const DotsLoader: React.FC<DotsLoaderProps> = ({
+  size = 9,
+  color = Colors.violet4,
+  style,
+}) => {
   return (
-    <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 20 }}>
+    <View
+      style={[
+        { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
+        style,
+      ]}
+    >
       {[0, 1, 2].map((i) => (
         <MotiView
           key={i}
           from={{ opacity: 0.3, translateY: 0 }}
-          animate={{ opacity: 1, translateY: -5 }}
+          animate={{ opacity: 1, translateY: -(size * 0.55) }}
           transition={{
-            type: "timing",
-            duration: 500,
-            delay: i * 200,
+            type: 'timing',
+            duration: 480,
+            delay: i * 180,
             loop: true,
           }}
           style={{
-            width: 10,
-            height: 10,
-            marginTop:150,
-            borderRadius: 5,
-            backgroundColor: "#4B0082", // violeta
-            marginHorizontal: 5,
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            backgroundColor: color,
+            marginHorizontal: size * 0.45,
           }}
         />
       ))}

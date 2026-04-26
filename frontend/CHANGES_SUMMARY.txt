@@ -1,0 +1,204 @@
+===========================================================================
+JEX APP – SECURITY, CODE QUALITY & DEPENDENCY INTEGRATION CHANGES
+===========================================================================
+Author : Carlos Ibarguren
+Date   : 2026-04-21
+Scope  : Security audit, web compatibility, new dependency integrations
+         (excl. authentication biometrics and chat replacement)
+===========================================================================
+
+
+───────────────────────────────────────────────────────────────────────────
+1. LOGGER SEGURO (services/internal/logger.ts)  [NUEVO]
+───────────────────────────────────────────────────────────────────────────
+• Creado logger que es no-op en producción (__DEV__ === false).
+• Sanitiza valores de claves sensibles (access, refresh, password, token,
+  email, cuil, dni, phone) antes de emitir al console.
+• Todos los console.log/warn/error del proyecto fueron migrados a
+  logger.log/warn/error para evitar fuga de datos en producción.
+
+Archivos migrados (console → logger):
+  hooks/**/*.ts (36 archivos)
+  app/auth/register/index.tsx
+  app/employee/profile/index.tsx
+  app/employer/candidates/offer.tsx
+  app/employer/profile/index.tsx
+  components/image/UploadImage.tsx
+  components/image/UploadImagesGrid.tsx
+  services/internal/useDataTransformation.ts
+  services/internal/useDeepLinkDebug.ts
+  services/stream/streamClient.ts
+
+
+───────────────────────────────────────────────────────────────────────────
+2. ALMACENAMIENTO SEGURO MULTIPLATAFORMA (services/internal/secureStorage.ts)  [NUEVO]
+───────────────────────────────────────────────────────────────────────────
+• Abstracción que usa expo-secure-store en nativo (iOS Keychain /
+  Android Keystore, hardware-backed) y localStorage en web.
+• Todos los hooks que importaban expo-secure-store directamente fueron
+  migrados a esta abstracción.
+
+Archivos migrados:
+  hooks/auth/reset-password/useMailConfirmation.ts
+  hooks/auth/reset-password/useCodeValidation.ts
+  hooks/auth/reset-password/useNewPassword.ts
+  hooks/employee/profile/settings/useChangePasswordTwo.ts
+  services/external/mercado-pago/useMercadoPagoOAuth.ts
+  services/internal/notifications/usePushNotifications.ts
+  (useTokenStorage.ts ya usaba la abstracción)
+
+
+───────────────────────────────────────────────────────────────────────────
+3. HTTPS ENFORCEMENT (config.ts)
+───────────────────────────────────────────────────────────────────────────
+• Hard throw en producción si API_BASE_URL no empieza con "https://".
+• Lee variable de entorno EXPO_PUBLIC_API_URL; IP local como fallback dev.
+
+
+───────────────────────────────────────────────────────────────────────────
+4. INTERCEPTOR AXIOS – RATE LIMIT 429 (services/internal/api.ts)
+───────────────────────────────────────────────────────────────────────────
+• Variable rateLimitedUntil bloquea requests localmente mientras dure
+  el período de espera.
+• Lee cabecera Retry-After para calcular el bloqueo.
+• Mensaje de error en español al usuario cuando hay 429.
+• Eliminado log que imprimía token de acceso en consola.
+• Tipados `any` en withAuthHeader reemplazados con tipos explícitos.
+
+
+───────────────────────────────────────────────────────────────────────────
+5. RBAC – GUARDS DE NAVEGACIÓN
+───────────────────────────────────────────────────────────────────────────
+• app/employee/_layout.tsx: guard con validateToken('employee'); redirige
+  a '/' si el JWT no tiene el rol correcto o está expirado.
+• app/employer/_layout.tsx: igual para 'employer'.
+
+
+───────────────────────────────────────────────────────────────────────────
+6. ERROR BOUNDARY (components/errors/ErrorBoundary.tsx)  [NUEVO]
+───────────────────────────────────────────────────────────────────────────
+• Clase React.Component que captura errores de render.
+• Muestra UI de fallback en español sin exponer stack traces.
+• Solo loguea (console.error gateado con __DEV__) en desarrollo.
+• Botón "Volver al inicio" hace router.replace('/').
+• Aplicado en app/_layout.tsx, app/employee/_layout.tsx,
+  app/employer/_layout.tsx.
+
+
+───────────────────────────────────────────────────────────────────────────
+7. VALIDACIONES ZOD + SANITIZACIÓN HTML (services/validation/schemas.ts)  [NUEVO]
+───────────────────────────────────────────────────────────────────────────
+• Requiere instalación: npm install zod
+• stripHtml transform elimina etiquetas HTML de todos los campos de texto.
+• Schemas: loginSchema, registerAccountSchema, registerEmployeeSchema,
+  registerEmployerSchema, profileDescriptionSchema, vacancySchema,
+  newPasswordSchema.
+• Aplicado en hooks/useLogin.ts y hooks/auth/register/useRegisterAccount.ts.
+
+
+───────────────────────────────────────────────────────────────────────────
+8. CUMPLIMIENTO LEY 25.326 (services/internal/useConsentStorage.ts)  [NUEVO]
+───────────────────────────────────────────────────────────────────────────
+• saveConsentTimestamp() guarda timestamp ISO 8601 del momento exacto de
+  consentimiento, usando secureStorage.
+• hooks/auth/register/useRegisterEmployee.ts llama saveConsentTimestamp()
+  después del registro exitoso.
+• "Eliminar cuenta y datos" agregado en opciones de perfil de empleado y
+  empleador (DELETE /api/auth/user/delete/).
+
+
+───────────────────────────────────────────────────────────────────────────
+9. NOTIFICACIONES PUSH – COMPATIBILIDAD WEB
+   (services/internal/notifications/usePushNotifications.ts)
+───────────────────────────────────────────────────────────────────────────
+• Guards Platform.OS !== 'web' en registerForPushNotificationsAsync y en
+  el useEffect de listeners.
+• expo-secure-store reemplazado por secureStorage abstraction.
+• console.* → logger.*.
+
+
+───────────────────────────────────────────────────────────────────────────
+10. TOKENS – LIMPIEZA DE DEBUG
+    (hooks/employee/profile/useProfile.ts,
+     hooks/employer/profile/useProfileEmployer.ts)
+───────────────────────────────────────────────────────────────────────────
+• Eliminada función debugTokens() que imprimía los tokens ACCESS y REFRESH
+  en claro por consola.
+• Eliminado import directo de expo-secure-store; reemplazado con getToken()
+  de useTokenStorage.
+
+
+───────────────────────────────────────────────────────────────────────────
+11. TIPOS – ELIMINACIÓN DE `any` EN RUTAS CRÍTICAS
+───────────────────────────────────────────────────────────────────────────
+• services/internal/useTokenValidations.ts: [k: string]: any → interfaz
+  DecodedToken explícita con role, exp, sub, iat.
+• services/internal/useBackendConection.ts: any → NormalizedError interface.
+• hooks/useLogin.ts: DecodedToken tipado, saveTokens tipado.
+• hooks/employee/profile/useEditBasicInfo.ts: res: any → res, payload: any
+  → payload: Record<string, unknown>.
+• hooks/employer/candidates/useCreateOffer.ts: formatDDMMYYYY → formatDate.
+
+
+───────────────────────────────────────────────────────────────────────────
+12. ESLINT (eslint.config.js)
+───────────────────────────────────────────────────────────────────────────
+• Reglas añadidas:
+    'no-console': ['error', { allow: [] }]
+    '@typescript-eslint/no-explicit-any': 'error'
+    '@typescript-eslint/no-unsafe-assignment': 'warn'
+
+
+───────────────────────────────────────────────────────────────────────────
+13. expo-image – CACHÉ DE IMÁGENES  [NUEVA DEPENDENCIA]
+    npm install expo-image
+───────────────────────────────────────────────────────────────────────────
+• Reemplaza Image de react-native por Image de expo-image con
+  cachePolicy="memory-disk" en todas las imágenes remotas.
+• Prop resizeMode → contentFit (API de expo-image).
+• Archivos modificados:
+    components/image/ImageOnline.tsx       – import + contentFit + cachePolicy
+    components/image/UploadImage.tsx       – ExpoImage para displayUri;
+                                             RNImage conservado para
+                                             resolveAssetSource (sólo static)
+    components/others/Carousel.tsx         – import + contentFit + cachePolicy
+    components/others/LocationMapCard.tsx  – import + contentFit + cachePolicy
+
+
+───────────────────────────────────────────────────────────────────────────
+14. dayjs – FORMATEO DE FECHAS CENTRALIZADO  [NUEVA DEPENDENCIA]
+    npm install dayjs
+───────────────────────────────────────────────────────────────────────────
+• Creado services/internal/formatDate.ts con:
+    formatDate(date)          → "dd/mm/yyyy"
+    parseExpirationMs(str,t)  → ms para ordenar por vencimiento
+    fromNow(date)             → "hace 3 días" (locale es)
+    formatFull(date)          → "lun. 12 mar. 2025"
+• Plugins: customParseFormat, relativeTime. Locale: es.
+• Eliminadas funciones locales de formateo de fecha en:
+    hooks/employee/offers/useHomeOffers.ts
+    hooks/employee/offers/useDetailOffers.ts
+    hooks/employee/profile/useEditBasicInfo.ts
+    hooks/employee/profile/useEditEducation.ts       (toDDMMYYYY via formatDate)
+    hooks/employee/profile/useEditExperience.ts      (toDDMMYYYY via formatDate)
+    hooks/auth/register/useRegisterEmployee.ts       (formatearFecha)
+    hooks/auth/additional-info/useStepTwo.ts         (toDDMMYYYY via formatDate)
+    hooks/employer/candidates/useCreateOffer.ts      (formatDDMMYYYY)
+    hooks/employer/candidates/useSearchEmployees.ts  (ddmmyyyy via formatDate)
+    hooks/employer/panel/create-event/useCreateEvent.ts (inline formateo)
+    hooks/employer/panel/vacancy/useCreateVacancy.ts    (formatearFecha)
+    hooks/employer/panel/vacancy/useEditVacancy.ts      (formatearFecha)
+
+
+───────────────────────────────────────────────────────────────────────────
+15. PENDIENTE (fuera del scope de esta sesión)
+───────────────────────────────────────────────────────────────────────────
+• react-hook-form + @hookform/resolvers: refactor de formularios de
+  perfil (useEditBasicInfo, etc.). La lógica de validación y estado de
+  cada formulario pasaría a useForm + zodResolver.
+• socket.io-client + react-native-gifted-chat: reemplazar Stream Chat.
+• expo-local-authentication: login biométrico (post-autenticación).
+
+===========================================================================
+FIN DEL RESUMEN
+===========================================================================

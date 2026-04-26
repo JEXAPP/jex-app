@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -45,7 +46,7 @@ export const useManipulateVacancy = () => {
           estadosCache = Array.isArray(result) ? (result as EstadoDTO[]) : [];
           return estadosCache;
         } catch (e) {
-          console.log('[useManipulateVacancy] Error cargando estados:', e);
+          logger.log('[useManipulateVacancy] Error cargando estados:', e);
           estadosCache = [];
           return estadosCache;
         } finally {
@@ -86,10 +87,10 @@ export const useManipulateVacancy = () => {
         setEstadoActual(nombre);
         setVacanteOculta(nombre === 'Oculta');
       } else {
-        console.log('[useManipulateVacancy] Estado no reconocido en /vacancies/{id}/details');
+        logger.log('[useManipulateVacancy] Estado no reconocido en /vacancies/{id}/details');
       }
     } catch (err) {
-      console.log('[useManipulateVacancy] Error cargando detalle de vacante:', err);
+      logger.log('[useManipulateVacancy] Error cargando detalle de vacante:', err);
     }
   }, []);
 
@@ -126,7 +127,7 @@ export const useManipulateVacancy = () => {
         await fetchEstadoActual(vacanteId, ests);
       } catch (err) {
         if (mounted) setEstadosVacante([]);
-        console.log('Error inicial useManipulateVacancy:', err);
+        logger.log('Error inicial useManipulateVacancy:', err);
       } finally {
         if (mounted) setLoadingEstados(false);
       }
@@ -137,7 +138,7 @@ export const useManipulateVacancy = () => {
   const cambiarEstadoVacante = useCallback(
     async (vacId: number, nombreEstado: EstadoNombre) => {
       const estado = estadosMap.get(nombreEstado.toLowerCase());
-      if (!estado) { console.log(`No se encontró el estado "${nombreEstado}"`); return null; }
+      if (!estado) { logger.log(`No se encontró el estado "${nombreEstado}"`); return null; }
 
       try {
         await requestRef.current(`/api/vacancies/${vacId}/state/`, { state_id: estado.id }, 'PATCH');
@@ -145,7 +146,7 @@ export const useManipulateVacancy = () => {
         setVacanteOculta(nombreEstado === 'Oculta');
         return nombreEstado;
       } catch (error) {
-        console.log('Error al actualizar la vacante:', error);
+        logger.log('Error al actualizar la vacante:', error);
         return null;
       } finally {
         setAlerta(null);
@@ -171,7 +172,7 @@ export const useManipulateVacancy = () => {
 
   const onIrAEditar = useCallback(() => {
     if (!Number.isFinite(vacanteId)) {
-      console.log('No hay vacanteId válido para editar');
+      logger.log('No hay vacanteId válido para editar');
       return;
     }
     router.push(`/employer/panel/vacancy/edit-vacancy?id=${vacanteId}`);

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { Offer } from '@/constants/interfaces';
+import { parseExpirationMs } from '@/services/internal/formatDate';
+import { logger } from '@/services/internal/logger';
 
 type OrderKey = 'role' | 'expiration' | 'salary';
 type OrderDir = 'asc' | 'desc';
@@ -11,19 +13,6 @@ export const useHomeOffers = () => {
   const { requestBackend } = useBackendConection();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(true);
-
-  // Convierte fecha/hora de expiración a ms (para ordenar por vencimiento)
-  const parseExpirationMs = (expDate: string, expTime: string) => {
-    const [d, m, y] = String(expDate ?? '').split('/').map(Number);
-    const [hh, mm] = String(expTime ?? '').split(':').map(Number);
-    return new Date(
-      y ?? new Date().getFullYear(),
-      (m ?? 1) - 1,
-      d ?? 1,
-      hh ?? 0,
-      mm ?? 0
-    ).getTime();
-  };
 
   // Limpia string de salario a número (AR)
   const salaryToNumber = (s: string) => {
@@ -35,14 +24,6 @@ export const useHomeOffers = () => {
   const formatNumberAR = (v: string | number) => {
     const n = Number(v);
     return isNaN(n) ? String(v) : new Intl.NumberFormat('es-AR').format(n);
-  };
-
-  // Devuelve dd/mm/yyyy
-  const formatDate = (date: Date) => {
-    const d = date.getDate().toString().padStart(2, '0');
-    const m = (date.getMonth() + 1).toString().padStart(2, '0');
-    const y = date.getFullYear();
-    return `${d}/${m}/${y}`;
   };
 
   // Ordena ofertas según clave y dirección
@@ -80,7 +61,7 @@ export const useHomeOffers = () => {
         const data = await requestBackend('/api/applications/offers/consult/', null, 'GET');
         if (!mounted) return;
 
-        const normalized: Offer[] = (data ?? []).map((item: any) => {
+        const normalized: Offer[] = (data ?? []).map((item: Record<string, unknown>) => {
           // ✅ shift puede venir dentro de application o directo en el objeto
           const shiftFromApplication = item?.application?.shift;
           const shiftFromRoot = item?.shift;
@@ -124,7 +105,7 @@ export const useHomeOffers = () => {
         // Orden por defecto: vencimiento más temprano
         sortOffers('expiration', 'asc');
       } catch (e) {
-        console.log('Error al traer ofertas activas:', e);
+        logger.warn('Error al traer ofertas activas:', e);
       } finally {
         if (mounted) setLoadingOffers(false);
       }

@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
+import { secureGet } from '@/services/internal/secureStorage';
 import { useEffect, useState } from 'react';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useDataValidation } from '@/services/internal/useDataValidation';
@@ -47,10 +47,10 @@ export const useNewPassword = () => {
 
     setLoading(true);
     try {
-      const email = await SecureStore.getItemAsync('email-password-reset');
+      const email = await secureGet('email-password-reset');
       if (!email) throw new Error('Email no encontrado');
 
-      const codigo = await SecureStore.getItemAsync('code');
+      const codigo = await secureGet('code');
 
       await requestBackend(
         '/api/auth/password-reset-complete/',

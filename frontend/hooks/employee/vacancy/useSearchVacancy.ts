@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { Vacancy } from '@/constants/interfaces';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useRouter } from 'expo-router';
@@ -50,7 +51,7 @@ export const useSearchVacancy = () => {
         setRoles((data as any[]).map(r => ({ id: r.id, label: r.name })));
         rolesLoaded.current = true;
       } catch (error) {
-        console.log('Error al cargar roles', error);
+        logger.log('Error al cargar roles', error);
       }
     };
     fetchRoles();
@@ -86,7 +87,7 @@ export const useSearchVacancy = () => {
         }));
         setSuggestions(list);
       } catch (error) {
-        console.log('Error al obtener sugerencias de eventos', error);
+        logger.log('Error al obtener sugerencias de eventos', error);
         setSuggestions([]);
       }
       return;
@@ -136,7 +137,7 @@ export const useSearchVacancy = () => {
             .join('');
           url += parts;
         }
-      console.log(url)
+      logger.log(url)
       const data = await requestBackend(url, null, 'GET');
       const results: Vacancy[] = (data as any).results ?? [];
       const count: number = (data as any).count ?? 0;
@@ -153,7 +154,7 @@ export const useSearchVacancy = () => {
       const fetched = (reset ? 0 : vacancies.length) + results.length;
       setHasMore(fetched < count);
     } catch (error) {
-      console.log('Error al buscar vacantes', error);
+      logger.log('Error al buscar vacantes', error);
       setHasMore(false);
     } finally {
       if (reset) setIsLoadingFirstPage(false);

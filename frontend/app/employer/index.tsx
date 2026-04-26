@@ -8,44 +8,34 @@ import { iconos } from "@/constants/iconos";
 import { useAdminPanel } from "@/hooks/employer/useAdminPanel";
 import { adminPanelStyles as styles } from "@/styles/app/employer/adminPanelStyles";
 import HomeEventsSkeleton from "@/constants/skeletons/employer/homeEventsSkeleton";
+import { useGlobalEvent } from "./_layout";
+import EventSelectorHeader from "@/components/employer/EventSelectorHeader";
 
 export default function AdminPanelScreen() {
+  const { currentEvent, loading } = useGlobalEvent();
   const {
-    loading,
-    events,
-    currentEvent,
-    currentEventIndex,
-    handleNextEvent,
-    handlePrevEvent,
-    goToCreateEvent,
+    hasNewNotifications,
+    getOrderedButtons,
     goToEditEvent,
     goToVacancies,
     goToAttendance,
     goToNotifications,
     goToQualifications,
     goToReports,
-    getOrderedButtons,
-    hasNewNotifications, // NUEVO
   } = useAdminPanel();
 
   const [modalVisible, setModalVisible] = useState(false);
 
   if (loading) return <HomeEventsSkeleton />;
 
-  if (!currentEvent || events.length === 0) {
+  const stateName = currentEvent?.state?.name ?? '';
+
+  if (!currentEvent) {
     return (
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.container} edges={['left', 'right']}>
+        <EventSelectorHeader />
         <View style={styles.headerRow}>
           <Text style={styles.title}>Eventos</Text>
-
-          <IconButton
-            sizeButton={28}
-            styles={iconButtonStyles1}
-            onPress={goToCreateEvent}
-            icon={iconos.plus(20, Colors.white)}
-            backgroundColor={Colors.gray2}
-          />
-
           <View style={{ marginLeft: 100 }}>
             <View style={styles.notificationIconWrapper}>
               <IconButton
@@ -58,7 +48,6 @@ export default function AdminPanelScreen() {
             </View>
           </View>
         </View>
-
         <View style={styles.noEventsCard}>
           <Text style={styles.noEventsTitle}>No tienes ningún evento activo</Text>
           <Image
@@ -67,7 +56,7 @@ export default function AdminPanelScreen() {
             resizeMode="contain"
           />
           <Text style={styles.noEventsSubtitle}>
-            Apretá el botón + para crear tu próximo evento
+            Creá tu próximo evento desde el selector de arriba
           </Text>
         </View>
       </SafeAreaView>
@@ -90,11 +79,6 @@ export default function AdminPanelScreen() {
       icon: iconos.asistencia(22, Colors.violet4),
       action: () => goToAttendance(currentEvent.id),
     },
-    // {
-    //   label: "Contratación Tardía",
-    //   icon: iconos.reloj(22, Colors.violet4),
-    //   action: null,
-    // },
     {
       label: "Calificaciones",
       icon: iconos.estrella(22, Colors.violet4),
@@ -107,15 +91,7 @@ export default function AdminPanelScreen() {
     },
   ];
 
-  const enabledLabelsByState: Record<string, string[]> = {
-    Borrador: ["Vacantes", "Editar Evento"],
-    Publicado: ["Vacantes", "Contratación Tardía"],
-    "En curso": ["Asistencia"],
-    Finalizado: ["Calificaciones", "Reportes"],
-  };
-
-  const enabledLabels = enabledLabelsByState[currentEvent.estado?.name] ?? [];
-  const orderedButtons = getOrderedButtons(baseButtons);
+  const orderedButtons = getOrderedButtons(baseButtons, stateName);
 
   const renderButton = (button: any) => {
     const enabledLabels =
@@ -124,7 +100,7 @@ export default function AdminPanelScreen() {
         Publicado: ["Vacantes", "Contratación Tardía"],
         "En curso": ["Asistencia"],
         Finalizado: ["Calificaciones", "Reportes"],
-      }[currentEvent.estado?.name] ?? [];
+      }[stateName] ?? [];
 
     const disabled = !enabledLabels.includes(button.label);
 
@@ -148,21 +124,12 @@ export default function AdminPanelScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
+      <EventSelectorHeader />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.headerRow}>
-          <Text style={styles.title}>Eventos</Text>
-
-          <IconButton
-            sizeButton={24}
-            sizeContent={22}
-            styles={iconButtonStyles1}
-            onPress={goToCreateEvent}
-            icon={iconos.plus(22, Colors.white)}
-            backgroundColor={Colors.gray2}
-          />
-
-          <View style={{ marginLeft: 100 }}>
+          <Text style={styles.title}>Panel</Text>
+          <View style={{ marginLeft: 170 }}>
             <View style={styles.notificationIconWrapper}>
               <IconButton
                 styles={iconButtonStyles1}
@@ -175,34 +142,6 @@ export default function AdminPanelScreen() {
           </View>
         </View>
 
-        <View style={styles.eventRow}>
-          <View style={styles.sideSlot}>
-            {currentEventIndex > 0 && (
-              <TouchableOpacity onPress={handlePrevEvent}>
-                {iconos.flechaIzquierda(24, Colors.violet4)}
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={styles.centerSlot}>
-            <Text style={styles.eventName}>{currentEvent?.nombre}</Text>
-          </View>
-
-          <View style={styles.sideSlot}>
-            {currentEventIndex < events.length - 1 && (
-              <TouchableOpacity onPress={handleNextEvent}>
-                {iconos.flechaDerecha(24, Colors.violet4)}
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        {currentEvent?.estado?.name && (
-          <View style={styles.eventEstadoBadge}>
-            <Text style={styles.eventEstadoText}>{currentEvent.estado.name}</Text>
-          </View>
-        )}
-
         <View style={styles.cardsContainer}>
           {orderedButtons.map(renderButton)}
         </View>
@@ -212,7 +151,7 @@ export default function AdminPanelScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <Text style={styles.modalText}>
-              Esta opción está deshabilitada ya que el evento está {currentEvent?.estado?.name}.
+              Esta opción está deshabilitada ya que el evento está {stateName}.
             </Text>
 
             <TouchableOpacity

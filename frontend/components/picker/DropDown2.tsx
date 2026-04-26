@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import {Modal,View,Text,TouchableOpacity,FlatList, StyleProp, ViewStyle, TextStyle} from 'react-native';
+import { Modal, View, Text, TouchableOpacity, FlatList, StyleProp, ViewStyle, TextStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/themes/colors';
 
 interface Option {
   name: string;
@@ -12,39 +14,48 @@ export interface DropDownProps {
   id: string;
   onValueChange: (id: string) => void;
   styles: {
-      input: StyleProp<ViewStyle>;
-      modalOverlay:StyleProp<ViewStyle>;
-      modalContent: StyleProp<ViewStyle>;
-      option:StyleProp<ViewStyle>;
-      optionText: StyleProp<TextStyle>;
-      label: StyleProp<TextStyle>;
-      placeholder: StyleProp<TextStyle>;
+    input: StyleProp<ViewStyle>;
+    modalOverlay: StyleProp<ViewStyle>;
+    modalContent: StyleProp<ViewStyle>;
+    modalHeader?: StyleProp<ViewStyle>;
+    modalTitle?: StyleProp<TextStyle>;
+    option: StyleProp<ViewStyle>;
+    optionSelected?: StyleProp<ViewStyle>;
+    optionText: StyleProp<TextStyle>;
+    optionTextSelected?: StyleProp<TextStyle>;
+    checkIcon?: StyleProp<ViewStyle>;
+    divider?: StyleProp<ViewStyle>;
+    label: StyleProp<TextStyle>;
+    placeholder: StyleProp<TextStyle>;
   };
-  placeholder?: string; 
+  placeholder?: string;
+  title?: string;
 }
 
-export const DropDown2: React.FC<DropDownProps> = ({options, id, onValueChange, styles, placeholder = 'Seleccionar',}) => {
+export const DropDown2: React.FC<DropDownProps> = ({
+  options, id, onValueChange, styles, placeholder = 'Seleccionar', title,
+}) => {
   const [modalVisible, setModalVisible] = useState(false);
 
   const selectedLabel = options.find(opt => opt.id === id)?.name || placeholder;
   const isPlaceholder = !options.some(opt => opt.id === id);
 
   return (
-
     <View>
-
       <TouchableOpacity
-        style={[styles.input, styles?.input]}
+        style={styles.input}
         onPress={() => setModalVisible(true)}
+        activeOpacity={0.8}
       >
-        <Text style={isPlaceholder ? styles?.placeholder : styles?.label}>
+        <Text style={isPlaceholder ? styles.placeholder : styles.label}>
           {selectedLabel}
         </Text>
+        <Ionicons name="chevron-down" size={18} color={Colors.gray2} />
       </TouchableOpacity>
 
       <Modal
         visible={modalVisible}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
@@ -54,20 +65,36 @@ export const DropDown2: React.FC<DropDownProps> = ({options, id, onValueChange, 
           activeOpacity={1}
         >
           <View style={styles.modalContent}>
+            {title && (
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{title}</Text>
+              </View>
+            )}
             <FlatList
               data={options}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.option}
-                  onPress={() => {
-                    onValueChange(item.id);
-                    setModalVisible(false);
-                  }}
-                >
-                  <Text style={styles.optionText}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const selected = item.id === id;
+                return (
+                  <TouchableOpacity
+                    style={[styles.option, selected && styles.optionSelected]}
+                    onPress={() => {
+                      onValueChange(item.id);
+                      setModalVisible(false);
+                    }}
+                  >
+                    <Text style={selected && styles.optionTextSelected ? styles.optionTextSelected : styles.optionText}>
+                      {item.name}
+                    </Text>
+                    {styles.checkIcon && (
+                      <View style={styles.checkIcon}>
+                        {selected && <Ionicons name="checkmark" size={16} color={Colors.violet4} />}
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              }}
+              ItemSeparatorComponent={styles.divider ? () => <View style={styles.divider} /> : undefined}
             />
           </View>
         </TouchableOpacity>

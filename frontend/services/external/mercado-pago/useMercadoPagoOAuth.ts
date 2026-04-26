@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Linking } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
+import { secureGet, secureSet, secureDelete } from '@/services/internal/secureStorage';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { config } from '@/config';
 
@@ -82,7 +82,7 @@ export function useMercadoPagoOAuth(opts?: Options) {
   // ---- Estado local (persistencia mínima) ----
   const loadLocal = useCallback(async () => {
     try {
-      const raw = await SecureStore.getItemAsync(SECURE_KEY);
+      const raw = await secureGet(SECURE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as MpLinkedInfo;
         setInfo(parsed);
@@ -92,7 +92,7 @@ export function useMercadoPagoOAuth(opts?: Options) {
   }, []);
 
   const clearLocal = useCallback(async () => {
-    await SecureStore.deleteItemAsync(SECURE_KEY);
+    await secureDelete(SECURE_KEY);
     setInfo(null);
     setStatus('idle');
     setError(null);
@@ -155,7 +155,7 @@ export function useMercadoPagoOAuth(opts?: Options) {
           scope: data.scope,
           linked_at: data.linked_at,
         };
-        await SecureStore.setItemAsync(SECURE_KEY, JSON.stringify(linkedInfo));
+        await secureSet(SECURE_KEY, JSON.stringify(linkedInfo));
         setInfo(linkedInfo);
         setStatus('linked');
         return linkedInfo;

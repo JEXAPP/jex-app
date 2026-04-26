@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
@@ -51,7 +52,7 @@ export const useAssociateMP = () => {
             return;
           }
         } catch (e: any) {
-          console.warn('Error verificando asociación MP:', e.message);
+          logger.warn('Error verificando asociación MP:', e.message);
           setHasAccount(false);
         }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
+import type { SharedEvent } from "./useSharedEventSelector";
 
 export type OfferStatus =
   | "Pendiente"
@@ -17,18 +18,6 @@ export type PaymentState =
   | "APPROVED"
   | "PENDING"
   | "FAILURE";
-
-export type EventState = {
-  id: number;
-  name: string;
-};
-
-export type Event = {
-  id: number;
-  name: string;
-  state: EventState;
-  all_payed: boolean;
-};
 
 export type Offer = {
   id: number;
@@ -71,54 +60,23 @@ const filterToBackendIds: Record<FilterSimple, number[]> = {
   Otro: [3, 5],
 };
 
-export const useStateOffers = () => {
+// currentEvent: evento seleccionado proveniente del selector compartido en el layout
+export const useStateOffers = (currentEvent: SharedEvent | null) => {
   const { requestBackend } = useBackendConection();
 
-  const [events, setEvents] = useState<Event[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
-  const [currentEventIndex, setCurrentEventIndex] = useState(0);
   const [filter, setFilter] = useState<FilterSimple>("Aceptadas");
-  const [finalizedFilter, setFinalizedFilter] =
-    useState<FilterFinalized>("A_PAGAR");
+  const [finalizedFilter, setFinalizedFilter] = useState<FilterFinalized>("A_PAGAR");
 
   const [loading, setLoading] = useState(false);
-  const [loadingEvents, setLoadingEvents] = useState(false);
-  const [creatingPaymentId, setCreatingPaymentId] =
-    useState<number | null>(null);
+  const [creatingPaymentId, setCreatingPaymentId] = useState<number | null>(null);
   const [feePercent, setFeePercent] = useState<number | null>(null);
 
-  const currentEvent: Event | null = events[currentEventIndex] ?? null;
-
+  // Resetear filtros al cambiar de evento
   useEffect(() => {
-    const fetchEvents = async () => {
-      setLoadingEvents(true);
-      try {
-        const data = await requestBackend(
-          "/api/events/by-employer/",
-          null,
-          "GET"
-        );
-
-        if (Array.isArray(data)) {
-          const normalized: Event[] = data.map((e: any) => ({
-            id: e.id,
-            name: e.name,
-            state: {
-              id: e.state?.id ?? 0,
-              name: e.state?.name ?? "Publicado",
-            },
-            all_payed: Boolean(e.all_payed),
-          }));
-
-          setEvents(normalized);
-        }
-      } finally {
-        setLoadingEvents(false);
-      }
-    };
-
-    fetchEvents();
-  }, []);
+    setFilter("Aceptadas");
+    setFinalizedFilter("A_PAGAR");
+  }, [currentEvent?.id]);
 
   useEffect(() => {
     const fetchFeeDetails = async () => {
@@ -154,14 +112,12 @@ export const useStateOffers = () => {
 
     setLoading(true);
     try {
-      const isFinalized =
-        currentEvent.state.name === "Finalizado";
+      const isFinalized = currentEvent.state.name === "Finalizado";
 
       let all: any[] = [];
 
       if (isFinalized) {
-        const paymentStatus =
-          finalizedFilter === "A_PAGAR" ? 1 : 2;
+        const paymentStatus = finalizedFilter === "A_PAGAR" ? 1 : 2;
 
         const data = await requestBackend(
           `/api/applications/offers/${currentEvent.id}/state/6/?payment_status=${paymentStatus}`,
@@ -215,8 +171,7 @@ export const useStateOffers = () => {
           eventId: currentEvent.id,
           imageUrl: item?.profile_image,
           imageId: item?.profile_image_id,
-          payment_state:
-            (item?.payment_state as PaymentState) ?? "NOT_PAYED",
+          payment_state: (item?.payment_state as PaymentState) ?? "NOT_PAYED",
           payment_mp_id: item?.payment_mp_id ?? null,
           payment_date: item?.payment_date ?? null,
         };
@@ -272,30 +227,13 @@ export const useStateOffers = () => {
   };
 
   return {
-    currentEvent,
-    goNextEvent: () => {
-      if (currentEventIndex < events.length - 1) {
-        setCurrentEventIndex((p) => p + 1);
-        setFilter("Aceptadas");
-      }
-    },
-    goPrevEvent: () => {
-      if (currentEventIndex > 0) {
-        setCurrentEventIndex((p) => p - 1);
-        setFilter("Aceptadas");
-      }
-    },
-    canGoNext: currentEventIndex < events.length - 1,
-    canGoPrev: currentEventIndex > 0,
+    offers,
+    filteredOffers: offers,
     filter,
     setFilter,
     finalizedFilter,
     setFinalizedFilter,
-    offers,
-    filteredOffers: offers,
-    events,
     loading,
-    loadingEvents,
     creatingPaymentId,
     createPaymentLink,
     refreshOffers,

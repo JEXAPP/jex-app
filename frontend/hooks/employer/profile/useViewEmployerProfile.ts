@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 // hooks/employer/profile/useViewEmployerProfile.ts
 import { useEffect, useState } from "react";
 import useBackendConection from "@/services/internal/useBackendConection";
@@ -41,7 +42,7 @@ export const useViewEmployerProfile = () => {
 
         setData(mapped);
       } catch (e: any) {
-        console.log("Error cargando perfil de empleador:", e);
+        logger.log("Error cargando perfil de empleador:", e);
         if (mounted) {
           setError(e?.message || "Error al cargar el perfil del empleador.");
         }

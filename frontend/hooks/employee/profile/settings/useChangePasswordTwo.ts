@@ -8,10 +8,11 @@ import {
   TextInputKeyPressEventData,
   Vibration,
 } from "react-native";
-import * as SecureStore from "expo-secure-store";
+import { secureGet, secureSet } from "@/services/internal/secureStorage";
 
 import useBackendConection from "@/services/internal/useBackendConection";
 import { Colors } from "@/themes/colors";
+import { logger } from "@/services/internal/logger";
 
 type Params = {
   method?: string; // "sms" | "mail"
@@ -129,7 +130,7 @@ export const useChangePasswordTwo = () => {
 
         router.push("/employee/profile/settings/change-password-three");
       } else {
-        const email = await SecureStore.getItemAsync("email-password-reset");
+        const email = await secureGet("email-password-reset");
         if (!email) {
           throw new Error("Email no encontrado");
         }
@@ -144,11 +145,11 @@ export const useChangePasswordTwo = () => {
           throw new Error("Código incorrecto");
         }
 
-        await SecureStore.setItemAsync("code", codigo);
+        await secureSet("code", codigo);
         router.push("/employee/profile/settings/change-password-three");
       }
     } catch (error) {
-      console.log("El código no es válido:", error);
+      logger.warn("El código no es válido");
       resetInputsWithError();
     } finally {
       setLoading(false);
@@ -161,7 +162,7 @@ export const useChangePasswordTwo = () => {
       try {
         if (method === "sms") {
           if (!phone) {
-            console.warn("Teléfono no disponible para enviar código");
+            logger.warn("Teléfono no disponible para enviar código");
             return;
           }
 
@@ -179,7 +180,7 @@ export const useChangePasswordTwo = () => {
 
           const email = data?.email;
           if (!email) {
-            console.warn("Email no disponible para enviar código");
+            logger.warn("Email no disponible para enviar código");
             return;
           }
 
@@ -189,10 +190,10 @@ export const useChangePasswordTwo = () => {
             "POST"
           );
 
-          await SecureStore.setItemAsync("email-password-reset", email);
+          await secureSet("email-password-reset", email);
         }
       } catch (e: any) {
-        console.warn("Error enviando código de cambio de contraseña:", e.message);
+        logger.warn("Error enviando código de cambio de contraseña:", (e as Error).message);
       }
     };
 

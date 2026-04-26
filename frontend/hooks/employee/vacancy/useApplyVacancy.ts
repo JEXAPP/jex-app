@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 // src/hooks/employee/vacancy/useApplyVacancy.ts
 import { Job, Organizer, Requirement } from '@/constants/interfaces';
 import useBackendConection from '@/services/internal/useBackendConection';
@@ -197,7 +198,7 @@ export const useApplyVacancy = () => {
       setTurnos(turnosOrdenados);
 
     } catch (err: any) {
-      console.log('Hubo un error al cargar los datos:', err);
+      logger.log('Hubo un error al cargar los datos:', err);
       setErrorMessage('Error al cargar los datos del trabajo');
       setShowError(true);
     } finally {
@@ -220,7 +221,7 @@ export const useApplyVacancy = () => {
         setShowSuccess(false);
       }, 1500);
     } catch (err: any) {
-      console.log('Error al postularse:', err);
+      logger.log('Error al postularse:', err);
       setErrorMessage(err?.error ?? 'No se pudo completar la postulación');
       setShowError(true);
     } finally {

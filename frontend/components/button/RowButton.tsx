@@ -14,6 +14,7 @@ type Props = {
   onPress: (event: GestureResponderEvent) => void;
   styles: any;
   rightIcon?: React.ReactNode;
+  disabled?: boolean;
 };
 
 const RowButton: React.FC<Props> = ({
@@ -22,12 +23,14 @@ const RowButton: React.FC<Props> = ({
   onPress,
   styles,
   rightIcon,
+  disabled,
 }) => {
   return (
     <TouchableOpacity
-      style={styles.row}
+      style={[styles.row, disabled && { opacity: 0.5 }]}
       activeOpacity={0.7}
       onPress={onPress}
+      disabled={disabled}
     >
       <View style={styles.iconWrapper}>{icon}</View>
 

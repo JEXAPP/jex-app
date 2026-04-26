@@ -1,3 +1,5 @@
+import { logger } from '@/services/internal/logger';
+import { formatDate } from '@/services/internal/formatDate';
 import { useUploadImageServ } from '@/services/external/cloudinary/useUploadImage';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { obtenerCoordenadasDesdeDireccion } from '@/services/external/sugerencias/useGeoRefAr';
@@ -43,7 +45,7 @@ export const useCreateEvent = () => {
         const response = await requestBackend('/api/events/categories/', null, 'GET');
         setRubros(response);
       } catch (err) {
-        console.log('Error al obtener rubros:', err);
+        logger.log('Error al obtener rubros:', err);
       }
     };
     fetchRubros();
@@ -127,20 +129,8 @@ export const useCreateEvent = () => {
         lng = lon2 ?? undefined;
       }
 
-      const fechaInicioFormateada = fechaInicioEvento
-        ? `${fechaInicioEvento.getDate().toString().padStart(2, '0')}/${(
-            fechaInicioEvento.getMonth() + 1
-          )
-            .toString()
-            .padStart(2, '0')}/${fechaInicioEvento.getFullYear()}`
-        : '';
-      const fechaFinFormateada = fechaFinEvento
-        ? `${fechaFinEvento.getDate().toString().padStart(2, '0')}/${(
-            fechaFinEvento.getMonth() + 1
-          )
-            .toString()
-            .padStart(2, '0')}/${fechaFinEvento.getFullYear()}`
-        : '';
+      const fechaInicioFormateada = fechaInicioEvento ? formatDate(fechaInicioEvento) : '';
+      const fechaFinFormateada = fechaFinEvento ? formatDate(fechaFinEvento) : '';
 
       const payload: {
         name: string;

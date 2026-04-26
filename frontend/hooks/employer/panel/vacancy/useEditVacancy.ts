@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import useBackendConection from '@/services/internal/useBackendConection';
+import { formatDate } from '@/services/internal/formatDate';
 import { useTokenValidations } from '@/services/internal/useTokenValidations';
 import { useLocalSearchParams } from 'expo-router';
 
@@ -24,12 +25,7 @@ type Vacante = {
 type Rol = { id: number; name: string };
 
 // ======================== utils ========================
-const formatearFecha = (d: Date): string => {
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-};
+const formatearFecha = (d: Date): string => formatDate(d);
 
 // Acepta Date, timestamp, "YYYY-MM-DD", "YYYY-MM-DDTHH:mm:ss...", "DD/MM/YYYY"
 const parseBackendDate = (v: unknown): Date | null => {

@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { Button } from '@/components/button/Button';
 import ImageOnline from '@/components/image/ImageOnline';
 import { Input } from '@/components/input/Input';
@@ -118,7 +119,7 @@ export default function CreateOfferScreen() {
       runSuccessAnim();
     } catch (e) {
       // si falla no mostramos animación
-      console.log('submitOffer error', e);
+      logger.log('submitOffer error', e);
     }
   };
 

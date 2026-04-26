@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 // useRegisterCodeValidation.ts
 import useBackendConection from '@/services/internal/useBackendConection';
 import { Colors } from '@/themes/colors';
@@ -78,7 +79,7 @@ export const useRegisterCodeValidation = () => {
         router.push(`./account?${qs}`); // Paso 3 (solo no-Google)
       }
     } catch (error) {
-      console.log('El código no es válido:', error);
+      logger.log('El código no es válido:', error);
       Vibration.vibrate(200);
       iniciarAnimacion();
       setBorderColors(Array(6).fill(Colors.red));

@@ -1,3 +1,5 @@
+import { logger } from '@/services/internal/logger';
+import { formatDate } from '@/services/internal/formatDate';
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 
@@ -33,13 +35,8 @@ const isNonEmpty = (s?: string | null) => !!s && s.trim().length > 0;
 const isDate = (d: Date | null) => d instanceof Date && !isNaN(d.getTime());
 const startLEEnd = (a: Date, b: Date) => a.getTime() <= b.getTime();
 
-const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-
-// Formato que espera el backend en input: DD/MM/YYYY
 const toDDMMYYYY = (d: Date | null): string | null =>
-  d
-    ? `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`
-    : null;
+  d ? formatDate(d) : null;
 
 // Parseo flexible para lo que devuelve el backend: DD/MM/YYYY o YYYY-MM-DD
 const parseBackendDate = (s: string | null | undefined): Date | null => {
@@ -133,7 +130,7 @@ export const useEditEducation = () => {
 
         setEstudios(mapped);
       } catch (e) {
-        console.log("Error cargando educación:", e);
+        logger.log("Error cargando educación:", e);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -314,7 +311,7 @@ export const useEditEducation = () => {
           rows.map((r: any) => ({ descripcion: r.label, placeId: r.id }))
         );
       } catch (e) {
-        console.log("Error sug universidades:", e);
+        logger.log("Error sug universidades:", e);
       }
     }, DEBOUNCE_MS);
   };
@@ -330,7 +327,7 @@ export const useEditEducation = () => {
           rows.map((r: any) => ({ descripcion: r.label, placeId: r.id }))
         );
       } catch (e) {
-        console.log("Error sug disciplinas:", e);
+        logger.log("Error sug disciplinas:", e);
       }
     }, DEBOUNCE_MS);
   };
@@ -353,7 +350,7 @@ export const useEditEducation = () => {
         image_url = res?.image_url ?? res?.secure_url ?? res?.url ?? null;
         image_id = res?.image_id ?? res?.public_id ?? null;
       } catch (e) {
-        console.log("Error subiendo imagen educación:", e);
+        logger.log("Error subiendo imagen educación:", e);
         image_url = null;
         image_id = null;
       }
@@ -420,7 +417,7 @@ export const useEditEducation = () => {
       setShowSuccess(true);
       return true;
     } catch (e) {
-      console.log("Error guardando educación:", e);
+      logger.log("Error guardando educación:", e);
       return false;
     } finally {
       setSaving(false);

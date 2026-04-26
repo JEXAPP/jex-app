@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import useBackendConection from "@/services/internal/useBackendConection";
@@ -52,7 +53,7 @@ export const useChangePasswordOne = () => {
           setPhoneMasked(maskPhone(data.phone));
         }
       } catch (e: any) {
-        console.warn("Error obteniendo mail y teléfono:", e.message);
+        logger.warn("Error obteniendo mail y teléfono:", e.message);
       } finally {
         setLoading(false);
       }
@@ -69,7 +70,7 @@ export const useChangePasswordOne = () => {
 
   const goToSmsValidation = () => {
     if (!realPhone) {
-      console.warn("No hay teléfono disponible");
+      logger.warn("No hay teléfono disponible");
       return;
     }
 

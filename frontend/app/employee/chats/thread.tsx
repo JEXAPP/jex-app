@@ -11,6 +11,7 @@ import {
   TypingIndicator,
   ScrollToBottomButton,
 } from 'stream-chat-expo';
+import { JEX_THEME } from '@/styles/components/chat/jexThemeStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
 import { getStreamClient } from '@/services/stream/streamClient';
@@ -22,8 +23,6 @@ function parseCid(cid: string) {
   const i = cid.indexOf(':');
   return i === -1 ? { type: '', id: '' } : { type: cid.slice(0, i), id: cid.slice(i + 1) };
 }
-
-const JexMessageList = (props: any) => <MessageList {...props} />;
 
 export default function ThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
@@ -76,27 +75,13 @@ export default function ThreadScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['top', 'left', 'right', 'bottom']}>
-      <OverlayProvider 
-        value={{
-        style: {
-          inlineDateSeparator: {
-            container: {
-              backgroundColor: Colors.violet4,
-              borderRadius: 10,
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 20
-            },
-            text: {
-              color: 'white',
-              fontFamily: 'interLightItalic',
-              fontSize: 11,
-            },
-          },
-        },
-      }}>
+      <OverlayProvider style={JEX_THEME}>
         <StreamChatUI client={client}>
-          {loading && <DotsLoader/>}
+          {loading && (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <DotsLoader />
+            </View>
+          )}
           {!loading && error && <Text style={{ color: 'red', padding: 16 }}>{error}</Text>}
           {!loading && !error && channel && (
             <StreamChannelUI channel={channel} hideStickyDateHeader={true} >
@@ -120,10 +105,10 @@ export default function ThreadScreen() {
                 <KeyboardAvoidingView
                   style={{ flex: 1 }}
                   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                  keyboardVerticalOffset={insets.bottom + 90}
+                  keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 68 : 0}
                 >
                   <View style={{ flex: 1 }}>
-                    <JexMessageList
+                    <MessageList
                       TypingIndicator={TypingIndicator}
                       ScrollToBottomButton={ScrollToBottomButton}
                       inverted={true}
@@ -131,7 +116,7 @@ export default function ThreadScreen() {
                     />
                   </View>
 
-                  <View style={[s.inputContainer, { paddingBottom: insets.bottom }]}>
+                  <View style={s.inputContainer}>
                     <MessageInput additionalTextInputProps={{
                         placeholder: 'Escribí un mensaje...',
                       }}/>

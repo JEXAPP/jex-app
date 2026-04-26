@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import useBackendConection from '@/services/internal/useBackendConection';
@@ -71,7 +72,7 @@ export function useJobDetails() {
       setLoading(true);
       try {
         const back = await requestBackend(`/api/applications/offer-detail/${offerId}/accepted/`, null, 'GET');
-        console.log(back);
+        logger.log(back);
         const shift = back?.shift;
 
         const requirements: string[] = Array.isArray(shift?.requirements)
@@ -102,7 +103,7 @@ export function useJobDetails() {
           setSelectedDay(null);
         }
       } catch (e: any) {
-        console.log('[API ERROR]', e?.response?.status, e?.config?.url, e?.response?.data);
+        logger.log('[API ERROR]', e?.response?.status, e?.config?.url, e?.response?.data);
       } finally {
         setLoading(false);
       }
@@ -122,15 +123,15 @@ export function useJobDetails() {
           null,
           'GET'
         );
-        console.log('[CHECK ATTENDANCE]', res);
+        logger.log('[CHECK ATTENDANCE]', res);
 
         if (res?.message === true) {
           alreadyMarked = true;
           setAttendanceEnabled(false);
-          console.log('[ATTENDANCE DISABLED ✅]');
+          logger.log('[ATTENDANCE DISABLED ✅]');
         }
       } catch (err) {
-        console.log('[ERROR CHECK ATTENDANCE]', err);
+        logger.log('[ERROR CHECK ATTENDANCE]', err);
       } finally {
         setGenerating(false);
       }
@@ -169,7 +170,7 @@ export function useJobDetails() {
       setQrValue(token || null);
       setShowQR(true);
     } catch (err: any) {
-      console.log('[ERROR GENERATE QR]', err?.response?.status, err?.response?.data);
+      logger.log('[ERROR GENERATE QR]', err?.response?.status, err?.response?.data);
     } finally {
       setGenerating(false);
     }

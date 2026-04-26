@@ -8,18 +8,20 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import * as Clipboard from "expo-clipboard";
 
 import {
   WorkHistoryItem,
   useWorkHistory,
-} from "@/hooks/employee/profile/work-history/useWorkHistory";
-import { workHistoryStyles as styles } from "@/styles/app/employee/profile/work-history/employeeWorkHistoryStyles";
+} from "@/hooks/employee/jobs/useWorkHistory";
+import { workHistoryStyles as styles } from "@/styles/app/employee/jobs/workHistoryStyles";
 
 import ImageOnline from "@/components/image/ImageOnline";
 import { DotsLoader } from "@/components/others/DotsLoader";
 import { ClickWindow } from "@/components/window/ClickWindow";
 import { clickWindowStyles1 } from "@/styles/components/window/clickWindowStyles1";
+import { Colors } from "@/themes/colors";
 
 type WorkHistoryCardProps = {
   item: WorkHistoryItem;
@@ -58,7 +60,6 @@ const WorkHistoryCard: React.FC<WorkHistoryCardProps> = ({ item, index }) => {
 
   const eventDateLabel = safeFormatDDMMYYYY(item.eventDate);
 
-  // Texto chico en header morado (como ya tenías)
   const headerPaymentLabel = item.isPaid
     ? item.doneAt
       ? `Realizado el ${safeFormatDDMMYYYY(item.doneAt)}`
@@ -66,8 +67,6 @@ const WorkHistoryCard: React.FC<WorkHistoryCardProps> = ({ item, index }) => {
     : "No se ha realizado el pago";
 
   const amountLabel = `${item.amount.toLocaleString("es-AR")} ${item.currency}`;
-
-  const counterpartyShape = "square";
 
   const copyReceipt = async () => {
     const text = item.paymentMpId ? String(item.paymentMpId) : "";
@@ -105,48 +104,85 @@ const WorkHistoryCard: React.FC<WorkHistoryCardProps> = ({ item, index }) => {
           </View>
 
           <Text style={styles.role}>{item.roleName}</Text>
-
         </View>
 
-        {/* Sección de experiencia y rating */}
+        {/* Sección de experiencia/rating o botón de calificación */}
         <View style={styles.body}>
-          <View style={styles.experienceRow}>
-            <Text style={styles.experienceLabel}>Tu experiencia con:</Text>
+          {item.isRated ? (
+            <>
+              <View style={styles.experienceRow}>
+                <Text style={styles.experienceLabel}>Tu experiencia con:</Text>
 
-            <View style={styles.counterpartyRow}>
+                <View style={styles.counterpartyRow}>
+                  <ImageOnline
+                    imageUrl={item.organizerImageUrl ?? undefined}
+                    size={32}
+                    shape="square"
+                    style={styles.counterpartyAvatar}
+                  />
+                  <Text style={styles.counterpartyName}>{item.organizerName}</Text>
+                </View>
+              </View>
+
+              <View style={styles.ratingRow}>
+                <View style={styles.starsRow}>
+                  {[...Array(5)].map((_, idx) => {
+                    const filled = idx + 1 <= Math.floor(item.ratingScore);
+                    const half =
+                      item.ratingScore - idx >= 0.5 && item.ratingScore - idx < 1;
+                    return (
+                      <Ionicons
+                        key={idx}
+                        name={filled ? "star" : half ? "star-half" : "star-outline"}
+                        size={20}
+                        color="#ffd103ff"
+                        style={{ marginRight: 2 }}
+                      />
+                    );
+                  })}
+                </View>
+                <Text style={styles.ratingValue}>{item.ratingScore.toFixed(1)}</Text>
+              </View>
+
+              <View style={styles.commentBubble}>
+                <Text style={styles.commentText}>{item.ratingComment}</Text>
+              </View>
+            </>
+          ) : (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.qualifyRow}
+              onPress={() =>
+                router.push({
+                  pathname: "/employee/profile/qualify",
+                  params: {
+                    employerId: item.employerId ?? "",
+                    employerName: item.organizerName,
+                    eventId: item.eventId,
+                    eventName: item.eventName,
+                    jobType: item.roleName,
+                    date: item.eventDate,
+                    time:
+                      item.startTime && item.endTime
+                        ? `${item.startTime} - ${item.endTime}`
+                        : "",
+                    imageUrl: item.organizerImageUrl || "",
+                  },
+                })
+              }
+            >
               <ImageOnline
                 imageUrl={item.organizerImageUrl ?? undefined}
-                size={32}
-                shape={counterpartyShape}
-                style={styles.counterpartyAvatar}
+                size={40}
+                shape="square"
+                style={{ borderRadius: 10 }}
               />
-              <Text style={styles.counterpartyName}>{item.organizerName}</Text>
-            </View>
-          </View>
-
-          <View style={styles.ratingRow}>
-            <View style={styles.starsRow}>
-              {[...Array(5)].map((_, idx) => {
-                const filled = idx + 1 <= Math.floor(item.ratingScore);
-                const half =
-                  item.ratingScore - idx >= 0.5 && item.ratingScore - idx < 1;
-                return (
-                  <Ionicons
-                    key={idx}
-                    name={filled ? "star" : half ? "star-half" : "star-outline"}
-                    size={20}
-                    color="#ffd103ff"
-                    style={{ marginRight: 2 }}
-                  />
-                );
-              })}
-            </View>
-            <Text style={styles.ratingValue}>{item.ratingScore.toFixed(1)}</Text>
-          </View>
-
-          <View style={styles.commentBubble}>
-            <Text style={styles.commentText}>{item.ratingComment}</Text>
-          </View>
+              <Text style={styles.qualifyButtonText}>
+                Calificá a {item.organizerName}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={Colors.violet4} />
+            </TouchableOpacity>
+          )}
 
           {item.isPaid ? (
             <View style={[styles.payBox, styles.payBoxPaid]}>
@@ -195,12 +231,7 @@ const WorkHistoryScreen: React.FC = () => {
   const { items, loading } = useWorkHistory();
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Historial de Trabajo</Text>
-        <View style={{ width: 26 }} />
-      </View>
-
+    <SafeAreaView style={styles.container} edges={["left", "right"]}>
       {loading ? (
         <View style={styles.loadingContainer}>
           <DotsLoader />

@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocalSearchParams } from 'expo-router';
 import useBackendConection from '@/services/internal/useBackendConection';
@@ -55,9 +56,9 @@ export function useAttendance() {
       setEmployees(normalized);
     } catch (e: any) {
       const status = e?.response?.status as number | undefined;
-      if (status === 401) console.warn('[ATTENDANCE] 401 no autorizado');
-      else if (status === 403) console.warn('[ATTENDANCE] 403 sin permisos');
-      else if (status === 404) console.warn('[ATTENDANCE] 404 evento no encontrado');
+      if (status === 401) logger.warn('[ATTENDANCE] 401 no autorizado');
+      else if (status === 403) logger.warn('[ATTENDANCE] 403 sin permisos');
+      else if (status === 404) logger.warn('[ATTENDANCE] 404 evento no encontrado');
       setEmployees([]);
     } finally {
       setLoadingEmployees(false);
@@ -148,10 +149,10 @@ export function useAttendance() {
       setTimeout(() => setIsScannerOpen(true), 250);
     } catch (e: any) {
       const status = e?.response?.status as number | undefined;
-      if (status === 400) console.warn('[CONFIRM] 400 solicitud inválida');
-      else if (status === 409) console.warn('[CONFIRM] 409 ya registrada / conflicto');
-      else if (status && status >= 500) console.warn('[CONFIRM] 5xx error del servidor');
-      else console.warn('[CONFIRM] error de red/cliente');
+      if (status === 400) logger.warn('[CONFIRM] 400 solicitud inválida');
+      else if (status === 409) logger.warn('[CONFIRM] 409 ya registrada / conflicto');
+      else if (status && status >= 500) logger.warn('[CONFIRM] 5xx error del servidor');
+      else logger.warn('[CONFIRM] error de red/cliente');
       setScanState({ kind: 'error', msg: 'No se pudo registrar.' });
     }
   }, [scannedToken, scanState.kind, requestBackend, fetchEmployees]);

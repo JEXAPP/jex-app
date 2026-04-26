@@ -1,3 +1,5 @@
+import { logger } from '@/services/internal/logger';
+import { formatDate } from '@/services/internal/formatDate';
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 
@@ -31,11 +33,8 @@ const isNonEmpty = (s?: string | null) => !!s && s.trim().length > 0;
 const isDate = (d: Date | null) => d instanceof Date && !isNaN(d.getTime());
 const startLEEnd = (a: Date, b: Date) => a.getTime() <= b.getTime();
 
-const pad2 = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-
-// salida al backend: siempre DD/MM/YYYY
 const toDDMMYYYY = (d: Date | null): string | null =>
-  d ? `${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}` : null;
+  d ? formatDate(d) : null;
 
 // parseo flexible de lo que venga del backend: DD/MM/YYYY o YYYY-MM-DD
 const parseBackendDate = (s: string | null | undefined): Date | null => {
@@ -146,7 +145,7 @@ export const useEditExperience = () => {
 
         setExperiencias(mapped);
       } catch (e) {
-        console.log("Error cargando experiencias:", e);
+        logger.log("Error cargando experiencias:", e);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -323,7 +322,7 @@ export const useEditExperience = () => {
           rows.map((r: any) => ({ descripcion: r.label, placeId: r.id }))
         );
       } catch (e) {
-        console.log("Error buscando cargos ESCO:", e);
+        logger.log("Error buscando cargos ESCO:", e);
       }
     }, DEBOUNCE_MS);
   };
@@ -347,7 +346,7 @@ export const useEditExperience = () => {
         image_url = res?.image_url ?? res?.secure_url ?? res?.url ?? null;
         image_id = res?.image_id ?? res?.public_id ?? null;
       } catch (err) {
-        console.log("Error subiendo imagen experiencia:", err);
+        logger.log("Error subiendo imagen experiencia:", err);
         image_url = null;
         image_id = null;
       }
@@ -417,7 +416,7 @@ export const useEditExperience = () => {
       setShowSuccess(true);
       return true;
     } catch (e) {
-      console.log("Error guardando experiencias:", e);
+      logger.log("Error guardando experiencias:", e);
       return false;
     } finally {
       setSaving(false);

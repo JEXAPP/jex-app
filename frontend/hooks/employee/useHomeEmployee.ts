@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { Vacancy } from '@/constants/interfaces';
 import useBackendConection from '@/services/internal/useBackendConection';
 import { useTokenValidations } from '@/services/internal/useTokenValidations';
@@ -31,7 +32,7 @@ export const useHomeEmployee = () => {
       setNearVacancies(near?.results || []);
       setLoadingComienzo(false);
     } catch (err) {
-      console.log('Error al obtener vacantes:', err);
+      logger.log('Error al obtener vacantes:', err);
       setErrorVacancies('No se pudieron cargar las vacantes');
       setLoadingComienzo(false);
     }
@@ -51,7 +52,7 @@ export const useHomeEmployee = () => {
         setHasNewNotifications(response.message);
       }
     } catch (err) {
-      console.log('Error al consultar nuevas notificaciones:', err);
+      logger.log('Error al consultar nuevas notificaciones:', err);
     }
   };
 

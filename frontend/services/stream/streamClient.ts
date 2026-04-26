@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 // services/external/streamClient.ts
 import { StreamChat } from "stream-chat";
 import {
@@ -41,7 +42,7 @@ export async function connectStream(requestBackend: RequestBackendFn) {
     try {
       await client.disconnectUser();
     } catch (e) {
-        console.warn("Error al desconectar usuario previo de Stream:", e);
+        logger.warn("Error al desconectar usuario previo de Stream:", e);
     }
   }
 
@@ -65,7 +66,7 @@ export async function disconnectStream() {
   try {
     await chatClient.disconnectUser();
   } catch (e) {
-    console.warn("Error al desconectar usuario de Stream:", e);
+    logger.warn("Error al desconectar usuario de Stream:", e);
   } finally {
     chatClient = null;
     connectedUserId = null;

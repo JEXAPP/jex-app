@@ -9,6 +9,8 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/themes/colors';
 import { dropdownStyles1 as s } from '@/styles/components/picker/dropdownStyles1';
 
 export type DropdownOption<T = any> = { label: string; value: T };
@@ -136,6 +138,11 @@ export function Dropdown<T = any>({
         >
           {item.label}
         </Text>
+        <View style={s.checkIcon}>
+          {selected && (
+            <Ionicons name="checkmark" size={16} color={Colors.violet4} />
+          )}
+        </View>
       </TouchableOpacity>
     );
   };
@@ -163,6 +170,7 @@ export function Dropdown<T = any>({
             data={options}
             keyExtractor={(it, i) => `${it.label}-${i}`}
             renderItem={renderItem}
+            ItemSeparatorComponent={() => <View style={s.divider} />}
             style={{ maxHeight: layout.h }}
             bounces={false}
             keyboardShouldPersistTaps="always"

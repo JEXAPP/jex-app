@@ -3,47 +3,86 @@ import { Borders } from "@/themes/borders";
 import { Colors } from "@/themes/colors";
 
 export const dropdown2Styles1 = StyleSheet.create({
-   input: {
-    fontFamily: 'interBold',
-    fontSize: 18,
-    color: Colors.violet5,
+  input: {
+    fontFamily: 'interSemiBold',
+    fontSize: 16,
+    color: Colors.violet4,
     textAlign: 'left',
     marginBottom: 20,
     backgroundColor: Colors.white,
-    padding: 17,
-    width: 310,
-    alignSelf: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 17,
+    alignSelf: 'stretch',
     borderRadius: Borders.soft,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: '#000000aa',
+    backgroundColor: 'rgba(0,0,0,0.45)',
   },
   modalContent: {
-    backgroundColor: Colors.gray1,
-    marginHorizontal: 40,
-    borderRadius: 10,
+    backgroundColor: Colors.white,
+    marginHorizontal: 28,
+    borderRadius: 18,
     maxHeight: '60%',
+    overflow: 'hidden',
+    shadowColor: Colors.violet4,
+    shadowOpacity: 0.18,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 12,
   },
-  optionText: {
-    color: Colors.black, 
-    fontSize: 16, 
-    fontFamily: 'interMedium' 
+  modalHeader: {
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(81,31,115,0.08)',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontFamily: 'interSemiBold',
+    color: Colors.violet4,
   },
   option: {
-    padding: 16,
-    borderBottomColor: Colors.gray12,
-    borderBottomWidth: 1,
+    paddingVertical: 15,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  label: { 
-    color: Colors.black, 
-    fontSize: 16, 
-    fontFamily: 'interMedium' 
+  optionSelected: {
+    backgroundColor: Colors.violet0,
   },
-  placeholder: { 
-    color: Colors.gray3, 
-    fontFamily: 'interMedium', 
-    fontSize: 16 
-  }
+  optionText: {
+    flex: 1,
+    color: Colors.gray3,
+    fontSize: 15,
+    fontFamily: 'interMedium',
+  },
+  optionTextSelected: {
+    flex: 1,
+    color: Colors.violet4,
+    fontSize: 15,
+    fontFamily: 'interSemiBold',
+  },
+  checkIcon: {
+    width: 22,
+    alignItems: 'center',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(81,31,115,0.06)',
+    marginHorizontal: 14,
+  },
+  label: {
+    color: Colors.black,
+    fontSize: 15,
+    fontFamily: 'interMedium',
+  },
+  placeholder: {
+    color: Colors.gray2,
+    fontFamily: 'interMedium',
+    fontSize: 15,
+  },
 });

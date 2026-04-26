@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Linking, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Linking } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { WebView } from 'react-native-webview';
@@ -99,7 +100,7 @@ export default function LocationMapCard({
         {/* MAPA */}
         <TouchableOpacity onPress={onPressMap} style={s.mapWrapper} activeOpacity={0.9}>
           {staticMapUrl ? (
-            <Image source={{ uri: staticMapUrl }} style={s.map} resizeMode="cover" />
+            <Image source={{ uri: staticMapUrl }} style={s.map} contentFit="cover" cachePolicy="memory-disk" />
           ) : (
             <WebView
               source={{ uri: embedUrl }}

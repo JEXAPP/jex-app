@@ -4,6 +4,9 @@ import { useDataValidation } from '@/services/internal/useDataValidation';
 import { obtenerCoordenadasDesdeDireccion } from '@/services/external/sugerencias/useGeoRefAr';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { saveConsentTimestamp } from '@/services/internal/useConsentStorage';
+import { logger } from '@/services/internal/logger';
+import { formatDate } from '@/services/internal/formatDate';
 
 export const useRegisterEmployee = () => {
   const router = useRouter();
@@ -33,13 +36,6 @@ export const useRegisterEmployee = () => {
   const handleUbicacion = (texto: string, coord: { lat: number; lng: number } | null) => {
     setUbicacion(texto);
     setCoords(coord);
-  };
-
-  const formatearFecha = (f: Date) => {
-    const d = String(f.getDate()).padStart(2, '0');
-    const m = String(f.getMonth() + 1).padStart(2, '0');
-    const y = f.getFullYear();
-    return `${d}/${m}/${y}`;
   };
 
   const handleChangeDni = (text: string) => {
@@ -133,7 +129,7 @@ export const useRegisterEmployee = () => {
         lat = lat2 ?? null;
         lng = lon2 ?? null;
       } catch (e) {
-        console.log('Error buscando coordenadas:', e);
+        logger.warn('Error buscando coordenadas:', e);
       }
     }
 
@@ -144,7 +140,7 @@ export const useRegisterEmployee = () => {
       latitude: lat,
       longitude: lng,
       dni: dni.replace(/\./g, ''),
-      birth_date: formatearFecha(fechaNacimiento!),
+      birth_date: formatDate(fechaNacimiento!),
       ...registroPrevio,
     };
 
@@ -153,7 +149,7 @@ export const useRegisterEmployee = () => {
       if (!desdeGoogle) {
         await requestBackend('/api/auth/register/employee/', payload, 'POST');
         const loginRes = await requestBackend('/api/auth/login/jwt/', { email, password }, 'POST');
-        const { access, refresh } = loginRes;
+        const { access, refresh } = loginRes as { access?: string; refresh?: string };
         const { setToken } = await import('@/services/internal/useTokenStorage');
         if (access) await setToken('access', access);
         if (refresh) await setToken('refresh', refresh);
@@ -161,11 +157,16 @@ export const useRegisterEmployee = () => {
         await requestBackend('/api/auth/register/employee/social/', payload, 'POST');
       }
 
+      // COMPLIANCE: Ley 25.326 – persist the exact timestamp of explicit consent
+      // so it can be synced to the backend after successful registration
+      await saveConsentTimestamp();
+
       setLoading(false);
       setShowSuccess(true);
-    } catch (error: any) {
+    } catch (error: unknown) {
       setLoading(false);
-      const mensaje = error?.response?.data?.message || 'No se pudo completar el registro';
+      const err = error as { error?: string };
+      const mensaje = err?.error ?? 'No se pudo completar el registro';
       setErrorMessage(mensaje);
       setShowError(true);
     }

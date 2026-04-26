@@ -1,3 +1,4 @@
+import { logger } from '@/services/internal/logger';
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import useBackendConection from "@/services/internal/useBackendConection";
@@ -64,7 +65,7 @@ export const useQuali = () => {
         if (vacancyRoles.length > 0) setSelectedRole(vacancyRoles[0]);
       }
     } catch (err) {
-      console.log("Error cargando roles:", err);
+      logger.log("Error cargando roles:", err);
     }
   };
 
@@ -92,7 +93,7 @@ export const useQuali = () => {
         setWorkersState([]);
       }
     } catch (err) {
-      console.log("Error cargando empleados:", err);
+      logger.log("Error cargando empleados:", err);
       setWorkersState([]);
     } finally {
       setLoading(false);
@@ -169,7 +170,7 @@ export const useQuali = () => {
 
       setShowSuccess(true);
     } catch (err: any) {
-      console.log("Error enviando calificaciones:", err);
+      logger.log("Error enviando calificaciones:", err);
       const backendMsg =
         err?.response?.data?.error ||
         err?.response?.data?.message ||

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
-  ActivityIndicator,
   FlatList,
   ScrollView,
   Text,
@@ -255,7 +254,7 @@ const AdminDashboardScreen = () => {
               {iconos.logout(28, Colors.gray3)}
               <Text style={styles.logoutText}>Cerrar Sesión</Text>
               {isLoggingOut && (
-                <ActivityIndicator size="small" color="#444" style={{ marginLeft: 10 }} />
+                <DotsLoader size={7} color={Colors.gray3} style={{ marginLeft: 10 }} />
               )}
             </TouchableOpacity>
           </View>

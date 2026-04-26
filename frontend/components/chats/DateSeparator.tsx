@@ -18,14 +18,11 @@ export function DateSeparator({ date }: { date?: Date }) {
   let label = '';
 
   if (isSameDay(d, today)) {
-    label = 'Hoy';
+    label = 'Today';
   } else if (isSameDay(d, yesterday)) {
-    label = 'Ayer';
+    label = 'Yesterday';
   } else {
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    label = `${day}/${month}/${year}`;
+    label = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   return (

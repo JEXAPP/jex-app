@@ -12,6 +12,7 @@ import {
   TypingIndicator,
   ScrollToBottomButton
 } from 'stream-chat-expo';
+import { JEX_THEME } from '@/styles/components/chat/jexThemeStyles';
 
 import { getStreamClient } from '@/services/stream/streamClient';
 import { threadStyles as s } from '@/styles/app/employee/chats/threadStyles';
@@ -25,8 +26,6 @@ function parseCid(cid: string) {
   const i = cid.indexOf(':');
   return i === -1 ? { type: '', id: '' } : { type: cid.slice(0, i), id: cid.slice(i + 1) };
 }
-
-const JexMessageList = (props: any) => <MessageList {...props} />;
 
 export default function EmployeeThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
@@ -102,28 +101,12 @@ export default function EmployeeThreadScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
-      <OverlayProvider 
-        value={{
-        style: {
-          inlineDateSeparator: {
-            container: {
-              backgroundColor: Colors.violet4,
-              borderRadius: 10,
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 20
-            },
-            text: {
-              color: 'white',
-              fontFamily: 'interLightItalic',
-              fontSize: 11,
-            },
-          },
-        },
-      }}>
+      <OverlayProvider style={JEX_THEME}>
         <StreamChatUI client={client as any}>
           {loading && (
-            <DotsLoader/>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <DotsLoader />
+            </View>
           )}
 
           {!loading && error && (
@@ -159,21 +142,19 @@ export default function EmployeeThreadScreen() {
                 <KeyboardAvoidingView
                   style={{ flex: 1 }}
                   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                  // similar a employer ThreadScreen
-                  keyboardVerticalOffset={10} 
+                  keyboardVerticalOffset={Platform.OS === 'ios' ? 68 : 0}
                 >
                   <View style={{ flex: 1 }}>
-                    <JexMessageList
+                    <MessageList
                       TypingIndicator={TypingIndicator}
                       ScrollToBottomButton={ScrollToBottomButton}
-                      inverted={true}   // Foro invertido, workers normal
+                      inverted={true}
                       DateSeparator={CustomDateSeparator}
-                      
                     />
                   </View>
 
                   {isWorkers && (
-                    <View style={[s.inputContainer]}>
+                    <View style={s.inputContainer}>
                       <MessageInput additionalTextInputProps={{
                         placeholder: 'Escribí un mensaje...',
                       }}/>

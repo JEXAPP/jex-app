@@ -26,13 +26,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/themes/colors';
 import { DateSeparator as JexDateSeparator } from '@/components/chats/DateSeparator';
 import { DotsLoader } from '@/components/others/DotsLoader';
+import { JEX_THEME } from '@/styles/components/chat/jexThemeStyles';
 
 function parseCid(cid: string) {
   const i = cid.indexOf(':');
   return i === -1 ? { type: '', id: '' } : { type: cid.slice(0, i), id: cid.slice(i + 1) };
 }
-
-const JexMessageList = (props: any) => <MessageList {...props} />;
 
 export default function AnnouncementThreadScreen() {
   const { cid: cidParam } = useLocalSearchParams<{ cid?: string }>();
@@ -104,28 +103,12 @@ export default function AnnouncementThreadScreen() {
 
   return (
     <SafeAreaView style={s.container} edges={['bottom', 'left', 'right']}>
-     <OverlayProvider 
-        value={{
-        style: {
-          inlineDateSeparator: {
-            container: {
-              backgroundColor: Colors.violet4,
-              borderRadius: 10,
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: 20
-            },
-            text: {
-              color: 'white',
-              fontFamily: 'interLightItalic',
-              fontSize: 11,
-            },
-          },
-        },
-      }}>
+      <OverlayProvider style={JEX_THEME}>
         <StreamChatUI client={client}>
           {loading && (
-            <DotsLoader/>
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <DotsLoader />
+            </View>
           )}
 
           {!loading && error && (
@@ -169,10 +152,10 @@ export default function AnnouncementThreadScreen() {
                 <KeyboardAvoidingView
                   style={s.chatWrapper}
                   behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                  keyboardVerticalOffset={0}
+                  keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top + 68 : 0}
                 >
                   <View style={s.messagesWrapper}>
-                    <JexMessageList
+                    <MessageList
                       TypingIndicator={TypingIndicator}
                       ScrollToBottomButton={ScrollToBottomButton}
                       inverted={true}
@@ -180,12 +163,7 @@ export default function AnnouncementThreadScreen() {
                     />
                   </View>
 
-                  <View
-                    style={[
-                      s.inputContainer,
-                      { paddingBottom: 15 },
-                    ]}
-                  >
+                  <View style={[s.inputContainer, { paddingBottom: insets.bottom }]}>
                     <MessageInput additionalTextInputProps={{
                         placeholder: 'Escribí un mensaje...',
                       }}/>

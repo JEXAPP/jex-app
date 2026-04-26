@@ -4,8 +4,8 @@ import { Colors } from '@/themes/colors';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useMemo, useState } from 'react';
+import { Image as ExpoImage } from 'expo-image';
 import {
-  Image,
   ImageSourcePropType,
   ImageStyle,
   Platform,
@@ -146,7 +146,7 @@ export const UploadImage = ({
         onChange(file, uri);
       }
     } catch (error) {
-      console.log('Error al seleccionar imagen:', error);
+      // picker errors are non-critical; silently ignore
     }
   };
   // ----------------------------------------
@@ -212,14 +212,15 @@ export const UploadImage = ({
   return (
     <View style={containerStyle}>
       {!!displayUri && (
-        <Image
+        <ExpoImage
           source={{ uri: displayUri }}
           style={[
             { width: size, height: size, marginBottom: 10, alignSelf: 'center' },
             shape === 'circle' ? { borderRadius: size } : { borderRadius: 8 },
             imageStyle,
           ]}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="memory-disk"
         />
       )}
 

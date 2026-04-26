@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { MotiView } from 'moti';
 import { FlatList, Image, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/themes/colors';
@@ -9,6 +10,7 @@ import { iconos } from '@/constants/iconos';
 import { useChooseCandidates } from '@/hooks/employer/candidates/useChooseCandidates';
 import { chooseCandidatesStyles as s } from '@/styles/app/employer/candidates/chooseCandidatesStyles';
 import { useDataTransformation } from '@/services/internal/useDataTransformation';
+import { useCandidatesEvent } from './_layout';
 
 import ChooseCandidatesSkeleton from '@/constants/skeletons/employer/candidates/chooseCandidatesSkeleton';
 import { ApplicantsSquaresSkeleton } from '@/constants/skeletons/employer/candidates/applicantsSquaresSkeleton';
@@ -16,11 +18,10 @@ import { ApplicantsSquaresSkeleton } from '@/constants/skeletons/employer/candid
 export default function ChooseCandidatesScreen() {
   const [loadingScreen, setLoadingScreen] = useState(true);
 
-  const hook = useChooseCandidates();
+  const { currentEvent } = useCandidatesEvent();
+  const hook = useChooseCandidates(currentEvent?.name ?? null);
 
   const {
-    eventName,
-    currentEventIndex,
     vacancies,
     roleOptions,
     roleAnchorRef,
@@ -42,13 +43,10 @@ export default function ChooseCandidatesScreen() {
     hasNoEvents,
     currentEventHasNoVacancies,
     hasVacanciesButNoCandidates,
-    handlePrevEvent,
-    handleNextEvent,
     handleSelectVacancy,
     handleSelectShift,
     openCandidateDetail,
     splitFirstSpace,
-    totalEvents
   } = hook;
 
   const { formatFechaCorta } = useDataTransformation();
@@ -127,34 +125,6 @@ export default function ChooseCandidatesScreen() {
   return (
     <SafeAreaView style={s.container} edges={['left', 'right']}>
       <View>
-        <View style={s.eventRow}>
-          <View style={s.sideSlot}>
-            {currentEventIndex > 0 ? (
-              <TouchableOpacity
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                onPress={handlePrevEvent}
-              >
-                {iconos.flechaIzquierda(24, Colors.violet4)}
-              </TouchableOpacity>
-            ) : null}
-          </View>
-
-          <View style={s.centerSlot}>
-            <Text style={s.eventName}>{eventName || '—'}</Text>
-          </View>
-
-          <View style={s.sideSlot}>
-            {currentEventIndex < totalEvents - 1 ? (
-              <TouchableOpacity
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                onPress={handleNextEvent}
-              >
-                {iconos.flechaDerecha(24, Colors.violet4)}
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        </View>
-
         {vacancies.length > 0 && (
           <>
             <TouchableOpacity
@@ -268,7 +238,13 @@ export default function ChooseCandidatesScreen() {
                     numColumns={2}
                     columnWrapperStyle={s.column}
                     contentContainerStyle={{ paddingBottom: 24 }}
-                    renderItem={({ item }) => (
+                    renderItem={({ item, index }) => (
+                      <MotiView
+                        from={{ opacity: 0, scale: 0.92 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 60, type: 'spring', damping: 16, stiffness: 200 }}
+                        style={{ flex: 1 }}
+                      >
                       <TouchableOpacity
                         style={s.card}
                         activeOpacity={0.85}
@@ -318,6 +294,7 @@ export default function ChooseCandidatesScreen() {
                           )}
                         </View>
                       </TouchableOpacity>
+                      </MotiView>
                     )}
                   />
                 )}

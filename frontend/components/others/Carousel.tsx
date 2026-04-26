@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Image } from 'react-native';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 import CarouselLib from 'react-native-reanimated-carousel';
 import { carouselStyles1 } from '@/styles/components/others/carouselStyles1';
 
@@ -37,7 +38,8 @@ export const Carousel = ({ images }: CarouselProps) => {
           <Image
             source={typeof item === 'string' ? { uri: item } : item}
             style={carouselStyles1.image}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
           />
         )}
       />
