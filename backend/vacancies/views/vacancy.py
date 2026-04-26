@@ -1,11 +1,13 @@
 from django.forms import ValidationError
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from applications.models.offers import Offer
 from config.pagination import CustomPagination
 from vacancies.constants import VacancyStates
 from vacancies.errors.vacancies_messages import VACANCY_NOT_FOUND
 from vacancies.models.requirements import Requirements
 from vacancies.models.shifts import Shift
 from vacancies.models.vacancy import Vacancy
+from vacancies.serializers.shifts import ListOffersByShiftSerializer
 from vacancies.serializers.vacancy import EmployerEventsWithVacanciesSerializer, ListVacancyShiftSerializer, VacancyResponseSerializer, SearchVacancyParamsSerializer, SearchVacancyResultSerializer, VacancyDetailSerializer, VacancySerializer, VacancyWithShiftsSerializer
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -209,3 +211,25 @@ class ListVacancyWithShiftView(RetrieveAPIView):
             Prefetch('requirements', queryset=Requirements.objects.only('id', 'description')),
             Prefetch('shifts', queryset=Shift.objects.only('id', 'start_date', 'end_date', 'start_time', 'end_time', 'payment'))
         ).order_by('id')
+    
+class ListOffersByShiftView(ListAPIView):
+    serializer_class = ListOffersByShiftSerializer
+    permission_classes = [IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYER_ROLE]
+
+    def get_queryset(self):
+        employer = self.request.user.employer_profile
+        shift_id = self.kwargs["shift_pk"]
+
+        return (
+            Offer.objects
+            .filter(
+                employer=employer,
+                selected_shift_id=shift_id,
+            )
+            .select_related(
+                "state",
+                "employee__user__profile_image",
+            )
+            .order_by("-created_at")
+        )

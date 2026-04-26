@@ -301,6 +301,7 @@ class ShiftByVacancySerializer(serializers.ModelSerializer):
     end_date = serializers.SerializerMethodField()
     start_time = serializers.SerializerMethodField()
     end_time = serializers.SerializerMethodField()
+    payment = serializers.DecimalField(max_digits=10, decimal_places=2)
     quantity_offers = serializers.IntegerField()
 
     class Meta:
@@ -311,6 +312,7 @@ class ShiftByVacancySerializer(serializers.ModelSerializer):
             "end_date",
             "start_time",
             "end_time",
+            "payment",
             "quantity_offers",
         ]
 
