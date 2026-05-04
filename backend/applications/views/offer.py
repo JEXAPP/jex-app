@@ -23,7 +23,7 @@ from rest_framework.generics import RetrieveAPIView
 from user_auth.serializers.employee import EmployeeForOfferSearchSerializer, EmployeeProfileSearchSerializer, EmployeeSearchFilterSerializer
 from vacancies.models.shifts import Shift
 from vacancies.serializers.shifts import ListOfferEmployeeSerializer
-from django.db.models import Q, Exists, OuterRef
+from django.db.models import Exists, OuterRef
 
 class OfferCreateView(CreateAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]

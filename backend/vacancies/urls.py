@@ -22,6 +22,6 @@ urlpatterns = [
     path('by-employer/<int:event_id>/', EmployerEventsWithVacanciesByIdView.as_view(), name='vacancies-by-event-id'),
     path('<int:pk>/state/', UpdateVacancyStateView.as_view(), name='update-vacancy-state'),
     path('vacancy-states/', VacancyStateListView.as_view(), name='vacancy-states-list'),
-    path('<int:pk>/shifts/', ListVacancyWithShiftView.as_view(), name='list-vacancy-shifts'),
+    path('<int:pk>/shifts/', ListVacancyWithShiftView.as_view(), name='list-vacancy-shifts'), # Agregar la info de las ofertas, cuantas maximos puedo enviar, cuantas vigentes hay, como tambien cantidad de postulaciones activas que tiene ese turno
     path("shifts/<int:shift_pk>/offers/", ListOffersByShiftView.as_view(), name="list-offers-by-shift"),
 ]

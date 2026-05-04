@@ -1,5 +1,6 @@
 from django.forms import ValidationError
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView, UpdateAPIView
+from applications.constants import ApplicationStates, OfferStates
 from applications.models.offers import Offer
 from config.pagination import CustomPagination
 from vacancies.constants import VacancyStates
@@ -18,7 +19,7 @@ from rest_framework.response import Response
 from user_auth.constants import EMPLOYEE_ROLE, EMPLOYER_ROLE
 from rest_framework.exceptions import NotFound
 from eventos.models.event import Event
-from django.db.models import Prefetch
+from django.db.models import Q, Count, Prefetch
 
 class CreateVacancyView(CreateAPIView):
     serializer_class = VacancySerializer
@@ -204,12 +205,32 @@ class ListVacancyWithShiftView(RetrieveAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        # Seleccionamos job_type con select_related y prefetch solo los campos necesarios
+
+        shifts_qs = Shift.objects.only(
+            'id', 'start_date', 'end_date', 'start_time', 'end_time', 'payment', 'quantity'
+        ).annotate(
+            active_offers_count=Count(
+                "selected_offers",
+                filter=Q(
+                    selected_offers__state__name__in=[
+                        OfferStates.PENDING.value,
+                        OfferStates.ACCEPTED.value,
+                    ]
+                ),
+                distinct=True,
+            ),
+            pending_applications_count=Count(
+                "applications",
+                filter=Q(applications__state__name=ApplicationStates.PENDING.value),
+                distinct=True,
+            )
+        )
+
         return Vacancy.objects.filter(event__owner=user).select_related(
             'job_type'
         ).prefetch_related(
             Prefetch('requirements', queryset=Requirements.objects.only('id', 'description')),
-            Prefetch('shifts', queryset=Shift.objects.only('id', 'start_date', 'end_date', 'start_time', 'end_time', 'payment'))
+            Prefetch('shifts', queryset=shifts_qs)
         ).order_by('id')
     
 class ListOffersByShiftView(ListAPIView):

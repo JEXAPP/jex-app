@@ -4,7 +4,7 @@ from user_auth.views.auth import EmailTokenObtainPairView, CustomGoogleLoginView
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from user_auth.views.employee import CompleteEmployeeSocialView, DeleteEmployeeEducationView, DeleteEmployeeWorkExperienceView, EmployeeEducationView, EmployeeInterestsView, EmployeeProfileDescriptionView, EmployeeRegisterView, EmployeeValidateMailView, EmployeeWorkExperienceView, UpdateEmployeeEducationView, UpdateEmployeeProfileDescriptionView, UpdateEmployeeWorkExperienceView, ViewEmployeeEducation, ViewEmployeeInterests, ViewEmployeeProfileDescription, ViewEmployeeWorkExperience
-from user_auth.views.employer import CompleteEmployerSocialView, EmployerProfileDescriptionView, EmployerRegisterView, UpdateEmployerProfileDescriptionView, ViewEmployerProfileDescription
+from user_auth.views.employer import CompleteEmployerSocialView, EmployerNotifyView, EmployerProfileDescriptionView, EmployerRegisterView, UpdateEmployerProfileDescriptionView, ViewEmployerProfileDescription
 from user_auth.views.language import EmployeeLanguagesBulkUpdateView, EmployeeLanguagesView, LanguageLevelsView, LanguagesListView
 from user_auth.views.password_reset import PasswordResetCompleteView, PasswordResetRequestView, PasswordResetVerifyView
 from user_auth.views.phone_verification import SendPhoneVerificationCodeView, VerifyPhoneCodeView
@@ -47,5 +47,7 @@ urlpatterns = [
     path('employee/update-education/<int:pk>/', UpdateEmployeeEducationView.as_view(), name='update-employee-education'),
     path('employee/update-work-experience/<int:pk>/', UpdateEmployeeWorkExperienceView.as_view(), name='update-employee-work-experience'),
     path('employee/delete-education/<int:pk>/', DeleteEmployeeEducationView.as_view(), name='delete-employee-education'),
-    path('employee/delete-work-experience/<int:pk>/', DeleteEmployeeWorkExperienceView.as_view(), name='delete-employee-work-experience')
+    path('employee/delete-work-experience/<int:pk>/', DeleteEmployeeWorkExperienceView.as_view(), name='delete-employee-work-experience'),
+    path('employer/notify/', EmployerNotifyView.as_view(), name='employer-notify'),
+    path('employee/notify/', EmployerNotifyView.as_view(), name='employee-notify'),
 ]

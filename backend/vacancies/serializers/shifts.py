@@ -87,15 +87,23 @@ class ShiftForApplicationSerializer(serializers.ModelSerializer):
 
 
 class ShiftForOfferSerializer(serializers.ModelSerializer):
-
     start_date = CustomDateField()
     end_date = CustomDateField()
     start_time = CustomTimeField()
     end_time = CustomTimeField()
+    active_offers_count = serializers.IntegerField(read_only=True)
+    pending_applications = serializers.SerializerMethodField()
 
     class Meta:
         model = Shift
-        fields = ["id", "start_date", "end_date", "start_time", "end_time", "payment"]
+        fields = [
+            "id", "start_date", "end_date", "start_time", "end_time",
+            "payment", "quantity", "active_offers_count", "pending_applications"
+        ]
+
+    def get_pending_applications(self, obj):
+        count = getattr(obj, 'pending_applications_count', 0)
+        return count if count > 0 else None
 
 
 class ListOfferEmployeeSerializer(serializers.ModelSerializer):

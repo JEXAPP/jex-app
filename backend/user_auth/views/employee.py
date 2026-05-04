@@ -2,6 +2,10 @@ from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound, ValidationError
+from applications.constants import OfferStates
+from applications.models.offers import Offer
+from notifications.models.notification import Notification
+from rating.models.rating import Rating
 from user_auth.constants import EMPLOYEE_ROLE
 from user_auth.errors.user_errors_messages import EDUCATION_NOT_FOUND, EMAIL_REQUIRED, EMPLOYEE_PROFILE_NOT_FOUND, WORK_EXPERIENCE_NOT_FOUND
 from user_auth.models.education_certification import EducationCertification
@@ -12,6 +16,7 @@ from user_auth.serializers.employee import CompleteEmployeeSocialSerializer, Emp
 from user_auth.models.user import CustomUser
 from rest_framework import serializers
 from django.db import transaction
+from django.db.models import Exists, OuterRef
 
 class EmployeeRegisterView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -291,3 +296,47 @@ class DeleteEmployeeEducationView(APIView):
         education.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class EmployeeNotifyView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsInGroup]
+    required_groups = [EMPLOYEE_ROLE]
+
+    def get(self, request):
+        user = request.user
+        employee_profile = user.employee_profile
+
+        # 1. Notificaciones no leídas
+        has_unread_notifications = Notification.objects.filter(
+            user=user, read=False
+        ).exists()
+
+        # 2. Ofertas pendientes para el empleado
+        has_pending_offers = Offer.objects.filter(
+            employee=employee_profile, state__name=OfferStates.PENDING.value
+        ).exists()
+
+        # 3. Calificaciones pendientes al empleador
+        already_rated = Rating.objects.filter(
+            rater=user,
+            behavior__user=OuterRef("employer__user"),
+            event=OuterRef("selected_shift__vacancy__event"),
+        )
+        has_pending_ratings = (
+            Offer.objects.filter(
+                employee=employee_profile,
+                state__name__in=[
+                    OfferStates.COMPLETED.value,
+                    OfferStates.NOT_SHOWN.value,
+                ],
+            )
+            .exclude(Exists(already_rated))
+            .exists()
+        )
+
+        return Response(
+            {
+                "has_unread_notifications": has_unread_notifications,
+                "has_pending_offers": has_pending_offers,
+                "has_pending_ratings": has_pending_ratings,
+            }
+        )

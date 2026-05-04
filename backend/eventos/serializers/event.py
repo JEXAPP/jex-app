@@ -332,9 +332,10 @@ class ShiftByVacancySerializer(serializers.ModelSerializer):
 class VacancyByEventSerializer(serializers.ModelSerializer):
     vacancy_id = serializers.IntegerField(source="id")
     job_type_name = serializers.CharField(source="job_type.name")
-    shifts = ShiftByVacancySerializer(many=True, read_only=True)
     quantity_shifts = serializers.SerializerMethodField()
     shift_ids = serializers.SerializerMethodField()
+    has_active_application = serializers.BooleanField(read_only=True)
+
 
     class Meta:
         model = Vacancy
@@ -342,9 +343,9 @@ class VacancyByEventSerializer(serializers.ModelSerializer):
             "vacancy_id",
             "job_type_name",
             "specific_job_type",
-            "shifts",
             "quantity_shifts",
             "shift_ids",
+            "has_active_application",
         ]
 
     def get_quantity_shifts(self, obj):
