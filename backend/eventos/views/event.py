@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from eventos.formatters.date_time import CustomDateField, CustomTimeField
+from applications.models.applications import Application
 from payments.models.payments import Payment
 from rest_framework.generics import (
     CreateAPIView,
@@ -7,8 +7,8 @@ from rest_framework.generics import (
     RetrieveAPIView,
     UpdateAPIView,
     ValidationError,
-)
-from applications.constants import OfferStates
+) 
+from applications.constants import ApplicationStates, OfferStates
 from applications.models.offer_state import OfferState
 from eventos.constants import EventStates
 from eventos.errors.events_messages import (
@@ -48,6 +48,8 @@ from django.db.models import (
     Case,
     Count,
     DateField,
+    Exists,
+    OuterRef,
     When,
     Value,
     IntegerField,
@@ -147,7 +149,6 @@ class ListEventVacanciesView(ListAPIView):
     permission_classes = [IsAuthenticated, IsInGroup]
     required_groups = [EMPLOYER_ROLE, EMPLOYEE_ROLE]
 
-
     def get_queryset(self):
         shifts_qs = Shift.objects.annotate(
             quantity_offers=Count(
@@ -159,17 +160,33 @@ class ListEventVacanciesView(ListAPIView):
                     ]
                 ),
                 distinct=True,
-            )
+            ),
+            has_pending_application=Exists(
+                Application.objects.filter(
+                    shift=OuterRef("pk"),
+                    state__name=ApplicationStates.PENDING.value,
+                ),
+            ),
         )
 
         vacancies_qs = (
             Vacancy.objects.filter(state__name=VacancyStates.ACTIVE.value)
             .select_related("job_type")
             .prefetch_related(Prefetch("shifts", queryset=shifts_qs))
+            .annotate(
+                has_active_application=Exists(
+                    Application.objects.filter(
+                        shift__vacancy=OuterRef("pk"),
+                        state__name=ApplicationStates.PENDING.value,
+                    )
+                )
+            )
         )
 
         return (
-            Event.objects.filter(owner=self.request.user, state__name=EventStates.PUBLISHED.value)
+            Event.objects.filter(
+                owner=self.request.user, state__name=EventStates.PUBLISHED.value
+            )
             .select_related("state")
             .prefetch_related(Prefetch("vacancies", queryset=vacancies_qs))
         )
